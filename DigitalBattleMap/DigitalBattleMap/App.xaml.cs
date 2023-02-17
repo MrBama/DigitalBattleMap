@@ -13,5 +13,12 @@ namespace DigitalBattleMap
     /// </summary>
     public partial class App : Application
     {
+        private IWindowService _windowService = new WindowService();
+
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            MainWindow = new MainWindow(_windowService);
+            MainWindow.Show();
+        }
     }
 }

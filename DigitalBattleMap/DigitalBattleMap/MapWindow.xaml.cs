@@ -10,22 +10,18 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace DigitalBattleMap
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for MapWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MapWindow : Window
     {
-        public MainWindow(IWindowService windowService)
+        public MapWindow()
         {
             InitializeComponent();
-            var viewModel = new MainWindowViewModel();
-            viewModel.SetWindowService(windowService);
-            DataContext = viewModel;
         }
     }
 }

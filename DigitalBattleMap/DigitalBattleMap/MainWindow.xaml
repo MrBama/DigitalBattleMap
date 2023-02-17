@@ -3,10 +3,83 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DigitalBattleMap"
+        xmlns:local="clr-namespace:DigitalBattleMap" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="MainWindow" Height="900" Width="1700"
+        WindowStartupLocation="CenterScreen"
+        FontSize="15">
+    <Window.DataContext>
+        <local:MainWindowViewModel/>
+    </Window.DataContext>
 
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Closing">
+            <i:InvokeCommandAction Command="{Binding WindowClosingCommand}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+
+    <!--Main grid-->
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="3*"/>
+        </Grid.ColumnDefinitions>
+
+        <!--Control grid-->
+        <Grid Margin="0 0 10 0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+                <!--Grid control grid-->
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="5*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="4*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Content="Grid size in pixels"/>
+                <TextBox Grid.Column="1" Text="{Binding GridSize, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center">
+                    <TextBox.InputBindings>
+                        <KeyBinding Command="{Binding GridSizeEnterCommand}" Key="Enter" />
+                    </TextBox.InputBindings>
+                </TextBox>
+            </Grid>
+
+            <!--Settings grid-->
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="5*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="4*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Content="Monitor number"/>
+                <ComboBox Grid.Column="1" ItemsSource="{Binding MonitorNumbers}" SelectedIndex="{Binding SelectedMonitor}"/>
+                <Button Grid.Row="1" Content="Show map" Margin="0 10 0 0" Command="{Binding ShowMapCommand}"/>
+            </Grid>
+        </Grid>
+        
+        <!--Map grid-->
+        <Grid Grid.Column="1" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="1" BorderThickness="3" BorderBrush="Black">
+                <Image Source="{Binding GridBitMapSource}"/>
+            </Border>
+        </Grid>
     </Grid>
 </Window>
