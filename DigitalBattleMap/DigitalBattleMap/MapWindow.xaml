@@ -15,6 +15,6 @@
         <local:MapWindowViewModel/>
     </Window.DataContext>
     <Grid>
-        <Image Source="{Binding MapBitmapSource}"/>
+        <Image Source="{Binding MapBitmapSource}" Margin="6"/>
     </Grid>
 </Window>
