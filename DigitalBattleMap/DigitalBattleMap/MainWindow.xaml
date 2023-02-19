@@ -83,56 +83,74 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="auto"/>
                                     <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="auto"/>
                                 </Grid.RowDefinitions>
-
-                                <RadioButton Content="Black" VerticalContentAlignment="Center" IsChecked="True">
-                                    <i:Interaction.Triggers>
-                                        <i:EventTrigger EventName="Checked">
-                                            <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Black" />
-                                        </i:EventTrigger>
-                                    </i:Interaction.Triggers>
-                                </RadioButton>
-                                <RadioButton Grid.Row="1" Content="Red" VerticalContentAlignment="Center">
-                                    <i:Interaction.Triggers>
-                                        <i:EventTrigger EventName="Checked">
-                                            <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Red" />
-                                        </i:EventTrigger>
-                                    </i:Interaction.Triggers>
-                                </RadioButton>
-                                <RadioButton Grid.Row="2" Content="Green" VerticalContentAlignment="Center">
-                                    <i:Interaction.Triggers>
-                                        <i:EventTrigger EventName="Checked">
-                                            <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Green" />
-                                        </i:EventTrigger>
-                                    </i:Interaction.Triggers>
-                                </RadioButton>
-                                <RadioButton Grid.Row="3" Content="Blue" VerticalContentAlignment="Center">
-                                    <i:Interaction.Triggers>
-                                        <i:EventTrigger EventName="Checked">
-                                            <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Blue" />
-                                        </i:EventTrigger>
-                                    </i:Interaction.Triggers>
-                                </RadioButton>
-                                <RadioButton Grid.Row="4" Content="Eraser" VerticalContentAlignment="Center" Margin="0 10 0 0">
-                                    <i:Interaction.Triggers>
-                                        <i:EventTrigger EventName="Checked">
-                                            <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Eraser" />
-                                        </i:EventTrigger>
-                                    </i:Interaction.Triggers>
-                                </RadioButton>
-                                <Grid Grid.Row="5" Margin="0 10 0 0">
+                                
+                                <!--Color buttons grid-->
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto"/>
+                                        <RowDefinition Height="auto"/>
+                                    </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="6*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="3*"/>
                                     </Grid.ColumnDefinitions>
+                                    <Image Source="{Binding BlackButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="MouseLeftButtonUp">
+                                                <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Black" />
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
+                                    </Image>
+                                    <Image Grid.Column="1" Source="{Binding RedButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="MouseLeftButtonUp">
+                                                <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Red" />
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
+                                    </Image>
+                                    <Image Grid.Column="2" Source="{Binding GreenButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="MouseLeftButtonUp">
+                                                <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Green" />
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
+                                    </Image>
+                                    <Image Grid.Column="3" Source="{Binding BlueButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="MouseLeftButtonUp">
+                                                <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Blue" />
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
+                                    </Image>
+                                    <Image Grid.Row="1" Source="{Binding EraserButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="MouseLeftButtonUp">
+                                                <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Eraser" />
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
+                                    </Image>
+
+                                    <Image Source="{Binding BlackButtonSelectedBitmapSource}" Margin="5 10 15 10" Cursor="Hand" Visibility="{Binding BlackButtonSelectedVisibility}"/>
+                                    <Image Grid.Column="1" Source="{Binding RedButtonSelectedBitmapSource}" Margin="5 10 15 10" Cursor="Hand" Visibility="{Binding RedButtonSelectedVisibility}"/>
+                                    <Image Grid.Column="2" Source="{Binding GreenButtonSelectedBitmapSource}" Margin="5 10 15 10" Cursor="Hand" Visibility="{Binding GreenButtonSelectedVisibility}"/>
+                                    <Image Grid.Column="3" Source="{Binding BlueButtonSelectedBitmapSource}" Margin="5 10 15 10" Cursor="Hand" Visibility="{Binding BlueButtonSelectedVisibility}"/>
+                                    <Image Grid.Row="1" Source="{Binding EraserButtonSelectedBitmapSource}" Margin="5 10 15 10" Cursor="Hand" Visibility="{Binding EraserButtonSelectedVisibility}"/>
+                                </Grid>
+                                
+                                <!--Pen size grid-->
+                                <Grid Grid.Row="1" Margin="0 10 0 0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*"/>
+                                        <ColumnDefinition Width="7*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
                                     <Label Content="Pen size" />
-                                    <TextBox Grid.Column="1" Text="{Binding PenSize, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center">
-                                    </TextBox>
+                                    <Slider Grid.Column="1" VerticalAlignment="Center" Margin="10 0 10 0" Minimum="1" Maximum="100" Value="{Binding PenSize, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                                    <TextBox Grid.Column="2" Text="{Binding PenSize, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
                                 </Grid>
                             </Grid>
                         </Border>
@@ -172,8 +190,8 @@
 
             <Border Grid.Row="1" BorderThickness="3" BorderBrush="Black">
                 <Grid x:Name="MapCanvas">
-                    <Image x:Name="GridLayer" Source="{Binding GridBitMapSource}"/>
-                    <local:InkCanvasControl Background="{Binding InkCanvasBackgroundBitMapSource}" 
+                    <Image x:Name="GridLayer" Source="{Binding GridBitmapSource}"/>
+                    <local:InkCanvasControl Background="{Binding InkCanvasBackgroundBitmapSource}" 
                                             DefaultDrawingAttributes="{Binding InkCanvasDrawingAttributes}" 
                                             Width="{Binding ElementName=GridLayer, Path=ActualWidth}" 
                                             Height="{Binding ElementName=GridLayer, Path=ActualHeight}"

@@ -34,6 +34,46 @@ namespace DigitalBattleMap
             return bitmap;
         }
 
+        public static Bitmap CreateColorButton(Color color, bool addSelectionIndicator)
+        {
+            var bitmap = new Bitmap(70, 70);
+            using (var graphics = Graphics.FromImage(bitmap))
+            {
+                var brush = new SolidBrush(color);
+                var borderPen = new Pen(Color.Gray, 4);
+
+                graphics.FillEllipse(brush, 9, 9, 50, 50);
+
+                if (addSelectionIndicator)
+                {
+                    graphics.DrawEllipse(borderPen, 4, 4, 60, 60);
+                }               
+
+                return bitmap;
+            }
+        }
+
+        public static Bitmap CreateEraserButton(bool addSelectionIndicator)
+        {
+            var bitmap = new Bitmap(70, 70);
+            using (var graphics = Graphics.FromImage(bitmap))
+            {
+                var yellowBrush = new SolidBrush(Color.Yellow);
+                var pinkBrush = new SolidBrush(Color.Pink);
+
+                graphics.FillRectangle(yellowBrush, 19, 14, 30, 40);
+                graphics.FillRectangle(pinkBrush, 19, 14, 30, 12);
+
+                if (addSelectionIndicator)
+                {
+                    var borderPen = new Pen(Color.Gray, 4);
+                    graphics.DrawEllipse(borderPen, 4, 4, 60, 60);
+                }
+
+                return bitmap;
+            }
+        }
+
         private static void DrawGrid(Bitmap bitmap, int gridSize)
         {
             var xModulo = _width % gridSize;

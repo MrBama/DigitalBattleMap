@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Ink;
 using System.Windows.Input;
@@ -46,17 +47,19 @@ namespace DigitalBattleMap
             InkCanvasDrawingAttributes.Height = PenSize;
             EraserShape = new RectangleStylusShape(PenSize, PenSize);
 
+            InitializeColorButtons();
+
             _selectedMonitor = 1;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public BitmapSource GridBitMapSource
+        public BitmapSource GridBitmapSource
         {
             get => _gridBitmap.ToBitmapImage();
         }
 
-        public BitmapSource InkCanvasBackgroundBitMapSource
+        public BitmapSource InkCanvasBackgroundBitmapSource
         {
             get => _inkCanvasBitmap.ToBitmapImage();
         }
@@ -86,6 +89,7 @@ namespace DigitalBattleMap
                 {
                     _penSize = value;
                     PenSizeChanged();
+                    NotifyPropertyChange();
                 }
             }
         }
@@ -95,6 +99,21 @@ namespace DigitalBattleMap
         public InkCanvasEditingMode EditingMode { get; set; } = InkCanvasEditingMode.Ink;
         public StylusShape EraserShape { get; set; }
         public StrokeCollection Strokes { get; set; } = new StrokeCollection();
+        public BitmapSource BlackButtonBitmapSource { get; set; }
+        public BitmapSource RedButtonBitmapSource { get; set; }
+        public BitmapSource GreenButtonBitmapSource { get; set; }
+        public BitmapSource BlueButtonBitmapSource { get; set; }
+        public BitmapSource EraserButtonBitmapSource { get; set; }
+        public BitmapSource BlackButtonSelectedBitmapSource { get; set; }
+        public BitmapSource RedButtonSelectedBitmapSource { get; set; }
+        public BitmapSource GreenButtonSelectedBitmapSource { get; set; }
+        public BitmapSource BlueButtonSelectedBitmapSource { get; set; }
+        public BitmapSource EraserButtonSelectedBitmapSource { get; set; }
+        public Visibility BlackButtonSelectedVisibility { get; set; } = Visibility.Visible;
+        public Visibility RedButtonSelectedVisibility { get; set; } = Visibility.Hidden;
+        public Visibility GreenButtonSelectedVisibility { get; set; } = Visibility.Hidden;
+        public Visibility BlueButtonSelectedVisibility { get; set; } = Visibility.Hidden;
+        public Visibility EraserButtonSelectedVisibility { get; set; } = Visibility.Hidden;
 
         public ICommand GridSizeEnterCommand { get => _gridSizeEnterCommand; }
         public ICommand ShowMapCommand { get => _showMapCommand; }
@@ -120,7 +139,7 @@ namespace DigitalBattleMap
         {
             GridSize = Math.Max(GridSize, 1);
             _gridBitmap = BitmapTools.CreateGrid(GridSize);
-            NotifyPropertyChange(nameof(GridBitMapSource));
+            NotifyPropertyChange(nameof(GridBitmapSource));
         }
 
         private void MonitorNumberChanged()
@@ -142,7 +161,7 @@ namespace DigitalBattleMap
 
         private void PenSizeChanged()
         {
-            _penSize = Math.Clamp(_penSize, 1, 1000);
+            _penSize = Math.Clamp(_penSize, 1, 100);
             InkCanvasDrawingAttributes.Width = _penSize;
             InkCanvasDrawingAttributes.Height = _penSize;
             EraserShape = new EllipseStylusShape(_penSize, _penSize);
@@ -150,8 +169,29 @@ namespace DigitalBattleMap
             NotifyPropertyChange(nameof(EraserShape));
         }
 
+        private void InitializeColorButtons()
+        {
+            BlackButtonBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 0, 0), false).ToBitmapImage();
+            RedButtonBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 255, 0, 0), false).ToBitmapImage();
+            GreenButtonBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 255, 0), false).ToBitmapImage();
+            BlueButtonBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 0, 255), false).ToBitmapImage();
+            EraserButtonBitmapSource = BitmapTools.CreateEraserButton(false).ToBitmapImage();
+
+            BlackButtonSelectedBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 0, 0), true).ToBitmapImage();
+            RedButtonSelectedBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 255, 0, 0), true).ToBitmapImage();
+            GreenButtonSelectedBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 255, 0), true).ToBitmapImage();
+            BlueButtonSelectedBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 0, 255), true).ToBitmapImage();
+            EraserButtonSelectedBitmapSource = BitmapTools.CreateEraserButton(true).ToBitmapImage();
+        }
+
         private void DrawingColorChanged(string color)
         {
+            BlackButtonSelectedVisibility = Visibility.Hidden;
+            RedButtonSelectedVisibility = Visibility.Hidden;
+            GreenButtonSelectedVisibility = Visibility.Hidden;
+            BlueButtonSelectedVisibility = Visibility.Hidden;
+            EraserButtonSelectedVisibility = Visibility.Hidden;
+
             if (EditingMode == InkCanvasEditingMode.EraseByPoint)
             {
                 EditingMode = InkCanvasEditingMode.Ink;
@@ -162,21 +202,32 @@ namespace DigitalBattleMap
             {
                 case "Black":
                     InkCanvasDrawingAttributes.Color = System.Windows.Media.Color.FromRgb(0, 0, 0);
-                    return;
+                    BlackButtonSelectedVisibility = Visibility.Visible;
+                    break;
                 case "Red":
                     InkCanvasDrawingAttributes.Color = System.Windows.Media.Color.FromRgb(255, 0, 0);
-                    return;
+                    RedButtonSelectedVisibility = Visibility.Visible;
+                    break;
                 case "Green":
                     InkCanvasDrawingAttributes.Color = System.Windows.Media.Color.FromRgb(0, 255, 0);
-                    return;
+                    GreenButtonSelectedVisibility = Visibility.Visible;
+                    break;
                 case "Blue":
                     InkCanvasDrawingAttributes.Color = System.Windows.Media.Color.FromRgb(0, 0, 255);
-                    return;
+                    BlueButtonSelectedVisibility = Visibility.Visible;
+                    break;
                 case "Eraser":
                     EditingMode = InkCanvasEditingMode.EraseByPoint;
+                    EraserButtonSelectedVisibility = Visibility.Visible;
                     NotifyPropertyChange(nameof(EditingMode));
-                    return;
+                    break;
             }
+
+            NotifyPropertyChange(nameof(BlackButtonSelectedVisibility));
+            NotifyPropertyChange(nameof(RedButtonSelectedVisibility));
+            NotifyPropertyChange(nameof(GreenButtonSelectedVisibility));
+            NotifyPropertyChange(nameof(BlueButtonSelectedVisibility));
+            NotifyPropertyChange(nameof(EraserButtonSelectedVisibility));
         }
 
         private void InkCanvasSizeOnStartup(double width)
