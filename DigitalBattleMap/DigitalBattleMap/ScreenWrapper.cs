@@ -14,20 +14,32 @@ namespace DigitalBattleMap
     /// </summary>
     public static class ScreenWrapper
     {
-        public static int GetScreenCount()
+        public static List<ScreenPosition> GetScreenPositions()
         {
-            return Screen.AllScreens.Count();
-        }
+            var screenPositions = new List<ScreenPosition>();
 
-        public static (int x, int y) GetScreenPosition(int screenNumber)
-        {
             var scaleRatio = Math.Max(Screen.PrimaryScreen.WorkingArea.Width / SystemParameters.PrimaryScreenWidth,
                             Screen.PrimaryScreen.WorkingArea.Height / SystemParameters.PrimaryScreenHeight);
 
-            var x = (int)(Screen.AllScreens[screenNumber].WorkingArea.Left / scaleRatio);
-            var y = (int)(Screen.AllScreens[screenNumber].WorkingArea.Top / scaleRatio);
+            foreach (var screen in Screen.AllScreens)
+            {
+                var x = (int)(screen.WorkingArea.Left / scaleRatio);
+                var y = (int)(screen.WorkingArea.Top / scaleRatio);
+                screenPositions.Add(new ScreenPosition { X = x, Y = y });
+            }
 
-            return (x, y);
+            return screenPositions;
+        }
+    }
+
+    public class ScreenPosition
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+
+        public override string ToString()
+        {
+            return $"X: {X} Y: {Y}";
         }
     }
 }

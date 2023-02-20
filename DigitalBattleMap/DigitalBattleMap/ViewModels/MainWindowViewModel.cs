@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,7 +18,7 @@ namespace DigitalBattleMap
         private Bitmap _inkCanvasBitmap;
         private double _inkCanvasWidth;
         private double _inkCanvasHeight;
-        private int _selectedMonitor = 0;
+        private ScreenPosition _selectedMonitorPosition;
         private double _penSize = 5;
         private IWindowService _windowService = null;
         private MapWindowViewModel _mapWindow = null;
@@ -26,6 +27,7 @@ namespace DigitalBattleMap
         private ICommand _windowClosingCommand;
         private ICommand _drawingColorChangedCommand;
         private ICommand _inkCanvasSizeOnStartupCommand;
+        private ICommand _clearCommand;
 
         public MainWindowViewModel()
         {
@@ -37,10 +39,11 @@ namespace DigitalBattleMap
             _windowClosingCommand = new RelayCommand(p => WindowClosing());
             _drawingColorChangedCommand = new RelayCommand(p => DrawingColorChanged((string)p));
             _inkCanvasSizeOnStartupCommand = new RelayCommand(p => InkCanvasSizeOnStartup((double)p));
+            _clearCommand = new RelayCommand(p => ClearMap());
 
-            for (int i = 0; i < ScreenWrapper.GetScreenCount(); i++)
+            foreach (var screenPosition in ScreenWrapper.GetScreenPositions())
             {
-                MonitorNumbers.Add(i + 1);
+                MonitorPositions.Add(screenPosition);
             }
 
             InkCanvasDrawingAttributes.Width = PenSize;
@@ -49,7 +52,8 @@ namespace DigitalBattleMap
 
             InitializeColorButtons();
 
-            _selectedMonitor = 1;
+            _selectedMonitorPosition = MonitorPositions.SingleOrDefault(pos => pos.X == 2560);
+            _selectedMonitorPosition = _selectedMonitorPosition == null ? MonitorPositions.First() : _selectedMonitorPosition;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -64,18 +68,18 @@ namespace DigitalBattleMap
             get => _inkCanvasBitmap.ToBitmapImage();
         }
 
-        public ObservableCollection<int> MonitorNumbers { get; private set; } = new ObservableCollection<int>();
+        public ObservableCollection<ScreenPosition> MonitorPositions { get; private set; } = new ObservableCollection<ScreenPosition>();
 
-        public int SelectedMonitor
+        public ScreenPosition SelectedMonitorPosition
         {
-            get => _selectedMonitor;
+            get => _selectedMonitorPosition;
 
             set
             {
-                if (value != _selectedMonitor)
+                if (value != _selectedMonitorPosition)
                 {
-                    _selectedMonitor = value;
-                    MonitorNumberChanged();
+                    _selectedMonitorPosition = value;
+                    MonitorPositionChanged();
                 }
             }
         }
@@ -120,14 +124,14 @@ namespace DigitalBattleMap
         public ICommand WindowClosingCommand { get => _windowClosingCommand; }
         public ICommand DrawingColorChangedCommand { get => _drawingColorChangedCommand; }
         public ICommand InkCanvasSizeOnStartupCommand { get => _inkCanvasSizeOnStartupCommand; }
+        public ICommand ClearCommand { get => _clearCommand; }
 
         public void SetWindowService(IWindowService windowService)
         {
             _windowService = windowService;
             _mapWindow = new MapWindowViewModel();
             _windowService.ShowWindow<MapWindow>(_mapWindow);
-            (int x, int y) = ScreenWrapper.GetScreenPosition(_selectedMonitor);
-            _mapWindow.ChangeWindowPosition(x);
+            _mapWindow.ChangeWindowPosition(SelectedMonitorPosition.X);
         }
 
         private void NotifyPropertyChange([CallerMemberName] string propertyname = "")
@@ -142,10 +146,9 @@ namespace DigitalBattleMap
             NotifyPropertyChange(nameof(GridBitmapSource));
         }
 
-        private void MonitorNumberChanged()
+        private void MonitorPositionChanged()
         {
-            (int x, int y) = ScreenWrapper.GetScreenPosition(_selectedMonitor);
-            _mapWindow.ChangeWindowPosition(x);
+            _mapWindow.ChangeWindowPosition(SelectedMonitorPosition.X);
         }
 
         private void ShowMap()
@@ -235,6 +238,11 @@ namespace DigitalBattleMap
             // It's enought to only use the width, since everything is done in a 16:9 ratio
             _inkCanvasWidth = width;
             _inkCanvasHeight = width / 16 * 9;
+        }
+
+        private void ClearMap()
+        {
+            Strokes.Clear();
         }
     }
 }

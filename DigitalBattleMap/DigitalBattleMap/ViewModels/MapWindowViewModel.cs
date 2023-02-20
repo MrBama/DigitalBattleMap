@@ -60,7 +60,7 @@ namespace DigitalBattleMap
         public void ChangeWindowPosition(int x)
         {
             WindowState = WindowState.Normal;
-            Left = x;
+            Left = x + 10;
             WindowState = WindowState.Maximized;
         }
 

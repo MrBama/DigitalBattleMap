@@ -11,6 +11,8 @@ namespace DigitalBattleMap
     {
         public void ShowWindow<T>(object dataContext) where T : Window, new();
 
+        public void ShowWindowDialog<T>(object dataContext) where T : Window, new();
+
         public void CloseAllWindows();
     }
 
@@ -24,6 +26,13 @@ namespace DigitalBattleMap
             window.DataContext = dataContext;
             _windows.Add(window);
             window.Show();
+        }
+
+        public void ShowWindowDialog<T>(object dataContext) where T : Window, new()
+        {
+            var window = new T();
+            window.DataContext = dataContext;
+            window.ShowDialog();
         }
 
         public void CloseAllWindows()
