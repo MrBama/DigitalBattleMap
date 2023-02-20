@@ -242,7 +242,14 @@ namespace DigitalBattleMap
 
         private void ClearMap()
         {
-            Strokes.Clear();
+            var confirmationWindowViewModel = new ConfirmationWindowViewModel();
+            confirmationWindowViewModel.Content = "Are you sure you want to clear everything?";
+            _windowService.ShowWindowDialog<ConfirmationWindow>(confirmationWindowViewModel);
+
+            if(confirmationWindowViewModel.Confirmed)
+            {
+                Strokes.Clear();
+            }
         }
     }
 }
