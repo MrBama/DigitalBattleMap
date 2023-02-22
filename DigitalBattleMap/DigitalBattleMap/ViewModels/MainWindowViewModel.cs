@@ -18,19 +18,22 @@ namespace DigitalBattleMap
         private Bitmap _inkCanvasBitmap;
         private double _inkCanvasWidth;
         private double _inkCanvasHeight;
-        private ScreenPosition _selectedMonitorPosition;
         private double _penSize = 5;
         private IWindowService _windowService = null;
-        private MapWindowViewModel _mapWindow = null;
+        private MapWindowViewModel _mapWindowViewModel = null;
+        private Settings _settings;
         private ICommand _gridSizeEnterCommand;
         private ICommand _showMapCommand;
         private ICommand _windowClosingCommand;
         private ICommand _drawingColorChangedCommand;
         private ICommand _inkCanvasSizeOnStartupCommand;
-        private ICommand _clearCommand;
+        private ICommand _clearAllCommand;
+        private ICommand _settingsCommand;
 
         public MainWindowViewModel()
         {
+            _settings = Settings.Load();
+            GridSize = _settings.DefaultGridSize;
             _gridBitmap = BitmapTools.CreateGrid(GridSize);
             _inkCanvasBitmap = BitmapTools.CreateEmptyBitmap();
 
@@ -39,21 +42,16 @@ namespace DigitalBattleMap
             _windowClosingCommand = new RelayCommand(p => WindowClosing());
             _drawingColorChangedCommand = new RelayCommand(p => DrawingColorChanged((string)p));
             _inkCanvasSizeOnStartupCommand = new RelayCommand(p => InkCanvasSizeOnStartup((double)p));
-            _clearCommand = new RelayCommand(p => ClearMap());
-
-            foreach (var screenPosition in ScreenWrapper.GetScreenPositions())
-            {
-                MonitorPositions.Add(screenPosition);
-            }
+            _clearAllCommand = new RelayCommand(p => ClearMap());
+            _settingsCommand = new RelayCommand(p => OpenSettings());
 
             InkCanvasDrawingAttributes.Width = PenSize;
             InkCanvasDrawingAttributes.Height = PenSize;
             EraserShape = new RectangleStylusShape(PenSize, PenSize);
 
-            InitializeColorButtons();
+            //InkCanvasDrawingAttributes.IgnorePressure
 
-            _selectedMonitorPosition = MonitorPositions.SingleOrDefault(pos => pos.X == 2560);
-            _selectedMonitorPosition = _selectedMonitorPosition == null ? MonitorPositions.First() : _selectedMonitorPosition;
+            InitializeColorButtons();
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -66,22 +64,6 @@ namespace DigitalBattleMap
         public BitmapSource InkCanvasBackgroundBitmapSource
         {
             get => _inkCanvasBitmap.ToBitmapImage();
-        }
-
-        public ObservableCollection<ScreenPosition> MonitorPositions { get; private set; } = new ObservableCollection<ScreenPosition>();
-
-        public ScreenPosition SelectedMonitorPosition
-        {
-            get => _selectedMonitorPosition;
-
-            set
-            {
-                if (value != _selectedMonitorPosition)
-                {
-                    _selectedMonitorPosition = value;
-                    MonitorPositionChanged();
-                }
-            }
         }
 
         public double PenSize
@@ -98,7 +80,7 @@ namespace DigitalBattleMap
             }
         }
 
-        public int GridSize { get; set; } = 65;
+        public int GridSize { get; set; }
         public DrawingAttributes InkCanvasDrawingAttributes { get; set; } = new DrawingAttributes();
         public InkCanvasEditingMode EditingMode { get; set; } = InkCanvasEditingMode.Ink;
         public StylusShape EraserShape { get; set; }
@@ -124,14 +106,15 @@ namespace DigitalBattleMap
         public ICommand WindowClosingCommand { get => _windowClosingCommand; }
         public ICommand DrawingColorChangedCommand { get => _drawingColorChangedCommand; }
         public ICommand InkCanvasSizeOnStartupCommand { get => _inkCanvasSizeOnStartupCommand; }
-        public ICommand ClearCommand { get => _clearCommand; }
+        public ICommand ClearAllCommand { get => _clearAllCommand; }
+        public ICommand SettingsCommand { get => _settingsCommand; }
 
         public void SetWindowService(IWindowService windowService)
         {
             _windowService = windowService;
-            _mapWindow = new MapWindowViewModel();
-            _windowService.ShowWindow<MapWindow>(_mapWindow);
-            _mapWindow.ChangeWindowPosition(SelectedMonitorPosition.X);
+            _mapWindowViewModel = new MapWindowViewModel();
+            _windowService.ShowWindow<MapWindow>(_mapWindowViewModel);
+            _mapWindowViewModel.ChangeWindowPosition(_settings.MonitorPosition.X);
         }
 
         private void NotifyPropertyChange([CallerMemberName] string propertyname = "")
@@ -146,15 +129,10 @@ namespace DigitalBattleMap
             NotifyPropertyChange(nameof(GridBitmapSource));
         }
 
-        private void MonitorPositionChanged()
-        {
-            _mapWindow.ChangeWindowPosition(SelectedMonitorPosition.X);
-        }
-
         private void ShowMap()
         {
             var map = BitmapTools.CreateMap(_gridBitmap, Strokes, (int)_inkCanvasWidth, (int)_inkCanvasHeight);
-            _mapWindow.MapBitmapSource = map.ToBitmapImage();
+            _mapWindowViewModel.MapBitmapSource = map.ToBitmapImage();
         }
 
         private void WindowClosing()
@@ -249,6 +227,17 @@ namespace DigitalBattleMap
             if(confirmationWindowViewModel.Confirmed)
             {
                 Strokes.Clear();
+            }
+        }
+
+        private void OpenSettings()
+        {
+            var settingsWindowViewModel = new SettingsWindowViewModel(_settings);
+            _windowService.ShowWindowDialog<SettingsWindow>(settingsWindowViewModel);
+
+            if (settingsWindowViewModel.MonitorChanged)
+            {
+                _mapWindowViewModel.ChangeWindowPosition(_settings.MonitorPosition.X);
             }
         }
     }
