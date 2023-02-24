@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:DigitalBattleMap" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         Title="ConfirmationWindow" Height="200" Width="400"
-        FontSize="15"
+        FontSize="17"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize">
     <Window.DataContext>

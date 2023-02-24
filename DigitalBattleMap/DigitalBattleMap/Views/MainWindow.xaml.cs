@@ -23,8 +23,7 @@ namespace DigitalBattleMap
         public MainWindow(IWindowService windowService)
         {
             InitializeComponent();
-            var viewModel = new MainWindowViewModel();
-            viewModel.SetWindowService(windowService);
+            var viewModel = new MainWindowViewModel(windowService);
             DataContext = viewModel;
         }
     }

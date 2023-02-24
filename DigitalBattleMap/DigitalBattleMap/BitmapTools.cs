@@ -74,6 +74,16 @@ namespace DigitalBattleMap
             }
         }
 
+        public static Bitmap CropBitmap(Bitmap bitmap, Rectangle rectangle)
+        {
+            var croppedBitmap = new Bitmap(rectangle.Width, rectangle.Height);
+            using (var graphics = Graphics.FromImage(croppedBitmap))
+            {
+                graphics.DrawImage(bitmap, new Rectangle(0, 0, croppedBitmap.Width, croppedBitmap.Height), rectangle, GraphicsUnit.Pixel);
+            }
+            return croppedBitmap;
+        }
+
         private static void DrawGrid(Bitmap bitmap, int gridSize)
         {
             var xModulo = _width % gridSize;
@@ -150,11 +160,7 @@ namespace DigitalBattleMap
                     var coord2 = points[i + 1];
 
                     var dist = Math.Sqrt(Math.Pow(coord1.X - coord2.X, 2) + Math.Pow(coord1.Y - coord2.Y, 2));
-
-                    double penSize1 = (double)penSize;
-                    penSize1 /= 1;
-
-                    if (dist > penSize1)
+                    if (dist > (penSize / 3))
                     {
                         var newPoint = new PointF((coord1.X + coord2.X) / 2, (coord1.Y + coord2.Y) / 2);
                         points.Insert(i + 1, newPoint);

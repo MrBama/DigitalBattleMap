@@ -14,7 +14,8 @@ namespace DigitalBattleMap
     {
         private double _left;
         private WindowState _windowState;
-        private BitmapSource _mapBitmapSource;
+        private BitmapSource _backgroundBitmapSource;
+        private BitmapSource _gridBitmapSource;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -44,14 +45,27 @@ namespace DigitalBattleMap
             }
         }
 
-        public BitmapSource MapBitmapSource
+        public BitmapSource BackgroundBitmapSource
         {
-            get => _mapBitmapSource;
+            get => _backgroundBitmapSource;
             set
             {
-                if (value != _mapBitmapSource)
+                if (value != _backgroundBitmapSource)
                 {
-                    _mapBitmapSource = value;
+                    _backgroundBitmapSource = value;
+                    NotifyPropertyChange();
+                }
+            }
+        }
+
+        public BitmapSource GridBitmapSource
+        {
+            get => _gridBitmapSource;
+            set
+            {
+                if (value != _gridBitmapSource)
+                {
+                    _gridBitmapSource = value;
                     NotifyPropertyChange();
                 }
             }

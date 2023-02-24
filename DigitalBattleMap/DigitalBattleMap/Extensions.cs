@@ -29,5 +29,12 @@ namespace DigitalBattleMap
                 return bitmapImage;
             }
         }
+
+        public static void Log(this Exception exception)
+        {
+            var log = new ExceptionLog(exception);
+            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DigitalBattleMap", "Logs", $"{log.DateTime} Exception.log");
+            FileManager.SaveFile(log, path);
+        }
     }
 }

@@ -19,42 +19,31 @@ namespace DigitalBattleMap
         private double _inkCanvasWidth;
         private double _inkCanvasHeight;
         private double _penSize = 5;
-        private IWindowService _windowService = null;
-        private MapWindowViewModel _mapWindowViewModel = null;
+        private int _selectedTabIndex = 0;
+        private bool _isGridEnabled = true;
+        private IWindowService _windowService;
+        private MapWindowViewModel _mapWindowViewModel;
         private Settings _settings;
-        private ICommand _gridSizeEnterCommand;
-        private ICommand _showMapCommand;
-        private ICommand _windowClosingCommand;
-        private ICommand _drawingColorChangedCommand;
-        private ICommand _inkCanvasSizeOnStartupCommand;
-        private ICommand _clearAllCommand;
-        private ICommand _settingsCommand;
+        private BackgroundController _backgroundController;
+
+        public MainWindowViewModel(IWindowService windowService)
+        {
+            _windowService = windowService;
+            Initialize();
+            OpenMapWindow();
+        }
 
         public MainWindowViewModel()
         {
-            _settings = Settings.Load();
-            GridSize = _settings.DefaultGridSize;
-            _gridBitmap = BitmapTools.CreateGrid(GridSize);
-            _inkCanvasBitmap = BitmapTools.CreateEmptyBitmap();
-
-            _gridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
-            _showMapCommand = new RelayCommand(p => ShowMap());
-            _windowClosingCommand = new RelayCommand(p => WindowClosing());
-            _drawingColorChangedCommand = new RelayCommand(p => DrawingColorChanged((string)p));
-            _inkCanvasSizeOnStartupCommand = new RelayCommand(p => InkCanvasSizeOnStartup((double)p));
-            _clearAllCommand = new RelayCommand(p => ClearMap());
-            _settingsCommand = new RelayCommand(p => OpenSettings());
-
-            InkCanvasDrawingAttributes.Width = PenSize;
-            InkCanvasDrawingAttributes.Height = PenSize;
-            EraserShape = new RectangleStylusShape(PenSize, PenSize);
-
-            //InkCanvasDrawingAttributes.IgnorePressure
-
-            InitializeColorButtons();
+            Initialize();
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        public BitmapSource BackgroundBitmapSource
+        {
+            get => _backgroundController.BackgroundBitmap.ToBitmapImage();
+        }
 
         public BitmapSource GridBitmapSource
         {
@@ -80,6 +69,34 @@ namespace DigitalBattleMap
             }
         }
 
+        public int SelectedTabIndex 
+        { 
+            get => _selectedTabIndex; 
+            set
+            {
+                if (value != _selectedTabIndex)
+                {
+                    _selectedTabIndex = value;
+                    SelectedTabChanged();
+                    NotifyPropertyChange();
+                }
+            }
+        }
+
+        public bool IsGridEnabled 
+        { 
+            get => _isGridEnabled; 
+            set
+            {
+                if (value != _isGridEnabled)
+                {
+                    _isGridEnabled = value;
+                    GridEnabledChanged();
+                    NotifyPropertyChange();
+                }
+            }
+        }
+
         public int GridSize { get; set; }
         public DrawingAttributes InkCanvasDrawingAttributes { get; set; } = new DrawingAttributes();
         public InkCanvasEditingMode EditingMode { get; set; } = InkCanvasEditingMode.Ink;
@@ -100,18 +117,50 @@ namespace DigitalBattleMap
         public Visibility GreenButtonSelectedVisibility { get; set; } = Visibility.Hidden;
         public Visibility BlueButtonSelectedVisibility { get; set; } = Visibility.Hidden;
         public Visibility EraserButtonSelectedVisibility { get; set; } = Visibility.Hidden;
+        public Visibility GridVisibility { get; set; } = Visibility.Visible;
+        public Visibility InkCanvasVisibility { get; set; } = Visibility.Hidden;
 
-        public ICommand GridSizeEnterCommand { get => _gridSizeEnterCommand; }
-        public ICommand ShowMapCommand { get => _showMapCommand; }
-        public ICommand WindowClosingCommand { get => _windowClosingCommand; }
-        public ICommand DrawingColorChangedCommand { get => _drawingColorChangedCommand; }
-        public ICommand InkCanvasSizeOnStartupCommand { get => _inkCanvasSizeOnStartupCommand; }
-        public ICommand ClearAllCommand { get => _clearAllCommand; }
-        public ICommand SettingsCommand { get => _settingsCommand; }
+        public ICommand GridSizeEnterCommand { get; set; }
+        public ICommand ShowMapCommand { get; set; }
+        public ICommand WindowClosingCommand { get; set; }
+        public ICommand DrawingColorChangedCommand { get; set; }
+        public ICommand InkCanvasSizeOnStartupCommand { get; set; }
+        public ICommand ClearAllCommand { get; set; }
+        public ICommand SettingsCommand { get; set; }
+        public ICommand OpenBackgroundCommand { get; set; }
+        public ICommand ClearBackgroundCommand { get; set; }
+        public ICommand ClearDrawingCommand { get; set; }
 
-        public void SetWindowService(IWindowService windowService)
+        public void Initialize()
         {
-            _windowService = windowService;
+            _settings = Settings.Load();
+            GridSize = _settings.DefaultGridSize;
+            _gridBitmap = BitmapTools.CreateGrid(GridSize);
+            _inkCanvasBitmap = BitmapTools.CreateEmptyBitmap();
+            _backgroundController = new BackgroundController(_windowService);
+            _backgroundController.BackgroundUpdated += (sender, e) => NotifyPropertyChange(nameof(BackgroundBitmapSource));
+
+            GridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
+            ShowMapCommand = new RelayCommand(p => ShowMap());
+            WindowClosingCommand = new RelayCommand(p => WindowClosing());
+            DrawingColorChangedCommand = new RelayCommand(p => DrawingColorChanged((string)p));
+            InkCanvasSizeOnStartupCommand = new RelayCommand(p => InkCanvasSizeOnStartup((double)p));
+            ClearAllCommand = new RelayCommand(p => ClearMap());
+            SettingsCommand = new RelayCommand(p => OpenSettings());
+            OpenBackgroundCommand = new RelayCommand(p => _backgroundController.OpenBackground());
+            ClearBackgroundCommand = new RelayCommand(p => _backgroundController.ClearBackground());
+            ClearDrawingCommand = new RelayCommand(p => ClearInkCanvas());
+
+            InkCanvasDrawingAttributes.Width = PenSize;
+            InkCanvasDrawingAttributes.Height = PenSize;
+            InkCanvasDrawingAttributes.IgnorePressure = true;
+            EraserShape = new RectangleStylusShape(PenSize, PenSize);
+
+            InitializeColorButtons();
+        }
+
+        public void OpenMapWindow()
+        {
             _mapWindowViewModel = new MapWindowViewModel();
             _windowService.ShowWindow<MapWindow>(_mapWindowViewModel);
             _mapWindowViewModel.ChangeWindowPosition(_settings.MonitorPosition.X);
@@ -131,8 +180,10 @@ namespace DigitalBattleMap
 
         private void ShowMap()
         {
-            var map = BitmapTools.CreateMap(_gridBitmap, Strokes, (int)_inkCanvasWidth, (int)_inkCanvasHeight);
-            _mapWindowViewModel.MapBitmapSource = map.ToBitmapImage();
+            var gridBitmap = IsGridEnabled ? _gridBitmap : BitmapTools.CreateEmptyBitmap();
+            var map = BitmapTools.CreateMap(gridBitmap, Strokes, (int)_inkCanvasWidth, (int)_inkCanvasHeight);
+            _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.BackgroundBitmap.ToBitmapImage();
+            _mapWindowViewModel.GridBitmapSource = map.ToBitmapImage();
         }
 
         private void WindowClosing()
@@ -227,6 +278,7 @@ namespace DigitalBattleMap
             if(confirmationWindowViewModel.Confirmed)
             {
                 Strokes.Clear();
+                _backgroundController.ClearBackground();
             }
         }
 
@@ -239,6 +291,42 @@ namespace DigitalBattleMap
             {
                 _mapWindowViewModel.ChangeWindowPosition(_settings.MonitorPosition.X);
             }
+        }
+
+        public void ClearInkCanvas()
+        {
+            Strokes.Clear();
+        }
+
+        public void SelectedTabChanged()
+        {
+            switch(SelectedTabIndex)
+            {
+                case 0: // Background
+                    InkCanvasVisibility = Visibility.Hidden;
+                    break;
+                case 1: // Grid
+                    InkCanvasVisibility = Visibility.Hidden;
+                    break;
+                case 2: // Drawing
+                    InkCanvasVisibility = Visibility.Visible;
+                    break;
+            }
+
+            NotifyPropertyChange(nameof(InkCanvasVisibility));
+        }
+
+        public void GridEnabledChanged()
+        {
+            if(IsGridEnabled)
+            {
+                GridVisibility = Visibility.Visible;
+            }
+            else
+            {
+                GridVisibility = Visibility.Hidden;
+            }
+            NotifyPropertyChange(nameof(GridVisibility));
         }
     }
 }

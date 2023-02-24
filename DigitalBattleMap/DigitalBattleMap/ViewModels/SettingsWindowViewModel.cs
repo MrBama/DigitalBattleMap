@@ -11,13 +11,12 @@ namespace DigitalBattleMap
     public class SettingsWindowViewModel
     {
         private Settings _settings;
-        private ICommand _saveCommand;
         private ScreenPosition _initialMonitorPosition;
 
         public SettingsWindowViewModel(Settings settings)
         {
             _settings = settings;
-            _saveCommand = new RelayCommand(p => SaveButtonClicked());
+            SaveCommand = new RelayCommand(p => SaveButtonClicked());
             _initialMonitorPosition = _settings.MonitorPosition;
 
             foreach (var screenPosition in ScreenWrapper.GetScreenPositions())
@@ -26,7 +25,7 @@ namespace DigitalBattleMap
             }
         }
 
-        public ICommand SaveCommand { get => _saveCommand; }
+        public ICommand SaveCommand { get; set; }
         public ObservableCollection<ScreenPosition> MonitorPositions { get; private set; } = new ObservableCollection<ScreenPosition>();
         public bool MonitorChanged { get; set; }
 
