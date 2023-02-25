@@ -36,5 +36,16 @@ namespace DigitalBattleMap
             string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DigitalBattleMap", "Logs", $"{log.DateTime} Exception.log");
             FileManager.SaveFile(log, path);
         }
+
+        public static T Map<T>(this T input, T inMin, T inMax, T outMin, T outMax) where T : struct
+        {
+            dynamic inputD = input;
+            dynamic inMinD = inMin;
+            dynamic inMaxD = inMax;
+            dynamic outMinD = outMin;
+            dynamic outMaxD = outMax;
+
+            return (inputD - inMinD) * (outMaxD - outMinD) / (inMaxD - inMinD) + outMinD;
+        }
     }
 }

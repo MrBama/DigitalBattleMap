@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrayNotify;
 using System.Windows.Controls;
 using System.Windows.Ink;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 
 namespace DigitalBattleMap
 {
@@ -25,6 +27,11 @@ namespace DigitalBattleMap
         public static Bitmap CreateEmptyBitmap()
         {
             return new Bitmap(_width, _height);
+        }
+
+        public static Size<int> GetBitmapSize()
+        {
+            return new Size<int>(_width, _height);
         }
 
         public static Bitmap CreateMap(Bitmap grid, StrokeCollection strokes, int inkCanvasWidth, int inkCanvasHeight)
@@ -84,6 +91,31 @@ namespace DigitalBattleMap
             return croppedBitmap;
         }
 
+        public static Bitmap ResizeBitmap(Bitmap bitmap)
+        {
+            var destinationRectangle = new Rectangle(0, 0, _width, _height);
+            var resizedBitmap = new Bitmap(_width, _height);
+
+            resizedBitmap.SetResolution(bitmap.HorizontalResolution, bitmap.VerticalResolution);
+
+            using (var graphics = Graphics.FromImage(resizedBitmap))
+            {
+                graphics.CompositingMode = CompositingMode.SourceCopy;
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                using (var wrapMode = new ImageAttributes())
+                {
+                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.DrawImage(bitmap, destinationRectangle, 0, 0, bitmap.Width, bitmap.Height, GraphicsUnit.Pixel, wrapMode);
+                }
+            }
+
+            return resizedBitmap;
+        }
+
         private static void DrawGrid(Bitmap bitmap, int gridSize)
         {
             var xModulo = _width % gridSize;
@@ -126,8 +158,8 @@ namespace DigitalBattleMap
                         point.X = (float)strokes[strokeIndex].StylusPoints[pointIndex].X;
                         point.Y = (float)strokes[strokeIndex].StylusPoints[pointIndex].Y;
 
-                        var resizedX = Map(point.X, 0, canvasWidth, 0, _width) - penSize;
-                        var resizedY = Map(point.Y, 0, canvasHeight, 0, _height) - penSize;
+                        var resizedX = point.X.Map(0, canvasWidth, 0, _width) - penSize;
+                        var resizedY = point.Y.Map(0, canvasHeight, 0, _height) - penSize;
                         points.Add(new PointF(resizedX, resizedY));
                     }
 
@@ -135,16 +167,11 @@ namespace DigitalBattleMap
 
                     foreach (var point in points)
                     {
-                        var resizedPenSize = Map(penSize, 0, canvasWidth, 0, _width);
+                        var resizedPenSize = penSize.Map(0, canvasWidth, 0, _width);
                         graphics.FillEllipse(brush, point.X, point.Y, resizedPenSize, resizedPenSize);
                     }
                 }
             }
-        }
-
-        private static float Map(float input, float inMin, float inMax, float outMin, float outMax)
-        {
-            return (input - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
         }
 
         private static void SmoothLine(List<PointF> points, int penSize)
