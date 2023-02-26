@@ -21,7 +21,7 @@ namespace DigitalBattleMap
         private double _inkCanvasHeight;
         private double _penSize = 5;
         private int _selectedTabIndex = 0;
-        private bool _isGridEnabled = true;
+        private bool _isGridShown = true;
         private double _backgroundZoomPercentage = 10;
         private IWindowService _windowService;
         private MapWindowViewModel _mapWindowViewModel;
@@ -70,15 +70,15 @@ namespace DigitalBattleMap
             }
         }
 
-        public bool IsGridEnabled
+        public bool IsGridShown
         {
-            get => _isGridEnabled;
+            get => _isGridShown;
             set
             {
-                if (value != _isGridEnabled)
+                if (value != _isGridShown)
                 {
-                    _isGridEnabled = value;
-                    GridEnabledChanged();
+                    _isGridShown = value;
+                    GridShownChanged();
                     NotifyPropertyChange();
                 }
             }
@@ -208,7 +208,7 @@ namespace DigitalBattleMap
 
         private void ShowMap()
         {
-            var gridBitmap = IsGridEnabled ? _gridBitmap : BitmapTools.CreateEmptyBitmap();
+            var gridBitmap = IsGridShown ? _gridBitmap : BitmapTools.CreateEmptyBitmap();
             var map = BitmapTools.CreateMap(gridBitmap, Strokes, (int)_inkCanvasWidth, (int)_inkCanvasHeight);
             _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.BackgroundBitmap.ToBitmapImage();
             _mapWindowViewModel.GridBitmapSource = map.ToBitmapImage();
@@ -349,9 +349,9 @@ namespace DigitalBattleMap
             NotifyPropertyChange(nameof(MouseInputCanvasVisibility));
         }
 
-        public void GridEnabledChanged()
+        public void GridShownChanged()
         {
-            if (IsGridEnabled)
+            if (IsGridShown)
             {
                 GridVisibility = Visibility.Visible;
             }
