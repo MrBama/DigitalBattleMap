@@ -33,11 +33,12 @@
             <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
 
-        <!--Control grid-->
+        <!--Controls grid-->
         <Grid Margin="0 0 10 0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="2*"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
 
             <!--Tab grid-->
@@ -66,21 +67,21 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Button Grid.ColumnSpan="2" Content="Open" Command="{Binding OpenBackgroundCommand}" Margin="0 0 0 10"/>
-                                <Button Grid.Row="1" Content="Zoom in" Margin="0 0 5 10" Command="{Binding BackgroundZoomInCommand}"/>
-                                <Button Grid.Row="1" Grid.Column="1" Content="Zoom out" Margin="5 0 0 10" Command="{Binding BackgroundZoomOutCommand}"/>
+                                <Button Grid.ColumnSpan="2" Content="Open" Command="{Binding OpenBackgroundCommand}"/>
+                                <Button Grid.Row="1" Content="Zoom in" Margin="0 10 5 0" Command="{Binding BackgroundZoomInCommand}" IsEnabled="{Binding IsZoomEnabled}"/>
+                                <Button Grid.Row="1" Grid.Column="1" Content="Zoom out" Margin="5 10 0 0" Command="{Binding BackgroundZoomOutCommand}" IsEnabled="{Binding IsZoomEnabled}"/>
                                 <!--Zoom factor grid-->
-                                <Grid Grid.Row="2" Grid.ColumnSpan="2" Margin="0 0 0 10">
+                                <Grid Grid.Row="2" Grid.ColumnSpan="2" Margin="0 10 0 0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="1.5*"/>
                                         <ColumnDefinition Width="7*"/>
                                         <ColumnDefinition Width="1.5*"/>
                                     </Grid.ColumnDefinitions>
                                     <Label Content="Zoom"/>
-                                    <Slider Grid.Column="1" VerticalAlignment="Center" Minimum="10" Maximum="100" Value="{Binding BackgroundZoomPercentage, UpdateSourceTrigger=PropertyChanged}" TickFrequency="10" IsSnapToTickEnabled="True"/>
+                                    <Slider Grid.Column="1" VerticalAlignment="Center" Minimum="1" Maximum="100" Value="{Binding BackgroundZoomPercentage, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True"/>
                                     <Label Grid.Column="2" Content="{Binding BackgroundZoomPercentageLabel}" />
                                 </Grid>
-                                <Button Grid.Row="3" Grid.ColumnSpan="2" Content="Clear" Command="{Binding ClearBackgroundCommand}"/>
+                                <Button Grid.Row="3" Grid.ColumnSpan="2" Content="Clear" Command="{Binding ClearBackgroundCommand}" Margin="0 10 0 0"/>
                             </Grid>
                         </Border>
                     </TabItem>
@@ -101,14 +102,14 @@
                                     <ColumnDefinition Width="3*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Label Content="Grid size in pixels" Margin="0 0 0 10"/>
-                                <TextBox Grid.Column="1" Text="{Binding GridSize, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Margin="0 0 0 10">
+                                <Label Content="Grid size in pixels"/>
+                                <TextBox Grid.Column="1" Text="{Binding GridSize, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center">
                                     <TextBox.InputBindings>
                                         <KeyBinding Command="{Binding GridSizeEnterCommand}" Key="Enter" />
                                     </TextBox.InputBindings>
                                 </TextBox>
-                                <Label Grid.Row="1" Content="Enable grid"/>
-                                <CheckBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding IsGridEnabled}">
+                                <Label Grid.Row="1" Content="Enable grid" Margin="0 10 0 0"/>
+                                <CheckBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding IsGridEnabled}" Margin="0 10 0 0">
                                     
                                 </CheckBox>
                             </Grid>
@@ -184,7 +185,7 @@
                                 </Grid>
                                 
                                 <!--Pen size grid-->
-                                <Grid Grid.Row="1" Margin="0 10 0 10">
+                                <Grid Grid.Row="1" Margin="0 10 0 0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="2*"/>
                                         <ColumnDefinition Width="7*"/>
@@ -194,21 +195,21 @@
                                     <Slider Grid.Column="1" VerticalAlignment="Center" Margin="10 0 10 0" Minimum="1" Maximum="100" Value="{Binding PenSize, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True"/>
                                     <TextBox Grid.Column="2" Text="{Binding PenSize, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
                                 </Grid>
-                                <Button Grid.Row="2" Content="Clear" Command="{Binding ClearDrawingCommand}"/>
+                                <Button Grid.Row="2" Content="Clear" Command="{Binding ClearDrawingCommand}" Margin="0 10 0 0"/>
                             </Grid>
                         </Border>
                     </TabItem>
                 </TabControl>
             </Grid>
 
-            <!--Configuration grid-->
+            <!--Control grid-->
             <Border Grid.Row="1" BorderThickness="1" BorderBrush="Gray" CornerRadius="10" Margin="0 5 0 0">
-                <Grid Grid.Row="1" Margin="10">
+                <Grid Margin="10">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
@@ -216,10 +217,57 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     
-                    <Label Grid.ColumnSpan="3" Content="Configuration" FontSize="22" FontWeight="Bold" Margin="0 0 0 15"/>
-                    <Button Grid.Row="1" Grid.ColumnSpan="3" Content="Show map" Margin="0 10 0 0" Command="{Binding ShowMapCommand}"/>
-                    <Button Grid.Row="2" Grid.ColumnSpan="3" Content="Clear all" Margin="0 10 0 0" Command="{Binding ClearAllCommand}"/>
-                    <Button Grid.Row="4" Grid.ColumnSpan="3" Content="Settings" Margin="0 10 0 0" Command="{Binding SettingsCommand}"/>
+                    <Label Grid.ColumnSpan="3" Content="Control" FontSize="22" FontWeight="Bold"/>
+                    <Button Grid.Row="1" Grid.ColumnSpan="2" Content="Show map" Margin="0 10 0 0" Command="{Binding ShowMapCommand}"/>
+                    <Button Grid.Row="2" Grid.ColumnSpan="2" Content="Clear all" Margin="0 10 0 0" Command="{Binding ClearAllCommand}"/>
+                    
+                    <!--Map arrows grid-->
+                    <Grid Grid.Row="3" Grid.ColumnSpan="2" Margin="0 10 0 0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.5*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="1.5*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="2" Margin="5 0 5 5" Command="{Binding MoveMapArrowCommand}" CommandParameter="Up">
+                            <Image Source="{Binding MapArrowUpBitmapSource}"/>
+                        </Button>
+                        <Button Grid.Column="1" Grid.Row="1" Margin="0 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Left">
+                            <Image Source="{Binding MapArrowLeftBitmapSource}"/>
+                        </Button>
+                        <Button Grid.Row="1" Grid.Column="2" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Down">
+                            <Image Source="{Binding MapArrowDownBitmapSource}"/>
+                        </Button>
+                        <Button Grid.Row="1" Grid.Column="3" Margin="5 5 0 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Right">
+                            <Image Source="{Binding MapArrowRightBitmapSource}"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </Border>
+            
+            <!--Configuration grid-->
+            <Border Grid.Row="2" BorderThickness="1" BorderBrush="Gray" CornerRadius="10" Margin="0 5 0 0">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/> 
+                        <ColumnDefinition Width="*"/> 
+                    </Grid.ColumnDefinitions>
+                    <Label Content="Configuration" FontSize="22" FontWeight="Bold"/>
+
+                    <Button Grid.Row="1" Content="Open" Margin="0 10 5 0"/>
+                    <Button Grid.Row="1" Grid.Column="1" Content="Save" Margin="5 10 0 0"/>
+                    <Button Grid.Row="2" Grid.ColumnSpan="2" Content="Settings" Command="{Binding SettingsCommand}" Margin="0 10 0 0"/>
                 </Grid>
             </Border>
         </Grid>
@@ -245,7 +293,7 @@
                                             Strokes="{Binding Strokes, Mode=TwoWay}"
                                             Visibility="{Binding InkCanvasVisibility}">
                     </local:InkCanvasControl>
-                    <Canvas Visibility="{Binding MouseInputCanvasVisibility}" Background="Transparent">
+                    <Canvas Visibility="{Binding MouseInputCanvasVisibility}" Background="Transparent" Cursor="Hand">
                         <i:Interaction.Behaviors>
                             <local:MouseBehavior MouseX="{Binding MouseInputX, Mode=OneWayToSource}" MouseY="{Binding MouseInputY, Mode=OneWayToSource}"/>
                         </i:Interaction.Behaviors>

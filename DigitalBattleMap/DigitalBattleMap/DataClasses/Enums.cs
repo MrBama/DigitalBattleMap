@@ -12,4 +12,12 @@ namespace DigitalBattleMap
         public const int Grid = 1;
         public const int Drawing = 2;
     }
+
+    public enum ArrowDirection
+    {
+        Up,
+        Down,
+        Left,
+        Right
+    }
 }

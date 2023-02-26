@@ -42,21 +42,6 @@ namespace DigitalBattleMap
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public BitmapSource BackgroundBitmapSource
-        {
-            get => _backgroundController.BackgroundBitmap.ToBitmapImage();
-        }
-
-        public BitmapSource GridBitmapSource
-        {
-            get => _gridBitmap.ToBitmapImage();
-        }
-
-        public BitmapSource InkCanvasBackgroundBitmapSource
-        {
-            get => _inkCanvasBitmap.ToBitmapImage();
-        }
-
         public double PenSize
         {
             get => _penSize;
@@ -99,12 +84,12 @@ namespace DigitalBattleMap
             }
         }
 
-        public double BackgroundZoomPercentage 
-        { 
-            get => _backgroundZoomPercentage; 
+        public double BackgroundZoomPercentage
+        {
+            get => _backgroundZoomPercentage;
             set
             {
-                if(value != _backgroundZoomPercentage)
+                if (value != _backgroundZoomPercentage)
                 {
                     _backgroundZoomPercentage = value;
                     NotifyPropertyChange(nameof(BackgroundZoomPercentageLabel));
@@ -113,16 +98,13 @@ namespace DigitalBattleMap
             }
         }
 
-        public string BackgroundZoomPercentageLabel
-        {
-            get => $"{BackgroundZoomPercentage}%";
-        }
-
-        public int GridSize { get; set; }
-        public DrawingAttributes InkCanvasDrawingAttributes { get; set; } = new DrawingAttributes();
-        public InkCanvasEditingMode EditingMode { get; set; } = InkCanvasEditingMode.Ink;
-        public StylusShape EraserShape { get; set; }
-        public StrokeCollection Strokes { get; set; } = new StrokeCollection();
+        public BitmapSource BackgroundBitmapSource { get => _backgroundController.BackgroundBitmap.ToBitmapImage(); }
+        public BitmapSource GridBitmapSource { get => _gridBitmap.ToBitmapImage(); }
+        public BitmapSource InkCanvasBackgroundBitmapSource { get => _inkCanvasBitmap.ToBitmapImage(); }
+        public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToBitmapImage(); }
+        public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
+        public BitmapSource MapArrowLeftBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Left).ToBitmapImage(); }
+        public BitmapSource MapArrowRightBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Right).ToBitmapImage(); }
         public BitmapSource BlackButtonBitmapSource { get; set; }
         public BitmapSource RedButtonBitmapSource { get; set; }
         public BitmapSource GreenButtonBitmapSource { get; set; }
@@ -141,9 +123,15 @@ namespace DigitalBattleMap
         public Visibility GridVisibility { get; set; } = Visibility.Visible;
         public Visibility InkCanvasVisibility { get; set; } = Visibility.Hidden;
         public Visibility MouseInputCanvasVisibility { get; set; } = Visibility.Visible;
+        public DrawingAttributes InkCanvasDrawingAttributes { get; set; } = new DrawingAttributes();
+        public InkCanvasEditingMode EditingMode { get; set; } = InkCanvasEditingMode.Ink;
+        public StylusShape EraserShape { get; set; }
+        public StrokeCollection Strokes { get; set; } = new StrokeCollection();
+        public string BackgroundZoomPercentageLabel { get => $"{BackgroundZoomPercentage}%"; }
+        public int GridSize { get; set; }
         public double MouseInputX { get; set; }
         public double MouseInputY { get; set; }
-
+        public bool IsZoomEnabled { get => _backgroundController.IsZoomEnabled; }
         public ICommand GridSizeEnterCommand { get; set; }
         public ICommand ShowMapCommand { get; set; }
         public ICommand WindowClosingCommand { get; set; }
@@ -158,6 +146,7 @@ namespace DigitalBattleMap
         public ICommand MouseInputCanvasUpCommand { get; set; }
         public ICommand BackgroundZoomInCommand { get; set; }
         public ICommand BackgroundZoomOutCommand { get; set; }
+        public ICommand MoveMapArrowCommand { get; set; }
 
         public void Initialize()
         {
@@ -166,7 +155,7 @@ namespace DigitalBattleMap
             _gridBitmap = BitmapTools.CreateGrid(GridSize);
             _inkCanvasBitmap = BitmapTools.CreateEmptyBitmap();
             _backgroundController = new BackgroundController(_windowService);
-            _backgroundController.BackgroundUpdated += (sender, e) => NotifyPropertyChange(nameof(BackgroundBitmapSource));
+            _backgroundController.BackgroundUpdated += BackgroundUpdated;
 
             GridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
             ShowMapCommand = new RelayCommand(p => ShowMap());
@@ -182,6 +171,7 @@ namespace DigitalBattleMap
             MouseInputCanvasUpCommand = new RelayCommand(p => MouseUp());
             BackgroundZoomInCommand = new RelayCommand(p => _backgroundController.ZoomIn(BackgroundZoomPercentage));
             BackgroundZoomOutCommand = new RelayCommand(p => _backgroundController.ZoomOut(BackgroundZoomPercentage));
+            MoveMapArrowCommand = new RelayCommand(p => MoveMap((string)p));
 
             InkCanvasDrawingAttributes.Width = PenSize;
             InkCanvasDrawingAttributes.Height = PenSize;
@@ -189,6 +179,12 @@ namespace DigitalBattleMap
             EraserShape = new RectangleStylusShape(PenSize, PenSize);
 
             InitializeColorButtons();
+        }
+
+        private void BackgroundUpdated(object? sender, EventArgs e)
+        {
+            NotifyPropertyChange(nameof(BackgroundBitmapSource));
+            NotifyPropertyChange(nameof(IsZoomEnabled));
         }
 
         public void OpenMapWindow()
@@ -384,6 +380,35 @@ namespace DigitalBattleMap
                     _backgroundController.MouseUp(new Point<double>(MouseInputX, MouseInputY));
                     break;
             }
+        }
+
+        public void MoveMap(string direction)
+        {
+            var arrowDirection = Enum.Parse<ArrowDirection>(direction);
+            var matrix = new System.Windows.Media.Matrix();
+            var windowSize = BitmapTools.GetBitmapSize();
+            double gridSize = GridSize;
+            var distanceX = gridSize.Map(0, windowSize.Width, 0, _inkCanvasWidth);
+            var distanceY = gridSize.Map(0, windowSize.Height, 0, _inkCanvasHeight);
+
+            switch (arrowDirection)
+            {
+                case ArrowDirection.Up:
+                    matrix.Translate(0, -distanceY);
+                    break;
+                case ArrowDirection.Down:
+                    matrix.Translate(0, distanceY);
+                    break;
+                case ArrowDirection.Left:
+                    matrix.Translate(-distanceX, 0);
+                    break;
+                case ArrowDirection.Right:
+                    matrix.Translate(distanceX, 0);
+                    break;
+            }
+
+            Strokes.Transform(matrix, false);
+            _backgroundController.MoveBackground(arrowDirection, GridSize);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows;
+using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace DigitalBattleMap
@@ -26,6 +27,7 @@ namespace DigitalBattleMap
         public event EventHandler BackgroundUpdated;
 
         public Bitmap BackgroundBitmap { get => _backgroundBitmap; }
+        public bool IsZoomEnabled { get => _fullBackgroundBitmap != null; }
 
         public void OpenBackground()
         {
@@ -95,6 +97,30 @@ namespace DigitalBattleMap
             _area.Y += (int)(_area.Height - (_area.Height * zoomFactor)) / 2;
             _area.Width = (int)(_area.Width * zoomFactor);
             _area.Height = (int)(_area.Height * zoomFactor);
+
+            CreateBackground();
+        }
+
+        public void MoveBackground(ArrowDirection direction, int gridSize)
+        {
+            var distanceX = gridSize.Map(0, _bitmapSize.Width, 0, _area.Width);
+            var distanceY = gridSize.Map(0, _bitmapSize.Height, 0, _area.Height);
+            
+            switch (direction)
+            {
+                case ArrowDirection.Up:
+                    _area.Y += distanceY;
+                    break;
+                case ArrowDirection.Down:
+                    _area.Y -= distanceY;
+                    break;
+                case ArrowDirection.Left:
+                    _area.X += distanceX;
+                    break;
+                case ArrowDirection.Right:
+                    _area.X -= distanceX;
+                    break;
+            }
 
             CreateBackground();
         }

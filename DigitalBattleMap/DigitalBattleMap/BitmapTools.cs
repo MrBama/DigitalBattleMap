@@ -54,7 +54,7 @@ namespace DigitalBattleMap
                 if (addSelectionIndicator)
                 {
                     graphics.DrawEllipse(borderPen, 4, 4, 60, 60);
-                }               
+                }
 
                 return bitmap;
             }
@@ -77,6 +77,36 @@ namespace DigitalBattleMap
                     graphics.DrawEllipse(borderPen, 4, 4, 60, 60);
                 }
 
+                return bitmap;
+            }
+        }
+
+        public static Bitmap CreateArrowButton(ArrowDirection direction)
+        {
+            var bitmap = new Bitmap(70, 70);
+            PointF[] points = new PointF[3];
+
+            switch(direction)
+            {
+                case ArrowDirection.Up:
+                    points = new PointF[] { new PointF(9, 59), new PointF(59, 59), new PointF(34, 9) };
+                    break;
+                case ArrowDirection.Down:
+                    points = new PointF[] { new PointF(9, 9), new PointF(59, 9), new PointF(34, 59) };
+                    break;
+                case ArrowDirection.Left:
+                    points = new PointF[] { new PointF(59, 9), new PointF(59, 59), new PointF(9, 34) };
+                    break;
+                case ArrowDirection.Right:
+                    points = new PointF[] { new PointF(9, 9), new PointF(9, 59), new PointF(59, 34) };
+                    break;
+            }
+
+            using (var graphics = Graphics.FromImage(bitmap))
+            {
+                var pen = new Pen(Color.Black, 1);
+                var brush = new SolidBrush(Color.Black);
+                graphics.FillPolygon(brush, points);
                 return bitmap;
             }
         }
