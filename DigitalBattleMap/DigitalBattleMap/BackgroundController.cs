@@ -103,26 +103,29 @@ namespace DigitalBattleMap
 
         public void MoveBackground(ArrowDirection direction, int gridSize)
         {
-            var distanceX = gridSize.Map(0, _bitmapSize.Width, 0, _area.Width);
-            var distanceY = gridSize.Map(0, _bitmapSize.Height, 0, _area.Height);
-            
-            switch (direction)
+            if (_fullBackgroundBitmap != null)
             {
-                case ArrowDirection.Up:
-                    _area.Y += distanceY;
-                    break;
-                case ArrowDirection.Down:
-                    _area.Y -= distanceY;
-                    break;
-                case ArrowDirection.Left:
-                    _area.X += distanceX;
-                    break;
-                case ArrowDirection.Right:
-                    _area.X -= distanceX;
-                    break;
-            }
+                var distanceX = gridSize.Map(0, _bitmapSize.Width, 0, _area.Width);
+                var distanceY = gridSize.Map(0, _bitmapSize.Height, 0, _area.Height);
 
-            CreateBackground();
+                switch (direction)
+                {
+                    case ArrowDirection.Up:
+                        _area.Y += distanceY;
+                        break;
+                    case ArrowDirection.Down:
+                        _area.Y -= distanceY;
+                        break;
+                    case ArrowDirection.Left:
+                        _area.X += distanceX;
+                        break;
+                    case ArrowDirection.Right:
+                        _area.X -= distanceX;
+                        break;
+                }
+
+                CreateBackground();
+            }
         }
 
         private void NotifyBackgroundUpdated()
