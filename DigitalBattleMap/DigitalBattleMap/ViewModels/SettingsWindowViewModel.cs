@@ -11,12 +11,15 @@ namespace DigitalBattleMap
     public class SettingsWindowViewModel
     {
         private Settings _settings;
+        private IWindowService _windowService;
         private ScreenPosition _initialMonitorPosition;
 
-        public SettingsWindowViewModel(Settings settings)
+        public SettingsWindowViewModel(Settings settings, IWindowService windowService)
         {
             _settings = settings;
+            _windowService = windowService;
             SaveCommand = new RelayCommand(p => SaveButtonClicked());
+            DownloadMonsterTokensCommand = new RelayCommand(p => DownloadMonsterTokens());
             _initialMonitorPosition = _settings.MonitorPosition;
 
             foreach (var screenPosition in ScreenWrapper.GetScreenPositions())
@@ -26,6 +29,7 @@ namespace DigitalBattleMap
         }
 
         public ICommand SaveCommand { get; set; }
+        public ICommand DownloadMonsterTokensCommand { get; set; }
         public ObservableCollection<ScreenPosition> MonitorPositions { get; private set; } = new ObservableCollection<ScreenPosition>();
         public bool MonitorChanged { get; set; }
 
@@ -61,6 +65,13 @@ namespace DigitalBattleMap
             }
 
             _settings.Save();
+        }
+
+        private void DownloadMonsterTokens()
+        {
+            var downloadWindowViewModel = new DownloadWindowViewModel();
+            downloadWindowViewModel.StartDownload();
+            _windowService.ShowWindowDialog<DownloadWindow>(downloadWindowViewModel);
         }
     }
 }

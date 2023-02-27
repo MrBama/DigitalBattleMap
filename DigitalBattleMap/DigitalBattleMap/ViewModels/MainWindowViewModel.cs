@@ -313,7 +313,7 @@ namespace DigitalBattleMap
 
         private void OpenSettings()
         {
-            var settingsWindowViewModel = new SettingsWindowViewModel(_settings);
+            var settingsWindowViewModel = new SettingsWindowViewModel(_settings, _windowService);
             _windowService.ShowWindowDialog<SettingsWindow>(settingsWindowViewModel);
 
             if (settingsWindowViewModel.MonitorChanged)
@@ -382,7 +382,7 @@ namespace DigitalBattleMap
             }
         }
 
-        public void MoveMap(string direction)
+        private void MoveMap(string direction)
         {
             var arrowDirection = Enum.Parse<ArrowDirection>(direction);
             var matrix = new System.Windows.Media.Matrix();
