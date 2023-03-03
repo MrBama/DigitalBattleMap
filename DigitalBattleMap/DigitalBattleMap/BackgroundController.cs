@@ -31,7 +31,7 @@ namespace DigitalBattleMap
 
         public void OpenBackground()
         {
-            if(_windowService.ShowFileDialog(out string path))
+            if(_windowService.ShowOpenFileDialog(out string path))
             { 
                 _fullBackgroundBitmap = new Bitmap(path);
                 _area = new Rectangle(
@@ -126,6 +126,23 @@ namespace DigitalBattleMap
 
                 CreateBackground();
             }
+        }
+
+        public void AddToSaveFile(SaveFile saveFile)
+        {
+            saveFile.FullBackground = _fullBackgroundBitmap;
+            saveFile.BackgroundArea = _area;
+        }
+
+        public void OpenSaveFile(SaveFile saveFile)
+        {
+            ClearBackground();
+            if(saveFile.FullBackground != null)
+            {
+                _fullBackgroundBitmap = saveFile.FullBackground;
+                _area = saveFile.BackgroundArea;
+                CreateBackground();
+            }            
         }
 
         private void NotifyBackgroundUpdated()

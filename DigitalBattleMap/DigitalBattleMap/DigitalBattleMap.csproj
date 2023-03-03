@@ -6,14 +6,17 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>True</UseWindowsForms>
+    <ApplicationIcon>Resources\ApplicationIcon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Resources\MonsterTokens.json" />
+    <None Remove="Resources\SaveFileIcon.ico" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\MonsterTokens.json" />
+    <EmbeddedResource Include="Resources\SaveFileIcon.ico" />
   </ItemGroup>
 
   <ItemGroup>

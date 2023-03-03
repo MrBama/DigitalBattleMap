@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Configuration;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Permissions;
@@ -147,6 +149,8 @@ namespace DigitalBattleMap
         public ICommand BackgroundZoomInCommand { get; set; }
         public ICommand BackgroundZoomOutCommand { get; set; }
         public ICommand MoveMapArrowCommand { get; set; }
+        public ICommand SaveMapCommand { get; set; }
+        public ICommand OpenMapCommand { get; set; }
 
         public void Initialize()
         {
@@ -172,6 +176,8 @@ namespace DigitalBattleMap
             BackgroundZoomInCommand = new RelayCommand(p => _backgroundController.ZoomIn(BackgroundZoomPercentage));
             BackgroundZoomOutCommand = new RelayCommand(p => _backgroundController.ZoomOut(BackgroundZoomPercentage));
             MoveMapArrowCommand = new RelayCommand(p => MoveMap((string)p));
+            SaveMapCommand = new RelayCommand(p => SaveMap());
+            OpenMapCommand = new RelayCommand(p => OpenMap());
 
             InkCanvasDrawingAttributes.Width = PenSize;
             InkCanvasDrawingAttributes.Height = PenSize;
@@ -409,6 +415,35 @@ namespace DigitalBattleMap
 
             Strokes.Transform(matrix, false);
             _backgroundController.MoveBackground(arrowDirection, GridSize);
+        }
+
+        private void SaveMap()
+        {
+            if (_windowService.ShowSaveFileDialog(out string path, "(*.dbm)|*.dbm"))
+            {
+                var saveFile = new SaveFile();
+                saveFile.GridSize = GridSize;
+                saveFile.IsGridShown = IsGridShown;
+                saveFile.Strokes = Strokes;
+                _backgroundController.AddToSaveFile(saveFile);
+                saveFile.Save(path);
+            }
+        }
+
+        private void OpenMap()
+        {
+            if (_windowService.ShowOpenFileDialog(out string path, "(*.dbm)|*.dbm"))
+            {
+                var saveFile = SaveFile.Open(path);
+                _backgroundController.OpenSaveFile(saveFile);
+                GridSize = saveFile.GridSize;
+                IsGridShown = saveFile.IsGridShown;
+                Strokes = saveFile.Strokes;
+                SelectedTabIndex = TabIndex.Drawing;
+
+                NotifyPropertyChange(nameof(GridSize));
+                NotifyPropertyChange(nameof(Strokes));
+            }
         }
     }
 }

@@ -15,7 +15,9 @@ namespace DigitalBattleMap
 
         public void ShowWindowDialog<T>(object dataContext) where T : Window, new();
 
-        public bool ShowFileDialog(out string path);
+        public bool ShowOpenFileDialog(out string path, string filter = "All files (*.*)|*.*");
+
+        public bool ShowSaveFileDialog(out string path, string filter = "All files (*.*)|*.*");
 
         public void CloseAllWindows();
     }
@@ -39,9 +41,29 @@ namespace DigitalBattleMap
             window.ShowDialog();
         }
 
-        public bool ShowFileDialog(out string path)
+        public bool ShowOpenFileDialog(out string path, string filter)
         {
-            Microsoft.Win32.OpenFileDialog dialog = new Microsoft.Win32.OpenFileDialog();
+            var dialog = new Microsoft.Win32.OpenFileDialog();
+            dialog.Filter = filter;
+
+            var result = dialog.ShowDialog();
+            if (result.HasValue && result.Value)
+            {
+                path = dialog.FileName;
+                return true;
+            }
+            else
+            {
+                path = "";
+                return false;
+            }
+        }
+
+        public bool ShowSaveFileDialog(out string path, string filter)
+        {
+            var dialog = new Microsoft.Win32.SaveFileDialog();
+            dialog.Filter = filter;
+
             var result = dialog.ShowDialog();
             if (result.HasValue && result.Value)
             {

@@ -17,6 +17,7 @@ namespace DigitalBattleMap
 
         public App()
         {
+            DigitalBattleMap.Startup.CheckForInitialStartup();
             DispatcherUnhandledException += AppDispatcherUnhandledException;
         }
 
