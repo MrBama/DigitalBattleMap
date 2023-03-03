@@ -314,6 +314,9 @@ namespace DigitalBattleMap
             {
                 Strokes.Clear();
                 _backgroundController.ClearBackground();
+                IsGridShown = true;
+                GridSize = _settings.DefaultGridSize;
+                NotifyPropertyChange(nameof(GridSize));
             }
         }
 

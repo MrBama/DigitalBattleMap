@@ -33,62 +33,84 @@ namespace DigitalBattleMap
 
         public void Save(string path)
         {
-            CreateTempDirectory();
-            FileManager.SaveFile(this, _saveFilePath);
-
-            using (var fileStream = new FileStream(_drawingFilePath, FileMode.Create))
+            using (var tempDirectory = new TempDirectory(_tempDirectoryPath))
             {
-                Strokes.Save(fileStream);
-            }
+                FileManager.SaveFile(this, _saveFilePath);
 
-            if(FullBackground != null)
-            {
-                FullBackground.Save(_fullBackgrondFilePath);
-            }
+                using (var fileStream = new FileStream(_drawingFilePath, FileMode.Create))
+                {
+                    Strokes.Save(fileStream);
+                }
 
-            var pathWithExtension = Path.ChangeExtension(path, ".dbm");
-            if (File.Exists(pathWithExtension))
-            {
-                File.Delete(pathWithExtension);
-            }
+                if (FullBackground != null)
+                {
+                    FullBackground.Save(_fullBackgrondFilePath);
+                }
 
-            ZipFile.CreateFromDirectory(_tempDirectoryPath, pathWithExtension);
+                var pathWithExtension = Path.ChangeExtension(path, ".dbm");
+                if (File.Exists(pathWithExtension))
+                {
+                    File.Delete(pathWithExtension);
+                }
+
+                ZipFile.CreateFromDirectory(_tempDirectoryPath, pathWithExtension);
+            }
         }
 
         public static SaveFile Open(string path)
         {
-            CreateTempDirectory();
-            ZipFile.ExtractToDirectory(path, _tempDirectoryPath);
-
-            SaveFile saveFile;
-
-            if (!FileManager.OpenFile(_saveFilePath, out saveFile))
+            using (var tempDirectory = new TempDirectory(_tempDirectoryPath))
             {
-                saveFile = new SaveFile();
-            }
+                ZipFile.ExtractToDirectory(path, _tempDirectoryPath);
 
-            using (var fileStream = new FileStream(_drawingFilePath, FileMode.Open))
-            {
-                saveFile.Strokes = new StrokeCollection(fileStream);
-            }
+                SaveFile saveFile;
 
-            if (File.Exists(_fullBackgrondFilePath))
-            {
-                // Load bitmap and make a copy
-                saveFile.FullBackground = new Bitmap(new Bitmap(_fullBackgrondFilePath));
-            }
+                if (!FileManager.OpenFile(_saveFilePath, out saveFile))
+                {
+                    saveFile = new SaveFile();
+                }
 
-            return saveFile;
+                using (var fileStream = new FileStream(_drawingFilePath, FileMode.Open))
+                {
+                    saveFile.Strokes = new StrokeCollection(fileStream);
+                }
+
+                if (File.Exists(_fullBackgrondFilePath))
+                {
+                    using (var fullBackGround = new Bitmap(_fullBackgrondFilePath))
+                    {
+                        // Load bitmap and make a copy
+                        saveFile.FullBackground = new Bitmap(fullBackGround);
+                    }                        
+                }
+
+                return saveFile;
+            }
+            
         }
 
-        private static void CreateTempDirectory()
+        private class TempDirectory : IDisposable
         {
-            if (Directory.Exists(_tempDirectoryPath))
+            private string _path;
+
+            public TempDirectory(string path)
             {
-                Directory.Delete(_tempDirectoryPath, true);
+                _path = path;
+                if (Directory.Exists(_path))
+                {
+                    Directory.Delete(_path, true);
+                }
+
+                Directory.CreateDirectory(_path);
             }
 
-            Directory.CreateDirectory(_tempDirectoryPath);
+            public void Dispose()
+            {
+                if (Directory.Exists(_path))
+                {
+                    Directory.Delete(_path, true);
+                }
+            }
         }
     }
 }
