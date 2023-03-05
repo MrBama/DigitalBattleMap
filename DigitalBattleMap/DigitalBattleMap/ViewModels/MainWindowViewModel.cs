@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Configuration;
@@ -29,6 +30,7 @@ namespace DigitalBattleMap
         private MapWindowViewModel _mapWindowViewModel;
         private Settings _settings;
         private BackgroundController _backgroundController;
+        private TokenController _tokenController;
 
         public MainWindowViewModel(IWindowService windowService)
         {
@@ -129,6 +131,8 @@ namespace DigitalBattleMap
         public InkCanvasEditingMode EditingMode { get; set; } = InkCanvasEditingMode.Ink;
         public StylusShape EraserShape { get; set; }
         public StrokeCollection Strokes { get; set; } = new StrokeCollection();
+        public ObservableCollection<TokenListItem> TokenList { get => _tokenController.TokenList; }
+        public TokenListItem SelectedToken { get => _tokenController.SelectedToken; set => _tokenController.SelectedToken = value; }
         public string BackgroundZoomPercentageLabel { get => $"{BackgroundZoomPercentage}%"; }
         public int GridSize { get; set; }
         public double MouseInputX { get; set; }
@@ -151,6 +155,9 @@ namespace DigitalBattleMap
         public ICommand MoveMapArrowCommand { get; set; }
         public ICommand SaveMapCommand { get; set; }
         public ICommand OpenMapCommand { get; set; }
+        public ICommand AddTokenCommand { get; set; }
+        public ICommand RemoveTokenCommand { get; set; }
+        public ICommand ClearTokensCommand { get; set; }
 
         public void Initialize()
         {
@@ -160,6 +167,8 @@ namespace DigitalBattleMap
             _inkCanvasBitmap = BitmapTools.CreateEmptyBitmap();
             _backgroundController = new BackgroundController(_windowService);
             _backgroundController.BackgroundUpdated += BackgroundUpdated;
+            _tokenController = new TokenController(_windowService);
+            _tokenController.TokensUpdated += TokensUpdated;
 
             GridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
             ShowMapCommand = new RelayCommand(p => ShowMap());
@@ -178,6 +187,9 @@ namespace DigitalBattleMap
             MoveMapArrowCommand = new RelayCommand(p => MoveMap((string)p));
             SaveMapCommand = new RelayCommand(p => SaveMap());
             OpenMapCommand = new RelayCommand(p => OpenMap());
+            AddTokenCommand = new RelayCommand(p => _tokenController.AddToken());
+            RemoveTokenCommand = new RelayCommand(p => _tokenController.RemoveToken());
+            ClearTokensCommand = new RelayCommand(p => _tokenController.ClearTokens());
 
             InkCanvasDrawingAttributes.Width = PenSize;
             InkCanvasDrawingAttributes.Height = PenSize;
@@ -191,6 +203,11 @@ namespace DigitalBattleMap
         {
             NotifyPropertyChange(nameof(BackgroundBitmapSource));
             NotifyPropertyChange(nameof(IsZoomEnabled));
+        }
+
+        private void TokensUpdated(object? sender, EventArgs e)
+        {
+            
         }
 
         public void OpenMapWindow()
@@ -314,6 +331,7 @@ namespace DigitalBattleMap
             {
                 Strokes.Clear();
                 _backgroundController.ClearBackground();
+                _tokenController.ClearTokens();
                 IsGridShown = true;
                 GridSize = _settings.DefaultGridSize;
                 NotifyPropertyChange(nameof(GridSize));
@@ -328,6 +346,11 @@ namespace DigitalBattleMap
             if (settingsWindowViewModel.MonitorChanged)
             {
                 _mapWindowViewModel.ChangeWindowPosition(_settings.MonitorPosition.X);
+            }
+
+            if(settingsWindowViewModel.MonsterTokensDownloaded)
+            {
+                _tokenController.ReloadTokens();
             }
         }
 
@@ -351,6 +374,10 @@ namespace DigitalBattleMap
                 case TabIndex.Drawing:
                     InkCanvasVisibility = Visibility.Visible;
                     MouseInputCanvasVisibility = Visibility.Hidden;
+                    break;
+                case TabIndex.Tokens:
+                    InkCanvasVisibility = Visibility.Visible;
+                    MouseInputCanvasVisibility = Visibility.Visible;
                     break;
             }
 
@@ -442,7 +469,7 @@ namespace DigitalBattleMap
                 GridSize = saveFile.GridSize;
                 IsGridShown = saveFile.IsGridShown;
                 Strokes = saveFile.Strokes;
-                SelectedTabIndex = TabIndex.Drawing;
+                SelectedTabIndex = TabIndex.Tokens;
 
                 NotifyPropertyChange(nameof(GridSize));
                 NotifyPropertyChange(nameof(Strokes));

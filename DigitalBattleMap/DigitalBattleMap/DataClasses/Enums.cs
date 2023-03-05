@@ -11,6 +11,7 @@ namespace DigitalBattleMap
         public const int Background = 0;
         public const int Grid = 1;
         public const int Drawing = 2;
+        public const int Tokens = 3;
     }
 
     public enum ArrowDirection
@@ -19,5 +20,15 @@ namespace DigitalBattleMap
         Down,
         Left,
         Right
+    }
+
+    public enum TokenSize
+    {
+        Tiny,
+        Small,
+        Medium,
+        Large,
+        Huge,
+        Gargantuan
     }
 }

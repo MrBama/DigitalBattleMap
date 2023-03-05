@@ -11,7 +11,6 @@ namespace DigitalBattleMap
 {
     public class DownloadWindowViewModel : INotifyPropertyChanged
     {
-        private static string _path = Path.Combine(Constants.SettingsPath, "Tokens", "Monsters");
         private const int _numberOfThreads = 4;
 
         private List<Thread> _threadPool = new List<Thread>();
@@ -25,10 +24,6 @@ namespace DigitalBattleMap
         public DownloadWindowViewModel()
         {
             CancelCommand = new RelayCommand(p => Cancel());
-            if (!Directory.Exists(_path))
-            {
-                Directory.CreateDirectory(_path);
-            }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -116,7 +111,7 @@ namespace DigitalBattleMap
                     }
 
 
-                    var imagePath = Path.Combine(_path, $"{tokens[i].Name}.png");
+                    var imagePath = Path.Combine(Constants.MonsterTokensPath, $"{tokens[i].Name}.png");
                     if (!File.Exists(imagePath))
                     {
                         try

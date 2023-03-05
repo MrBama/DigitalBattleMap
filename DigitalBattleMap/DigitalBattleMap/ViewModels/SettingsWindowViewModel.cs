@@ -32,6 +32,7 @@ namespace DigitalBattleMap
         public ICommand DownloadMonsterTokensCommand { get; set; }
         public ObservableCollection<ScreenPosition> MonitorPositions { get; private set; } = new ObservableCollection<ScreenPosition>();
         public bool MonitorChanged { get; set; }
+        public bool MonsterTokensDownloaded { get; set; }
 
         public int DefaultGridSize 
         {
@@ -72,6 +73,7 @@ namespace DigitalBattleMap
             var downloadWindowViewModel = new DownloadWindowViewModel();
             downloadWindowViewModel.StartDownload();
             _windowService.ShowWindowDialog<DownloadWindow>(downloadWindowViewModel);
+            MonsterTokensDownloaded = true;
         }
     }
 }

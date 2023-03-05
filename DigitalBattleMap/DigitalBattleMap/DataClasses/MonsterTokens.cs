@@ -23,6 +23,49 @@ namespace DigitalBattleMap
             var data = JsonConvert.DeserializeObject<MonsterTokenData>(json);
             return data ?? new MonsterTokenData();
         }
+
+        public static List<Token> GetTokens()
+        {
+            var tokens = new List<Token>();
+            var rawData = GetRawData();
+            foreach (var file in Directory.GetFiles(Constants.MonsterTokensPath))
+            {
+                var tokenName = Path.GetFileNameWithoutExtension(file);
+                var monsterToken = rawData.Tokens.SingleOrDefault(t => t.Name == tokenName);
+                if(monsterToken != null)
+                {
+                    var token = new Token();
+                    token.Name = tokenName;
+                    token.Size = ConvertSize(monsterToken.Size);
+                    token.ImagePath = file;
+
+                    tokens.Add(token);
+                }
+            }
+
+            return tokens;
+        }
+
+        private static TokenSize ConvertSize(string size)
+        {
+            switch(size)
+            {
+                case "T":
+                    return TokenSize.Tiny;
+                case "S":
+                    return TokenSize.Small;
+                case "M":
+                    return TokenSize.Medium;
+                case "L":
+                    return TokenSize.Large;
+                case "H":
+                    return TokenSize.Huge;
+                case "G":
+                    return TokenSize.Gargantuan;
+                default:
+                    return TokenSize.Medium;
+            }
+        }
     }
 
     public class MonsterToken

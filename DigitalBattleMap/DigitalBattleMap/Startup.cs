@@ -28,6 +28,10 @@ namespace DigitalBattleMap
                 var settings = new Settings();
                 settings.Save();
 
+                // Create token directories
+                Directory.CreateDirectory(Constants.MonsterTokensPath);
+                Directory.CreateDirectory(Constants.CustomTokensPath);
+
                 // Extract SaveFileIcon.ico to disk
                 Directory.CreateDirectory(dataDirectoryPath);
                 using (var resource = Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.{saveFileIconFileName}"))
