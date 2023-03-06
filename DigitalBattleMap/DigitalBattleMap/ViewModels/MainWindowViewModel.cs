@@ -138,6 +138,7 @@ namespace DigitalBattleMap
         public double MouseInputX { get; set; }
         public double MouseInputY { get; set; }
         public bool IsZoomEnabled { get => _backgroundController.IsZoomEnabled; }
+        public bool IsTokenSelected { get => _tokenController.IsTokenSelected; }
         public ICommand GridSizeEnterCommand { get; set; }
         public ICommand ShowMapCommand { get; set; }
         public ICommand WindowClosingCommand { get; set; }
@@ -207,7 +208,7 @@ namespace DigitalBattleMap
 
         private void TokensUpdated(object? sender, EventArgs e)
         {
-            
+            NotifyPropertyChange(nameof(IsTokenSelected));
         }
 
         public void OpenMapWindow()

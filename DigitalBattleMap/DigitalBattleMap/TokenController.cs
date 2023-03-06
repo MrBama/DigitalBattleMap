@@ -13,6 +13,7 @@ namespace DigitalBattleMap
         private IWindowService _windowService;
         private Bitmap _tokenBitmap;
         private List<Token> _tokens = new List<Token>();
+        private TokenListItem _selectedToken;
 
         public TokenController(IWindowService windowService)
         {
@@ -23,8 +24,21 @@ namespace DigitalBattleMap
 
         public event EventHandler TokensUpdated;
 
+        public TokenListItem SelectedToken
+        { 
+            get => _selectedToken;
+            set
+            {
+                if(value != _selectedToken)
+                {
+                    _selectedToken = value;
+                    NotifyTokensUpdated();
+                }
+            }
+        }
+
         public ObservableCollection<TokenListItem> TokenList { get; set; } = new ObservableCollection<TokenListItem>();
-        public TokenListItem SelectedToken { get; set; }
+        public bool IsTokenSelected { get => SelectedToken != null; }
 
         public void ReloadTokens()
         {
@@ -37,13 +51,13 @@ namespace DigitalBattleMap
             var selectTokenWindowViewModel = new SelectTokenWindowViewModel(_tokens);
             _windowService.ShowWindowDialog<SelectTokenWindow>(selectTokenWindowViewModel);
 
-            if(selectTokenWindowViewModel.SelectedToken != null)
+            foreach (var token in selectTokenWindowViewModel.Tokens)
             {
                 var tokenListItem = new TokenListItem();
-                tokenListItem.Token = selectTokenWindowViewModel.SelectedToken;
-                tokenListItem.Id = GetUniqueId(selectTokenWindowViewModel.SelectedToken.Name);
+                tokenListItem.Token = token;
+                tokenListItem.Id = GetUniqueId(token.Name);
                 TokenList.Add(tokenListItem);
-            }         
+            }        
         }
 
         public void RemoveToken()

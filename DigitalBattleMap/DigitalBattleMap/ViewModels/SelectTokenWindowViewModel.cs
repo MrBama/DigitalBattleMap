@@ -29,6 +29,8 @@ namespace DigitalBattleMap
             {
                 TokenList.Add(token);
             }
+
+            AddCommand = new RelayCommand(p => AddButton());
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -55,14 +57,19 @@ namespace DigitalBattleMap
                 if (value != _selectedToken)
                 {
                     _selectedToken = value;
-                    NotifyPropertyChange(nameof(AddButtonEnabled));
+                    OnSelectedTokenChanged();
+                    NotifyPropertyChange(nameof(IsTokenSelected));
                     NotifyPropertyChange();
                 }
             }
         }
 
         public ObservableCollection<Token> TokenList { get; set; } = new ObservableCollection<Token>();
-        public bool AddButtonEnabled { get => SelectedToken != null; }
+        public bool IsTokenSelected { get => SelectedToken != null; }
+        public int NumberOfTokens { get; set; } = 1;
+        public TokenSize SelectedTokenSize { get; set; } = TokenSize.Medium;
+        public List<Token> Tokens { get; set; } = new List<Token>();
+        public ICommand AddCommand { get; set; }
 
         private void NotifyPropertyChange([CallerMemberName] string propertyname = "")
         {
@@ -79,6 +86,40 @@ namespace DigitalBattleMap
                     TokenList.Add(token);
                 }
             }
+        }
+
+        private void AddButton()
+        {
+            if(SelectedToken != null)
+            {
+                for(int i = 0; i < NumberOfTokens; i++)
+                {
+                    if(SelectedToken.Size == SelectedTokenSize)
+                    {
+                        Tokens.Add(SelectedToken);
+                    }
+                    else
+                    {
+                        Tokens.Add(SelectedToken.Copy(SelectedTokenSize));
+                    }   
+                }
+            }
+        }
+
+        private void OnSelectedTokenChanged()
+        {
+            NumberOfTokens = 1;
+            if(SelectedToken != null)
+            {
+                SelectedTokenSize = SelectedToken.Size;
+            }
+            else
+            {
+                SelectedTokenSize = TokenSize.Medium;
+            }
+            
+            NotifyPropertyChange(nameof(NumberOfTokens));
+            NotifyPropertyChange(nameof(SelectedTokenSize));
         }
     }
 }

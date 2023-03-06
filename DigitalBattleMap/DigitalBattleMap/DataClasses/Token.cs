@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,6 +13,26 @@ namespace DigitalBattleMap
         public string Name { get; set; } = "";
         public TokenSize Size { get; set; }
         public string ImagePath { get; set; } = "";
+
+        public Token Copy()
+        {
+            return new Token
+            {
+                Name = Name,
+                Size = Size,
+                ImagePath = ImagePath
+            };
+        }
+
+        public Token Copy(TokenSize newSize)
+        {
+            return new Token
+            {
+                Name = Name,
+                Size = newSize,
+                ImagePath = ImagePath
+            };
+        }
 
         public override string ToString()
         {
