@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.Windows;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
+using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap
 {
@@ -26,8 +26,15 @@ namespace DigitalBattleMap
 
         public event EventHandler BackgroundUpdated;
 
-        public Bitmap BackgroundBitmap { get => _backgroundBitmap; }
-        public bool IsZoomEnabled { get => _fullBackgroundBitmap != null; }
+        public BitmapSource GetBackgroundBitmapSource()
+        {
+            return _backgroundBitmap.ToBitmapImage();
+        }
+
+        public bool IsZoomEnabled()
+        {
+            return _fullBackgroundBitmap != null;
+        }
 
         public void OpenBackground()
         {

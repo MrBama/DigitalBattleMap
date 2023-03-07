@@ -38,12 +38,17 @@ namespace DigitalBattleMap
         }
 
         public ObservableCollection<TokenListItem> TokenList { get; set; } = new ObservableCollection<TokenListItem>();
-        public bool IsTokenSelected { get => SelectedToken != null; }
 
         public void ReloadTokens()
         {
             _tokens = new List<Token>();
             _tokens.AddRange(MonsterTokens.GetTokens());
+            _tokens = _tokens.OrderBy(t => t.Name).ToList();
+        }
+
+        public bool IsTokenSelected()
+        {
+            return SelectedToken != null;
         }
         
         public void AddToken()

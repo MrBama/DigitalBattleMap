@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -16,20 +17,16 @@ using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap
 {
-    public class MainWindowViewModel : INotifyPropertyChanged
+    public class MainWindowViewModel : PropertyHandler, INotifyPropertyChanged
     {
         private Bitmap _gridBitmap;
         private Bitmap _inkCanvasBitmap;
         private double _inkCanvasWidth;
         private double _inkCanvasHeight;
-        private double _penSize = 5;
-        private int _selectedTabIndex = 0;
-        private bool _isGridShown = true;
-        private double _backgroundZoomPercentage = 10;
         private IWindowService _windowService;
         private MapWindowViewModel _mapWindowViewModel;
         private Settings _settings;
-        private BackgroundController _backgroundController;
+        public BackgroundController _backgroundController { get; set; }
         private TokenController _tokenController;
 
         public MainWindowViewModel(IWindowService windowService)
@@ -46,63 +43,24 @@ namespace DigitalBattleMap
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public double PenSize
-        {
-            get => _penSize;
-            set
-            {
-                if (value != _penSize)
-                {
-                    _penSize = value;
-                    PenSizeChanged();
-                    NotifyPropertyChange();
-                }
-            }
-        }
+        public double PenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100), PenSizeChanged); }
+        public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
+        public int GridSize { get => Get<int>(); set => Set(value); }
+        public bool IsGridShown { get => Get<bool>(); set => Set(value, GridShownChanged); }
+        public double BackgroundZoomPercentage { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(BackgroundZoomPercentageLabel))); }
+        public Visibility BlackButtonSelectedVisibility { get => Get<Visibility>(); set => Set(value); }
+        public Visibility RedButtonSelectedVisibility { get => Get<Visibility>(); set => Set(value); }
+        public Visibility GreenButtonSelectedVisibility { get => Get<Visibility>(); set => Set(value); }
+        public Visibility BlueButtonSelectedVisibility { get => Get<Visibility>(); set => Set(value); }
+        public Visibility EraserButtonSelectedVisibility { get => Get<Visibility>(); set => Set(value); }
+        public Visibility GridVisibility { get => Get<Visibility>(); set => Set(value); }
+        public Visibility InkCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
+        public Visibility MouseInputCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
+        public StylusShape EraserShape { get => Get<StylusShape>(); set => Set(value); }
+        public InkCanvasEditingMode EditingMode { get => Get<InkCanvasEditingMode>(); set => Set(value); }
+        public StrokeCollection Strokes { get => Get<StrokeCollection>(); set => Set(value); }
 
-        public int SelectedTabIndex
-        {
-            get => _selectedTabIndex;
-            set
-            {
-                if (value != _selectedTabIndex)
-                {
-                    _selectedTabIndex = value;
-                    SelectedTabChanged();
-                    NotifyPropertyChange();
-                }
-            }
-        }
-
-        public bool IsGridShown
-        {
-            get => _isGridShown;
-            set
-            {
-                if (value != _isGridShown)
-                {
-                    _isGridShown = value;
-                    GridShownChanged();
-                    NotifyPropertyChange();
-                }
-            }
-        }
-
-        public double BackgroundZoomPercentage
-        {
-            get => _backgroundZoomPercentage;
-            set
-            {
-                if (value != _backgroundZoomPercentage)
-                {
-                    _backgroundZoomPercentage = value;
-                    NotifyPropertyChange(nameof(BackgroundZoomPercentageLabel));
-                    NotifyPropertyChange();
-                }
-            }
-        }
-
-        public BitmapSource BackgroundBitmapSource { get => _backgroundController.BackgroundBitmap.ToBitmapImage(); }
+        public BitmapSource BackgroundBitmapSource { get => _backgroundController.GetBackgroundBitmapSource(); }
         public BitmapSource GridBitmapSource { get => _gridBitmap.ToBitmapImage(); }
         public BitmapSource InkCanvasBackgroundBitmapSource { get => _inkCanvasBitmap.ToBitmapImage(); }
         public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToBitmapImage(); }
@@ -119,26 +77,14 @@ namespace DigitalBattleMap
         public BitmapSource GreenButtonSelectedBitmapSource { get; set; }
         public BitmapSource BlueButtonSelectedBitmapSource { get; set; }
         public BitmapSource EraserButtonSelectedBitmapSource { get; set; }
-        public Visibility BlackButtonSelectedVisibility { get; set; } = Visibility.Visible;
-        public Visibility RedButtonSelectedVisibility { get; set; } = Visibility.Hidden;
-        public Visibility GreenButtonSelectedVisibility { get; set; } = Visibility.Hidden;
-        public Visibility BlueButtonSelectedVisibility { get; set; } = Visibility.Hidden;
-        public Visibility EraserButtonSelectedVisibility { get; set; } = Visibility.Hidden;
-        public Visibility GridVisibility { get; set; } = Visibility.Visible;
-        public Visibility InkCanvasVisibility { get; set; } = Visibility.Hidden;
-        public Visibility MouseInputCanvasVisibility { get; set; } = Visibility.Visible;
         public DrawingAttributes InkCanvasDrawingAttributes { get; set; } = new DrawingAttributes();
-        public InkCanvasEditingMode EditingMode { get; set; } = InkCanvasEditingMode.Ink;
-        public StylusShape EraserShape { get; set; }
-        public StrokeCollection Strokes { get; set; } = new StrokeCollection();
         public ObservableCollection<TokenListItem> TokenList { get => _tokenController.TokenList; }
         public TokenListItem SelectedToken { get => _tokenController.SelectedToken; set => _tokenController.SelectedToken = value; }
         public string BackgroundZoomPercentageLabel { get => $"{BackgroundZoomPercentage}%"; }
-        public int GridSize { get; set; }
         public double MouseInputX { get; set; }
         public double MouseInputY { get; set; }
-        public bool IsZoomEnabled { get => _backgroundController.IsZoomEnabled; }
-        public bool IsTokenSelected { get => _tokenController.IsTokenSelected; }
+        public bool IsZoomEnabled { get => _backgroundController.IsZoomEnabled(); }
+        public bool IsTokenSelected { get => _tokenController.IsTokenSelected(); }
         public ICommand GridSizeEnterCommand { get; set; }
         public ICommand ShowMapCommand { get; set; }
         public ICommand WindowClosingCommand { get; set; }
@@ -162,6 +108,7 @@ namespace DigitalBattleMap
 
         public void Initialize()
         {
+            InitializeProperties();
             _settings = Settings.Load();
             GridSize = _settings.DefaultGridSize;
             _gridBitmap = BitmapTools.CreateGrid(GridSize);
@@ -200,6 +147,24 @@ namespace DigitalBattleMap
             InitializeColorButtons();
         }
 
+        private void InitializeProperties()
+        {
+            SetNotifyPropertyChangedAction(NotifyPropertyChange);
+            PenSize = 5;
+            IsGridShown = true;
+            BackgroundZoomPercentage = 10;
+            BlackButtonSelectedVisibility = Visibility.Visible;
+            RedButtonSelectedVisibility = Visibility.Hidden;
+            GreenButtonSelectedVisibility = Visibility.Hidden;
+            BlueButtonSelectedVisibility = Visibility.Hidden;
+            EraserButtonSelectedVisibility = Visibility.Hidden;
+            GridVisibility = Visibility.Visible;
+            InkCanvasVisibility = Visibility.Hidden;
+            MouseInputCanvasVisibility = Visibility.Visible;
+            EditingMode = InkCanvasEditingMode.Ink;
+            Strokes = new StrokeCollection();
+        }
+
         private void BackgroundUpdated(object? sender, EventArgs e)
         {
             NotifyPropertyChange(nameof(BackgroundBitmapSource));
@@ -218,9 +183,9 @@ namespace DigitalBattleMap
             _mapWindowViewModel.ChangeWindowPosition(_settings.MonitorPosition.X);
         }
 
-        private void NotifyPropertyChange([CallerMemberName] string propertyname = "")
+        private void NotifyPropertyChange([CallerMemberName] string propertyName = "")
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyname));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         private void GridSizeChanged()
@@ -234,7 +199,7 @@ namespace DigitalBattleMap
         {
             var gridBitmap = IsGridShown ? _gridBitmap : BitmapTools.CreateEmptyBitmap();
             var map = BitmapTools.CreateMap(gridBitmap, Strokes, (int)_inkCanvasWidth, (int)_inkCanvasHeight);
-            _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.BackgroundBitmap.ToBitmapImage();
+            _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.GetBackgroundBitmapSource();
             _mapWindowViewModel.GridBitmapSource = map.ToBitmapImage();
         }
 
@@ -245,12 +210,9 @@ namespace DigitalBattleMap
 
         private void PenSizeChanged()
         {
-            _penSize = Math.Clamp(_penSize, 1, 100);
-            InkCanvasDrawingAttributes.Width = _penSize;
-            InkCanvasDrawingAttributes.Height = _penSize;
-            EraserShape = new EllipseStylusShape(_penSize, _penSize);
-
-            NotifyPropertyChange(nameof(EraserShape));
+            InkCanvasDrawingAttributes.Width = PenSize;
+            InkCanvasDrawingAttributes.Height = PenSize;
+            EraserShape = new EllipseStylusShape(PenSize, PenSize);
         }
 
         private void InitializeColorButtons()
@@ -279,7 +241,6 @@ namespace DigitalBattleMap
             if (EditingMode == InkCanvasEditingMode.EraseByPoint)
             {
                 EditingMode = InkCanvasEditingMode.Ink;
-                NotifyPropertyChange(nameof(EditingMode));
             }
 
             switch (color)
@@ -303,15 +264,8 @@ namespace DigitalBattleMap
                 case "Eraser":
                     EditingMode = InkCanvasEditingMode.EraseByPoint;
                     EraserButtonSelectedVisibility = Visibility.Visible;
-                    NotifyPropertyChange(nameof(EditingMode));
                     break;
             }
-
-            NotifyPropertyChange(nameof(BlackButtonSelectedVisibility));
-            NotifyPropertyChange(nameof(RedButtonSelectedVisibility));
-            NotifyPropertyChange(nameof(GreenButtonSelectedVisibility));
-            NotifyPropertyChange(nameof(BlueButtonSelectedVisibility));
-            NotifyPropertyChange(nameof(EraserButtonSelectedVisibility));
         }
 
         private void InkCanvasSizeOnStartup(double width)
@@ -335,7 +289,6 @@ namespace DigitalBattleMap
                 _tokenController.ClearTokens();
                 IsGridShown = true;
                 GridSize = _settings.DefaultGridSize;
-                NotifyPropertyChange(nameof(GridSize));
             }
         }
 
@@ -349,7 +302,7 @@ namespace DigitalBattleMap
                 _mapWindowViewModel.ChangeWindowPosition(_settings.MonitorPosition.X);
             }
 
-            if(settingsWindowViewModel.MonsterTokensDownloaded)
+            if (settingsWindowViewModel.MonsterTokensDownloaded)
             {
                 _tokenController.ReloadTokens();
             }
@@ -381,9 +334,6 @@ namespace DigitalBattleMap
                     MouseInputCanvasVisibility = Visibility.Visible;
                     break;
             }
-
-            NotifyPropertyChange(nameof(InkCanvasVisibility));
-            NotifyPropertyChange(nameof(MouseInputCanvasVisibility));
         }
 
         public void GridShownChanged()
@@ -396,7 +346,6 @@ namespace DigitalBattleMap
             {
                 GridVisibility = Visibility.Hidden;
             }
-            NotifyPropertyChange(nameof(GridVisibility));
         }
 
         public void MouseDown()
@@ -471,9 +420,6 @@ namespace DigitalBattleMap
                 IsGridShown = saveFile.IsGridShown;
                 Strokes = saveFile.Strokes;
                 SelectedTabIndex = TabIndex.Tokens;
-
-                NotifyPropertyChange(nameof(GridSize));
-                NotifyPropertyChange(nameof(Strokes));
             }
         }
     }
