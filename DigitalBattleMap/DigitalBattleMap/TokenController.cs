@@ -56,7 +56,7 @@ namespace DigitalBattleMap
             var selectTokenWindowViewModel = new SelectTokenWindowViewModel(_tokens);
             _windowService.ShowWindowDialog<SelectTokenWindow>(selectTokenWindowViewModel);
 
-            foreach (var token in selectTokenWindowViewModel.Tokens)
+            foreach (var token in selectTokenWindowViewModel.AddedTokens)
             {
                 var tokenListItem = new TokenListItem();
                 tokenListItem.Token = token;

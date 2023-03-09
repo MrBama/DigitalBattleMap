@@ -11,18 +11,18 @@ using System.Windows.Input;
 
 namespace DigitalBattleMap
 {
-    public class SelectTokenWindowViewModel : INotifyPropertyChanged
+    public class SelectTokenWindowViewModel : PropertyHandler, INotifyPropertyChanged
     {
-        private List<Token> _tokens;
-        private string _searchText = "";
-        private Token _selectedToken;
+        private List<Token> _tokens = new List<Token>();
 
         public SelectTokenWindowViewModel()
         {
+            InitializeProperties();
         }
 
         public SelectTokenWindowViewModel(List<Token> tokens)
         {
+            InitializeProperties();
             _tokens = tokens;
 
             foreach (var token in _tokens)
@@ -35,45 +35,26 @@ namespace DigitalBattleMap
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public string SearchText
-        {
-            get => _searchText;
-            set
-            {
-                if (value != _searchText)
-                {
-                    _searchText = value;
-                    SearchTextChanged();
-                    NotifyPropertyChange();
-                }
-            }
-        }
-
-        public Token SelectedToken
-        {
-            get => _selectedToken;
-            set
-            {
-                if (value != _selectedToken)
-                {
-                    _selectedToken = value;
-                    OnSelectedTokenChanged();
-                    NotifyPropertyChange(nameof(IsTokenSelected));
-                    NotifyPropertyChange();
-                }
-            }
-        }
-
+        public string SearchText { get => Get<string>(); set => Set(value, SearchTextChanged); }
+        public Token SelectedToken { get => Get<Token>(); set => Set(value, OnSelectedTokenChanged); }
+        public int NumberOfTokens { get => Get<int>(); set => Set(value); }
+        public TokenSize SelectedTokenSize { get => Get<TokenSize>(); set => Set(value); }
         public ObservableCollection<Token> TokenList { get; set; } = new ObservableCollection<Token>();
         public bool IsTokenSelected { get => SelectedToken != null; }
-        public int NumberOfTokens { get; set; } = 1;
-        public TokenSize SelectedTokenSize { get; set; } = TokenSize.Medium;
-        public List<Token> Tokens { get; set; } = new List<Token>();
+        public List<Token> AddedTokens { get; set; } = new List<Token>();
         public ICommand AddCommand { get; set; }
 
         private void NotifyPropertyChange([CallerMemberName] string propertyname = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyname));
+        }
+
+        private void InitializeProperties()
+        {
+            SetNotifyPropertyChangedAction(NotifyPropertyChange);
+            SearchText = "";
+            NumberOfTokens = 1;
+            SelectedTokenSize = TokenSize.Medium;
         }
 
         private void SearchTextChanged()
@@ -96,11 +77,11 @@ namespace DigitalBattleMap
                 {
                     if(SelectedToken.Size == SelectedTokenSize)
                     {
-                        Tokens.Add(SelectedToken);
+                        AddedTokens.Add(SelectedToken);
                     }
                     else
                     {
-                        Tokens.Add(SelectedToken.Copy(SelectedTokenSize));
+                        AddedTokens.Add(SelectedToken.Copy(SelectedTokenSize));
                     }   
                 }
             }
@@ -118,8 +99,7 @@ namespace DigitalBattleMap
                 SelectedTokenSize = TokenSize.Medium;
             }
             
-            NotifyPropertyChange(nameof(NumberOfTokens));
-            NotifyPropertyChange(nameof(SelectedTokenSize));
+            NotifyPropertyChange(nameof(IsTokenSelected));
         }
     }
 }

@@ -10,66 +10,19 @@ using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap
 {
-    public class MapWindowViewModel : INotifyPropertyChanged
+    public class MapWindowViewModel : PropertyHandler, INotifyPropertyChanged
     {
-        private double _left;
-        private WindowState _windowState;
-        private BitmapSource _backgroundBitmapSource;
-        private BitmapSource _gridBitmapSource;
+        public MapWindowViewModel()
+        {
+            SetNotifyPropertyChangedAction(NotifyPropertyChange);
+        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public double Left 
-        { 
-            get => _left; 
-            set
-            {
-                if(value != _left)
-                {
-                    _left = value;
-                    NotifyPropertyChange();
-                }
-            }
-        }
-
-        public WindowState WindowState
-        {
-            get => _windowState;
-            set
-            {
-                if (value != _windowState)
-                {
-                    _windowState = value;
-                    NotifyPropertyChange();
-                }
-            }
-        }
-
-        public BitmapSource BackgroundBitmapSource
-        {
-            get => _backgroundBitmapSource;
-            set
-            {
-                if (value != _backgroundBitmapSource)
-                {
-                    _backgroundBitmapSource = value;
-                    NotifyPropertyChange();
-                }
-            }
-        }
-
-        public BitmapSource GridBitmapSource
-        {
-            get => _gridBitmapSource;
-            set
-            {
-                if (value != _gridBitmapSource)
-                {
-                    _gridBitmapSource = value;
-                    NotifyPropertyChange();
-                }
-            }
-        }
+        public double Left { get => Get<double>(); set => Set(value); }
+        public WindowState WindowState { get => Get<WindowState>(); set => Set(value); }
+        public BitmapSource BackgroundBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
+        public BitmapSource GridBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
 
         public void ChangeWindowPosition(int x)
         {

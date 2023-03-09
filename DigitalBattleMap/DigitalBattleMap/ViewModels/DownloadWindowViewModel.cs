@@ -9,55 +9,28 @@ using System.Windows.Input;
 
 namespace DigitalBattleMap
 {
-    public class DownloadWindowViewModel : INotifyPropertyChanged
+    public class DownloadWindowViewModel : PropertyHandler, INotifyPropertyChanged
     {
         private const int _numberOfThreads = 4;
 
         private List<Thread> _threadPool = new List<Thread>();
         private bool _isTerminated = false;
 
-        private double _progressBarValue = 0;
-        private double _progressBarMinimum = 0;
-        private double _progressBarMaximum = 100;
         private object _lock = "";
 
         public DownloadWindowViewModel()
         {
+            SetNotifyPropertyChangedAction(NotifyPropertyChange);
+            ProgressBarMaximum = 100;
             CancelCommand = new RelayCommand(p => Cancel());
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public ICommand CancelCommand { get; set; }
-
-        public double ProgressBarValue
-        {
-            get => _progressBarValue;
-            set
-            {
-                _progressBarValue = value;
-                NotifyPropertyChange();
-                NotifyPropertyChange(nameof(IsOkButtonEnabled));
-            }
-        }
-        public double ProgressBarMinimum
-        {
-            get => _progressBarMinimum;
-            set
-            {
-                _progressBarMinimum = value;
-                NotifyPropertyChange();
-            }
-        }
-        public double ProgressBarMaximum
-        {
-            get => _progressBarMaximum;
-            set
-            {
-                _progressBarMaximum = value;
-                NotifyPropertyChange();
-            }
-        }
+        public double ProgressBarValue { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(IsOkButtonEnabled))); }
+        public double ProgressBarMinimum { get => Get<double>(); set => Set(value); }
+        public double ProgressBarMaximum { get => Get<double>(); set => Set(value); }
 
         public bool IsOkButtonEnabled
         {
