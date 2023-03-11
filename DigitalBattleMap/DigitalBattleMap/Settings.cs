@@ -14,6 +14,7 @@ namespace DigitalBattleMap
 
         public ScreenPosition MonitorPosition { get; set; } = new ScreenPosition();
         public int DefaultGridSize { get; set; } = 65;
+        public bool IsSoftwareInstalled { get; set; }
 
         public static Settings Load()
         {

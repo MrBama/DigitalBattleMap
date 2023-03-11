@@ -18,15 +18,12 @@ namespace DigitalBattleMap
 
         public static void CheckForInitialStartup()
         {
-            if (!Directory.Exists(Constants.SettingsPath))
+            var settings = Settings.Load();
+            if (!settings.IsSoftwareInstalled)
             {
                 var dataDirectoryPath = Path.Combine(Constants.SettingsPath, "Data");
                 var saveFileIconFileName = "SaveFileIcon.ico";
                 var saveFileIconFilePath = Path.Combine(dataDirectoryPath, saveFileIconFileName);
-
-                // Create default settings
-                var settings = new Settings();
-                settings.Save();
 
                 // Create token directories
                 Directory.CreateDirectory(Constants.MonsterTokensPath);
@@ -50,6 +47,10 @@ namespace DigitalBattleMap
                 // Refresh icon cache
                 // HChangeNotifyEventID.SHCNE_ASSOCCHANGED, HChangeNotifyFlags.SHCNF_IDLIST
                 SHChangeNotify(0x08000000, 0x0000, IntPtr.Zero, IntPtr.Zero);
+
+                // Create default settings
+                settings.IsSoftwareInstalled = true;
+                settings.Save();
             }
         }
     }
