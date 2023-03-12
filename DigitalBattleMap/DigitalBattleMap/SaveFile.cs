@@ -25,6 +25,8 @@ namespace DigitalBattleMap
 
         public Rectangle BackgroundArea { get; set; }
 
+        public List<TokenListItem> TokenList { get; set; } = new List<TokenListItem>();
+
         [JsonIgnore]
         public StrokeCollection Strokes { get; set; } = new StrokeCollection();
 
@@ -45,6 +47,13 @@ namespace DigitalBattleMap
                 if (FullBackground != null)
                 {
                     FullBackground.Save(_fullBackgrondFilePath);
+                }
+
+                for (int i = 0; i < TokenList.Count; i++)
+                {
+                    var tokenImagePath = Path.Combine(_tempDirectoryPath, $"Token{i}.png");
+                    TokenList[i].GetBitmap().Save(tokenImagePath);
+                    TokenList[i].Token.ImagePath = "";
                 }
 
                 var pathWithExtension = Path.ChangeExtension(path, ".dbm");
@@ -82,6 +91,13 @@ namespace DigitalBattleMap
                         // Load bitmap and make a copy
                         saveFile.FullBackground = new Bitmap(fullBackGround);
                     }                        
+                }
+
+                for (int i = 0; i < saveFile.TokenList.Count; i++)
+                {
+                    var tokenImagePath = Path.Combine(_tempDirectoryPath, $"Token{i}.png");
+                    saveFile.TokenList[i].Token.ImagePath = tokenImagePath;
+                    saveFile.TokenList[i].GetBitmap();
                 }
 
                 return saveFile;

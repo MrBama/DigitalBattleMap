@@ -160,7 +160,7 @@ namespace DigitalBattleMap
             // Resize and draw token
             var resizedTokenImage = ResizeBitmap(tokenImage, tokenSize);
             DrawImageOnBitmap(bitmap, resizedTokenImage, drawingPosition);
-            DrawTokenId(bitmap, tokenId, drawingPosition, tokenSize);            
+            DrawTokenId(bitmap, tokenId, drawingPosition, tokenSize);
         }
 
         public static void DrawTokenSelection(Bitmap bitmap, double tokenSizeFactor, Point<int> tokenPosition, int gridSize)
@@ -176,7 +176,7 @@ namespace DigitalBattleMap
 
         private static void DrawTokenId(Bitmap bitmap, string tokenId, Point<int> drawingPosition, Size<int> tokenSize)
         {
-            if(tokenId != null && tokenId != "")
+            if (tokenId != null && tokenId != "")
             {
                 using (var graphics = Graphics.FromImage(bitmap))
                 {
@@ -198,7 +198,7 @@ namespace DigitalBattleMap
 
         private static (Point<int>, Size<int>) CalculateTokenDrawingPositionAndSize(double tokenSizeFactor, Point<int> tokenPosition, int gridSize)
         {
-            var gridStart = CalculateGridStart(gridSize);
+            var gridStart = CalculateGridOffset(gridSize);
             var margin = 4;
 
             // Calculate grid cell
@@ -223,9 +223,18 @@ namespace DigitalBattleMap
             tokenSize.Width -= 2 * margin;
             tokenSize.Height -= 2 * margin;
 
+            // Drawing position should be visible
+            if (drawingPosition.X + tokenSize.Width > _width)
+            {
+                drawingPosition.X -= gridSize;
+            }
+            if (drawingPosition.Y + tokenSize.Height > _height)
+            {
+                drawingPosition.Y -= gridSize;
+            }
+
             return (drawingPosition, tokenSize);
         }
-
 
         private static void DrawImageOnBitmap(Bitmap bitmap, Bitmap image, Point<int> position)
         {
@@ -235,7 +244,18 @@ namespace DigitalBattleMap
             }
         }
 
-        private static Point<int> CalculateGridStart(int gridSize)
+        private static Point<int> CalculateGridOffset(int gridSize)
+        {
+            var xModulo = _width % gridSize;
+            var yModulo = _height % gridSize;
+
+            var startX = xModulo == 0 ? 0 : xModulo / 2;
+            var startY = yModulo == 0 ? 0 : yModulo / 2;
+
+            return new Point<int>(startX, startY);
+        }
+
+        private static void DrawGrid(Bitmap bitmap, int gridSize)
         {
             var xModulo = _width % gridSize;
             var yModulo = _height % gridSize;
@@ -243,23 +263,16 @@ namespace DigitalBattleMap
             var startX = xModulo == 0 ? gridSize : xModulo / 2;
             var startY = yModulo == 0 ? gridSize : yModulo / 2;
 
-            return new Point<int>(startX, startY);
-        }
-
-        private static void DrawGrid(Bitmap bitmap, int gridSize)
-        {
-            var gridStart = CalculateGridStart(gridSize);
-
             using (var graphics = Graphics.FromImage(bitmap))
             {
                 Pen blackPen = new Pen(Color.Black, 1);
 
-                for (int x = gridStart.X; x < _width; x += gridSize)
+                for (int x = startX; x < _width; x += gridSize)
                 {
                     graphics.DrawLine(blackPen, x, 0, x, _height);
                 }
 
-                for (int y = gridStart.Y; y < _height; y += gridSize)
+                for (int y = startY; y < _height; y += gridSize)
                 {
                     graphics.DrawLine(blackPen, 0, y, _width, y);
                 }

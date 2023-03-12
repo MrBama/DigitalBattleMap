@@ -454,6 +454,7 @@ namespace DigitalBattleMap
                 saveFile.IsGridShown = IsGridShown;
                 saveFile.Strokes = Strokes;
                 _backgroundController.AddToSaveFile(saveFile);
+                _tokenController.AddToSaveFile(saveFile);
                 saveFile.Save(path);
             }
         }
@@ -465,8 +466,10 @@ namespace DigitalBattleMap
                 var saveFile = SaveFile.Open(path);
                 _backgroundController.OpenSaveFile(saveFile);
                 GridSize = saveFile.GridSize;
+                GridSizeChanged();
                 IsGridShown = saveFile.IsGridShown;
                 Strokes = saveFile.Strokes;
+                _tokenController.OpenSaveFile(saveFile);
                 SelectedTabIndex = TabIndex.Tokens;
             }
         }

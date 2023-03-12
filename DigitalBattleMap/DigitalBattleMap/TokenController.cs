@@ -42,7 +42,7 @@ namespace DigitalBattleMap
                 if (value != _selectedToken)
                 {
                     _selectedToken = value;
-                    SelectedTokenChanged();
+                    UpdateTokenSelection();
                     NotifyTokenEditorUpdated();
                 }
             }
@@ -192,6 +192,23 @@ namespace DigitalBattleMap
             CreateTokenBitmap();
         }
 
+        public void AddToSaveFile(SaveFile saveFile)
+        {
+            saveFile.TokenList = TokenList.ToList();
+        }
+
+        public void OpenSaveFile(SaveFile saveFile)
+        {
+            ClearTokens();
+            foreach (var tokenListItem in saveFile.TokenList)
+            {
+                TokenList.Add(tokenListItem);
+                tokenListItem.Token.SizeChanged += TokenSizeChanged;
+            }
+
+            CreateTokenBitmap();
+        }
+
         private void NotifyTokenEditorUpdated()
         {
             TokenEditorUpdated?.Invoke(this, new EventArgs());
@@ -218,21 +235,18 @@ namespace DigitalBattleMap
 
         private void CreateTokenBitmap()
         {
-            var tokenBitmap = BitmapTools.CreateEmptyBitmap();
-            var tokenSelectionBitmap = BitmapTools.CreateEmptyBitmap();
+            _tokenBitmap = BitmapTools.CreateEmptyBitmap();
+            _tokenSelectionBitmap = BitmapTools.CreateEmptyBitmap();
 
             if (TokenList.Count > 0)
             {
                 foreach (var tokenListItem in TokenList)
                 {   
-                    BitmapTools.DrawToken(tokenBitmap, tokenListItem.GetBitmap(), tokenListItem.Token.GetSizeFactor(), tokenListItem.Position, GetTokenIdString(tokenListItem), _gridSize);
+                    BitmapTools.DrawToken(_tokenBitmap, tokenListItem.GetBitmap(), tokenListItem.Token.GetSizeFactor(), tokenListItem.Position, GetTokenIdString(tokenListItem), _gridSize);
                 }
-
-                BitmapTools.DrawTokenSelection(tokenSelectionBitmap, SelectedToken.Token.GetSizeFactor(), SelectedToken.Position, _gridSize);
+                UpdateTokenSelection();
             }
 
-            _tokenBitmap = tokenBitmap;
-            _tokenSelectionBitmap = tokenSelectionBitmap;
             NotifyTokenBitmapUpdated();
         }
 
@@ -252,12 +266,15 @@ namespace DigitalBattleMap
             CreateTokenBitmap();
         }
 
-        private void SelectedTokenChanged()
+        private void UpdateTokenSelection()
         {
+            _tokenSelectionBitmap = BitmapTools.CreateEmptyBitmap();
             if (SelectedToken != null)
             {
-                CreateTokenBitmap();
+                BitmapTools.DrawTokenSelection(_tokenSelectionBitmap, SelectedToken.Token.GetSizeFactor(), SelectedToken.Position, _gridSize);
             }
+
+            NotifyTokenBitmapUpdated();
         }
     }
 }
