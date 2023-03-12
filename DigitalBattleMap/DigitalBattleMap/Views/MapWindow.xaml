@@ -17,5 +17,6 @@
     <Grid>
         <Image Source="{Binding BackgroundBitmapSource}" Margin="6"/>
         <Image Source="{Binding GridBitmapSource}" Margin="6"/>
+        <Image Source="{Binding TokenBitmapSource}" Margin="6"/>
     </Grid>
 </Window>

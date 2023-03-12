@@ -18,6 +18,12 @@ namespace DigitalBattleMap
             Y = y;
         }
 
+        public Point(Point<T> point)
+        {
+            X = point.X;
+            Y = point.Y;
+        }
+
         public T X { get; set; }
 
         public T Y { get; set; }
@@ -30,6 +36,11 @@ namespace DigitalBattleMap
         public override bool Equals(object? obj)
         {
             return obj is Point<T> other && other.X.Equals(X) && other.Y.Equals(Y);
+        }
+
+        public override string ToString()
+        {
+            return $"X: {X}, Y: {Y}";
         }
     }
 }

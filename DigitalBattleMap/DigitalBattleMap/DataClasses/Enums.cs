@@ -18,7 +18,8 @@ namespace DigitalBattleMap
     {
         All,
         Background,
-        GridAndStrokes
+        GridAndStrokes,
+        Tokens
     }
 
     public enum ArrowDirection

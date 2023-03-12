@@ -19,6 +19,12 @@ namespace DigitalBattleMap
             Height = height;
         }
 
+        public Size(Size<T> size)
+        {
+            Width = size.Width;
+            Height = size.Height;
+        }
+
         public T Width { get; set; }
 
         public T Height { get; set; }
@@ -31,6 +37,11 @@ namespace DigitalBattleMap
         public override bool Equals(object? obj)
         {
             return obj is Size<T> other && other.Width.Equals(Width) && other.Height.Equals(Height);
+        }
+
+        public override string ToString()
+        {
+            return $"W: {Width}, H: {Height}";
         }
     }
 }

@@ -16,6 +16,9 @@
     <Window.DataContext>
         <local:MainWindowViewModel/>
     </Window.DataContext>
+    <Window.Resources>
+        <local:TokenSizeToBoolConverter x:Key="TokenSizeToBoolConverter"/>
+    </Window.Resources>
 
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closing">
@@ -220,15 +223,48 @@
                                     <ListView.ItemTemplate>
                                         <DataTemplate>
                                             <Grid>
-                                                <!--This will be implemented later-->
-                                                <!--<Grid.ContextMenu>
-                                                        <ContextMenu>
-                                                            <MenuItem Header="Player control" IsChecked="True"/>
-                                                            <Separator/>
-                                                            <MenuItem Header="Status 1" IsChecked="True"/>
-                                                            <MenuItem Header="Status 2" IsChecked="False"/>                                                        
-                                                        </ContextMenu>
-                                                    </Grid.ContextMenu>-->
+                                                <Grid.ContextMenu>
+                                                    <ContextMenu>
+                                                        <!--This will be implemented later-->
+                                                        <!--<MenuItem Header="Player control" IsChecked="True"/>-->
+                                                        <MenuItem Header="Size">
+                                                            <MenuItem 
+                                                                Header="Tiny" 
+                                                                IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Tiny}"
+                                                                Command="{Binding TokenSizeChangedCommand}"
+                                                                CommandParameter="Tiny"/>
+                                                            <MenuItem 
+                                                                Header="Small" 
+                                                                IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Small}"
+                                                                Command="{Binding TokenSizeChangedCommand}"
+                                                                CommandParameter="Small"/>
+                                                            <MenuItem 
+                                                                Header="Medium" 
+                                                                IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Medium}"
+                                                                Command="{Binding TokenSizeChangedCommand}"
+                                                                CommandParameter="Medium"/>
+                                                            <MenuItem 
+                                                                Header="Large" 
+                                                                IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Large}"
+                                                                Command="{Binding TokenSizeChangedCommand}"
+                                                                CommandParameter="Large"/>
+                                                            <MenuItem 
+                                                                Header="Huge" 
+                                                                IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Huge}"
+                                                                Command="{Binding TokenSizeChangedCommand}"
+                                                                CommandParameter="Huge"/>
+                                                            <MenuItem 
+                                                                Header="Gargantuan" 
+                                                                IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Gargantuan}"
+                                                                Command="{Binding TokenSizeChangedCommand}"
+                                                                CommandParameter="Gargantuan"/>
+                                                        </MenuItem>
+                                                        <!--This will be implemented later-->
+                                                        <!--<Separator/>
+                                                        <MenuItem Header="Status 1" IsChecked="True"/>
+                                                        <MenuItem Header="Status 2" IsChecked="False"/>-->
+                                                    </ContextMenu>
+                                                </Grid.ContextMenu>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="8.5*"/>
                                                     <ColumnDefinition Width="auto"/>
@@ -259,10 +295,10 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <Button Margin="0 0 5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}">
+                                    <Button Margin="0 0 5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding IsTokenUpButtonEnabled}" Command="{Binding TokenUpCommand}">
                                         <Image Source="{Binding MapArrowUpBitmapSource}"/>
                                     </Button>
-                                    <Button Grid.Column="1" Margin="5 0 0 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}">
+                                    <Button Grid.Column="1" Margin="5 0 0 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding IsTokenDownButtonEnabled}" Command="{Binding TokenDownCommand}">
                                         <Image Source="{Binding MapArrowDownBitmapSource}"/>
                                     </Button>
                                     <Button x:Name="AddTokenButton" Grid.Row="1" Content="Add" Margin="0 10 5 0" Command="{Binding AddTokenCommand}"/>
@@ -371,6 +407,8 @@
                                             Strokes="{Binding Strokes, Mode=TwoWay}"
                                             Visibility="{Binding InkCanvasVisibility}">
                     </local:InkCanvasControl>
+                    <Image Source="{Binding TokenBitmapSource}" Visibility="{Binding TokenVisibility}"/>
+                    <Image Source="{Binding TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
                     <Canvas Visibility="{Binding MouseInputCanvasVisibility}" Background="Transparent" Cursor="Hand">
                         <i:Interaction.Behaviors>
                             <local:MouseBehavior MouseX="{Binding MouseInputX, Mode=OneWayToSource}" MouseY="{Binding MouseInputY, Mode=OneWayToSource}"/>

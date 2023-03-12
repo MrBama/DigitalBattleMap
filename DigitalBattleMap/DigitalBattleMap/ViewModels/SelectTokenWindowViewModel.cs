@@ -11,7 +11,7 @@ using System.Windows.Input;
 
 namespace DigitalBattleMap
 {
-    public class SelectTokenWindowViewModel : PropertyHandler, INotifyPropertyChanged
+    public class SelectTokenWindowViewModel : PropertyHandler
     {
         private List<Token> _tokens = new List<Token>();
 
@@ -33,8 +33,6 @@ namespace DigitalBattleMap
             AddCommand = new RelayCommand(p => AddButton());
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-
         public string SearchText { get => Get<string>(); set => Set(value, SearchTextChanged); }
         public Token SelectedToken { get => Get<Token>(); set => Set(value, OnSelectedTokenChanged); }
         public int NumberOfTokens { get => Get<int>(); set => Set(value); }
@@ -44,14 +42,8 @@ namespace DigitalBattleMap
         public List<Token> AddedTokens { get; set; } = new List<Token>();
         public ICommand AddCommand { get; set; }
 
-        private void NotifyPropertyChange([CallerMemberName] string propertyname = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyname));
-        }
-
         private void InitializeProperties()
         {
-            SetNotifyPropertyChangedAction(NotifyPropertyChange);
             SearchText = "";
             NumberOfTokens = 1;
             SelectedTokenSize = TokenSize.Medium;
@@ -71,18 +63,11 @@ namespace DigitalBattleMap
 
         private void AddButton()
         {
-            if(SelectedToken != null)
+            if (SelectedToken != null)
             {
-                for(int i = 0; i < NumberOfTokens; i++)
+                for (int i = 0; i < NumberOfTokens; i++)
                 {
-                    if(SelectedToken.Size == SelectedTokenSize)
-                    {
-                        AddedTokens.Add(SelectedToken);
-                    }
-                    else
-                    {
-                        AddedTokens.Add(SelectedToken.Copy(SelectedTokenSize));
-                    }   
+                    AddedTokens.Add(SelectedToken.Copy(SelectedTokenSize));
                 }
             }
         }
@@ -90,7 +75,7 @@ namespace DigitalBattleMap
         private void OnSelectedTokenChanged()
         {
             NumberOfTokens = 1;
-            if(SelectedToken != null)
+            if (SelectedToken != null)
             {
                 SelectedTokenSize = SelectedToken.Size;
             }
@@ -98,7 +83,7 @@ namespace DigitalBattleMap
             {
                 SelectedTokenSize = TokenSize.Medium;
             }
-            
+
             NotifyPropertyChange(nameof(IsTokenSelected));
         }
     }

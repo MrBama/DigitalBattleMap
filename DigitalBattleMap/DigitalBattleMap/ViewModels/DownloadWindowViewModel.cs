@@ -9,7 +9,7 @@ using System.Windows.Input;
 
 namespace DigitalBattleMap
 {
-    public class DownloadWindowViewModel : PropertyHandler, INotifyPropertyChanged
+    public class DownloadWindowViewModel : PropertyHandler
     {
         private const int _numberOfThreads = 4;
 
@@ -20,12 +20,9 @@ namespace DigitalBattleMap
 
         public DownloadWindowViewModel()
         {
-            SetNotifyPropertyChangedAction(NotifyPropertyChange);
             ProgressBarMaximum = 100;
             CancelCommand = new RelayCommand(p => Cancel());
         }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
 
         public ICommand CancelCommand { get; set; }
         public double ProgressBarValue { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(IsOkButtonEnabled))); }
@@ -127,11 +124,6 @@ namespace DigitalBattleMap
             {
                 thread.Join();
             }
-        }
-
-        private void NotifyPropertyChange([CallerMemberName] string propertyname = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyname));
         }
     }
 }

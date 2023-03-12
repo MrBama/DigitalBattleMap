@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -7,15 +8,11 @@ using System.Threading.Tasks;
 
 namespace DigitalBattleMap
 {
-    public class PropertyHandler
+    public class PropertyHandler : INotifyPropertyChanged
     {
-        private Action<string> _notifyPropertyChanged;
         private Dictionary<string, object> _properties = new Dictionary<string, object>();
 
-        protected void SetNotifyPropertyChangedAction(Action<string> notifyPropertyChanged)
-        {
-            _notifyPropertyChanged = notifyPropertyChanged;
-        }
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         protected T Get<T>([CallerMemberName] string propertyName = "")
         {
@@ -30,14 +27,19 @@ namespace DigitalBattleMap
         protected void Set<T>(T value, [CallerMemberName] string propertyName = "")
         {
             _properties[propertyName] = value;
-            _notifyPropertyChanged(propertyName);
+            NotifyPropertyChange(propertyName);
         }
 
         protected void Set<T>(T value, Action action, [CallerMemberName] string propertyName = "")
         {
             _properties[propertyName] = value;
-            _notifyPropertyChanged(propertyName);
+            NotifyPropertyChange(propertyName);
             action();
+        }
+
+        protected void NotifyPropertyChange([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

@@ -9,6 +9,8 @@ using System.Windows.Controls;
 using System.Windows.Ink;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using static System.Net.Mime.MediaTypeNames;
+using System.Windows.Media.TextFormatting;
 
 namespace DigitalBattleMap
 {
@@ -34,10 +36,10 @@ namespace DigitalBattleMap
             return new Size<int>(_width, _height);
         }
 
-        public static Bitmap CreateMap(Bitmap grid, StrokeCollection strokes, int inkCanvasWidth, int inkCanvasHeight)
+        public static Bitmap CreateMap(Bitmap grid, StrokeCollection strokes, Size<int> inkCanvasSize)
         {
             var bitmap = new Bitmap(grid);
-            DrawStrokes(bitmap, strokes, inkCanvasWidth, inkCanvasHeight);
+            DrawStrokes(bitmap, strokes, inkCanvasSize);
             return bitmap;
         }
 
@@ -86,7 +88,7 @@ namespace DigitalBattleMap
             var bitmap = new Bitmap(70, 70);
             PointF[] points = new PointF[3];
 
-            switch(direction)
+            switch (direction)
             {
                 case ArrowDirection.Up:
                     points = new PointF[] { new PointF(9, 59), new PointF(59, 59), new PointF(34, 9) };
@@ -123,8 +125,13 @@ namespace DigitalBattleMap
 
         public static Bitmap ResizeBitmap(Bitmap bitmap)
         {
-            var destinationRectangle = new Rectangle(0, 0, _width, _height);
-            var resizedBitmap = new Bitmap(_width, _height);
+            return ResizeBitmap(bitmap, new Size<int>(_width, _height));
+        }
+
+        public static Bitmap ResizeBitmap(Bitmap bitmap, Size<int> size)
+        {
+            var destinationRectangle = new Rectangle(0, 0, size.Width, size.Height);
+            var resizedBitmap = new Bitmap(size.Width, size.Height);
 
             resizedBitmap.SetResolution(bitmap.HorizontalResolution, bitmap.VerticalResolution);
 
@@ -146,7 +153,89 @@ namespace DigitalBattleMap
             return resizedBitmap;
         }
 
-        private static void DrawGrid(Bitmap bitmap, int gridSize)
+        public static void DrawToken(Bitmap bitmap, Bitmap tokenImage, double tokenSizeFactor, Point<int> tokenPosition, string tokenId, int gridSize)
+        {
+            (var drawingPosition, var tokenSize) = CalculateTokenDrawingPositionAndSize(tokenSizeFactor, tokenPosition, gridSize);
+
+            // Resize and draw token
+            var resizedTokenImage = ResizeBitmap(tokenImage, tokenSize);
+            DrawImageOnBitmap(bitmap, resizedTokenImage, drawingPosition);
+            DrawTokenId(bitmap, tokenId, drawingPosition, tokenSize);            
+        }
+
+        public static void DrawTokenSelection(Bitmap bitmap, double tokenSizeFactor, Point<int> tokenPosition, int gridSize)
+        {
+            (var drawingPosition, var tokenSize) = CalculateTokenDrawingPositionAndSize(tokenSizeFactor, tokenPosition, gridSize);
+
+            using (var graphics = Graphics.FromImage(bitmap))
+            {
+                var pen = new Pen(Color.Blue, 4);
+                graphics.DrawEllipse(pen, drawingPosition.X, drawingPosition.Y, tokenSize.Width, tokenSize.Height);
+            }
+        }
+
+        private static void DrawTokenId(Bitmap bitmap, string tokenId, Point<int> drawingPosition, Size<int> tokenSize)
+        {
+            if(tokenId != null && tokenId != "")
+            {
+                using (var graphics = Graphics.FromImage(bitmap))
+                {
+                    var brush = new SolidBrush(Color.White);
+                    var textSize = tokenSize.Width / 6;
+
+                    StringFormat stringFormat = new StringFormat();
+                    stringFormat.LineAlignment = StringAlignment.Center;
+                    stringFormat.Alignment = StringAlignment.Center;
+
+                    var textPosition = new Point<int>();
+                    textPosition.X = drawingPosition.X + tokenSize.Width / 2;
+                    textPosition.Y = drawingPosition.Y + tokenSize.Height - textSize;
+
+                    graphics.DrawString(tokenId, new Font("", textSize), brush, textPosition.X, textPosition.Y, stringFormat);
+                }
+            }
+        }
+
+        private static (Point<int>, Size<int>) CalculateTokenDrawingPositionAndSize(double tokenSizeFactor, Point<int> tokenPosition, int gridSize)
+        {
+            var gridStart = CalculateGridStart(gridSize);
+            var margin = 4;
+
+            // Calculate grid cell
+            int amountOfSquaresX = (tokenPosition.X - gridStart.X) / gridSize;
+            int amountOfSquaresY = (tokenPosition.Y - gridStart.Y) / gridSize;
+
+            // Calculate token offset
+            // E.g. if size factor is 0.5 then token needs an offset to be centerd in the grid cell
+            var preciseTokenSize = gridSize * tokenSizeFactor;
+            var tokenGridSize = gridSize * Math.Ceiling(tokenSizeFactor);
+            double tokenOffset = (tokenGridSize - preciseTokenSize) / 2;
+
+            // Calculate drawing position using the calculated grid cell, token offset and margin
+            var drawingPosition = new Point<int>(gridStart);
+            drawingPosition.X += (amountOfSquaresX * gridSize) + (int)tokenOffset;
+            drawingPosition.Y += (amountOfSquaresY * gridSize) + (int)tokenOffset;
+            drawingPosition.X += margin;
+            drawingPosition.Y += margin;
+
+            // Calcualte the size of the token using the token size, size factor and margin
+            var tokenSize = new Size<int>((int)preciseTokenSize, (int)preciseTokenSize);
+            tokenSize.Width -= 2 * margin;
+            tokenSize.Height -= 2 * margin;
+
+            return (drawingPosition, tokenSize);
+        }
+
+
+        private static void DrawImageOnBitmap(Bitmap bitmap, Bitmap image, Point<int> position)
+        {
+            using (var graphics = Graphics.FromImage(bitmap))
+            {
+                graphics.DrawImage(image, position.X, position.Y);
+            }
+        }
+
+        private static Point<int> CalculateGridStart(int gridSize)
         {
             var xModulo = _width % gridSize;
             var yModulo = _height % gridSize;
@@ -154,23 +243,30 @@ namespace DigitalBattleMap
             var startX = xModulo == 0 ? gridSize : xModulo / 2;
             var startY = yModulo == 0 ? gridSize : yModulo / 2;
 
+            return new Point<int>(startX, startY);
+        }
+
+        private static void DrawGrid(Bitmap bitmap, int gridSize)
+        {
+            var gridStart = CalculateGridStart(gridSize);
+
             using (var graphics = Graphics.FromImage(bitmap))
             {
                 Pen blackPen = new Pen(Color.Black, 1);
 
-                for (int x = startX; x < _width; x += gridSize)
+                for (int x = gridStart.X; x < _width; x += gridSize)
                 {
                     graphics.DrawLine(blackPen, x, 0, x, _height);
                 }
 
-                for (int y = startY; y < _height; y += gridSize)
+                for (int y = gridStart.Y; y < _height; y += gridSize)
                 {
                     graphics.DrawLine(blackPen, 0, y, _width, y);
                 }
             }
         }
 
-        private static void DrawStrokes(Bitmap bitmap, StrokeCollection strokes, int canvasWidth, int canvasHeight)
+        private static void DrawStrokes(Bitmap bitmap, StrokeCollection strokes, Size<int> canvasSize)
         {
             using (var graphics = Graphics.FromImage(bitmap))
             {
@@ -188,8 +284,8 @@ namespace DigitalBattleMap
                         point.X = (float)strokes[strokeIndex].StylusPoints[pointIndex].X;
                         point.Y = (float)strokes[strokeIndex].StylusPoints[pointIndex].Y;
 
-                        var resizedX = point.X.Map(0, canvasWidth, 0, _width) - penSize;
-                        var resizedY = point.Y.Map(0, canvasHeight, 0, _height) - penSize;
+                        var resizedX = point.X.Map(0, canvasSize.Width, 0, _width) - penSize;
+                        var resizedY = point.Y.Map(0, canvasSize.Height, 0, _height) - penSize;
                         points.Add(new PointF(resizedX, resizedY));
                     }
 
@@ -197,7 +293,7 @@ namespace DigitalBattleMap
 
                     foreach (var point in points)
                     {
-                        var resizedPenSize = penSize.Map(0, canvasWidth, 0, _width);
+                        var resizedPenSize = penSize.Map(0, canvasSize.Width, 0, _width);
                         graphics.FillEllipse(brush, point.X, point.Y, resizedPenSize, resizedPenSize);
                     }
                 }
