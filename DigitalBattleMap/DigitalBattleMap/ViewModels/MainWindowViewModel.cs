@@ -1,14 +1,8 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Configuration;
 using System.Drawing;
-using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security.Permissions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Ink;
@@ -47,6 +41,7 @@ namespace DigitalBattleMap
         public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
         public int GridSize { get => Get<int>(); set => Set(value); }
         public bool IsGridShown { get => Get<bool>(); set => Set(value, GridShownChanged); }
+        public bool IsShowMapLocked { get => Get<bool>(); set => Set(value); }
         public double BackgroundZoomPercentage { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(BackgroundZoomPercentageLabel))); }
         public Visibility BlackButtonSelectedVisibility { get => Get<Visibility>(); set => Set(value); }
         public Visibility RedButtonSelectedVisibility { get => Get<Visibility>(); set => Set(value); }
@@ -117,6 +112,7 @@ namespace DigitalBattleMap
             _backgroundController.BackgroundUpdated += BackgroundUpdated;
             _tokenController = new TokenController(_windowService);
             _tokenController.TokensUpdated += TokensUpdated;
+            Strokes.StrokesChanged += OnStrokesChanged;
 
             GridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
             ShowMapCommand = new RelayCommand(p => ShowMap());
@@ -152,6 +148,7 @@ namespace DigitalBattleMap
             SetNotifyPropertyChangedAction(NotifyPropertyChange);
             PenSize = 5;
             IsGridShown = true;
+            IsShowMapLocked = false;
             BackgroundZoomPercentage = 10;
             BlackButtonSelectedVisibility = Visibility.Visible;
             RedButtonSelectedVisibility = Visibility.Hidden;
@@ -165,10 +162,16 @@ namespace DigitalBattleMap
             Strokes = new StrokeCollection();
         }
 
+        private void OnStrokesChanged(object sender, StrokeCollectionChangedEventArgs e)
+        {
+            UpdateMap(DrawLayer.GridAndStrokes);
+        }
+
         private void BackgroundUpdated(object? sender, EventArgs e)
         {
             NotifyPropertyChange(nameof(BackgroundBitmapSource));
             NotifyPropertyChange(nameof(IsZoomEnabled));
+            UpdateMap(DrawLayer.Background);
         }
 
         private void TokensUpdated(object? sender, EventArgs e)
@@ -195,11 +198,27 @@ namespace DigitalBattleMap
             NotifyPropertyChange(nameof(GridBitmapSource));
         }
 
-        private void ShowMap()
+        private void ShowMap(DrawLayer drawing = 0)
+        {
+            switch (drawing)
+            {
+                case DrawLayer.All:
+                    _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.GetBackgroundBitmapSource();
+                    GridBitMap();
+                    break;
+                case DrawLayer.Background:
+                    _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.GetBackgroundBitmapSource();
+                    break;
+                case DrawLayer.GridAndStrokes:
+                    GridBitMap();
+                    break;
+            }
+        }
+
+        private void GridBitMap()
         {
             var gridBitmap = IsGridShown ? _gridBitmap : BitmapTools.CreateEmptyBitmap();
             var map = BitmapTools.CreateMap(gridBitmap, Strokes, (int)_inkCanvasWidth, (int)_inkCanvasHeight);
-            _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.GetBackgroundBitmapSource();
             _mapWindowViewModel.GridBitmapSource = map.ToBitmapImage();
         }
 
@@ -346,6 +365,7 @@ namespace DigitalBattleMap
             {
                 GridVisibility = Visibility.Hidden;
             }
+            UpdateMap(DrawLayer.GridAndStrokes);
         }
 
         public void MouseDown()
@@ -420,6 +440,14 @@ namespace DigitalBattleMap
                 IsGridShown = saveFile.IsGridShown;
                 Strokes = saveFile.Strokes;
                 SelectedTabIndex = TabIndex.Tokens;
+            }
+        }
+
+        private void UpdateMap(DrawLayer layer)
+        {
+            if (IsShowMapLocked)
+            {
+                ShowMap(layer);
             }
         }
     }

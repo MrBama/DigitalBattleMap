@@ -14,6 +14,13 @@ namespace DigitalBattleMap
         public const int Tokens = 3;
     }
 
+    public enum DrawLayer
+    {
+        All,
+        Background,
+        GridAndStrokes
+    }
+
     public enum ArrowDirection
     {
         Up,
