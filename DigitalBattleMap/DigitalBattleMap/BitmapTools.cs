@@ -158,20 +158,50 @@ namespace DigitalBattleMap
             (var drawingPosition, var tokenSize) = CalculateTokenDrawingPositionAndSize(tokenSizeFactor, tokenPosition, gridSize);
 
             // Resize and draw token
-            var resizedTokenImage = ResizeBitmap(tokenImage, tokenSize);
-            DrawImageOnBitmap(bitmap, resizedTokenImage, drawingPosition);
-            DrawTokenId(bitmap, tokenId, drawingPosition, tokenSize);
+            if (IsTokenVisible(drawingPosition, gridSize))
+            {
+                var resizedTokenImage = ResizeBitmap(tokenImage, tokenSize);
+                DrawImageOnBitmap(bitmap, resizedTokenImage, drawingPosition);
+                DrawTokenId(bitmap, tokenId, drawingPosition, tokenSize);
+            }
         }
 
         public static void DrawTokenSelection(Bitmap bitmap, double tokenSizeFactor, Point<int> tokenPosition, int gridSize)
         {
             (var drawingPosition, var tokenSize) = CalculateTokenDrawingPositionAndSize(tokenSizeFactor, tokenPosition, gridSize);
 
-            using (var graphics = Graphics.FromImage(bitmap))
+            if (IsTokenVisible(drawingPosition, gridSize))
             {
-                var pen = new Pen(Color.Blue, 4);
-                graphics.DrawEllipse(pen, drawingPosition.X, drawingPosition.Y, tokenSize.Width, tokenSize.Height);
+                using (var graphics = Graphics.FromImage(bitmap))
+                {
+                    var pen = new Pen(Color.Blue, 4);
+                    graphics.DrawEllipse(pen, drawingPosition.X, drawingPosition.Y, tokenSize.Width, tokenSize.Height);
+                }
             }
+        }
+
+        private static bool IsTokenVisible(Point<int> drawingPosition, int gridSize)
+        {
+            var isVisible = true;
+
+            if (drawingPosition.X + gridSize < 0)
+            {
+                isVisible = false;
+            }
+            else if (drawingPosition.X - gridSize > _width)
+            {
+                isVisible = false;
+            }
+            else if (drawingPosition.Y + gridSize < 0)
+            {
+                isVisible = false;
+            }
+            else if (drawingPosition.Y - gridSize > _height)
+            {
+                isVisible = false;
+            }
+
+            return isVisible;
         }
 
         private static void DrawTokenId(Bitmap bitmap, string tokenId, Point<int> drawingPosition, Size<int> tokenSize)
@@ -202,8 +232,10 @@ namespace DigitalBattleMap
             var margin = 4;
 
             // Calculate grid cell
-            int amountOfSquaresX = (tokenPosition.X - gridStart.X) / gridSize;
-            int amountOfSquaresY = (tokenPosition.Y - gridStart.Y) / gridSize;
+            var unsnappedGridCellX = (tokenPosition.X - gridStart.X) / (double)gridSize;
+            var unsnappedGridCellY = (tokenPosition.Y - gridStart.Y) / (double)gridSize;
+            int gridCellX = (int)Math.Floor(unsnappedGridCellX);
+            int gridCellY = (int)Math.Floor(unsnappedGridCellY);
 
             // Calculate token offset
             // E.g. if size factor is 0.5 then token needs an offset to be centerd in the grid cell
@@ -213,8 +245,8 @@ namespace DigitalBattleMap
 
             // Calculate drawing position using the calculated grid cell, token offset and margin
             var drawingPosition = new Point<int>(gridStart);
-            drawingPosition.X += (amountOfSquaresX * gridSize) + (int)tokenOffset;
-            drawingPosition.Y += (amountOfSquaresY * gridSize) + (int)tokenOffset;
+            drawingPosition.X += (gridCellX * gridSize) + (int)tokenOffset;
+            drawingPosition.Y += (gridCellY * gridSize) + (int)tokenOffset;
             drawingPosition.X += margin;
             drawingPosition.Y += margin;
 
@@ -222,16 +254,6 @@ namespace DigitalBattleMap
             var tokenSize = new Size<int>((int)preciseTokenSize, (int)preciseTokenSize);
             tokenSize.Width -= 2 * margin;
             tokenSize.Height -= 2 * margin;
-
-            // Drawing position should be visible
-            if (drawingPosition.X + tokenSize.Width > _width)
-            {
-                drawingPosition.X -= gridSize;
-            }
-            if (drawingPosition.Y + tokenSize.Height > _height)
-            {
-                drawingPosition.Y -= gridSize;
-            }
 
             return (drawingPosition, tokenSize);
         }
