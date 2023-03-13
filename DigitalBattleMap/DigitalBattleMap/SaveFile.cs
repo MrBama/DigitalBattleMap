@@ -86,11 +86,7 @@ namespace DigitalBattleMap
 
                 if (File.Exists(_fullBackgrondFilePath))
                 {
-                    using (var fullBackGround = new Bitmap(_fullBackgrondFilePath))
-                    {
-                        // Load bitmap and make a copy
-                        saveFile.FullBackground = new Bitmap(fullBackGround);
-                    }                        
+                    saveFile.FullBackground = BitmapTools.LoadBitmap(_fullBackgrondFilePath);
                 }
 
                 for (int i = 0; i < saveFile.TokenList.Count; i++)

@@ -90,10 +90,7 @@ namespace DigitalBattleMap
         {
             if(_bitmap == null)
             {
-                using (var bitmap = new Bitmap(Token.ImagePath))
-                {
-                    _bitmap = new Bitmap(bitmap);
-                }
+                _bitmap = BitmapTools.LoadBitmap(Token.ImagePath);
             }
 
             return _bitmap;

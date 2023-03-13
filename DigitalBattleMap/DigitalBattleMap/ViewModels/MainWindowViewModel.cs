@@ -237,7 +237,7 @@ namespace DigitalBattleMap
         private void GridBitMap()
         {
             var gridBitmap = IsGridShown ? _gridBitmap : BitmapTools.CreateEmptyBitmap();
-            var map = BitmapTools.CreateMap(gridBitmap, Strokes, new Size<int>((int)_inkCanvasWidth, (int)_inkCanvasHeight));
+            var map = BitmapTools.CreateGridAndStrokesBitmap(gridBitmap, Strokes, new Size<int>((int)_inkCanvasWidth, (int)_inkCanvasHeight));
             _mapWindowViewModel.GridBitmapSource = map.ToBitmapImage();
         }
 
@@ -328,6 +328,7 @@ namespace DigitalBattleMap
                 _tokenController.ClearTokens();
                 IsGridShown = true;
                 GridSize = _settings.DefaultGridSize;
+                GridSizeChanged();
             }
         }
 

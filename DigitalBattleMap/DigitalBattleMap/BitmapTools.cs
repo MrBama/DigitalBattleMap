@@ -19,6 +19,14 @@ namespace DigitalBattleMap
         private const int _width = 1920;
         private const int _height = 1080;
 
+        public static Bitmap LoadBitmap(string path)
+        {
+            using (var tempBitmap = new Bitmap(path))
+            {
+                return new Bitmap(tempBitmap);
+            }
+        }
+
         public static Bitmap CreateGrid(int gridSize)
         {
             var gridBitMap = new Bitmap(_width, _height);
@@ -36,7 +44,7 @@ namespace DigitalBattleMap
             return new Size<int>(_width, _height);
         }
 
-        public static Bitmap CreateMap(Bitmap grid, StrokeCollection strokes, Size<int> inkCanvasSize)
+        public static Bitmap CreateGridAndStrokesBitmap(Bitmap grid, StrokeCollection strokes, Size<int> inkCanvasSize)
         {
             var bitmap = new Bitmap(grid);
             DrawStrokes(bitmap, strokes, inkCanvasSize);

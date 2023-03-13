@@ -40,7 +40,7 @@ namespace DigitalBattleMap
         {
             if(_windowService.ShowOpenFileDialog(out string path))
             { 
-                _fullBackgroundBitmap = new Bitmap(path);
+                _fullBackgroundBitmap = BitmapTools.LoadBitmap(path);
                 _area = new Rectangle(
                     (_fullBackgroundBitmap.Width / 2) - (_bitmapSize.Width / 2), 
                     (_fullBackgroundBitmap.Height / 2) - (_bitmapSize.Height / 2), 
