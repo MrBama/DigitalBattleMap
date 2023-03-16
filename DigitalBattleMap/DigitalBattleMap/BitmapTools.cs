@@ -188,6 +188,30 @@ namespace DigitalBattleMap
             }
         }
 
+        public static Bitmap CreateTokenBitmap(Bitmap image)
+        {
+            if(image.Width == image.Height)
+            {
+                return new Bitmap(image);
+            }
+
+            var size = Math.Max(image.Width, image.Height);
+            var bitmap = new Bitmap(size, size);
+            var position = new Point<int>();
+
+            if(size == image.Width)
+            {
+                position.Y = (size - image.Height) / 2;
+            }
+            else
+            {
+                position.X = (size - image.Width) / 2;
+            }
+
+            DrawImageOnBitmap(bitmap, image, position);
+            return bitmap;
+        }
+
         private static bool IsTokenVisible(Point<int> drawingPosition, int gridSize)
         {
             var isVisible = true;

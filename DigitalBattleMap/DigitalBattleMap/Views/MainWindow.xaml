@@ -218,7 +218,7 @@
                                     <ColumnDefinition Width="auto"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Button Content="Create token"/>
+                                <Button Content="Custom tokens" Command="{Binding CustomTokensCommand}"/>
                                 <ListView Grid.Row="1" ItemsSource="{Binding TokenList}" HorizontalContentAlignment="Stretch" Margin="0 10 0 0" SelectedItem="{Binding SelectedToken}" FontSize="15">
                                     <ListView.ItemTemplate>
                                         <DataTemplate>

@@ -23,7 +23,7 @@ namespace DigitalBattleMap
         public SelectTokenWindowViewModel(List<Token> tokens)
         {
             InitializeProperties();
-            _tokens = tokens;
+            _tokens = tokens.OrderBy(t => t.Name).ToList();
 
             foreach (var token in _tokens)
             {

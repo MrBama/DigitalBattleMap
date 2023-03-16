@@ -105,6 +105,7 @@ namespace DigitalBattleMap
         public ICommand ClearTokensCommand { get; set; }
         public ICommand TokenUpCommand { get; set; }
         public ICommand TokenDownCommand { get; set; }
+        public ICommand CustomTokensCommand { get; set; }
 
         public void Initialize()
         {
@@ -115,7 +116,7 @@ namespace DigitalBattleMap
             _inkCanvasBitmap = BitmapTools.CreateEmptyBitmap();
             _backgroundController = new BackgroundController(_windowService);
             _backgroundController.BackgroundUpdated += BackgroundUpdated;
-            _tokenController = new TokenController(_windowService, GridSize);
+            _tokenController = new TokenController(_windowService, _settings, GridSize);
             _tokenController.TokenEditorUpdated += TokenEditorUpdated;
             _tokenController.TokenBitmapUpdated += TokenBitmapUpdated;
             Strokes.StrokesChanged += OnStrokesChanged;
@@ -142,6 +143,7 @@ namespace DigitalBattleMap
             ClearTokensCommand = new RelayCommand(p => _tokenController.ClearTokens());
             TokenUpCommand = new RelayCommand(p => _tokenController.TokenUp());
             TokenDownCommand = new RelayCommand(p => _tokenController.TokenDown());
+            CustomTokensCommand = new RelayCommand(p => _tokenController.CustomTokens());
 
             InkCanvasDrawingAttributes.Width = PenSize;
             InkCanvasDrawingAttributes.Height = PenSize;
@@ -344,7 +346,7 @@ namespace DigitalBattleMap
 
             if (settingsWindowViewModel.MonsterTokensDownloaded)
             {
-                _tokenController.ReloadTokens();
+                _tokenController.ReloadMonsterTokens();
             }
         }
 

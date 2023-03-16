@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
+using System.Runtime;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
@@ -15,20 +16,22 @@ namespace DigitalBattleMap
         private IWindowService _windowService;
         private Bitmap _tokenBitmap;
         private Bitmap _tokenSelectionBitmap;
-        private List<Token> _tokens = new List<Token>();
+        private List<Token> _monsterTokens = new List<Token>();
         private TokenListItem _selectedToken;
         private Size<int> _bitmapSize;
         private Size<double> _canvasSize;
         private int _gridSize;
+        private Settings _settings;
 
-        public TokenController(IWindowService windowService, int gridSize)
+        public TokenController(IWindowService windowService, Settings settings, int gridSize)
         {
             _windowService = windowService;
+            _settings = settings;
             _gridSize = gridSize;
             _tokenBitmap = BitmapTools.CreateEmptyBitmap();
             _tokenSelectionBitmap = BitmapTools.CreateEmptyBitmap();
             _bitmapSize = BitmapTools.GetBitmapSize();
-            ReloadTokens();
+            ReloadMonsterTokens();
         }
 
         public event EventHandler TokenEditorUpdated;
@@ -50,11 +53,9 @@ namespace DigitalBattleMap
 
         public ObservableCollection<TokenListItem> TokenList { get; set; } = new ObservableCollection<TokenListItem>();
 
-        public void ReloadTokens()
+        public void ReloadMonsterTokens()
         {
-            _tokens = new List<Token>();
-            _tokens.AddRange(MonsterTokens.GetTokens());
-            _tokens = _tokens.OrderBy(t => t.Name).ToList();
+            _monsterTokens = MonsterTokens.GetTokens();
         }
 
         public bool IsTokenSelected()
@@ -64,7 +65,10 @@ namespace DigitalBattleMap
 
         public void AddToken()
         {
-            var selectTokenWindowViewModel = new SelectTokenWindowViewModel(_tokens);
+            var tokens = new List<Token>(_monsterTokens);
+            tokens.AddRange(_settings.CustomTokens);
+
+            var selectTokenWindowViewModel = new SelectTokenWindowViewModel(tokens);
             _windowService.ShowWindowDialog<SelectTokenWindow>(selectTokenWindowViewModel);
 
             if (selectTokenWindowViewModel.AddedTokens.Count > 0)
@@ -207,6 +211,12 @@ namespace DigitalBattleMap
             }
 
             CreateTokenBitmap();
+        }
+
+        public void CustomTokens()
+        {
+            var customTokensWindowViewModel = new CustomTokensWindowViewModel(_windowService, _settings, _monsterTokens.Select(t => t.Name).ToList());
+            _windowService.ShowWindowDialog<CustomTokensWindow>(customTokensWindowViewModel);
         }
 
         private void NotifyTokenEditorUpdated()
