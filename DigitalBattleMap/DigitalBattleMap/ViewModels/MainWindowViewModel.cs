@@ -38,6 +38,7 @@ namespace DigitalBattleMap
         public double PenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100), PenSizeChanged); }
         public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
         public int GridSize { get => Get<int>(); set => Set(value); }
+        public int InkCanvasZIndex { get => Get<int>(); set => Set(value); }
         public bool IsGridShown { get => Get<bool>(); set => Set(value, GridShownChanged); }
         public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, () => UpdateMap(DrawLayer.All)); }
         public double BackgroundZoomPercentage { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(BackgroundZoomPercentageLabel))); }
@@ -372,12 +373,14 @@ namespace DigitalBattleMap
                 case TabIndex.Drawing:
                     InkCanvasVisibility = Visibility.Visible;
                     MouseInputCanvasVisibility = Visibility.Hidden;
-                    TokenVisibility = Visibility.Hidden;
+                    TokenVisibility = Visibility.Visible;
+                    InkCanvasZIndex = 1;
                     break;
                 case TabIndex.Tokens:
                     InkCanvasVisibility = Visibility.Visible;
                     MouseInputCanvasVisibility = Visibility.Visible;
                     TokenVisibility = Visibility.Visible;
+                    InkCanvasZIndex = 0;
                     break;
             }
         }

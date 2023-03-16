@@ -405,7 +405,8 @@
                                             EditingMode="{Binding EditingMode}"
                                             EraserShape="{Binding EraserShape}"
                                             Strokes="{Binding Strokes, Mode=TwoWay}"
-                                            Visibility="{Binding InkCanvasVisibility}">
+                                            Visibility="{Binding InkCanvasVisibility}"
+                                            Panel.ZIndex="{Binding InkCanvasZIndex}">
                     </local:InkCanvasControl>
                     <Image Source="{Binding TokenBitmapSource}" Visibility="{Binding TokenVisibility}"/>
                     <Image Source="{Binding TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
