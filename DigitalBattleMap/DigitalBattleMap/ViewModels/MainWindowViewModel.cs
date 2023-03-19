@@ -20,7 +20,7 @@ namespace DigitalBattleMap
         private IWindowService _windowService;
         private MapWindowViewModel _mapWindowViewModel;
         private Settings _settings;
-        public BackgroundController _backgroundController { get; set; }
+        private BackgroundController _backgroundController;
         private TokenController _tokenController;
 
         public MainWindowViewModel(IWindowService windowService)
