@@ -39,4 +39,16 @@ namespace DigitalBattleMap
         Huge,
         Gargantuan
     }
+
+    public enum TokenDirection
+    {
+        UpLeft,
+        Up,
+        UpRight,
+        Left,
+        Right,
+        DownLeft,
+        Down,
+        DownRight
+    }
 }

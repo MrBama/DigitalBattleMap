@@ -22,6 +22,7 @@ namespace DigitalBattleMap
         private Size<double> _canvasSize;
         private int _gridSize;
         private Settings _settings;
+        private object _lock = "";
 
         public TokenController(IWindowService windowService, Settings settings, int gridSize)
         {
@@ -55,168 +56,268 @@ namespace DigitalBattleMap
 
         public void ReloadMonsterTokens()
         {
-            _monsterTokens = MonsterTokens.GetTokens();
+            lock (_lock)
+            {
+                _monsterTokens = MonsterTokens.GetTokens();
+            }
         }
 
         public bool IsTokenSelected()
         {
-            return SelectedToken != null;
+            lock (_lock)
+            {
+                return SelectedToken != null;
+            }
         }
 
         public void AddToken()
         {
-            var tokens = new List<Token>(_monsterTokens);
-            tokens.AddRange(_settings.CustomTokens);
-
-            var selectTokenWindowViewModel = new SelectTokenWindowViewModel(tokens);
-            _windowService.ShowWindowDialog<SelectTokenWindow>(selectTokenWindowViewModel);
-
-            if (selectTokenWindowViewModel.AddedTokens.Count > 0)
+            lock (_lock)
             {
-                foreach (var token in selectTokenWindowViewModel.AddedTokens)
-                {
-                    var tokenListItem = new TokenListItem();
-                    tokenListItem.Token = token;
-                    tokenListItem.Token.SizeChanged += TokenSizeChanged;
-                    tokenListItem.Id = GetUniqueId(token.Name);
-                    tokenListItem.Position = new Point<int>(_bitmapSize.Width / 2, _bitmapSize.Height / 2);
-                    TokenList.Add(tokenListItem);
-                }
+                var tokens = new List<Token>(_monsterTokens);
+                tokens.AddRange(_settings.CustomTokens);
 
-                SelectedToken = TokenList.Last();
-                CreateTokenBitmap();
+                var selectTokenWindowViewModel = new SelectTokenWindowViewModel(tokens);
+                _windowService.ShowWindowDialog<SelectTokenWindow>(selectTokenWindowViewModel);
+
+                if (selectTokenWindowViewModel.AddedTokens.Count > 0)
+                {
+                    foreach (var token in selectTokenWindowViewModel.AddedTokens)
+                    {
+                        var tokenListItem = new TokenListItem();
+                        tokenListItem.Token = token;
+                        tokenListItem.Token.SizeChanged += TokenSizeChanged;
+                        tokenListItem.Id = GetUniqueId(token.Name);
+                        tokenListItem.Position = new Point<int>(_bitmapSize.Width / 2, _bitmapSize.Height / 2);
+                        TokenList.Add(tokenListItem);
+                    }
+
+                    SelectedToken = TokenList.Last();
+                    CreateTokenBitmap();
+                }
             }
         }
 
         public void RemoveToken()
         {
-            if (SelectedToken != null)
+            lock (_lock)
             {
-                TokenList.Remove(SelectedToken);
-                CreateTokenBitmap();
+                if (SelectedToken != null)
+                {
+                    TokenList.Remove(SelectedToken);
+                    CreateTokenBitmap();
+                }
             }
         }
 
         public void ClearTokens()
         {
-            TokenList.Clear();
-            CreateTokenBitmap();
+            lock (_lock)
+            {
+                TokenList.Clear();
+                CreateTokenBitmap();
+            }
         }
 
         public bool IsUpButtonEnabled()
         {
-            return TokenList.IndexOf(SelectedToken) > 0;
+            lock (_lock)
+            {
+                return TokenList.IndexOf(SelectedToken) > 0;
+            }
         }
 
         public bool IsDownButtonEnabled()
         {
-            return TokenList.IndexOf(SelectedToken) < TokenList.Count - 1;
+            lock (_lock)
+            {
+                return TokenList.IndexOf(SelectedToken) < TokenList.Count - 1;
+            }
         }
 
         public void TokenUp()
         {
-            var selectedToken = SelectedToken;
-            var index = TokenList.IndexOf(SelectedToken);
-            TokenList.Remove(selectedToken);
-            TokenList.Insert(index - 1, selectedToken);
-            SelectedToken = selectedToken;
-            NotifyTokenEditorUpdated();
-            CreateTokenBitmap();
+            lock (_lock)
+            {
+                var selectedToken = SelectedToken;
+                var index = TokenList.IndexOf(SelectedToken);
+                TokenList.Remove(selectedToken);
+                TokenList.Insert(index - 1, selectedToken);
+                SelectedToken = selectedToken;
+                NotifyTokenEditorUpdated();
+                CreateTokenBitmap();
+            }
         }
 
         public void TokenDown()
         {
-            var selectedToken = SelectedToken;
-            var index = TokenList.IndexOf(SelectedToken);
-            TokenList.Remove(selectedToken);
-            TokenList.Insert(index + 1, selectedToken);
-            SelectedToken = selectedToken;
-            NotifyTokenEditorUpdated();
-            CreateTokenBitmap();
+            lock (_lock)
+            {
+                var selectedToken = SelectedToken;
+                var index = TokenList.IndexOf(SelectedToken);
+                TokenList.Remove(selectedToken);
+                TokenList.Insert(index + 1, selectedToken);
+                SelectedToken = selectedToken;
+                NotifyTokenEditorUpdated();
+                CreateTokenBitmap();
+            }
         }
 
         public BitmapSource GetTokenBitmapSource()
         {
-            return _tokenBitmap.ToBitmapImage();
+            lock (_lock)
+            {
+                return _tokenBitmap.ToBitmapImage();
+            }
         }
 
         public BitmapSource GetTokenSelectionBitmapSource()
         {
-            return _tokenSelectionBitmap.ToBitmapImage();
+            lock (_lock)
+            {
+                return _tokenSelectionBitmap.ToBitmapImage();
+            }
         }
 
         public void UpdateGridSize(int gridSize)
         {
-            _gridSize = gridSize;
-            if (TokenList.Count > 0)
+            lock (_lock)
             {
-                CreateTokenBitmap();
+                _gridSize = gridSize;
+                if (TokenList.Count > 0)
+                {
+                    CreateTokenBitmap();
+                }
             }
         }
 
         public void MouseDown(Point<double> point)
         {
-            if (SelectedToken != null)
+            lock (_lock)
             {
-                var newPosition = new Point<int>();
-                newPosition.X = (int)point.X.Map(0, _canvasSize.Width, 0, _bitmapSize.Width);
-                newPosition.Y = (int)point.Y.Map(0, _canvasSize.Height, 0, _bitmapSize.Height);
-                SelectedToken.Position = newPosition;
+                if (SelectedToken != null)
+                {
+                    var newPosition = new Point<int>();
+                    newPosition.X = (int)point.X.Map(0, _canvasSize.Width, 0, _bitmapSize.Width);
+                    newPosition.Y = (int)point.Y.Map(0, _canvasSize.Height, 0, _bitmapSize.Height);
+                    SelectedToken.Position = newPosition;
 
-                CreateTokenBitmap();
+                    CreateTokenBitmap();
+                }
             }
         }
 
         public void SetCanvasSize(Size<double> canvasSize)
         {
-            _canvasSize = canvasSize;
+            lock (_lock)
+            {
+                _canvasSize = canvasSize;
+            }
         }
 
         public void MoveTokens(ArrowDirection direction)
         {
-            foreach (var tokenListItem in TokenList)
+            lock (_lock)
             {
-                switch (direction)
+                foreach (var tokenListItem in TokenList)
                 {
-                    case ArrowDirection.Up:
-                        tokenListItem.Position.Y -= _gridSize;
-                        break;
-                    case ArrowDirection.Down:
-                        tokenListItem.Position.Y += _gridSize;
-                        break;
-                    case ArrowDirection.Left:
-                        tokenListItem.Position.X -= _gridSize;
-                        break;
-                    case ArrowDirection.Right:
-                        tokenListItem.Position.X += _gridSize;
-                        break;
+                    switch (direction)
+                    {
+                        case ArrowDirection.Up:
+                            tokenListItem.Position.Y -= _gridSize;
+                            break;
+                        case ArrowDirection.Down:
+                            tokenListItem.Position.Y += _gridSize;
+                            break;
+                        case ArrowDirection.Left:
+                            tokenListItem.Position.X -= _gridSize;
+                            break;
+                        case ArrowDirection.Right:
+                            tokenListItem.Position.X += _gridSize;
+                            break;
+                    }
                 }
-            }
 
-            CreateTokenBitmap();
+                CreateTokenBitmap();
+            }
         }
 
         public void AddToSaveFile(SaveFile saveFile)
         {
-            saveFile.TokenList = TokenList.ToList();
+            lock (_lock)
+            {
+                saveFile.TokenList = TokenList.ToList();
+            }
         }
 
         public void OpenSaveFile(SaveFile saveFile)
         {
-            ClearTokens();
-            foreach (var tokenListItem in saveFile.TokenList)
+            lock (_lock)
             {
-                TokenList.Add(tokenListItem);
-                tokenListItem.Token.SizeChanged += TokenSizeChanged;
-            }
+                ClearTokens();
+                foreach (var tokenListItem in saveFile.TokenList)
+                {
+                    TokenList.Add(tokenListItem);
+                    tokenListItem.Token.SizeChanged += TokenSizeChanged;
+                }
 
-            CreateTokenBitmap();
+                CreateTokenBitmap();
+            }
         }
 
         public void CustomTokens()
         {
-            var customTokensWindowViewModel = new CustomTokensWindowViewModel(_windowService, _settings, _monsterTokens.Select(t => t.Name).ToList());
-            _windowService.ShowWindowDialog<CustomTokensWindow>(customTokensWindowViewModel);
+            lock (_lock)
+            {
+                var customTokensWindowViewModel = new CustomTokensWindowViewModel(_windowService, _settings, _monsterTokens.Select(t => t.Name).ToList());
+                _windowService.ShowWindowDialog<CustomTokensWindow>(customTokensWindowViewModel);
+            }
+        }
+
+        public void OnMoveTokenAction(object sender, MoveTokenActionEventArgs e)
+        {
+            lock (_lock)
+            {
+                var tokenListItem = TokenList.SingleOrDefault(t => t.Token.Name.ToLower() == e.Name.ToLower() && t.Id == e.Id);
+                if (tokenListItem != null)
+                {
+                    switch(e.Direction)
+                    {
+                        case TokenDirection.UpLeft:
+                            tokenListItem.Position.X -= _gridSize;
+                            tokenListItem.Position.Y -= _gridSize;
+                            break;
+                        case TokenDirection.Up:
+                            tokenListItem.Position.Y -= _gridSize;
+                            break;
+                        case TokenDirection.UpRight:
+                            tokenListItem.Position.X += _gridSize;
+                            tokenListItem.Position.Y -= _gridSize;
+                            break;
+                        case TokenDirection.Left:
+                            tokenListItem.Position.X -= _gridSize;
+                            break;
+                        case TokenDirection.Right:
+                            tokenListItem.Position.X += _gridSize;
+                            break;
+                        case TokenDirection.DownLeft:
+                            tokenListItem.Position.X -= _gridSize;
+                            tokenListItem.Position.Y += _gridSize;
+                            break;
+                        case TokenDirection.Down:
+                            tokenListItem.Position.Y += _gridSize;
+                            break;
+                        case TokenDirection.DownRight:
+                            tokenListItem.Position.X += _gridSize;
+                            tokenListItem.Position.Y += _gridSize;
+                            break;
+                        default:
+                            break;
+                    }
+                    
+                    CreateTokenBitmap();
+                }
+            }
         }
 
         private void NotifyTokenEditorUpdated()
@@ -245,19 +346,22 @@ namespace DigitalBattleMap
 
         private void CreateTokenBitmap()
         {
-            _tokenBitmap = BitmapTools.CreateEmptyBitmap();
-            _tokenSelectionBitmap = BitmapTools.CreateEmptyBitmap();
-
-            if (TokenList.Count > 0)
+            lock (_lock)
             {
-                foreach (var tokenListItem in TokenList)
-                {   
-                    BitmapTools.DrawToken(_tokenBitmap, tokenListItem.GetBitmap(), tokenListItem.Token.GetSizeFactor(), tokenListItem.Position, GetTokenIdString(tokenListItem), _gridSize);
-                }
-                UpdateTokenSelection();
-            }
+                _tokenBitmap = BitmapTools.CreateEmptyBitmap();
+                _tokenSelectionBitmap = BitmapTools.CreateEmptyBitmap();
 
-            NotifyTokenBitmapUpdated();
+                if (TokenList.Count > 0)
+                {
+                    foreach (var tokenListItem in TokenList)
+                    {
+                        BitmapTools.DrawToken(_tokenBitmap, tokenListItem.GetBitmap(), tokenListItem.Token.GetSizeFactor(), tokenListItem.Position, GetTokenIdString(tokenListItem), _gridSize);
+                    }
+                    UpdateTokenSelection();
+                }
+
+                NotifyTokenBitmapUpdated();
+            }
         }
 
         private string GetTokenIdString(TokenListItem tokenListItem)

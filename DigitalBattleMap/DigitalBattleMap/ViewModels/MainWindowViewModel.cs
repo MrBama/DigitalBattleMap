@@ -22,6 +22,7 @@ namespace DigitalBattleMap
         private Settings _settings;
         private BackgroundController _backgroundController;
         private TokenController _tokenController;
+        private ConnectionManager _connectionManager;
 
         public MainWindowViewModel(IWindowService windowService)
         {
@@ -41,7 +42,10 @@ namespace DigitalBattleMap
         public int InkCanvasZIndex { get => Get<int>(); set => Set(value); }
         public bool IsGridShown { get => Get<bool>(); set => Set(value, GridShownChanged); }
         public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, () => UpdateMap(DrawLayer.All)); }
+        public bool ServerConnectionButtonEnabled { get => Get<bool>(); set => Set(value); }
         public double BackgroundZoomPercentage { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(BackgroundZoomPercentageLabel))); }
+        public string ServerConnectionButtonText { get => Get<string>(); set => Set(value); }
+        public string ServerConnectionStatus { get => Get<string>(); set => Set(value); }
         public Visibility BlackButtonSelectedVisibility { get => Get<Visibility>(); set => Set(value); }
         public Visibility RedButtonSelectedVisibility { get => Get<Visibility>(); set => Set(value); }
         public Visibility GreenButtonSelectedVisibility { get => Get<Visibility>(); set => Set(value); }
@@ -54,6 +58,7 @@ namespace DigitalBattleMap
         public StylusShape EraserShape { get => Get<StylusShape>(); set => Set(value); }
         public InkCanvasEditingMode EditingMode { get => Get<InkCanvasEditingMode>(); set => Set(value); }
         public StrokeCollection Strokes { get => Get<StrokeCollection>(); set => Set(value); }
+        public System.Windows.Media.Brush ServerConnectionStatusColor { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
 
         public BitmapSource BackgroundBitmapSource { get => _backgroundController.GetBackgroundBitmapSource(); }
         public BitmapSource TokenBitmapSource { get => _tokenController.GetTokenBitmapSource(); }
@@ -107,6 +112,7 @@ namespace DigitalBattleMap
         public ICommand TokenUpCommand { get; set; }
         public ICommand TokenDownCommand { get; set; }
         public ICommand CustomTokensCommand { get; set; }
+        public ICommand ServerConnectionCommand { get; set; }
 
         public void Initialize()
         {
@@ -120,6 +126,10 @@ namespace DigitalBattleMap
             _tokenController = new TokenController(_windowService, _settings, GridSize);
             _tokenController.TokenEditorUpdated += TokenEditorUpdated;
             _tokenController.TokenBitmapUpdated += TokenBitmapUpdated;
+            _connectionManager = new ConnectionManager();
+            _connectionManager.Connected += ConnectionManagerConnected;
+            _connectionManager.Disconnected += ConnectionManagerDisconnected;
+            _connectionManager.MoveTokenAction += _tokenController.OnMoveTokenAction;
             Strokes.StrokesChanged += OnStrokesChanged;
 
             GridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
@@ -145,6 +155,7 @@ namespace DigitalBattleMap
             TokenUpCommand = new RelayCommand(p => _tokenController.TokenUp());
             TokenDownCommand = new RelayCommand(p => _tokenController.TokenDown());
             CustomTokensCommand = new RelayCommand(p => _tokenController.CustomTokens());
+            ServerConnectionCommand = new RelayCommand(p => ServerConnectionButton());
 
             InkCanvasDrawingAttributes.Width = PenSize;
             InkCanvasDrawingAttributes.Height = PenSize;
@@ -171,6 +182,10 @@ namespace DigitalBattleMap
             TokenVisibility = Visibility.Hidden;
             EditingMode = InkCanvasEditingMode.Ink;
             Strokes = new StrokeCollection();
+            ServerConnectionButtonText = "Connect";
+            ServerConnectionStatus = "Disconnected";
+            ServerConnectionStatusColor = System.Windows.Media.Brushes.Red;
+            ServerConnectionButtonEnabled = true;
         }
 
         private void OnStrokesChanged(object sender, StrokeCollectionChangedEventArgs e)
@@ -246,6 +261,7 @@ namespace DigitalBattleMap
 
         private void WindowClosing()
         {
+            _connectionManager.Disconnect();
             _windowService.CloseAllWindows();
         }
 
@@ -486,6 +502,39 @@ namespace DigitalBattleMap
             {
                 ShowMap(layer);
             }
+        }
+
+        private void ServerConnectionButton()
+        {
+            ServerConnectionButtonEnabled = false;
+            ServerConnectionStatusColor = System.Windows.Media.Brushes.Orange;
+
+            if (ServerConnectionStatus == "Disconnected")
+            {
+                ServerConnectionStatus = "Connecting...";
+                _connectionManager.Connect(_settings.ServerIp, _settings.ServerPort);
+            }
+            else
+            {
+                ServerConnectionStatus = "Disconnecting...";
+                _connectionManager.Disconnect();
+            }
+        }
+
+        private void ConnectionManagerDisconnected(object? sender, EventArgs e)
+        {
+            ServerConnectionButtonText = "Connect";
+            ServerConnectionButtonEnabled = true;
+            ServerConnectionStatus = "Disconnected";
+            ServerConnectionStatusColor = System.Windows.Media.Brushes.Red;
+        }
+
+        private void ConnectionManagerConnected(object? sender, EventArgs e)
+        {
+            ServerConnectionButtonText = "Disconnect";
+            ServerConnectionButtonEnabled = true;
+            ServerConnectionStatus = "Connected";
+            ServerConnectionStatusColor = System.Windows.Media.Brushes.Green;
         }
     }
 }

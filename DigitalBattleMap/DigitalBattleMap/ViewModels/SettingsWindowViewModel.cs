@@ -46,6 +46,30 @@ namespace DigitalBattleMap
             }
         }
 
+        public string ServerIp
+        {
+            get => _settings.ServerIp;
+            set
+            {
+                if (value != _settings.ServerIp)
+                {
+                    _settings.ServerIp = value;
+                }
+            }
+        }
+
+        public int ServerPort
+        {
+            get => _settings.ServerPort;
+            set
+            {
+                if (value != _settings.ServerPort)
+                {
+                    _settings.ServerPort = value;
+                }
+            }
+        }
+
         public ScreenPosition SelectedMonitorPosition
         {
             get => _settings.MonitorPosition;
