@@ -17,6 +17,7 @@ namespace DigitalBattleMap
         public string Name { get; set; } = "";
         public TokenSize Size { get => Get<TokenSize>(); set => Set(value, NotifySizeChanged); }
         public string ImagePath { get; set; } = "";
+        public bool PlayerControl { get => Get<bool>(); set => Set(value); }
 
         public Token Copy()
         {
@@ -24,17 +25,8 @@ namespace DigitalBattleMap
             {
                 Name = Name,
                 Size = Size,
-                ImagePath = ImagePath
-            };
-        }
-
-        public Token Copy(TokenSize newSize)
-        {
-            return new Token
-            {
-                Name = Name,
-                Size = newSize,
-                ImagePath = ImagePath
+                ImagePath = ImagePath,
+                PlayerControl = PlayerControl
             };
         }
 
@@ -77,6 +69,7 @@ namespace DigitalBattleMap
         public TokenListItem()
         {
             TokenSizeChangedCommand = new RelayCommand(p => TokenSizeChanged((string)p));
+            PlayerControlCommand = new RelayCommand(p => PlayerControlToggled());
         }
 
         public Token Token { get; set; }
@@ -85,6 +78,8 @@ namespace DigitalBattleMap
 
         [JsonIgnore]
         public ICommand TokenSizeChangedCommand { get; set; }
+        [JsonIgnore]
+        public ICommand PlayerControlCommand { get; set; }
 
         public Bitmap GetBitmap()
         {
@@ -96,9 +91,14 @@ namespace DigitalBattleMap
             return _bitmap;
         }
 
-        public void TokenSizeChanged(string size)
+        private void TokenSizeChanged(string size)
         {
             Token.Size = Enum.Parse<TokenSize>(size);
+        }
+
+        private void PlayerControlToggled()
+        {
+            Token.PlayerControl = !Token.PlayerControl;
         }
     }
 }

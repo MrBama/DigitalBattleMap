@@ -224,16 +224,16 @@ namespace DigitalBattleMap
                     switch (direction)
                     {
                         case ArrowDirection.Up:
-                            tokenListItem.Position.Y -= _gridSize;
-                            break;
-                        case ArrowDirection.Down:
                             tokenListItem.Position.Y += _gridSize;
                             break;
+                        case ArrowDirection.Down:
+                            tokenListItem.Position.Y -= _gridSize;
+                            break;
                         case ArrowDirection.Left:
-                            tokenListItem.Position.X -= _gridSize;
+                            tokenListItem.Position.X += _gridSize;
                             break;
                         case ArrowDirection.Right:
-                            tokenListItem.Position.X += _gridSize;
+                            tokenListItem.Position.X -= _gridSize;
                             break;
                     }
                 }
@@ -278,7 +278,7 @@ namespace DigitalBattleMap
         {
             lock (_lock)
             {
-                var tokenListItem = TokenList.SingleOrDefault(t => t.Token.Name.ToLower() == e.Name.ToLower() && t.Id == e.Id);
+                var tokenListItem = TokenList.SingleOrDefault(t => t.Token.Name.ToLower() == e.Name.ToLower() && t.Id == e.Id && t.Token.PlayerControl);
                 if (tokenListItem != null)
                 {
                     switch(e.Direction)

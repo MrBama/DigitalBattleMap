@@ -40,6 +40,8 @@ namespace DigitalBattleMap
         public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
         public int GridSize { get => Get<int>(); set => Set(value); }
         public int InkCanvasZIndex { get => Get<int>(); set => Set(value); }
+        public int GridCellsWidth { get => Get<int>(); set => Set(value); }
+        public int GridCellsHeight { get => Get<int>(); set => Set(value); }
         public bool IsGridShown { get => Get<bool>(); set => Set(value, GridShownChanged); }
         public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, () => UpdateMap(DrawLayer.All)); }
         public bool ServerConnectionButtonEnabled { get => Get<bool>(); set => Set(value); }
@@ -85,7 +87,7 @@ namespace DigitalBattleMap
         public string BackgroundZoomPercentageLabel { get => $"{BackgroundZoomPercentage}%"; }
         public double MouseInputX { get; set; }
         public double MouseInputY { get; set; }
-        public bool IsZoomEnabled { get => _backgroundController.IsZoomEnabled(); }
+        public bool HasOpenedBackground { get => _backgroundController.HasOpenedBackground(); }
         public bool IsTokenSelected { get => _tokenController.IsTokenSelected(); }
         public bool IsTokenUpButtonEnabled { get => _tokenController.IsUpButtonEnabled(); }
         public bool IsTokenDownButtonEnabled { get => _tokenController.IsDownButtonEnabled(); }
@@ -113,6 +115,7 @@ namespace DigitalBattleMap
         public ICommand TokenDownCommand { get; set; }
         public ICommand CustomTokensCommand { get; set; }
         public ICommand ServerConnectionCommand { get; set; }
+        public ICommand FitBackgroundToGridCommand { get; set; }
 
         public void Initialize()
         {
@@ -156,6 +159,7 @@ namespace DigitalBattleMap
             TokenDownCommand = new RelayCommand(p => _tokenController.TokenDown());
             CustomTokensCommand = new RelayCommand(p => _tokenController.CustomTokens());
             ServerConnectionCommand = new RelayCommand(p => ServerConnectionButton());
+            FitBackgroundToGridCommand = new RelayCommand(p => _backgroundController.FitToGrid(GridSize, new Size<int>(GridCellsWidth, GridCellsHeight)));
 
             InkCanvasDrawingAttributes.Width = PenSize;
             InkCanvasDrawingAttributes.Height = PenSize;
@@ -171,6 +175,8 @@ namespace DigitalBattleMap
             IsGridShown = true;
             IsShowMapLocked = false;
             BackgroundZoomPercentage = 10;
+            GridCellsWidth = 10;
+            GridCellsHeight = 10;
             BlackButtonSelectedVisibility = Visibility.Visible;
             RedButtonSelectedVisibility = Visibility.Hidden;
             GreenButtonSelectedVisibility = Visibility.Hidden;
@@ -196,7 +202,7 @@ namespace DigitalBattleMap
         private void BackgroundUpdated(object? sender, EventArgs e)
         {
             NotifyPropertyChange(nameof(BackgroundBitmapSource));
-            NotifyPropertyChange(nameof(IsZoomEnabled));
+            NotifyPropertyChange(nameof(HasOpenedBackground));
             UpdateMap(DrawLayer.Background);
         }
 
@@ -347,6 +353,8 @@ namespace DigitalBattleMap
                 _tokenController.ClearTokens();
                 IsGridShown = true;
                 GridSize = _settings.DefaultGridSize;
+                GridCellsWidth = 10;
+                GridCellsHeight = 10;
                 GridSizeChanged();
             }
         }
@@ -449,16 +457,16 @@ namespace DigitalBattleMap
             switch (arrowDirection)
             {
                 case ArrowDirection.Up:
-                    matrix.Translate(0, -distanceY);
-                    break;
-                case ArrowDirection.Down:
                     matrix.Translate(0, distanceY);
                     break;
+                case ArrowDirection.Down:
+                    matrix.Translate(0, -distanceY);
+                    break;
                 case ArrowDirection.Left:
-                    matrix.Translate(-distanceX, 0);
+                    matrix.Translate(distanceX, 0);
                     break;
                 case ArrowDirection.Right:
-                    matrix.Translate(distanceX, 0);
+                    matrix.Translate(-distanceX, 0);
                     break;
             }
 

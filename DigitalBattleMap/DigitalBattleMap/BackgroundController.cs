@@ -31,21 +31,22 @@ namespace DigitalBattleMap
             return _backgroundBitmap.ToBitmapImage();
         }
 
-        public bool IsZoomEnabled()
+        public bool HasOpenedBackground()
         {
             return _fullBackgroundBitmap != null;
         }
 
         public void OpenBackground()
         {
-            if(_windowService.ShowOpenFileDialog(out string path))
-            { 
+            if (_windowService.ShowOpenFileDialog(out string path))
+            {
                 _fullBackgroundBitmap = BitmapTools.LoadBitmap(path);
                 _area = new Rectangle(
-                    (_fullBackgroundBitmap.Width / 2) - (_bitmapSize.Width / 2), 
-                    (_fullBackgroundBitmap.Height / 2) - (_bitmapSize.Height / 2), 
-                    _bitmapSize.Width, 
+                    (_fullBackgroundBitmap.Width / 2) - (_bitmapSize.Width / 2),
+                    (_fullBackgroundBitmap.Height / 2) - (_bitmapSize.Height / 2),
+                    _bitmapSize.Width,
                     _bitmapSize.Height);
+
                 _backgroundBitmap = BitmapTools.CropBitmap(_fullBackgroundBitmap, _area);
                 NotifyBackgroundUpdated();
             }
@@ -118,21 +119,32 @@ namespace DigitalBattleMap
                 switch (direction)
                 {
                     case ArrowDirection.Up:
-                        _area.Y += distanceY;
-                        break;
-                    case ArrowDirection.Down:
                         _area.Y -= distanceY;
                         break;
+                    case ArrowDirection.Down:
+                        _area.Y += distanceY;
+                        break;
                     case ArrowDirection.Left:
-                        _area.X += distanceX;
+                        _area.X -= distanceX;
                         break;
                     case ArrowDirection.Right:
-                        _area.X -= distanceX;
+                        _area.X += distanceX;
                         break;
                 }
 
                 CreateBackground();
             }
+        }
+
+        public void FitToGrid(int gridSize, Size<int> gridCells)
+        {
+            var newSize = new Size<double>(gridSize * gridCells.Width, gridSize * gridCells.Height);
+            double factor = _fullBackgroundBitmap.Width / newSize.Width;
+
+            _area.Width = (int)(_bitmapSize.Width * factor);
+            _area.Height = (int)(_bitmapSize.Height * factor);
+
+            CreateBackground();
         }
 
         public void AddToSaveFile(SaveFile saveFile)
@@ -144,12 +156,12 @@ namespace DigitalBattleMap
         public void OpenSaveFile(SaveFile saveFile)
         {
             ClearBackground();
-            if(saveFile.FullBackground != null)
+            if (saveFile.FullBackground != null)
             {
                 _fullBackgroundBitmap = saveFile.FullBackground;
                 _area = saveFile.BackgroundArea;
                 CreateBackground();
-            }            
+            }
         }
 
         private void NotifyBackgroundUpdated()

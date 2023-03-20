@@ -58,6 +58,7 @@ namespace DigitalBattleMap
             if (createTokenWindowViewModel.Token != null)
             {
                 TokenList.Add(createTokenWindowViewModel.Token);
+                OrderTokenList();
                 Save();
             }
         }
@@ -82,9 +83,20 @@ namespace DigitalBattleMap
             {
                 TokenList.Remove(SelectedToken);
                 TokenList.Add(createTokenWindowViewModel.Token);
+                OrderTokenList();
                 SelectedToken = createTokenWindowViewModel.Token;
                 Save();
             }
+        }
+
+        private void OrderTokenList()
+        {
+            var orderedTokens = TokenList.OrderBy(t => t.Name).ToList();
+            TokenList.Clear();
+            foreach (var token in orderedTokens)
+            {
+                TokenList.Add(token);
+            }   
         }
     }
 }

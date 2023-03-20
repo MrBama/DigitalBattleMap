@@ -67,7 +67,9 @@ namespace DigitalBattleMap
             {
                 for (int i = 0; i < NumberOfTokens; i++)
                 {
-                    AddedTokens.Add(SelectedToken.Copy(SelectedTokenSize));
+                    var copy = SelectedToken.Copy();
+                    copy.Size = SelectedTokenSize;
+                    AddedTokens.Add(copy);
                 }
             }
         }

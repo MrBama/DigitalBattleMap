@@ -40,6 +40,7 @@ namespace DigitalBattleMap
 
             TokenName = editToken.Name;
             SelectedTokenSize = editToken.Size;
+            PlayerControl = editToken.PlayerControl;
             _tokenBitmap = BitmapTools.LoadBitmap(editToken.ImagePath);
             _originalTokenImagePath = editToken.ImagePath;
 
@@ -53,6 +54,7 @@ namespace DigitalBattleMap
         public System.Windows.Media.Brush NameBorderBrush { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
         public string ToolTip { get => Get<string>(); set => Set(value); }
         public bool IsOkButtonEnabled { get => AllInformationAvailable(); }
+        public bool PlayerControl { get => Get<bool>(); set => Set(value); }
         public ICommand SelectImageCommand { get; set; }
         public ICommand OkCommand { get; set; }
         public BitmapSource TokenBitmapSource { get => _tokenBitmap.ToBitmapImage(); }
@@ -98,6 +100,7 @@ namespace DigitalBattleMap
             token.Name = TokenName;
             token.ImagePath = imagePath;
             token.Size = SelectedTokenSize;
+            token.PlayerControl = PlayerControl;
 
             Token = token;            
         }
