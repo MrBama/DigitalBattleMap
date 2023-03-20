@@ -1,0 +1,46 @@
+﻿@page
+<div class="container">
+	<div class="row">
+		<div class="col-2" style="font-size:20px;padding:5px">Name</div>
+		<div class="col-10"><input type="text" id="userInput" style="width:100%;font-size:20px;padding:5px" /></div>
+	</div>
+	<div class="row">
+		<div class="col-4">
+			<input type="button" id="upLeftButton" value="Up left" style="width:100%;margin-top:20px;padding:15px;font-size:15px" />
+		</div>
+		<div class="col-4">
+			<input type="button" id="upButton" value="Up" style="width:100%;margin-top:20px;padding:15px;font-size:15px" />
+		</div>
+		<div class="col-4">
+			<input type="button" id="upRightButton" value="Up right" style="width:100%;margin-top:20px;padding:15px;font-size:15px" />
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-4">
+			<input type="button" id="leftButton" value="Left" style="width:100%;margin-top:20px;margin-bottom:20px;padding:15px;font-size:15px" />
+		</div>
+		<div class="col-4"></div>
+		<div class="col-4">
+			<input type="button" id="rightButton" value="Right" style="width:100%;margin-top:20px;margin-bottom:20px;padding:15px;font-size:15px" />
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-4">
+			<input type="button" id="downLeftButton" value="Down left" style="width:100%;padding:15px;font-size:15px" />
+		</div>
+		<div class="col-4">
+			<input type="button" id="downButton" value="Down" style="width:100%;padding:15px;font-size:15px" />
+		</div>
+		<div class="col-4">
+			<input type="button" id="downRightButton" value="Down right" style="width:100%;padding:15px;font-size:15px" />
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-12">
+			<img id="mapImage" />
+		</div>
+	</div>
+</div>
+
+<script src="~/js/signalr/dist/browser/signalr.js"></script>
+<script src="~/js/index.js"></script>

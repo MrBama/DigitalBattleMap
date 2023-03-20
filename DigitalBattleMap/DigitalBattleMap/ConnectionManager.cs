@@ -88,8 +88,6 @@ namespace DigitalBattleMap
                     var buffer = new byte[client.Available];
                     var receiveTask = client.ReceiveAsync(buffer, SocketFlags.None);
                     WaitOnTaskCompletion(receiveTask);
-                    //var response = Encoding.UTF8.GetString(buffer, 0, receiveTask.Result);
-                    //Debug.WriteLine($"Message: {response}");
 
                     var indexOfEndOfMessage = SearchBytes(buffer, Encoding.UTF8.GetBytes("<EOM>"));
                     while (indexOfEndOfMessage != -1 && !_isTerminated)
