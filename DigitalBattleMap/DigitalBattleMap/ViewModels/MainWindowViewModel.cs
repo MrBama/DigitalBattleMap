@@ -164,7 +164,7 @@ namespace DigitalBattleMap
             InkCanvasDrawingAttributes.Width = PenSize;
             InkCanvasDrawingAttributes.Height = PenSize;
             InkCanvasDrawingAttributes.IgnorePressure = true;
-            EraserShape = new RectangleStylusShape(PenSize, PenSize);
+            EraserShape = new EllipseStylusShape(PenSize, PenSize);
 
             InitializeColorButtons();
         }
@@ -275,7 +275,11 @@ namespace DigitalBattleMap
         {
             InkCanvasDrawingAttributes.Width = PenSize;
             InkCanvasDrawingAttributes.Height = PenSize;
-            EraserShape = new EllipseStylusShape(PenSize, PenSize);
+
+            if (EditingMode == InkCanvasEditingMode.EraseByPoint)
+            {
+                EraserShape = new EllipseStylusShape(PenSize, PenSize);
+            }
         }
 
         private void InitializeColorButtons()
@@ -327,6 +331,7 @@ namespace DigitalBattleMap
                 case "Eraser":
                     EditingMode = InkCanvasEditingMode.EraseByPoint;
                     EraserButtonSelectedVisibility = Visibility.Visible;
+                    EraserShape = new EllipseStylusShape(PenSize, PenSize);
                     break;
             }
         }

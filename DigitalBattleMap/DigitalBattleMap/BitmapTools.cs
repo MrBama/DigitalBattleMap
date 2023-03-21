@@ -350,9 +350,11 @@ namespace DigitalBattleMap
                         var point = new PointF();
                         point.X = (float)strokes[strokeIndex].StylusPoints[pointIndex].X;
                         point.Y = (float)strokes[strokeIndex].StylusPoints[pointIndex].Y;
+                        point.X -= penSize / 2;
+                        point.Y -= penSize / 2;
 
-                        var resizedX = point.X.Map(0, canvasSize.Width, 0, _width) - penSize;
-                        var resizedY = point.Y.Map(0, canvasSize.Height, 0, _height) - penSize;
+                        var resizedX = point.X.Map(0, canvasSize.Width, 0, _width);
+                        var resizedY = point.Y.Map(0, canvasSize.Height, 0, _height);
                         points.Add(new PointF(resizedX, resizedY));
                     }
 
