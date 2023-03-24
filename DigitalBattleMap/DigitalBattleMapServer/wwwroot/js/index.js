@@ -88,3 +88,7 @@ document.getElementById("downRightButton").addEventListener("click", function (e
     });
     event.preventDefault();
 });
+
+connection.on("UpdateMap", function (image) {
+    document.getElementById("mapImage").src = image;
+});

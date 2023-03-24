@@ -129,6 +129,7 @@ namespace DigitalBattleMap
             _tokenController = new TokenController(_windowService, _settings, GridSize);
             _tokenController.TokenEditorUpdated += TokenEditorUpdated;
             _tokenController.TokenBitmapUpdated += TokenBitmapUpdated;
+            _tokenController.SelectedTokenBitmapUpdated += SelectedTokenBitmapUpdated;
             _connectionManager = new ConnectionManager();
             _connectionManager.Connected += ConnectionManagerConnected;
             _connectionManager.Disconnected += ConnectionManagerDisconnected;
@@ -217,8 +218,12 @@ namespace DigitalBattleMap
         private void TokenBitmapUpdated(object? sender, EventArgs e)
         {
             NotifyPropertyChange(nameof(TokenBitmapSource));
-            NotifyPropertyChange(nameof(TokenSelectionBitmapSource));
             UpdateMap(DrawLayer.Tokens);
+        }
+
+        private void SelectedTokenBitmapUpdated(object? sender, EventArgs e)
+        {
+            NotifyPropertyChange(nameof(TokenSelectionBitmapSource));
         }
 
         public void OpenMapWindow()
@@ -256,13 +261,21 @@ namespace DigitalBattleMap
                     _mapWindowViewModel.TokenBitmapSource = _tokenController.GetTokenBitmapSource();
                     break;
             }
+
+
+            var mapUpdate = new MapUpdate(_backgroundController.GetBackgroundBitmap(), CreateGridAndDrawingBitmap(), _tokenController.GetTokenBitmap());
+            _connectionManager.SendMapUpdate(mapUpdate);
         }
 
         private void GridBitMap()
         {
+            _mapWindowViewModel.GridBitmapSource = CreateGridAndDrawingBitmap().ToBitmapImage();
+        }
+
+        private Bitmap CreateGridAndDrawingBitmap()
+        {
             var gridBitmap = IsGridShown ? _gridBitmap : BitmapTools.CreateEmptyBitmap();
-            var map = BitmapTools.CreateGridAndStrokesBitmap(gridBitmap, Strokes, new Size<int>((int)_inkCanvasWidth, (int)_inkCanvasHeight));
-            _mapWindowViewModel.GridBitmapSource = map.ToBitmapImage();
+            return BitmapTools.CreateGridAndStrokesBitmap(gridBitmap, Strokes, new Size<int>((int)_inkCanvasWidth, (int)_inkCanvasHeight));
         }
 
         private void WindowClosing()
@@ -476,6 +489,7 @@ namespace DigitalBattleMap
             }
 
             Strokes.Transform(matrix, false);
+            UpdateMap(DrawLayer.GridAndStrokes);
             _backgroundController.MoveBackground(arrowDirection, GridSize);
             _tokenController.MoveTokens(arrowDirection);
         }
@@ -487,6 +501,8 @@ namespace DigitalBattleMap
                 var saveFile = new SaveFile();
                 saveFile.GridSize = GridSize;
                 saveFile.IsGridShown = IsGridShown;
+                saveFile.GridCellsWidth = GridCellsWidth;
+                saveFile.GridCellsHeight = GridCellsHeight;
                 saveFile.Strokes = Strokes;
                 _backgroundController.AddToSaveFile(saveFile);
                 _tokenController.AddToSaveFile(saveFile);
@@ -503,6 +519,8 @@ namespace DigitalBattleMap
                 GridSize = saveFile.GridSize;
                 GridSizeChanged();
                 IsGridShown = saveFile.IsGridShown;
+                GridCellsWidth = saveFile.GridCellsWidth;
+                GridCellsHeight = saveFile.GridCellsHeight;
                 Strokes = saveFile.Strokes;
                 _tokenController.OpenSaveFile(saveFile);
                 SelectedTabIndex = TabIndex.Tokens;

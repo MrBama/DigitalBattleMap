@@ -10,6 +10,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Collections.Concurrent;
+using System.Windows.Shapes;
+using DigitalBattleMap.Common;
+using DigitalBattleMap.Common.DigitalBattleMap.Common;
 
 namespace DigitalBattleMap
 {
@@ -18,6 +22,14 @@ namespace DigitalBattleMap
         private Thread _thread;
         private bool _isTerminated = false;
         private bool _isConnected = false;
+        private ConcurrentQueue<MapUpdate> _messageQueue = new ConcurrentQueue<MapUpdate>();
+        private TcpMessageHandler _tcpMessageHandler;
+
+        public ConnectionManager()
+        {
+            _tcpMessageHandler = new TcpMessageHandler(() => _isTerminated);
+            _tcpMessageHandler.MessageReceived += OnMessageReceived;
+        }
 
         public delegate void MoveTokenActionEventHandler(object sender, MoveTokenActionEventArgs e);
 
@@ -41,7 +53,15 @@ namespace DigitalBattleMap
             }
         }
 
-        public void InitiateConnection(string ipAddress, int port)
+        public void SendMapUpdate(MapUpdate mapUpdate)
+        {
+            if(_isConnected)
+            {
+                _messageQueue.Enqueue(mapUpdate);
+            }
+        }
+
+        private void InitiateConnection(string ipAddress, int port)
         {
             var ipEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), port);
             var client = new Socket(ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -54,7 +74,8 @@ namespace DigitalBattleMap
             {
                 if (_isConnected)
                 {
-                    var sendTask = client.SendAsync(Encoding.UTF8.GetBytes("<Terminate>"), SocketFlags.None);
+                    var tcpCommandMessage = new TcpCommandMessage(TcpConstants.TerminateAction);
+                    var sendTask = client.SendAsync(tcpCommandMessage.GetBytes(), SocketFlags.None);
                     try
                     {
                         WaitOnTaskCompletion(sendTask, 2000);
@@ -79,48 +100,39 @@ namespace DigitalBattleMap
 
             _isConnected = true;
             NotifyConnected();
-            var buffers = new List<byte[]>();
 
             while (!_isTerminated)
             {
                 if (client.Available > 0)
                 {
-                    var buffer = new byte[client.Available];
-                    var receiveTask = client.ReceiveAsync(buffer, SocketFlags.None);
+                    var receivedBuffer = new byte[client.Available];
+                    var receiveTask = client.ReceiveAsync(receivedBuffer, SocketFlags.None);
                     WaitOnTaskCompletion(receiveTask);
-
-                    var indexOfEndOfMessage = SearchBytes(buffer, Encoding.UTF8.GetBytes("<EOM>"));
-                    while (indexOfEndOfMessage != -1 && !_isTerminated)
-                    {
-                        var buffer1Lenght = indexOfEndOfMessage + "<EOM>".Length;
-                        var buffer2Lenght = buffer.Length - buffer1Lenght;
-
-                        var buffer1 = new byte[buffer1Lenght];
-                        var buffer2 = new byte[buffer2Lenght];
-                        Buffer.BlockCopy(buffer, 0, buffer1, 0, buffer1Lenght);
-                        Buffer.BlockCopy(buffer, buffer1Lenght, buffer2, 0, buffer2Lenght);
-
-                        buffers.Add(buffer1);
-                        MessageReceived(buffers);
-                        buffers.Clear();
-
-                        buffer = buffer2;
-                        indexOfEndOfMessage = SearchBytes(buffer, Encoding.UTF8.GetBytes("<EOM>"));
-                    }
+                    _tcpMessageHandler.ReceivedBytes(receivedBuffer);
                 }
+
+                if (_messageQueue.TryDequeue(out var mapUpdate))
+                {
+                    var bitmaps = new List<Bitmap> { mapUpdate.BackgroundBitmap, mapUpdate.GridAndDrawingBitmap, mapUpdate.TokenBitmap };
+                    var tcpImageMessage = new TcpImageMessage(BitmapTools.MergeBitmaps(bitmaps));
+                    var sendTask = client.SendAsync(tcpImageMessage.GetBytes(), SocketFlags.None);
+                    WaitOnTaskCompletion(sendTask);
+                }
+
+                Thread.Sleep(10);
             }
 
             throw new TerminateException();
         }
 
-        private void MessageReceived(List<byte[]> buffers)
+        private void OnMessageReceived(object sender, TcpMessageReceivedEventArgs e)
         {
-            var combinedBuffer = Combine(buffers);
-            if (TcpMessage.TryParse(combinedBuffer, out var tcpMessage))
+            var tcpMessage = new TcpMessage(e.Bytes);
+            if (tcpMessage.IsValid)
             {
                 switch (tcpMessage.Action)
                 {
-                    case "MoveToken":
+                    case TcpConstants.MoveTokenAction:
                         MoveToken(tcpMessage);
                         break;
                     default:
@@ -131,20 +143,23 @@ namespace DigitalBattleMap
 
         private void MoveToken(TcpMessage tcpMessage)
         {
-            var direction = Enum.Parse<TokenDirection>(tcpMessage.Arguments[1]);
-
-            var rawName = tcpMessage.Arguments[0];
-            var indexOf_ = rawName.LastIndexOf("_");
-            var name = rawName;
-            var id = 1;
-
-            if (indexOf_ != -1 && int.TryParse(rawName.Substring(indexOf_ + 1), out var parsedId))
+            if (TcpCommandMessage.TryParse(tcpMessage, out var tcpImageMessage))
             {
-                name = rawName.Substring(0, indexOf_);
-                id = parsedId;
-            }
+                var direction = Enum.Parse<TokenDirection>(tcpImageMessage.Arguments[1]);
 
-            NotifyMoveTokenAction(name, id, direction);
+                var rawName = tcpImageMessage.Arguments[0];
+                var indexOf_ = rawName.LastIndexOf("_");
+                var name = rawName;
+                var id = 1;
+
+                if (indexOf_ != -1 && int.TryParse(rawName.Substring(indexOf_ + 1), out var parsedId))
+                {
+                    name = rawName.Substring(0, indexOf_);
+                    id = parsedId;
+                }
+
+                NotifyMoveTokenAction(name, id, direction);
+            }
         }
 
         private void WaitOnTaskCompletion(Task task)
@@ -179,34 +194,6 @@ namespace DigitalBattleMap
             {
                 throw new TerminateException();
             }
-        }
-
-        private int SearchBytes(byte[] haystack, byte[] needle)
-        {
-            var lenght = needle.Length;
-            var limit = haystack.Length - lenght;
-            for (var i = 0; i <= limit; i++)
-            {
-                var k = 0;
-                for (; k < lenght; k++)
-                {
-                    if (needle[k] != haystack[i + k]) break;
-                }
-                if (k == lenght) return i;
-            }
-            return -1;
-        }
-
-        private byte[] Combine(List<byte[]> buffers)
-        {
-            byte[] resultBuffer = new byte[buffers.Sum(a => a.Length)];
-            int offset = 0;
-            foreach (byte[] buffer in buffers)
-            {
-                Buffer.BlockCopy(buffer, 0, resultBuffer, offset, buffer.Length);
-                offset += buffer.Length;
-            }
-            return resultBuffer;
         }
 
         private void NotifyConnected()

@@ -31,6 +31,11 @@ namespace DigitalBattleMap
             return _backgroundBitmap.ToBitmapImage();
         }
 
+        public Bitmap GetBackgroundBitmap()
+        {
+            return _backgroundBitmap;
+        }
+
         public bool HasOpenedBackground()
         {
             return _fullBackgroundBitmap != null;

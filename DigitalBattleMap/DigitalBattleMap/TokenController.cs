@@ -37,6 +37,7 @@ namespace DigitalBattleMap
 
         public event EventHandler TokenEditorUpdated;
         public event EventHandler TokenBitmapUpdated;
+        public event EventHandler SelectedTokenBitmapUpdated;
 
         public TokenListItem SelectedToken
         {
@@ -168,6 +169,14 @@ namespace DigitalBattleMap
             lock (_lock)
             {
                 return _tokenBitmap.ToBitmapImage();
+            }
+        }
+
+        public Bitmap GetTokenBitmap()
+        {
+            lock (_lock)
+            {
+                return _tokenBitmap;
             }
         }
 
@@ -330,6 +339,11 @@ namespace DigitalBattleMap
             TokenBitmapUpdated?.Invoke(this, new EventArgs());
         }
 
+        private void NotifySelectedTokenBitmapUpdated()
+        {
+            SelectedTokenBitmapUpdated?.Invoke(this, new EventArgs());
+        }
+
         private int GetUniqueId(string tokenName)
         {
             var tokens = TokenList.Where(t => t.Token.Name == tokenName).ToList();
@@ -388,7 +402,7 @@ namespace DigitalBattleMap
                 BitmapTools.DrawTokenSelection(_tokenSelectionBitmap, SelectedToken.Token.GetSizeFactor(), SelectedToken.Position, _gridSize);
             }
 
-            NotifyTokenBitmapUpdated();
+            NotifySelectedTokenBitmapUpdated();
         }
     }
 }

@@ -23,6 +23,10 @@ namespace DigitalBattleMap
 
         public bool IsGridShown { get; set; }
 
+        public int GridCellsWidth { get; set; }
+
+        public int GridCellsHeight { get; set; }
+
         public Rectangle BackgroundArea { get; set; }
 
         public List<TokenListItem> TokenList { get; set; } = new List<TokenListItem>();

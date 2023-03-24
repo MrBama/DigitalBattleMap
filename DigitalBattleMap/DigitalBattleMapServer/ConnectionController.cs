@@ -5,6 +5,12 @@ using System.Text;
 using System.Collections.Concurrent;
 using DigitalBattleMapServer;
 using DigitalBattleMap;
+using System;
+using System.Drawing;
+using System.Diagnostics;
+using System.Data;
+using DigitalBattleMap.Common;
+using DigitalBattleMap.Common.DigitalBattleMap.Common;
 
 namespace WebServer
 {
@@ -12,25 +18,36 @@ namespace WebServer
     {
         private static readonly ConnectionController _instance = new ConnectionController();
 
-        private IHubContext<WebHub> _hubContext;
+        private IHubContext<MapHub> _hubContext;
         private Thread _thread;
         private bool _isTerminated = false;
-        private ConcurrentQueue<TcpMessage> _messageQueue = new ConcurrentQueue<TcpMessage>();
+        private bool _isConnected = false;
+        private ConcurrentQueue<TcpCommandMessage> _messageQueue = new ConcurrentQueue<TcpCommandMessage>();
+        private TcpMessageHandler _tcpMessageHandler;
 
         public static ConnectionController GetInstance()
         {
             return _instance;
         }
 
-        public void ButtonPressed(string name, string direction)
+        private ConnectionController()
         {
-            var tcpMessage = new TcpMessage("MoveToken");
-            tcpMessage.Arguments.Add(name);
-            tcpMessage.Arguments.Add(direction);
-            _messageQueue.Enqueue(tcpMessage);
+            _tcpMessageHandler = new TcpMessageHandler(() => _isTerminated);
+            _tcpMessageHandler.MessageReceived += OnMessageReceived;
         }
 
-        public void Initialize(IHubContext<WebHub> hubContext)
+        public void ButtonPressed(string name, string direction)
+        {
+            if (_isConnected)
+            {
+                var tcpMessage = new TcpCommandMessage(TcpConstants.MoveTokenAction);
+                tcpMessage.Arguments.Add(name);
+                tcpMessage.Arguments.Add(direction);
+                _messageQueue.Enqueue(tcpMessage);
+            }
+        }
+
+        public void Initialize(IHubContext<MapHub> hubContext)
         {
             _hubContext = hubContext;
 
@@ -68,32 +85,65 @@ namespace WebServer
             {
                 var acceptConnectionTask = listener.AcceptAsync();
                 WaitOnTaskCompletion(acceptConnectionTask);
+                _isConnected = true;
 
                 var client = acceptConnectionTask.Result;
-                _messageQueue.Clear();
 
-                while (!_isTerminated)
+                while (!_isTerminated && _isConnected)
                 {
                     if (client.Available > 0)
                     {
-                        var buffer = new byte[client.Available];
-                        var receiveTask = client.ReceiveAsync(buffer, SocketFlags.None);
+                        var receivedBuffer = new byte[client.Available];
+                        var receiveTask = client.ReceiveAsync(receivedBuffer, SocketFlags.None);
                         WaitOnTaskCompletion(receiveTask);
-
-                        var indexOfTerminate = SearchBytes(buffer, Encoding.UTF8.GetBytes("<Terminate>"));
-                        if (indexOfTerminate != -1)
-                        {
-                            break;
-                        }
+                        _tcpMessageHandler.ReceivedBytes(receivedBuffer);
                     }
 
-                    if (_messageQueue.TryDequeue(out var tcpMessage))
+                    if (_isConnected && _messageQueue.TryDequeue(out var tcpMessage))
                     {
                         var sendTask = client.SendAsync(tcpMessage.GetBytes(), 0);
                         WaitOnTaskCompletion(sendTask);
                     }
+
                     Thread.Sleep(10);
                 }
+            }
+        }
+
+        private void OnMessageReceived(object sender, TcpMessageReceivedEventArgs e)
+        {
+            var tcpMessage = new TcpMessage(e.Bytes);
+            if (tcpMessage.IsValid)
+            {
+                switch (tcpMessage.Action)
+                {
+                    case TcpConstants.UpdateMapAction:
+                        UpdateMap(tcpMessage);
+                        break;
+                    case TcpConstants.TerminateAction:
+                        _isConnected = false;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        
+        private void UpdateMap(TcpMessage tcpMessage)
+        {
+            if (TcpImageMessage.TryParse(tcpMessage, out var tcpImageMessage))
+            {
+                var imageName = "Map.png";
+
+                if (File.Exists($@"wwwroot/{imageName}"))
+                {
+                    File.Delete($@"wwwroot/{imageName}");
+                }
+
+                tcpImageMessage.Bitmap.Save($@"wwwroot/{imageName}");
+                Thread.Sleep(500);
+                var updateClientsTask = _hubContext.Clients.All.SendAsync("UpdateMap", imageName + "?t=" + DateTime.Now.ToUniversalTime());
+                WaitOnTaskCompletion(updateClientsTask);
             }
         }
 
@@ -108,22 +158,6 @@ namespace WebServer
             {
                 throw new TerminateException();
             }
-        }
-
-        static int SearchBytes(byte[] haystack, byte[] needle)
-        {
-            var lenght = needle.Length;
-            var limit = haystack.Length - lenght;
-            for (var i = 0; i <= limit; i++)
-            {
-                var k = 0;
-                for (; k < lenght; k++)
-                {
-                    if (needle[k] != haystack[i + k]) break;
-                }
-                if (k == lenght) return i;
-            }
-            return -1;
         }
     }
 

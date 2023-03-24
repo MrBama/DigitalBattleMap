@@ -212,6 +212,23 @@ namespace DigitalBattleMap
             return bitmap;
         }
 
+        public static Bitmap MergeBitmaps(List<Bitmap> bitmaps)
+        {
+            if(bitmaps.Count > 0)
+            {
+                var bitmap = new Bitmap(bitmaps.First());
+                for(int i = 1; i < bitmaps.Count; i++)
+                {
+                    DrawImageOnBitmap(bitmap, bitmaps[i], new Point<int>());
+                }
+                return bitmap;
+            }
+            else
+            {
+                return new Bitmap(_width, _height);
+            }
+        }
+
         private static bool IsTokenVisible(Point<int> drawingPosition, int gridSize)
         {
             var isVisible = true;

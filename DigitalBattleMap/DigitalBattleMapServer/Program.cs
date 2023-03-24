@@ -23,10 +23,11 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 app.MapHub<WebHub>("/WebHub");
+app.MapHub<MapHub>("/MapHub");
 
-var hubContext = app.Services.GetService(typeof(IHubContext<WebHub>));
+var hubContext = app.Services.GetService(typeof(IHubContext<MapHub>));
 var connectionController = ConnectionController.GetInstance();
-connectionController.Initialize(hubContext as IHubContext<WebHub>);
+connectionController.Initialize(hubContext as IHubContext<MapHub>);
 
 app.Run();
 connectionController.Terminate();
