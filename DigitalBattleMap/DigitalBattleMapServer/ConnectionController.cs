@@ -22,6 +22,7 @@ namespace WebServer
         private Thread _thread;
         private bool _isTerminated = false;
         private bool _isConnected = false;
+        private bool _mapNameToggle = false;
         private ConcurrentQueue<TcpCommandMessage> _messageQueue = new ConcurrentQueue<TcpCommandMessage>();
         private TcpMessageHandler _tcpMessageHandler;
 
@@ -80,6 +81,7 @@ namespace WebServer
 
             listener.Bind(ipEndPoint);
             listener.Listen(100);
+            listener.ReceiveBufferSize = 10_000_000; // 10 mb, this makes receiving a lot faster because there is less overhead
 
             while (!_isTerminated)
             {
@@ -134,6 +136,11 @@ namespace WebServer
             if (TcpImageMessage.TryParse(tcpMessage, out var tcpImageMessage))
             {
                 var imageName = "Map.png";
+                if (_mapNameToggle)
+                {
+                    imageName = "Map1.png";
+                }
+                _mapNameToggle = !_mapNameToggle;
 
                 if (File.Exists($@"wwwroot/{imageName}"))
                 {
@@ -141,8 +148,9 @@ namespace WebServer
                 }
 
                 tcpImageMessage.Bitmap.Save($@"wwwroot/{imageName}");
-                Thread.Sleep(500);
-                var updateClientsTask = _hubContext.Clients.All.SendAsync("UpdateMap", imageName + "?t=" + DateTime.Now.ToUniversalTime());
+                tcpImageMessage.Bitmap.Dispose();
+
+                var updateClientsTask = _hubContext.Clients.All.SendAsync("UpdateMap", imageName + "?t=" + DateTime.Now.Ticks);
                 WaitOnTaskCompletion(updateClientsTask);
             }
         }
