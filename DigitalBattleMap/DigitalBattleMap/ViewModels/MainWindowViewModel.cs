@@ -40,8 +40,6 @@ namespace DigitalBattleMap
         public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
         public int GridSize { get => Get<int>(); set => Set(value); }
         public int InkCanvasZIndex { get => Get<int>(); set => Set(value); }
-        public int GridCellsWidth { get => Get<int>(); set => Set(value); }
-        public int GridCellsHeight { get => Get<int>(); set => Set(value); }
         public bool IsGridShown { get => Get<bool>(); set => Set(value, GridShownChanged); }
         public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, () => UpdateMap(DrawLayer.All)); }
         public bool ServerConnectionButtonEnabled { get => Get<bool>(); set => Set(value); }
@@ -91,6 +89,8 @@ namespace DigitalBattleMap
         public bool IsTokenSelected { get => _tokenController.IsTokenSelected(); }
         public bool IsTokenUpButtonEnabled { get => _tokenController.IsUpButtonEnabled(); }
         public bool IsTokenDownButtonEnabled { get => _tokenController.IsDownButtonEnabled(); }
+        public int GridCellsWidth { get => _backgroundController.GridCellsWidth; set => _backgroundController.GridCellsWidth = value; }
+        public int GridCellsHeight { get => _backgroundController.GridCellsHeight; set => _backgroundController.GridCellsHeight = value; }
         public ICommand GridSizeEnterCommand { get; set; }
         public ICommand ShowMapCommand { get; set; }
         public ICommand WindowClosingCommand { get; set; }
@@ -125,6 +125,7 @@ namespace DigitalBattleMap
             _gridBitmap = BitmapTools.CreateGrid(GridSize);
             _inkCanvasBitmap = BitmapTools.CreateEmptyBitmap();
             _backgroundController = new BackgroundController(_windowService);
+            _backgroundController.BackgroundEditorUpdated += BackgroundEditorUpdated;
             _backgroundController.BackgroundUpdated += BackgroundUpdated;
             _tokenController = new TokenController(_windowService, _settings, GridSize);
             _tokenController.TokenEditorUpdated += TokenEditorUpdated;
@@ -160,7 +161,7 @@ namespace DigitalBattleMap
             TokenDownCommand = new RelayCommand(p => _tokenController.TokenDown());
             CustomTokensCommand = new RelayCommand(p => _tokenController.CustomTokens());
             ServerConnectionCommand = new RelayCommand(p => ServerConnectionButton());
-            FitBackgroundToGridCommand = new RelayCommand(p => _backgroundController.FitToGrid(GridSize, new Size<int>(GridCellsWidth, GridCellsHeight)));
+            FitBackgroundToGridCommand = new RelayCommand(p => _backgroundController.FitToGrid(GridSize));
 
             InkCanvasDrawingAttributes.Width = PenSize;
             InkCanvasDrawingAttributes.Height = PenSize;
@@ -176,8 +177,6 @@ namespace DigitalBattleMap
             IsGridShown = true;
             IsShowMapLocked = false;
             BackgroundZoomPercentage = 10;
-            GridCellsWidth = 10;
-            GridCellsHeight = 10;
             BlackButtonSelectedVisibility = Visibility.Visible;
             RedButtonSelectedVisibility = Visibility.Hidden;
             GreenButtonSelectedVisibility = Visibility.Hidden;
@@ -198,6 +197,12 @@ namespace DigitalBattleMap
         private void OnStrokesChanged(object sender, StrokeCollectionChangedEventArgs e)
         {
             UpdateMap(DrawLayer.GridAndStrokes);
+        }
+
+        private void BackgroundEditorUpdated(object? sender, EventArgs e)
+        {
+            NotifyPropertyChange(nameof(GridCellsWidth));
+            NotifyPropertyChange(nameof(GridCellsHeight));
         }
 
         private void BackgroundUpdated(object? sender, EventArgs e)
@@ -501,8 +506,6 @@ namespace DigitalBattleMap
                 var saveFile = new SaveFile();
                 saveFile.GridSize = GridSize;
                 saveFile.IsGridShown = IsGridShown;
-                saveFile.GridCellsWidth = GridCellsWidth;
-                saveFile.GridCellsHeight = GridCellsHeight;
                 saveFile.Strokes = Strokes;
                 _backgroundController.AddToSaveFile(saveFile);
                 _tokenController.AddToSaveFile(saveFile);
@@ -519,8 +522,6 @@ namespace DigitalBattleMap
                 GridSize = saveFile.GridSize;
                 GridSizeChanged();
                 IsGridShown = saveFile.IsGridShown;
-                GridCellsWidth = saveFile.GridCellsWidth;
-                GridCellsHeight = saveFile.GridCellsHeight;
                 Strokes = saveFile.Strokes;
                 _tokenController.OpenSaveFile(saveFile);
                 SelectedTabIndex = TabIndex.Tokens;

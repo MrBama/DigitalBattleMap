@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
@@ -14,6 +15,7 @@ namespace DigitalBattleMap
         private IWindowService _windowService;
         private Size<int> _bitmapSize;
         private Size<double> _canvasSize;
+        private Size<int> _gridCells = new Size<int>(10, 10);
         private Point<double> _mouseDownPosition;
         private bool _mouseDown;
 
@@ -24,7 +26,34 @@ namespace DigitalBattleMap
             _bitmapSize = BitmapTools.GetBitmapSize();
         }
 
+        public event EventHandler BackgroundEditorUpdated;
         public event EventHandler BackgroundUpdated;
+
+        public int GridCellsWidth
+        {
+            get => _gridCells.Width;
+            set
+            {
+                if (value != _gridCells.Width)
+                {
+                    _gridCells.Width = value;
+                    NotifyBackgroundEditorUpdated();
+                }
+            }
+        }
+
+        public int GridCellsHeight
+        {
+            get => _gridCells.Height;
+            set
+            {
+                if (value != _gridCells.Height)
+                {
+                    _gridCells.Height = value;
+                    NotifyBackgroundEditorUpdated();
+                }
+            }
+        }
 
         public BitmapSource GetBackgroundBitmapSource()
         {
@@ -53,6 +82,7 @@ namespace DigitalBattleMap
                     _bitmapSize.Height);
 
                 _backgroundBitmap = BitmapTools.CropBitmap(_fullBackgroundBitmap, _area);
+                ExtractGridCells(Path.GetFileNameWithoutExtension(path));
                 NotifyBackgroundUpdated();
             }
         }
@@ -141,9 +171,9 @@ namespace DigitalBattleMap
             }
         }
 
-        public void FitToGrid(int gridSize, Size<int> gridCells)
+        public void FitToGrid(int gridSize)
         {
-            var newSize = new Size<double>(gridSize * gridCells.Width, gridSize * gridCells.Height);
+            var newSize = new Size<double>(gridSize * GridCellsWidth, gridSize * GridCellsHeight);
             double factor = _fullBackgroundBitmap.Width / newSize.Width;
 
             _area.Width = (int)(_bitmapSize.Width * factor);
@@ -156,11 +186,17 @@ namespace DigitalBattleMap
         {
             saveFile.FullBackground = _fullBackgroundBitmap;
             saveFile.BackgroundArea = _area;
+            saveFile.GridCellsWidth = GridCellsWidth;
+            saveFile.GridCellsHeight = GridCellsHeight;
         }
 
         public void OpenSaveFile(SaveFile saveFile)
         {
             ClearBackground();
+
+            GridCellsWidth = saveFile.GridCellsWidth;
+            GridCellsHeight = saveFile.GridCellsHeight;
+
             if (saveFile.FullBackground != null)
             {
                 _fullBackgroundBitmap = saveFile.FullBackground;
@@ -174,11 +210,46 @@ namespace DigitalBattleMap
             BackgroundUpdated?.Invoke(this, new EventArgs());
         }
 
+        private void NotifyBackgroundEditorUpdated()
+        {
+            BackgroundEditorUpdated?.Invoke(this, new EventArgs());
+        }
+
         private void CreateBackground()
         {
             var croppedBitmap = BitmapTools.CropBitmap(_fullBackgroundBitmap, _area);
             _backgroundBitmap = BitmapTools.ResizeBitmap(croppedBitmap);
             NotifyBackgroundUpdated();
+        }
+
+        private void ExtractGridCells(string fileName)
+        {
+            GridCellsWidth = 10;
+            GridCellsHeight = 10;
+
+            var startIndex = fileName.IndexOf("(");
+            if(startIndex != -1)
+            {
+                var endIndex = fileName.Substring(startIndex).IndexOf(")");
+                if(endIndex != -1)
+                {
+                    var size = fileName.Substring(startIndex + 1, endIndex - 1);
+                    var widthAndHeight = size.ToLower().Split("x");
+                    if(widthAndHeight.Length == 2)
+                    {
+                        try
+                        {
+                            GridCellsWidth = int.Parse(widthAndHeight[0]);
+                            GridCellsHeight = int.Parse(widthAndHeight[1]);
+                        }
+                        catch
+                        {
+                            GridCellsWidth = 10;
+                            GridCellsHeight = 10;
+                        }
+                    }
+                }
+            }
         }
     }
 }

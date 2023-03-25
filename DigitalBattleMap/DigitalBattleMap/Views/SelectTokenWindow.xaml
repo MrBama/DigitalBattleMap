@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DigitalBattleMap" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
-        Title="SelectTokenWindow" Height="500" Width="500"
+        Title="SelectTokenWindow" Height="550" Width="500"
         FontSize="17"
         WindowStartupLocation="CenterScreen">
     <Window.DataContext>
@@ -17,7 +17,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
@@ -31,39 +30,73 @@
             <TextBox Grid.Column="1" Margin="10 0 0 0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
         </Grid>
 
-        <ListView Grid.Row="1" ItemsSource="{Binding TokenList}" HorizontalAlignment="Stretch" Margin="0 10 0 0" SelectedItem="{Binding SelectedToken}">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Grid>
-                        <Label Content="{Binding Name}"/>
+        <TabControl Grid.Row="1" Margin="0 10 0 0" BorderThickness="0" SelectedIndex="{Binding SelectedTabIndex}">
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock Text="Tokens"/>
+                </TabItem.Header>
+                
+                <!--Tokens grid-->
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="auto" />
+                    </Grid.RowDefinitions>
+                    <ListView ItemsSource="{Binding TokenList}" HorizontalAlignment="Stretch" Margin="0 10 0 0" SelectedItem="{Binding SelectedToken}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Label Content="{Binding Name}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <Grid Grid.Row="1" Margin="0 10 0 0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="5*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="4*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Size"/>
+                        <ComboBox Grid.Column="1" Grid.ColumnSpan="2" SelectedItem="{Binding SelectedTokenSize}" IsEnabled="{Binding IsTokenSelected}">
+                            <local:TokenSize>Tiny</local:TokenSize>
+                            <local:TokenSize>Small</local:TokenSize>
+                            <local:TokenSize>Medium</local:TokenSize>
+                            <local:TokenSize>Large</local:TokenSize>
+                            <local:TokenSize>Huge</local:TokenSize>
+                            <local:TokenSize>Gargantuan</local:TokenSize>
+                        </ComboBox>
+                        <Label Grid.Row="1" Content="Number of tokens" Margin="0 10 0 0"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0 10 0 0" VerticalContentAlignment="Center" Text="{Binding NumberOfTokens}" IsEnabled="{Binding IsTokenSelected}"/>
                     </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-        
-        <Grid Grid.Row="2" Margin="0 10 0 0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="5*"/>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="4*"/>
-            </Grid.ColumnDefinitions>
-            <Label Content="Size"/>
-            <ComboBox Grid.Column="1" Grid.ColumnSpan="2" SelectedItem="{Binding SelectedTokenSize}" IsEnabled="{Binding IsTokenSelected}">
-                <local:TokenSize>Tiny</local:TokenSize>
-                <local:TokenSize>Small</local:TokenSize>
-                <local:TokenSize>Medium</local:TokenSize>
-                <local:TokenSize>Large</local:TokenSize>
-                <local:TokenSize>Huge</local:TokenSize>
-                <local:TokenSize>Gargantuan</local:TokenSize>
-            </ComboBox>
-            <Label Grid.Row="1" Content="Number of tokens" Margin="0 10 0 0"/>
-            <TextBox Grid.Row="1" Grid.Column="1" Margin="0 10 0 0" VerticalContentAlignment="Center" Text="{Binding NumberOfTokens}" IsEnabled="{Binding IsTokenSelected}"/>
-        </Grid>
-        <Button Grid.Row="3" Content="Add" Margin="5 10 0 0" Command="{Binding AddCommand}" IsEnabled="{Binding IsTokenSelected}">
+                </Grid>
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock Text="Groups"/>
+                </TabItem.Header>
+
+                <!--Groups grid-->
+                <Grid>
+                    <ListView ItemsSource="{Binding GroupList}" HorizontalAlignment="Stretch" Margin="0 10 0 0" SelectedItem="{Binding SelectedGroup}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Label Content="{Binding Name}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <Button Grid.Row="2" Content="Add" Margin="5 10 0 0" Command="{Binding AddCommand}" IsEnabled="{Binding IsTokenSelected}" IsDefault="True">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="Click">
                     <i:CallMethodAction MethodName="Close" TargetObject="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}" />

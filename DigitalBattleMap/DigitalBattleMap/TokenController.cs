@@ -78,7 +78,7 @@ namespace DigitalBattleMap
                 var tokens = new List<Token>(_monsterTokens);
                 tokens.AddRange(_settings.CustomTokens);
 
-                var selectTokenWindowViewModel = new SelectTokenWindowViewModel(tokens);
+                var selectTokenWindowViewModel = new SelectTokenWindowViewModel(tokens, _settings.TokenGroups);
                 _windowService.ShowWindowDialog<SelectTokenWindow>(selectTokenWindowViewModel);
 
                 if (selectTokenWindowViewModel.AddedTokens.Count > 0)
@@ -278,7 +278,7 @@ namespace DigitalBattleMap
         {
             lock (_lock)
             {
-                var customTokensWindowViewModel = new CustomTokensWindowViewModel(_windowService, _settings, _monsterTokens.Select(t => t.Name).ToList());
+                var customTokensWindowViewModel = new CustomTokensWindowViewModel(_windowService, _settings, _monsterTokens);
                 _windowService.ShowWindowDialog<CustomTokensWindow>(customTokensWindowViewModel);
             }
         }

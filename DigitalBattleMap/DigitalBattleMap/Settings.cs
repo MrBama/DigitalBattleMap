@@ -18,6 +18,7 @@ namespace DigitalBattleMap
         public string ServerIp { get; set; } = "127.0.0.1";
         public int ServerPort { get; set; } = 8001;
         public List<Token> CustomTokens { get; set; } = new List<Token>();
+        public List<TokenGroup> TokenGroups { get; set; } = new List<TokenGroup>();
 
         public static Settings Load()
         {
