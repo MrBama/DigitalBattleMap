@@ -11,7 +11,9 @@ namespace DigitalBattleMap.Common
         public const string ActionSeparator = "<:>";
         public const string ArgumentSeparator = "<,>";
         public const string EndOfMessage = "<EOM>";
-        public const string UpdateMapAction = "UpdateMap";
+        public const string UpdateMapBackgroundAction = "UpdateMapBackground";
+        public const string UpdateMapGridAndStrokesAction = "UpdateMapGridAndStrokes";
+        public const string UpdateMapTokensAction = "UpdateMapTokens";
         public const string MoveTokenAction = "MoveToken";
         public const string TerminateAction = "Terminate";
     }

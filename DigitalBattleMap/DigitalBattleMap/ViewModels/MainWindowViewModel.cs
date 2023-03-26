@@ -252,29 +252,28 @@ namespace DigitalBattleMap
             switch (drawing)
             {
                 case DrawLayer.All:
+                    var gridAndTokenBitmapAll = CreateGridAndDrawingBitmap();
                     _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.GetBackgroundBitmapSource();
-                    GridBitMap();
+                    _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
                     _mapWindowViewModel.TokenBitmapSource = _tokenController.GetTokenBitmapSource();
+                    _connectionManager.SendMapUpdate(new MapUpdate(DrawLayer.Background, _backgroundController.GetBackgroundBitmap()));
+                    _connectionManager.SendMapUpdate(new MapUpdate(DrawLayer.GridAndStrokes, gridAndTokenBitmapAll));
+                    _connectionManager.SendMapUpdate(new MapUpdate(DrawLayer.Tokens, _tokenController.GetTokenBitmap()));
                     break;
                 case DrawLayer.Background:
                     _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.GetBackgroundBitmapSource();
+                    _connectionManager.SendMapUpdate(new MapUpdate(DrawLayer.Background, _backgroundController.GetBackgroundBitmap()));
                     break;
                 case DrawLayer.GridAndStrokes:
-                    GridBitMap();
+                    var gridAndTokenBitmap = CreateGridAndDrawingBitmap();
+                    _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmap.ToBitmapImage();
+                    _connectionManager.SendMapUpdate(new MapUpdate(DrawLayer.GridAndStrokes, gridAndTokenBitmap));
                     break;
                 case DrawLayer.Tokens:
                     _mapWindowViewModel.TokenBitmapSource = _tokenController.GetTokenBitmapSource();
+                    _connectionManager.SendMapUpdate(new MapUpdate(DrawLayer.Tokens, _tokenController.GetTokenBitmap()));
                     break;
             }
-
-
-            var mapUpdate = new MapUpdate(_backgroundController.GetBackgroundBitmap(), CreateGridAndDrawingBitmap(), _tokenController.GetTokenBitmap());
-            _connectionManager.SendMapUpdate(mapUpdate);
-        }
-
-        private void GridBitMap()
-        {
-            _mapWindowViewModel.GridBitmapSource = CreateGridAndDrawingBitmap().ToBitmapImage();
         }
 
         private Bitmap CreateGridAndDrawingBitmap()

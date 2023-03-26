@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DigitalBattleMap.Common;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -9,15 +10,34 @@ namespace DigitalBattleMap
 {
     public class MapUpdate
     {
-        public MapUpdate(Bitmap backgroundBitmap, Bitmap gridAndDrawingBitmap, Bitmap tokensBitmap)
+        private DrawLayer _drawLayer;
+        private Bitmap _bitmap;
+
+        public MapUpdate(DrawLayer drawLayer, Bitmap bitmap)
         {
-            BackgroundBitmap = new Bitmap(backgroundBitmap);
-            GridAndDrawingBitmap = new Bitmap(gridAndDrawingBitmap);
-            TokenBitmap = new Bitmap(tokensBitmap);
+            _drawLayer = drawLayer;
+            _bitmap = new Bitmap(bitmap);
         }
 
-        public Bitmap BackgroundBitmap { get; set; }
-        public Bitmap GridAndDrawingBitmap { get; set; }
-        public Bitmap TokenBitmap { get; set; }
+        public Bitmap GetBitmap()
+        {
+            return _bitmap;
+        }
+
+        public string GetAction()
+        {
+            if (_drawLayer == DrawLayer.Background)
+            {
+                return TcpConstants.UpdateMapBackgroundAction;
+            }
+            else if (_drawLayer == DrawLayer.GridAndStrokes)
+            {
+                return TcpConstants.UpdateMapGridAndStrokesAction;
+            }
+            else
+            {
+                return TcpConstants.UpdateMapTokensAction;
+            }
+        }
     }
 }

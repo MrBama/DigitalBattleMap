@@ -7,6 +7,6 @@ connection.start().then(function () {
     return console.error(err.toString());
 });
 
-connection.on("UpdateMap", function (image) {
-    document.getElementById("mapImage").src = image;
+connection.on("UpdateMap", function (drawLayer, image) {
+    document.getElementById(drawLayer).src = image;
 });

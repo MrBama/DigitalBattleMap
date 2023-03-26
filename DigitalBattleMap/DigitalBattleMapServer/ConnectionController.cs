@@ -22,7 +22,7 @@ namespace WebServer
         private Thread _thread;
         private bool _isTerminated = false;
         private bool _isConnected = false;
-        private bool _mapNameToggle = false;
+        private Dictionary<string, int> _imageNameNumbers = new Dictionary<string, int>();
         private ConcurrentQueue<TcpCommandMessage> _messageQueue = new ConcurrentQueue<TcpCommandMessage>();
         private TcpMessageHandler _tcpMessageHandler;
 
@@ -33,6 +33,10 @@ namespace WebServer
 
         private ConnectionController()
         {
+            _imageNameNumbers[TcpConstants.UpdateMapBackgroundAction] = 0;
+            _imageNameNumbers[TcpConstants.UpdateMapGridAndStrokesAction] = 0;
+            _imageNameNumbers[TcpConstants.UpdateMapTokensAction] = 0;
+
             _tcpMessageHandler = new TcpMessageHandler(() => _isTerminated);
             _tcpMessageHandler.MessageReceived += OnMessageReceived;
         }
@@ -119,7 +123,13 @@ namespace WebServer
             {
                 switch (tcpMessage.Action)
                 {
-                    case TcpConstants.UpdateMapAction:
+                    case TcpConstants.UpdateMapBackgroundAction:
+                        UpdateMap(tcpMessage);
+                        break;
+                    case TcpConstants.UpdateMapGridAndStrokesAction:
+                        UpdateMap(tcpMessage);
+                        break;
+                    case TcpConstants.UpdateMapTokensAction:
                         UpdateMap(tcpMessage);
                         break;
                     case TcpConstants.TerminateAction:
@@ -130,17 +140,18 @@ namespace WebServer
                 }
             }
         }
-        
+
         private void UpdateMap(TcpMessage tcpMessage)
         {
             if (TcpImageMessage.TryParse(tcpMessage, out var tcpImageMessage))
             {
-                var imageName = "Map.png";
-                if (_mapNameToggle)
+                var action = tcpImageMessage.Action;
+                var imageName = $"{action}{_imageNameNumbers[action]}.png";
+                _imageNameNumbers[action] += 1;
+                if(_imageNameNumbers[action] > 9)
                 {
-                    imageName = "Map1.png";
+                    _imageNameNumbers[action] = 0;
                 }
-                _mapNameToggle = !_mapNameToggle;
 
                 if (File.Exists($@"wwwroot/{imageName}"))
                 {
@@ -150,7 +161,7 @@ namespace WebServer
                 tcpImageMessage.Bitmap.Save($@"wwwroot/{imageName}");
                 tcpImageMessage.Bitmap.Dispose();
 
-                var updateClientsTask = _hubContext.Clients.All.SendAsync("UpdateMap", imageName + "?t=" + DateTime.Now.Ticks);
+                var updateClientsTask = _hubContext.Clients.All.SendAsync("UpdateMap", action, imageName + "?t=" + DateTime.Now.Ticks);
                 WaitOnTaskCompletion(updateClientsTask);
             }
         }

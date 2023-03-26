@@ -14,6 +14,7 @@ using System.Collections.Concurrent;
 using System.Windows.Shapes;
 using DigitalBattleMap.Common;
 using DigitalBattleMap.Common.DigitalBattleMap.Common;
+using System.Windows.Media;
 
 namespace DigitalBattleMap
 {
@@ -113,8 +114,7 @@ namespace DigitalBattleMap
 
                 if (_messageQueue.TryDequeue(out var mapUpdate))
                 {
-                    var bitmaps = new List<Bitmap> { mapUpdate.BackgroundBitmap, mapUpdate.GridAndDrawingBitmap, mapUpdate.TokenBitmap };
-                    var tcpImageMessage = new TcpImageMessage(BitmapTools.MergeBitmaps(bitmaps));
+                    var tcpImageMessage = new TcpImageMessage(mapUpdate.GetAction(), mapUpdate.GetBitmap());
                     var sendTask = client.SendAsync(tcpImageMessage.GetBytes(), SocketFlags.None);
                     WaitOnTaskCompletion(sendTask);
                 }

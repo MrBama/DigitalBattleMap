@@ -12,12 +12,14 @@ namespace DigitalBattleMap.Common
 {
     public class TcpImageMessage
     {
-        public Bitmap Bitmap { get; set; }
-
-        public TcpImageMessage(Bitmap bitmap)
+        public TcpImageMessage(string action, Bitmap bitmap)
         {
+            Action = action;
             Bitmap = new Bitmap(bitmap);
         }
+
+        public string Action { get; set; }
+        public Bitmap Bitmap { get; set; }
 
         public byte[] GetBytes()
         {
@@ -26,7 +28,7 @@ namespace DigitalBattleMap.Common
             using (var memoryStream = new MemoryStream())
             {
                 Bitmap.Save(memoryStream, ImageFormat.Png);
-                var actionBytes = Encoding.UTF8.GetBytes(TcpConstants.UpdateMapAction + TcpConstants.ActionSeparator);
+                var actionBytes = Encoding.UTF8.GetBytes(Action + TcpConstants.ActionSeparator);
                 var bitmapBytes = memoryStream.ToArray();
                 var stringBytes = Encoding.UTF8.GetBytes(TcpConstants.EndOfMessage);
                 return ByteArray.Combine(new List<byte[]> { actionBytes, bitmapBytes, stringBytes });
@@ -36,7 +38,10 @@ namespace DigitalBattleMap.Common
         public static TcpImageMessage Parse(TcpMessage tcpMessage)
         {
             var bytes = tcpMessage.GetBytes();
-            var prefixLenght = $"{TcpConstants.UpdateMapAction}{TcpConstants.ActionSeparator}".Length;
+            var rawString = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+            var action = rawString.Substring(0, rawString.IndexOf(TcpConstants.ActionSeparator));
+
+            var prefixLenght = $"{action}{TcpConstants.ActionSeparator}".Length;
             var imageBytes = new byte[bytes.Length - prefixLenght];
             Buffer.BlockCopy(bytes, prefixLenght, imageBytes, 0, imageBytes.Length);
 
@@ -44,7 +49,7 @@ namespace DigitalBattleMap.Common
             {
                 using (var bitmap = new Bitmap(memoryStream))
                 {
-                    return new TcpImageMessage(bitmap);
+                    return new TcpImageMessage(action, bitmap);
                 }
             }
         }

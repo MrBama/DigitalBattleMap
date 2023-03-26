@@ -397,4 +397,6 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 .idea/
-DigitalBattleMap/DigitalBattleMapServer/wwwroot/Map.png
+
+# Custom
+DigitalBattleMap/DigitalBattleMapServer/wwwroot/*.png
