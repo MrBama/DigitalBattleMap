@@ -11,11 +11,63 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\ConditionIcons\Baned.png" />
+    <None Remove="Resources\ConditionIcons\Blessed.png" />
+    <None Remove="Resources\ConditionIcons\Blinded.png" />
+    <None Remove="Resources\ConditionIcons\Charmed.png" />
+    <None Remove="Resources\ConditionIcons\Concentration.png" />
+    <None Remove="Resources\ConditionIcons\Confused.png" />
+    <None Remove="Resources\ConditionIcons\Deafened.png" />
+    <None Remove="Resources\ConditionIcons\Exhausted.png" />
+    <None Remove="Resources\ConditionIcons\Flying.png" />
+    <None Remove="Resources\ConditionIcons\Frightened.png" />
+    <None Remove="Resources\ConditionIcons\Grappled.png" />
+    <None Remove="Resources\ConditionIcons\Hasted.png" />
+    <None Remove="Resources\ConditionIcons\Hex.png" />
+    <None Remove="Resources\ConditionIcons\Highlighted.png" />
+    <None Remove="Resources\ConditionIcons\Incapacitated.png" />
+    <None Remove="Resources\ConditionIcons\Invisible.png" />
+    <None Remove="Resources\ConditionIcons\Mark.png" />
+    <None Remove="Resources\ConditionIcons\OnFire.png" />
+    <None Remove="Resources\ConditionIcons\Paralyzed.png" />
+    <None Remove="Resources\ConditionIcons\Petrified.png" />
+    <None Remove="Resources\ConditionIcons\Poisoned.png" />
+    <None Remove="Resources\ConditionIcons\Prone.png" />
+    <None Remove="Resources\ConditionIcons\Restrained.png" />
+    <None Remove="Resources\ConditionIcons\Stabilized.png" />
+    <None Remove="Resources\ConditionIcons\Stunned.png" />
+    <None Remove="Resources\ConditionIcons\Unconcious.png" />
     <None Remove="Resources\MonsterTokens.json" />
     <None Remove="Resources\SaveFileIcon.ico" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\ConditionIcons\Baned.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Blessed.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Blinded.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Charmed.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Concentration.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Confused.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Deafened.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Exhausted.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Flying.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Frightened.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Grappled.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Hasted.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Hex.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Highlighted.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Incapacitated.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Invisible.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Mark.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\OnFire.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Paralyzed.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Petrified.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Poisoned.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Prone.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Restrained.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Stabilized.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Stunned.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Unconcious.png" />
     <EmbeddedResource Include="Resources\MonsterTokens.json" />
     <EmbeddedResource Include="Resources\SaveFileIcon.ico" />
   </ItemGroup>
