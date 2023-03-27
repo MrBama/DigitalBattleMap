@@ -1,0 +1,50 @@
+﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>@ViewData["Title"] - DigitalBattleMapServer</title>
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+        <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+        <link rel="stylesheet" href="~/lib/tagify/tagify.min.css" />
+        
+        <environment include="Development">
+            <link rel="stylesheet" href="~/lib/font-awesome/css/font-awesome.css" />
+        </environment>
+        <environment exclude="Development">
+            <link rel="stylesheet" href="~/lib/font-awesome/css/font-awesome.min.css" />
+        </environment>
+        
+        <script src="~/lib/jquery/dist/jquery.min.js"></script>
+        <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+        <script src="~/lib/tagify/tagify.js"></script>
+        <script src="~/lib/tagify/jQuery.tagify.min.js"></script>
+        
+    </head>
+    <body>
+        <header>
+            @await Component.InvokeAsync(nameof(Menu))
+        </header>
+        <div class="container">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
+
+
+
+        @await RenderSectionAsync("Scripts", required: false)
+
+        <script type="text/javascript">
+            $(document).ready(function () {
+                @if (IsSectionDefined("Init"))
+                {
+                    @await RenderSectionAsync("Init", false);
+                }
+            });
+        </script>
+    </body>
+</html>
