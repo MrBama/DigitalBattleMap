@@ -73,6 +73,7 @@ namespace DigitalBattleMap
             TokenSizeChangedCommand = new RelayCommand(p => TokenSizeChanged((string)p));
             PlayerControlCommand = new RelayCommand(p => PlayerControlToggled());
             ConditionChangedCommand = new RelayCommand(p => ConditionChanged((string)p));
+            ClearAllConditionsCommand = new RelayCommand(p => ClearAllConditions());
         }
 
         public event EventHandler ConditionsChanged;
@@ -88,6 +89,8 @@ namespace DigitalBattleMap
         public ICommand PlayerControlCommand { get; set; }
         [JsonIgnore]
         public ICommand ConditionChangedCommand { get; set; }
+        [JsonIgnore]
+        public ICommand ClearAllConditionsCommand { get; set; }
 
         public Bitmap GetBitmap()
         {
@@ -124,6 +127,16 @@ namespace DigitalBattleMap
 
             NotifyConditionsChanged();
             NotifyPropertyChange(nameof(Conditions));
+        }
+
+        private void ClearAllConditions()
+        {
+            if(Conditions.Count > 0)
+            {
+                Conditions.Clear();
+                NotifyConditionsChanged();
+                NotifyPropertyChange(nameof(Conditions));
+            }
         }
 
         private void NotifyConditionsChanged()

@@ -302,6 +302,8 @@
                                                             <MenuItem Header="Stabilized" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Stabilized}" Command="{Binding ConditionChangedCommand}" CommandParameter="Stabilized"/>
                                                             <MenuItem Header="Stunned" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Stunned}" Command="{Binding ConditionChangedCommand}" CommandParameter="Stunned"/>
                                                             <MenuItem Header="Unconcious" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Unconcious}" Command="{Binding ConditionChangedCommand}" CommandParameter="Unconcious"/>
+                                                            <Separator/>
+                                                            <MenuItem Header="Clear all" Command="{Binding ClearAllConditionsCommand}"/>
                                                         </MenuItem>
                                                     </ContextMenu>
                                                 </Grid.ContextMenu>
