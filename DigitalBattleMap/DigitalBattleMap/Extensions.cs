@@ -62,5 +62,10 @@ namespace DigitalBattleMap
         {
             return new Size<int>((int)size.Width, (int)size.Height);
         }
+
+        public static IEnumerable<(T item, int index)> WithIndex<T>(this IEnumerable<T> source)
+        {
+            return source.Select((item, index) => (item, index));
+        }
     }
 }

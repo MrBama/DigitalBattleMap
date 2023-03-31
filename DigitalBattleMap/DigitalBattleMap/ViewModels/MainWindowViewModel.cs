@@ -527,6 +527,28 @@ namespace DigitalBattleMap
             }
         }
 
+        private void Zoom(double newGridSize)
+        {
+            var currentIsShowMapLocked = IsShowMapLocked;
+            IsShowMapLocked = false;
+            var zoomFactor = newGridSize / GridSize;
+
+            _backgroundController.Zoom(zoomFactor);
+
+            GridSize = (int)newGridSize;
+            GridSizeChanged();
+
+            var matrix = new System.Windows.Media.Matrix();
+            matrix.Translate(-(_inkCanvasWidth / 2), -(_inkCanvasHeight / 2));
+            matrix.Scale(zoomFactor, zoomFactor);
+            matrix.Translate((_inkCanvasWidth / 2), (_inkCanvasHeight / 2));
+            Strokes.Transform(matrix, false);
+
+            _tokenController.Zoom(zoomFactor);
+
+            IsShowMapLocked = currentIsShowMapLocked;
+        }
+
         private void UpdateMap(DrawLayer layer)
         {
             if (IsShowMapLocked)
