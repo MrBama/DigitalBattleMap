@@ -47,5 +47,20 @@ namespace DigitalBattleMap
 
             return (inputD - inMinD) * (outMaxD - outMinD) / (inMaxD - inMinD) + outMinD;
         }
+
+        public static Point<double> ToPointDouble(this Point<int> point)
+        {
+            return new Point<double>(point.X, point.Y);
+        }
+
+        public static Point<int> ToPointInt(this Point<double> point)
+        {
+            return new Point<int>((int)point.X, (int)point.Y);
+        }
+
+        public static Size<int> ToSizeInt(this Size<double> size)
+        {
+            return new Size<int>((int)size.Width, (int)size.Height);
+        }
     }
 }

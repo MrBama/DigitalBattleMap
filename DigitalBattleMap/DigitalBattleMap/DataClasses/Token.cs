@@ -1,11 +1,13 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace DigitalBattleMap
@@ -62,7 +64,7 @@ namespace DigitalBattleMap
         }
     }
 
-    public class TokenListItem
+    public class TokenListItem : PropertyHandler
     {
         private Bitmap _bitmap;
 
@@ -70,20 +72,29 @@ namespace DigitalBattleMap
         {
             TokenSizeChangedCommand = new RelayCommand(p => TokenSizeChanged((string)p));
             PlayerControlCommand = new RelayCommand(p => PlayerControlToggled());
+            ConditionChangedCommand = new RelayCommand(p => ConditionChanged((string)p));
+            ClearAllConditionsCommand = new RelayCommand(p => ClearAllConditions());
         }
+
+        public event EventHandler ConditionsChanged;
 
         public Token Token { get; set; }
         public Point<int> Position { get; set; } = new Point<int>();
         public int Id { get; set; }
+        public List<Condition> Conditions { get; set; } = new List<Condition>();
 
         [JsonIgnore]
         public ICommand TokenSizeChangedCommand { get; set; }
         [JsonIgnore]
         public ICommand PlayerControlCommand { get; set; }
+        [JsonIgnore]
+        public ICommand ConditionChangedCommand { get; set; }
+        [JsonIgnore]
+        public ICommand ClearAllConditionsCommand { get; set; }
 
         public Bitmap GetBitmap()
         {
-            if(_bitmap == null)
+            if (_bitmap == null)
             {
                 _bitmap = BitmapTools.LoadBitmap(Token.ImagePath);
             }
@@ -99,6 +110,38 @@ namespace DigitalBattleMap
         private void PlayerControlToggled()
         {
             Token.PlayerControl = !Token.PlayerControl;
+        }
+
+        private void ConditionChanged(string conditionString)
+        {
+            var condition = Enum.Parse<Condition>(conditionString);
+
+            if(!Conditions.Contains(condition))
+            {
+                Conditions.Add(condition);
+            }
+            else
+            {
+                Conditions.Remove(condition);
+            }
+
+            NotifyConditionsChanged();
+            NotifyPropertyChange(nameof(Conditions));
+        }
+
+        private void ClearAllConditions()
+        {
+            if(Conditions.Count > 0)
+            {
+                Conditions.Clear();
+                NotifyConditionsChanged();
+                NotifyPropertyChange(nameof(Conditions));
+            }
+        }
+
+        private void NotifyConditionsChanged()
+        {
+            ConditionsChanged?.Invoke(this, new EventArgs());
         }
     }
 }

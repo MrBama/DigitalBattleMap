@@ -18,6 +18,7 @@
     </Window.DataContext>
     <Window.Resources>
         <local:TokenSizeToBoolConverter x:Key="TokenSizeToBoolConverter"/>
+        <local:ConditionToBoolConverter x:Key="ConditionToBoolConverter"/>
     </Window.Resources>
 
     <i:Interaction.Triggers>
@@ -276,10 +277,34 @@
                                                                 Command="{Binding TokenSizeChangedCommand}"
                                                                 CommandParameter="Gargantuan"/>
                                                         </MenuItem>
-                                                        <!--This will be implemented later-->
-                                                        <!--<Separator/>
-                                                        <MenuItem Header="Status 1" IsChecked="True"/>
-                                                        <MenuItem Header="Status 2" IsChecked="False"/>-->
+                                                        <MenuItem Header="Conditions">
+                                                            <MenuItem Header="Baned" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Baned}" Command="{Binding ConditionChangedCommand}" CommandParameter="Baned"/>
+                                                            <MenuItem Header="Blessed" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Blessed}" Command="{Binding ConditionChangedCommand}" CommandParameter="Blessed"/>
+                                                            <MenuItem Header="Blinded" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Blinded}" Command="{Binding ConditionChangedCommand}" CommandParameter="Blinded"/>
+                                                            <MenuItem Header="Charmed" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Charmed}" Command="{Binding ConditionChangedCommand}" CommandParameter="Charmed"/>
+                                                            <MenuItem Header="Concentration" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Concentration}" Command="{Binding ConditionChangedCommand}" CommandParameter="Concentration"/>
+                                                            <MenuItem Header="Deafened" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Deafened}" Command="{Binding ConditionChangedCommand}" CommandParameter="Deafened"/>
+                                                            <MenuItem Header="Exhausted" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Exhausted}" Command="{Binding ConditionChangedCommand}" CommandParameter="Exhausted"/>
+                                                            <MenuItem Header="Flying" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Flying}" Command="{Binding ConditionChangedCommand}" CommandParameter="Flying"/>
+                                                            <MenuItem Header="Frightened" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Frightened}" Command="{Binding ConditionChangedCommand}" CommandParameter="Frightened"/>
+                                                            <MenuItem Header="Grappled" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Grappled}" Command="{Binding ConditionChangedCommand}" CommandParameter="Grappled"/>
+                                                            <MenuItem Header="Hasted" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Hasted}" Command="{Binding ConditionChangedCommand}" CommandParameter="Hasted"/>
+                                                            <MenuItem Header="Hex" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Hex}" Command="{Binding ConditionChangedCommand}" CommandParameter="Hex"/>
+                                                            <MenuItem Header="Highlighted" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Highlighted}" Command="{Binding ConditionChangedCommand}" CommandParameter="Highlighted"/>
+                                                            <MenuItem Header="Incapacitated" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Incapacitated}" Command="{Binding ConditionChangedCommand}" CommandParameter="Incapacitated"/>
+                                                            <MenuItem Header="Invisible" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Invisible}" Command="{Binding ConditionChangedCommand}" CommandParameter="Invisible"/>
+                                                            <MenuItem Header="Mark" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Mark}" Command="{Binding ConditionChangedCommand}" CommandParameter="Mark"/>
+                                                            <MenuItem Header="Paralyzed" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Paralyzed}" Command="{Binding ConditionChangedCommand}" CommandParameter="Paralyzed"/>
+                                                            <MenuItem Header="Petrified" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Petrified}" Command="{Binding ConditionChangedCommand}" CommandParameter="Petrified"/>
+                                                            <MenuItem Header="Poisoned" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Poisoned}" Command="{Binding ConditionChangedCommand}" CommandParameter="Poisoned"/>
+                                                            <MenuItem Header="Prone" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Prone}" Command="{Binding ConditionChangedCommand}" CommandParameter="Prone"/>
+                                                            <MenuItem Header="Restrained" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Restrained}" Command="{Binding ConditionChangedCommand}" CommandParameter="Restrained"/>
+                                                            <MenuItem Header="Stabilized" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Stabilized}" Command="{Binding ConditionChangedCommand}" CommandParameter="Stabilized"/>
+                                                            <MenuItem Header="Stunned" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Stunned}" Command="{Binding ConditionChangedCommand}" CommandParameter="Stunned"/>
+                                                            <MenuItem Header="Unconcious" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Unconcious}" Command="{Binding ConditionChangedCommand}" CommandParameter="Unconcious"/>
+                                                            <Separator/>
+                                                            <MenuItem Header="Clear all" Command="{Binding ClearAllConditionsCommand}"/>
+                                                        </MenuItem>
                                                     </ContextMenu>
                                                 </Grid.ContextMenu>
                                                 <Grid.ColumnDefinitions>
@@ -400,9 +425,9 @@
                     <!--Connection grid-->
                     <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="0 10 0 0">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="auto"/> 
-                            <ColumnDefinition Width="auto"/> 
-                            <ColumnDefinition Width="auto"/> 
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
                         </Grid.ColumnDefinitions>
 
                         <Button Content="{Binding ServerConnectionButtonText}" Margin="0 0 5 0" Command="{Binding ServerConnectionCommand}" IsEnabled="{Binding ServerConnectionButtonEnabled}" Width="{Binding ElementName=OpenMapButton, Path=ActualWidth}"/>

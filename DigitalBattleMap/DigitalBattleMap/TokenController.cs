@@ -88,6 +88,7 @@ namespace DigitalBattleMap
                         var tokenListItem = new TokenListItem();
                         tokenListItem.Token = token;
                         tokenListItem.Token.SizeChanged += TokenSizeChanged;
+                        tokenListItem.ConditionsChanged += ConditionsChanged;
                         tokenListItem.Id = GetUniqueId(token.Name);
                         tokenListItem.Position = new Point<int>(_bitmapSize.Width / 2, _bitmapSize.Height / 2);
                         TokenList.Add(tokenListItem);
@@ -268,6 +269,7 @@ namespace DigitalBattleMap
                 {
                     TokenList.Add(tokenListItem);
                     tokenListItem.Token.SizeChanged += TokenSizeChanged;
+                    tokenListItem.ConditionsChanged += ConditionsChanged;
                 }
 
                 CreateTokenBitmap();
@@ -369,7 +371,7 @@ namespace DigitalBattleMap
                 {
                     foreach (var tokenListItem in TokenList)
                     {
-                        BitmapTools.DrawToken(_tokenBitmap, tokenListItem.GetBitmap(), tokenListItem.Token.GetSizeFactor(), tokenListItem.Position, GetTokenIdString(tokenListItem), _gridSize);
+                        BitmapTools.DrawToken(_tokenBitmap, tokenListItem, GetTokenIdString(tokenListItem), _gridSize);
                     }
                     UpdateTokenSelection();
                 }
@@ -390,6 +392,11 @@ namespace DigitalBattleMap
         }
 
         private void TokenSizeChanged(object? sender, EventArgs e)
+        {
+            CreateTokenBitmap();
+        }
+
+        private void ConditionsChanged(object? sender, EventArgs e)
         {
             CreateTokenBitmap();
         }

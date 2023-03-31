@@ -18,6 +18,7 @@ namespace DigitalBattleMap
     {
         private const int _width = 1920;
         private const int _height = 1080;
+        private static ConditionIcons _conditionIcons = new ConditionIcons();
 
         public static Bitmap LoadBitmap(string path)
         {
@@ -161,15 +162,16 @@ namespace DigitalBattleMap
             return resizedBitmap;
         }
 
-        public static void DrawToken(Bitmap bitmap, Bitmap tokenImage, double tokenSizeFactor, Point<int> tokenPosition, string tokenId, int gridSize)
+        public static void DrawToken(Bitmap bitmap, TokenListItem tokenListItem, string tokenId, int gridSize)
         {
-            (var drawingPosition, var tokenSize) = CalculateTokenDrawingPositionAndSize(tokenSizeFactor, tokenPosition, gridSize);
+            (var drawingPosition, var tokenSize) = CalculateTokenDrawingPositionAndSize(tokenListItem.Token.GetSizeFactor(), tokenListItem.Position, gridSize);
 
             // Resize and draw token
             if (IsTokenVisible(drawingPosition, gridSize))
             {
-                var resizedTokenImage = ResizeBitmap(tokenImage, tokenSize);
+                var resizedTokenImage = ResizeBitmap(tokenListItem.GetBitmap(), tokenSize);
                 DrawImageOnBitmap(bitmap, resizedTokenImage, drawingPosition);
+                DrawTokenConditions(bitmap, tokenListItem.Conditions, drawingPosition, tokenSize);
                 DrawTokenId(bitmap, tokenId, drawingPosition, tokenSize);
             }
         }
@@ -190,7 +192,7 @@ namespace DigitalBattleMap
 
         public static Bitmap CreateTokenBitmap(Bitmap image)
         {
-            if(image.Width == image.Height)
+            if (image.Width == image.Height)
             {
                 return new Bitmap(image);
             }
@@ -199,7 +201,7 @@ namespace DigitalBattleMap
             var bitmap = new Bitmap(size, size);
             var position = new Point<int>();
 
-            if(size == image.Width)
+            if (size == image.Width)
             {
                 position.Y = (size - image.Height) / 2;
             }
@@ -214,10 +216,10 @@ namespace DigitalBattleMap
 
         public static Bitmap MergeBitmaps(List<Bitmap> bitmaps)
         {
-            if(bitmaps.Count > 0)
+            if (bitmaps.Count > 0)
             {
                 var bitmap = new Bitmap(bitmaps.First());
-                for(int i = 1; i < bitmaps.Count; i++)
+                for (int i = 1; i < bitmaps.Count; i++)
                 {
                     DrawImageOnBitmap(bitmap, bitmaps[i], new Point<int>());
                 }
@@ -272,6 +274,35 @@ namespace DigitalBattleMap
 
                     graphics.DrawString(tokenId, new Font("", textSize), brush, textPosition.X, textPosition.Y, stringFormat);
                 }
+            }
+        }
+
+        private static void DrawTokenConditions(Bitmap bitmap, List<Condition> conditions, Point<int> tokenDrawingPosition, Size<int> tokenSize)
+        {
+            /* Position index:
+             * 
+             *     0
+             *   7   1
+             * 6       2
+             *   5   3
+             *     4 
+             */
+
+            var xPositionFactor = new double[] { 0.5, 0.75, 1.0, 0.75, 0.5, 0.25, 0.0, 0.25 };
+            var yPositionFactor = new double[] { 0.0, 0.25, 0.5, 0.75, 1.0, 0.75, 0.5, 0.25 };
+            var xConditionPositionFactor = new double[] { 0.5, 0.5, 1.0, 0.5, 0.5, 0.5, 0.0, 0.5 };
+            var yConditionPositionFactor = new double[] { 0.0, 0.5, 0.5, 0.5, 1.0, 0.5, 0.5, 0.5 };
+            var conditionSize = new Size<double>(tokenSize.Width / 4.0, tokenSize.Height / 4.0);
+
+            for(int i = 0; i < 8 && i < conditions.Count; i++)
+            {
+                var resizedConditionImage = ResizeBitmap(_conditionIcons.GetConditionIcon(conditions[i]), conditionSize.ToSizeInt());
+                
+                var drawingPosition = tokenDrawingPosition.ToPointDouble();
+                drawingPosition.X += (tokenSize.Width * xPositionFactor[i]) - (conditionSize.Width * xConditionPositionFactor[i]);
+                drawingPosition.Y += (tokenSize.Height * yPositionFactor[i]) - (conditionSize.Height * yConditionPositionFactor[i]);
+                
+                DrawImageOnBitmap(bitmap, resizedConditionImage, drawingPosition.ToPointInt());
             }
         }
 
