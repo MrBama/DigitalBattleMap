@@ -95,7 +95,7 @@ namespace DigitalBattleMap
         public static Bitmap CreateArrowButton(ArrowDirection direction)
         {
             var bitmap = new Bitmap(70, 70);
-            PointF[] points = new PointF[3];
+            var points = new PointF[3];
 
             switch (direction)
             {
@@ -115,9 +115,26 @@ namespace DigitalBattleMap
 
             using (var graphics = Graphics.FromImage(bitmap))
             {
-                var pen = new Pen(Color.Black, 1);
                 var brush = new SolidBrush(Color.Black);
                 graphics.FillPolygon(brush, points);
+                return bitmap;
+            }
+        }
+
+        public static Bitmap CreateZoomButton(bool isZoomInButton)
+        {
+            var bitmap = new Bitmap(70, 70);
+
+            using (var graphics = Graphics.FromImage(bitmap))
+            {
+                var brush = new SolidBrush(Color.Black);
+                graphics.FillRectangle(brush, 9, 30, 50, 8);
+
+                if (isZoomInButton)
+                {
+                    graphics.FillRectangle(brush, 30, 9, 8, 50);
+                }
+
                 return bitmap;
             }
         }
@@ -292,7 +309,7 @@ namespace DigitalBattleMap
             var yPositionFactor = new double[] { 0.0, 0.25, 0.5, 0.75, 1.0, 0.75, 0.5, 0.25 };
             var xConditionPositionFactor = new double[] { 0.5, 0.5, 1.0, 0.5, 0.5, 0.5, 0.0, 0.5 };
             var yConditionPositionFactor = new double[] { 0.0, 0.5, 0.5, 0.5, 1.0, 0.5, 0.5, 0.5 };
-            var conditionSize = new Size<double>(tokenSize.Width / 4.0, tokenSize.Height / 4.0);
+            var conditionSize = new Size<double>(tokenSize.Width / 3.5, tokenSize.Height / 3.5);
 
             for(int i = 0; i < 8 && i < conditions.Count; i++)
             {
