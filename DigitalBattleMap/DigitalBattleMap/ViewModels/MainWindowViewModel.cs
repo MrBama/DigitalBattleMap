@@ -528,6 +528,7 @@ namespace DigitalBattleMap
                 GridSizeChanged();
                 IsGridShown = saveFile.IsGridShown;
                 Strokes = saveFile.Strokes;
+                Strokes.StrokesChanged += OnStrokesChanged;
                 _tokenController.OpenSaveFile(saveFile);
                 SelectedTabIndex = TabIndex.Tokens;
             }
