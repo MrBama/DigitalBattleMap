@@ -16,8 +16,8 @@ namespace DigitalBattleMap
     public class ConnectionManager : IWebHub, IWebHubClientEvents
     {
         // TODO: Move to configuration file
-        private const string BaseConnectionUrl = "http://localhost:8000";
-        //private const string BaseConnectionUrl = "https://digitalbattlemapserver.azurewebsites.net/";
+        //private const string BaseConnectionUrl = "http://localhost:8000";
+        private const string BaseConnectionUrl = "https://digitalbattlemapserver.azurewebsites.net/";
         private const string WebHubConnectionUrl = BaseConnectionUrl + "/WebHub";
         private const string MapHubConnectionUrl = BaseConnectionUrl + "/MapHub";
 
@@ -51,7 +51,7 @@ namespace DigitalBattleMap
             Configure();
         }
         
-        public void Connect(string ipAddress, int port)
+        public void Connect()
         {
             Task.Run(async () =>
             {

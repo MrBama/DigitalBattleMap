@@ -21,8 +21,7 @@ public class NavigationController : Controller
     [HttpPost]
     public IActionResult Move(string character, Direction direction)
     {
-        Console.WriteLine($"INPUT: {direction}, CALCULATE: {direction.GetOrientatedDirection(_settings.Get().Orientation)}");
-        _webHub.Clients.All.MoveToken(character, direction);
+        _webHub.Clients.All.MoveToken(character, direction.GetOrientatedDirection(_settings.Get().Orientation));
         return Ok();
         
     }

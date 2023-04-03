@@ -584,7 +584,7 @@ namespace DigitalBattleMap
             if (ServerConnectionStatus == "Disconnected")
             {
                 ServerConnectionStatus = "Connecting...";
-                _connectionManager.Connect(_settings.ServerIp, _settings.ServerPort);
+                _connectionManager.Connect();
             }
             else
             {

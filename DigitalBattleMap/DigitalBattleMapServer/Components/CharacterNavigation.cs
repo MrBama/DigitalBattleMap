@@ -7,16 +7,16 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace DigitalBattleMapServer.Components;
 
-public class Navigation : ViewComponent
+public class CharacterNavigation : ViewComponent
 {
     private readonly IState<Settings> _settingsState;
 
-    public Navigation(IState<Settings> settingsState)
+    public CharacterNavigation(IState<Settings> settingsState)
     {
         _settingsState = settingsState;
     }
     
-    public Task<IViewComponentResult> InvokeAsync()
+    public async Task<IViewComponentResult> InvokeAsync()
     {
         Settings settings = _settingsState.Get();
         
@@ -31,6 +31,6 @@ public class Navigation : ViewComponent
             Characters = selectListItems
         };
     
-        return Task.FromResult<IViewComponentResult>(View(componentViewModel));
+        return View(componentViewModel);
     }
 }
