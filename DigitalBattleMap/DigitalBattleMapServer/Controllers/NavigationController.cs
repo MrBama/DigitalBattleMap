@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMapServer.Application;
+using DigitalBattleMapServer.Hubs;
 using DigitalBattleMapServer.Utility;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;

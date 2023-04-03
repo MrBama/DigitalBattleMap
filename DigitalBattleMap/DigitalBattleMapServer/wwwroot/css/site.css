@@ -103,3 +103,13 @@ i.direction.South {
 i.direction.SouthEast {
   transform: rotate(135deg);
 }
+
+.map-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.map-container {
+    position: relative;
+}

@@ -10,6 +10,9 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using DigitalBattleMap.Common;
+using DigitalBattleMap.Common.Dto;
+using DigitalBattleMap.Utility;
 
 namespace DigitalBattleMap
 {
@@ -139,10 +142,12 @@ namespace DigitalBattleMap
             _tokenController.TokenEditorUpdated += TokenEditorUpdated;
             _tokenController.TokenBitmapUpdated += TokenBitmapUpdated;
             _tokenController.SelectedTokenBitmapUpdated += SelectedTokenBitmapUpdated;
+            
             _connectionManager = new ConnectionManager();
-            _connectionManager.Connected += ConnectionManagerConnected;
-            _connectionManager.Disconnected += ConnectionManagerDisconnected;
-            _connectionManager.MoveTokenAction += _tokenController.OnMoveTokenAction;
+            _connectionManager.OnConnected += ConnectionManagerConnected;
+            _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
+            _connectionManager.OnMoveToken += _tokenController.OnMoveTokenAction;
+            
             Strokes.StrokesChanged += OnStrokesChanged;
 
             GridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
@@ -267,22 +272,22 @@ namespace DigitalBattleMap
                     _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.GetBackgroundBitmapSource();
                     _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
                     _mapWindowViewModel.TokenBitmapSource = _tokenController.GetTokenBitmapSource();
-                    _connectionManager.SendMapUpdate(new MapUpdate(DrawLayer.Background, _backgroundController.GetBackgroundBitmap()));
-                    _connectionManager.SendMapUpdate(new MapUpdate(DrawLayer.GridAndStrokes, gridAndTokenBitmapAll));
-                    _connectionManager.SendMapUpdate(new MapUpdate(DrawLayer.Tokens, _tokenController.GetTokenBitmap()));
+                    _connectionManager.SendMapUpdate(new MapUpdateDto{ Layer = DrawLayer.Background, Data = _backgroundController.GetBackgroundBitmap().ToJpg() });
+                    _connectionManager.SendMapUpdate(new MapUpdateDto{ Layer = DrawLayer.GridAndStrokes, Data = gridAndTokenBitmapAll.ToPng() });
+                    _connectionManager.SendMapUpdate(new MapUpdateDto{ Layer = DrawLayer.Tokens, Data = _tokenController.GetTokenBitmap().ToPng() });
                     break;
                 case DrawLayer.Background:
                     _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.GetBackgroundBitmapSource();
-                    _connectionManager.SendMapUpdate(new MapUpdate(DrawLayer.Background, _backgroundController.GetBackgroundBitmap()));
+                    _connectionManager.SendMapUpdate(new MapUpdateDto{ Layer = DrawLayer.Background, Data = _backgroundController.GetBackgroundBitmap().ToJpg() });
                     break;
                 case DrawLayer.GridAndStrokes:
                     var gridAndTokenBitmap = CreateGridAndDrawingBitmap();
                     _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmap.ToBitmapImage();
-                    _connectionManager.SendMapUpdate(new MapUpdate(DrawLayer.GridAndStrokes, gridAndTokenBitmap));
+                    _connectionManager.SendMapUpdate(new MapUpdateDto{ Layer = DrawLayer.GridAndStrokes, Data = gridAndTokenBitmap.ToPng() });
                     break;
                 case DrawLayer.Tokens:
                     _mapWindowViewModel.TokenBitmapSource = _tokenController.GetTokenBitmapSource();
-                    _connectionManager.SendMapUpdate(new MapUpdate(DrawLayer.Tokens, _tokenController.GetTokenBitmap()));
+                    _connectionManager.SendMapUpdate(new MapUpdateDto{ Layer = DrawLayer.Tokens, Data = _tokenController.GetTokenBitmap().ToPng() });
                     break;
             }
         }
@@ -389,6 +394,8 @@ namespace DigitalBattleMap
                 GridCellsWidth = 10;
                 GridCellsHeight = 10;
                 GridSizeChanged();
+
+                _connectionManager.ClearMap();
             }
         }
 

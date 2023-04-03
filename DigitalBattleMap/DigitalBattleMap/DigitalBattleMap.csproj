@@ -8,6 +8,7 @@
     <UseWindowsForms>True</UseWindowsForms>
     <ApplicationIcon>Resources\ApplicationIcon.ico</ApplicationIcon>
     <ApplicationManifest>Resources\app.manifest</ApplicationManifest>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

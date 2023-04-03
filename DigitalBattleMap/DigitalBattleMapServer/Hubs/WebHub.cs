@@ -1,8 +1,7 @@
 ﻿using DigitalBattleMap.Common;
 using Microsoft.AspNetCore.SignalR;
-using WebServer;
 
-namespace DigitalBattleMapServer
+namespace DigitalBattleMapServer.Hubs
 {
     public class WebHub : Hub<IWebHub>
     {

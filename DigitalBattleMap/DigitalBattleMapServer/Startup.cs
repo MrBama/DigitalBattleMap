@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMapServer.Application;
 using DigitalBattleMapServer.Handlers;
+using DigitalBattleMapServer.Hubs;
 using DigitalBattleMapServer.Utility;
 
 namespace DigitalBattleMapServer;
@@ -21,14 +22,18 @@ public class Startup
             .AddDataAnnotationsLocalization()
             .AddRazorRuntimeCompilation();
 
+        services.AddMemoryCache();
         services.AddSignalR();
         
         services.AddHttpContextAccessor();
         services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+        // Session and state
         services.AddScoped<ICookieHandler, CookieHandler>();
-
         services.AddScoped<IState<Settings>, CookieState<Settings>>();
+        
+        // Singletons
+        services.AddSingleton<IMemoryCacheHandler, MemoryCacheHandler>();
     }
 
     public void Configure(IApplicationBuilder application, IWebHostEnvironment environment)
@@ -46,7 +51,8 @@ public class Startup
         {
             // Route users by default to the Home controller Index page
             endpoints.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}");
-            endpoints.MapHub<WebHub>("/webHub");
+            endpoints.MapHub<WebHub>("/WebHub");
+            endpoints.MapHub<MapHub>("/MapHub");
         });
     }
 }
