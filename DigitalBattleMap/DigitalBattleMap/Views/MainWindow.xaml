@@ -42,17 +42,15 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
 
             <!--Tab grid-->
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <TabControl Grid.Row="1" BorderBrush="Gray" BorderThickness="0" SelectedIndex="{Binding SelectedTabIndex}">
+                <TabControl BorderBrush="Gray" BorderThickness="0" SelectedIndex="{Binding SelectedTabIndex}">
                     <TabItem>
                         <TabItem.Header>
                             <TextBlock Text="Background" FontSize="20" FontWeight="Bold"/>
@@ -353,62 +351,8 @@
                 </TabControl>
             </Grid>
 
-            <!--Control grid-->
-            <Border Grid.Row="1" BorderThickness="1" BorderBrush="Gray" CornerRadius="10" Margin="0 5 0 0">
-                <Grid Margin="10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <Label Grid.ColumnSpan="3" Content="Control" FontSize="20" FontWeight="Bold"/>
-                    <Button Grid.Row="1" Grid.ColumnSpan="2" Content="Show map" Margin="0 10 0 0" Command="{Binding ShowMapCommand}"/>
-                    <CheckBox Grid.Row="1" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0 10 2 0" IsChecked="{Binding IsShowMapLocked}">
-                        <CheckBox.LayoutTransform>
-                            <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
-                        </CheckBox.LayoutTransform>
-                    </CheckBox>
-                    <Button Grid.Row="2" Grid.ColumnSpan="2" Content="Clear all" Margin="0 10 0 0" Command="{Binding ClearAllCommand}"/>
-
-                    <!--Map arrows grid-->
-                    <Grid Grid.Row="3" Grid.ColumnSpan="2" Margin="0 10 0 0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="1.75*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="1.75*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <Button Grid.Column="2" Margin="5 0 5 5" Command="{Binding MoveMapArrowCommand}" CommandParameter="Up">
-                            <Image Source="{Binding MapArrowUpBitmapSource}"/>
-                        </Button>
-                        <Button Grid.Column="1" Grid.Row="1" Margin="0 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Left">
-                            <Image Source="{Binding MapArrowLeftBitmapSource}"/>
-                        </Button>
-                        <Button Grid.Row="1" Grid.Column="2" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Down">
-                            <Image Source="{Binding MapArrowDownBitmapSource}"/>
-                        </Button>
-                        <Button Grid.Row="1" Grid.Column="3" Margin="5 5 0 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Right">
-                            <Image Source="{Binding MapArrowRightBitmapSource}"/>
-                        </Button>
-                    </Grid>
-                </Grid>
-            </Border>
-
             <!--Configuration grid-->
-            <Border Grid.Row="2" BorderThickness="1" BorderBrush="Gray" CornerRadius="10" Margin="0 5 0 0">
+            <Border Grid.Row="1" BorderThickness="1" BorderBrush="Gray" CornerRadius="10" Margin="0 5 0 0">
                 <Grid Margin="10">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"/>
@@ -445,12 +389,11 @@
         <!--Map grid-->
         <Grid Grid.Column="1" >
             <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="1" BorderThickness="3" BorderBrush="Black">
+            <Border BorderThickness="3" BorderBrush="Black">
                 <Grid x:Name="MapCanvas">
                     <Image Source="{Binding BackgroundBitmapSource}"/>
                     <Image x:Name="GridLayer" Source="{Binding GridBitmapSource}" Visibility="{Binding GridVisibility}"/>
@@ -481,6 +424,93 @@
                     </Canvas>
                 </Grid>
             </Border>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="1.4*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!--Control grid-->
+                <Border Grid.Row="1" Grid.Column="1" BorderThickness="1" BorderBrush="Gray" CornerRadius="10" Margin="0 5 0 0">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!--Zoom buttons grid-->
+                        <Grid Margin="0 0 20 0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="0.4*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Button x:Name="ZoomInButton" Grid.Row="1" Grid.Column="2" Margin="0 0 0 5" Command="{Binding MapZoomInCommand}" CommandParameter="Up" Width="{Binding ElementName=ZoomInButton,Path=ActualHeight}">
+                                <Image Source="{Binding MapZoomInBitmapSource}"/>
+                            </Button>
+                            <Button x:Name="ZoomOutButton" Grid.Row="2" Grid.Column="2" Margin="0 5 0 0" Command="{Binding MapZoomOutCommand}" CommandParameter="Up" Width="{Binding ElementName=ZoomOutButton,Path=ActualHeight}">
+                                <Image Source="{Binding MapZoomOutBitmapSource}"/>
+                            </Button>
+                        </Grid>
+
+                        <Border Grid.Column="1" BorderThickness="0.5" BorderBrush="Gray" Margin="0 5 0 0"/>
+
+                        <!--Map arrows grid-->
+                        <Grid Grid.Column="2" Margin="15 0 15 0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="0.4*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button x:Name="MoveUpButton" Grid.Row="1" Grid.Column="2" Margin="5 0 5 5" Command="{Binding MoveMapArrowCommand}" CommandParameter="Up" Width="{Binding ElementName=MoveUpButton,Path=ActualHeight}">
+                                <Image Source="{Binding MapArrowUpBitmapSource}"/>
+                            </Button>
+                            <Button x:Name="MoveLeftButton" Grid.Row="2" Grid.Column="1" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Left" Width="{Binding ElementName=MoveLeftButton,Path=ActualHeight}">
+                                <Image Source="{Binding MapArrowLeftBitmapSource}"/>
+                            </Button>
+                            <Button x:Name="MoveDownButton" Grid.Row="2" Grid.Column="2" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Down" Width="{Binding ElementName=MoveDownButton,Path=ActualHeight}">
+                                <Image Source="{Binding MapArrowDownBitmapSource}"/>
+                            </Button>
+                            <Button x:Name="MoveRightButton" Grid.Row="2" Grid.Column="3" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Right" Width="{Binding ElementName=MoveRightButton,Path=ActualHeight}">
+                                <Image Source="{Binding MapArrowRightBitmapSource}"/>
+                            </Button>
+                        </Grid>
+
+                        <Border Grid.Column="3" BorderThickness="0.5" BorderBrush="Gray" Margin="0 5 0 0"/>
+
+                        <!--Show map grid-->
+                        <Grid Grid.Column="4" Margin="20 0 0 0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Button Grid.Row="1" Grid.Column="1" Content="Show map" Command="{Binding ShowMapCommand}"/>
+                            <CheckBox Grid.Row="1" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0 0 2 0" IsChecked="{Binding IsShowMapLocked}">
+                                <CheckBox.LayoutTransform>
+                                    <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                                </CheckBox.LayoutTransform>
+                            </CheckBox>
+                            <Button Grid.Row="2" Grid.Column="1" Content="Clear all" Margin="0 10 0 0" Command="{Binding ClearAllCommand}"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
         </Grid>
     </Grid>
 </Window>

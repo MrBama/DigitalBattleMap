@@ -69,6 +69,8 @@ namespace DigitalBattleMap
         public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
         public BitmapSource MapArrowLeftBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Left).ToBitmapImage(); }
         public BitmapSource MapArrowRightBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Right).ToBitmapImage(); }
+        public BitmapSource MapZoomInBitmapSource { get => BitmapTools.CreateZoomButton(true).ToBitmapImage(); }
+        public BitmapSource MapZoomOutBitmapSource { get => BitmapTools.CreateZoomButton(false).ToBitmapImage(); }
         public BitmapSource BlackButtonBitmapSource { get; set; }
         public BitmapSource RedButtonBitmapSource { get; set; }
         public BitmapSource GreenButtonBitmapSource { get; set; }
@@ -116,6 +118,8 @@ namespace DigitalBattleMap
         public ICommand CustomTokensCommand { get; set; }
         public ICommand ServerConnectionCommand { get; set; }
         public ICommand FitBackgroundToGridCommand { get; set; }
+        public ICommand MapZoomInCommand { get; set; }
+        public ICommand MapZoomOutCommand { get; set; }
 
         public void Initialize()
         {
@@ -162,6 +166,8 @@ namespace DigitalBattleMap
             CustomTokensCommand = new RelayCommand(p => _tokenController.CustomTokens());
             ServerConnectionCommand = new RelayCommand(p => ServerConnectionButton());
             FitBackgroundToGridCommand = new RelayCommand(p => _backgroundController.FitToGrid(GridSize));
+            MapZoomInCommand = new RelayCommand(p => Zoom(GridSize + 10));
+            MapZoomOutCommand = new RelayCommand(p => Zoom(GridSize - 10));
 
             InkCanvasDrawingAttributes.Width = PenSize;
             InkCanvasDrawingAttributes.Height = PenSize;
@@ -522,9 +528,32 @@ namespace DigitalBattleMap
                 GridSizeChanged();
                 IsGridShown = saveFile.IsGridShown;
                 Strokes = saveFile.Strokes;
+                Strokes.StrokesChanged += OnStrokesChanged;
                 _tokenController.OpenSaveFile(saveFile);
                 SelectedTabIndex = TabIndex.Tokens;
             }
+        }
+
+        private void Zoom(double newGridSize)
+        {
+            var currentIsShowMapLocked = IsShowMapLocked;
+            IsShowMapLocked = false;
+            var zoomFactor = newGridSize / GridSize;
+
+            _backgroundController.Zoom(zoomFactor);
+
+            GridSize = (int)newGridSize;
+            GridSizeChanged();
+
+            var matrix = new System.Windows.Media.Matrix();
+            matrix.Translate(-(_inkCanvasWidth / 2), -(_inkCanvasHeight / 2));
+            matrix.Scale(zoomFactor, zoomFactor);
+            matrix.Translate((_inkCanvasWidth / 2), (_inkCanvasHeight / 2));
+            Strokes.Transform(matrix, false);
+
+            _tokenController.Zoom(zoomFactor);
+
+            IsShowMapLocked = currentIsShowMapLocked;
         }
 
         private void UpdateMap(DrawLayer layer)

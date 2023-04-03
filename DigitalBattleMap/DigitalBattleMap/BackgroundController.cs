@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
+using System.Linq.Expressions;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
@@ -124,24 +125,42 @@ namespace DigitalBattleMap
 
         public void ZoomIn(double zoomPercentage)
         {
-            var zoomFactor = (zoomPercentage / 100) + 1;
-            _area.X += (int)(_area.Width - (_area.Width / zoomFactor)) / 2;
-            _area.Y += (int)(_area.Height - (_area.Height / zoomFactor)) / 2;
-            _area.Width = (int)(_area.Width / zoomFactor);
-            _area.Height = (int)(_area.Height / zoomFactor);
-
-            CreateBackground();
+            if (_fullBackgroundBitmap != null)
+            {
+                var zoomFactor = (100 + zoomPercentage) / 100;
+                ZoomWithZoomFactor(zoomFactor);
+                CreateBackground();
+            }
         }
 
         public void ZoomOut(double zoomPercentage)
         {
-            var zoomFactor = (zoomPercentage / 100) + 1;
-            _area.X += (int)(_area.Width - (_area.Width * zoomFactor)) / 2;
-            _area.Y += (int)(_area.Height - (_area.Height * zoomFactor)) / 2;
-            _area.Width = (int)(_area.Width * zoomFactor);
-            _area.Height = (int)(_area.Height * zoomFactor);
+            if (_fullBackgroundBitmap != null)
+            {
+                var zoomFactor = (100 + zoomPercentage) / 100;
+                zoomFactor = 1 / zoomFactor;
+                ZoomWithZoomFactor(zoomFactor);
+                CreateBackground();
+            }
+        }
 
-            CreateBackground();
+        public void Zoom(double zoomFactor)
+        {
+            if (_fullBackgroundBitmap != null)
+            {
+                ZoomWithZoomFactor(zoomFactor);
+                CreateBackground();
+            }
+        }
+
+        private void ZoomWithZoomFactor(double zoomFactor)
+        {
+            var newWidth = _area.Width / zoomFactor;
+            var newHeight = _area.Height/ zoomFactor;
+            _area.X += (int)Math.Round((_area.Width - newWidth) / 2);
+            _area.Y += (int)Math.Round((_area.Height - newHeight) / 2);
+            _area.Width = (int)Math.Round(newWidth);
+            _area.Height = (int)Math.Round(newHeight);
         }
 
         public void MoveBackground(ArrowDirection direction, int gridSize)
@@ -228,14 +247,14 @@ namespace DigitalBattleMap
             GridCellsHeight = 10;
 
             var startIndex = fileName.IndexOf("(");
-            if(startIndex != -1)
+            if (startIndex != -1)
             {
                 var endIndex = fileName.Substring(startIndex).IndexOf(")");
-                if(endIndex != -1)
+                if (endIndex != -1)
                 {
                     var size = fileName.Substring(startIndex + 1, endIndex - 1);
                     var widthAndHeight = size.ToLower().Split("x");
-                    if(widthAndHeight.Length == 2)
+                    if (widthAndHeight.Length == 2)
                     {
                         try
                         {

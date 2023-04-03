@@ -95,7 +95,7 @@ namespace DigitalBattleMap
         public static Bitmap CreateArrowButton(ArrowDirection direction)
         {
             var bitmap = new Bitmap(70, 70);
-            PointF[] points = new PointF[3];
+            var points = new PointF[3];
 
             switch (direction)
             {
@@ -115,9 +115,26 @@ namespace DigitalBattleMap
 
             using (var graphics = Graphics.FromImage(bitmap))
             {
-                var pen = new Pen(Color.Black, 1);
                 var brush = new SolidBrush(Color.Black);
                 graphics.FillPolygon(brush, points);
+                return bitmap;
+            }
+        }
+
+        public static Bitmap CreateZoomButton(bool isZoomInButton)
+        {
+            var bitmap = new Bitmap(70, 70);
+
+            using (var graphics = Graphics.FromImage(bitmap))
+            {
+                var brush = new SolidBrush(Color.Black);
+                graphics.FillRectangle(brush, 9, 30, 50, 8);
+
+                if (isZoomInButton)
+                {
+                    graphics.FillRectangle(brush, 30, 9, 8, 50);
+                }
+
                 return bitmap;
             }
         }
@@ -262,7 +279,7 @@ namespace DigitalBattleMap
                 using (var graphics = Graphics.FromImage(bitmap))
                 {
                     var brush = new SolidBrush(Color.White);
-                    var textSize = tokenSize.Width / 6;
+                    var textSize = Math.Min(tokenSize.Width / 6, 1);
 
                     StringFormat stringFormat = new StringFormat();
                     stringFormat.LineAlignment = StringAlignment.Center;
@@ -292,7 +309,7 @@ namespace DigitalBattleMap
             var yPositionFactor = new double[] { 0.0, 0.25, 0.5, 0.75, 1.0, 0.75, 0.5, 0.25 };
             var xConditionPositionFactor = new double[] { 0.5, 0.5, 1.0, 0.5, 0.5, 0.5, 0.0, 0.5 };
             var yConditionPositionFactor = new double[] { 0.0, 0.5, 0.5, 0.5, 1.0, 0.5, 0.5, 0.5 };
-            var conditionSize = new Size<double>(tokenSize.Width / 4.0, tokenSize.Height / 4.0);
+            var conditionSize = new Size<double>(tokenSize.Width / 3.5, tokenSize.Height / 3.5);
 
             for(int i = 0; i < 8 && i < conditions.Count; i++)
             {
@@ -348,33 +365,32 @@ namespace DigitalBattleMap
 
         private static Point<int> CalculateGridOffset(int gridSize)
         {
-            var xModulo = _width % gridSize;
-            var yModulo = _height % gridSize;
+            var middleGridCellX = (_width / 2) - (gridSize / 2);
+            var middleGridCellY = (_height / 2) - (gridSize / 2);
 
-            var startX = xModulo == 0 ? 0 : xModulo / 2;
-            var startY = yModulo == 0 ? 0 : yModulo / 2;
+            var xModulo = middleGridCellX % gridSize;
+            var yModulo = middleGridCellY % gridSize;
+
+            var startX = xModulo == 0 ? 0 : xModulo;
+            var startY = yModulo == 0 ? 0 : yModulo;
 
             return new Point<int>(startX, startY);
         }
 
         private static void DrawGrid(Bitmap bitmap, int gridSize)
         {
-            var xModulo = _width % gridSize;
-            var yModulo = _height % gridSize;
-
-            var startX = xModulo == 0 ? gridSize : xModulo / 2;
-            var startY = yModulo == 0 ? gridSize : yModulo / 2;
+            var gridOffset = CalculateGridOffset(gridSize);
 
             using (var graphics = Graphics.FromImage(bitmap))
             {
                 Pen blackPen = new Pen(Color.Black, 1);
 
-                for (int x = startX; x < _width; x += gridSize)
+                for (int x = gridOffset.X; x < _width; x += gridSize)
                 {
                     graphics.DrawLine(blackPen, x, 0, x, _height);
                 }
 
-                for (int y = startY; y < _height; y += gridSize)
+                for (int y = gridOffset.Y; y < _height; y += gridSize)
                 {
                     graphics.DrawLine(blackPen, 0, y, _width, y);
                 }

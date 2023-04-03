@@ -83,14 +83,14 @@ namespace DigitalBattleMap
 
                 if (selectTokenWindowViewModel.AddedTokens.Count > 0)
                 {
-                    foreach (var token in selectTokenWindowViewModel.AddedTokens)
+                    foreach (var (token, index) in selectTokenWindowViewModel.AddedTokens.WithIndex())
                     {
                         var tokenListItem = new TokenListItem();
                         tokenListItem.Token = token;
                         tokenListItem.Token.SizeChanged += TokenSizeChanged;
                         tokenListItem.ConditionsChanged += ConditionsChanged;
                         tokenListItem.Id = GetUniqueId(token.Name);
-                        tokenListItem.Position = new Point<int>(_bitmapSize.Width / 2, _bitmapSize.Height / 2);
+                        tokenListItem.Position = CalculateStartPosition(index);
                         TokenList.Add(tokenListItem);
                     }
 
@@ -292,7 +292,7 @@ namespace DigitalBattleMap
                 var tokenListItem = TokenList.SingleOrDefault(t => t.Token.Name.ToLower() == e.Name.ToLower() && t.Id == e.Id && t.Token.PlayerControl);
                 if (tokenListItem != null)
                 {
-                    switch(e.Direction)
+                    switch (e.Direction)
                     {
                         case TokenDirection.UpLeft:
                             tokenListItem.Position.X -= _gridSize;
@@ -325,7 +325,38 @@ namespace DigitalBattleMap
                         default:
                             break;
                     }
-                    
+
+                    CreateTokenBitmap();
+                }
+            }
+        }
+
+        public void Zoom(double zoomFactor)
+        {
+            lock (_lock)
+            {
+                if (TokenList.Count > 0)
+                {
+                    foreach (var tokenListItem in TokenList)
+                    {
+                        double newX = tokenListItem.Position.X;
+                        double newY = tokenListItem.Position.Y;
+
+                        double halfWidth = _bitmapSize.Width / 2;
+                        double halfHeight = _bitmapSize.Height / 2;
+
+                        newX -= halfWidth;
+                        newX *= zoomFactor;
+                        newX += halfWidth;
+
+                        newY -= halfHeight;
+                        newY *= zoomFactor;
+                        newY += halfHeight;
+
+                        tokenListItem.Position.X = (int)Math.Round(newX);
+                        tokenListItem.Position.Y = (int)Math.Round(newY);
+                    }
+
                     CreateTokenBitmap();
                 }
             }
@@ -344,6 +375,26 @@ namespace DigitalBattleMap
         private void NotifySelectedTokenBitmapUpdated()
         {
             SelectedTokenBitmapUpdated?.Invoke(this, new EventArgs());
+        }
+
+        private Point<int> CalculateStartPosition(int index)
+        {
+            var position = new Point<int>(_bitmapSize.Width / 2, _bitmapSize.Height / 2);
+            var maxGridCellsX = position.X + (_gridSize / 2);
+            maxGridCellsX /= _gridSize;
+            var maxGridCellsY = position.Y + (_gridSize / 2);
+            maxGridCellsY /= _gridSize;
+
+            if (index < maxGridCellsX * maxGridCellsY)
+            {
+                var gridCellsY = index / maxGridCellsX;
+                var gridcellsX = index - (gridCellsY * maxGridCellsX);
+
+                position.X += gridcellsX * _gridSize;
+                position.Y += gridCellsY * _gridSize;
+            }
+
+            return position;
         }
 
         private int GetUniqueId(string tokenName)
