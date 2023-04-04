@@ -56,6 +56,9 @@ namespace DigitalBattleMap
 
         public void Disconnect()
         {
+            if (!_isConnected)
+                return;
+
             Task.Run(async () =>
             {
                 await Task.WhenAll(
