@@ -270,13 +270,13 @@ namespace DigitalBattleMap
                     _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.GetBackgroundBitmapSource();
                     _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
                     _mapWindowViewModel.TokenBitmapSource = _tokenController.GetTokenBitmapSource();
-                    _connectionManager.SendMapUpdate(new MapUpdateDto{ Layer = DrawLayer.Background, Data = _backgroundController.GetBackgroundBitmap().ToJpg() });
+                    _connectionManager.SendMapUpdate(new MapUpdateDto{ Layer = DrawLayer.Background, Data = _backgroundController.GetBackgroundBitmap().ToPng() });
                     _connectionManager.SendMapUpdate(new MapUpdateDto{ Layer = DrawLayer.GridAndStrokes, Data = gridAndTokenBitmapAll.ToPng() });
                     _connectionManager.SendMapUpdate(new MapUpdateDto{ Layer = DrawLayer.Tokens, Data = _tokenController.GetTokenBitmap().ToPng() });
                     break;
                 case DrawLayer.Background:
                     _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.GetBackgroundBitmapSource();
-                    _connectionManager.SendMapUpdate(new MapUpdateDto{ Layer = DrawLayer.Background, Data = _backgroundController.GetBackgroundBitmap().ToJpg() });
+                    _connectionManager.SendMapUpdate(new MapUpdateDto{ Layer = DrawLayer.Background, Data = _backgroundController.GetBackgroundBitmap().ToPng() });
                     break;
                 case DrawLayer.GridAndStrokes:
                     var gridAndTokenBitmap = CreateGridAndDrawingBitmap();

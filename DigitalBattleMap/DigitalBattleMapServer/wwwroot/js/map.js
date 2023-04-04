@@ -4,6 +4,8 @@ const backgroundUrl = "/Map/Get?layer=Background";
 const gridAndStrokesUrl = "/Map/Get?layer=GridAndStrokes";
 const tokensUrl = "/Map/Get?layer=Tokens";
 
+let fullscreen = false;
+
 const connection = new signalR.HubConnectionBuilder()
     .withUrl("/MapHub")
     .withAutomaticReconnect()
@@ -40,3 +42,17 @@ async function start() {
 };
 
 start();
+
+$(document).ready(function() {
+    $(".btn-fullscreen").click(function() {
+        if(fullscreen) {
+            $('.fullscreen').removeClass('fullscreen');
+        }
+        else {
+            $('.map-container').addClass('fullscreen');
+            $('.map-image').addClass('fullscreen');
+        }
+        
+        fullscreen = !fullscreen;
+    });
+})

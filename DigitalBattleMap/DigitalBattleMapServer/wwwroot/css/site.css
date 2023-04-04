@@ -111,11 +111,34 @@ i.direction.SouthEast {
 
 /* Map css */
 .map-image {
-    position: absolute;
-    top: 0;
-    left: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
-.map-container {
-    position: relative;
+.map-image.fullscreen {
+  position: absolute !important;
+  height: 100vh !important;
+  left: 50% !important;
+  transform: translateX(-50%);
+}
+
+.map-container:not(.fullscreen) {
+  position: relative;
+}
+
+.map-container.fullscreen {
+}
+
+.map-image.fullscreen.backdrop {
+  width: 100vw;
+  height: 100vh;
+  background-color: white;
+}
+
+.btn-fullscreen {
+  z-index: 100;
+  position: absolute;
+  bottom: 0;
+  right: 0;
 }

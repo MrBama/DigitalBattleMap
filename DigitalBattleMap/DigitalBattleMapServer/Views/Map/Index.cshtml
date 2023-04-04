@@ -1,8 +1,11 @@
 ﻿<div id="mapContainer" class="container map-container">
-    <img id="backgroundImage" class="img-fluid map-image" src="/Map/Get?layer=Background" />
-    <img id="gridAndStrokesImage" class="img-fluid map-image" src="/Map/Get?layer=GridAndStrokes" />
-    <img id="tokenImage" class="img-fluid map-image" src="/Map/Get?layer=Tokens" />
+    <img class="img-fluid map-image backdrop"/>
+    <img id="backgroundImage" class="img-fluid map-image" src="/Map/Get?layer=Background" alt=""/>
+    <img id="gridAndStrokesImage" class="img-fluid map-image" src="/Map/Get?layer=GridAndStrokes" alt=""/>
+    <img id="tokenImage" class="img-fluid map-image" src="/Map/Get?layer=Tokens" alt=""/>
 </div>
+
+<input class="btn btn-secondary btn-fullscreen" type="button" value="Fullscreen"></input>
 
 <script src="~/js/signalr/dist/browser/signalr.js"></script>
 <script src="~/js/map.js"></script>
