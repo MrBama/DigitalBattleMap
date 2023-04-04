@@ -15,18 +15,15 @@ namespace DigitalBattleMap
 {
     public class ConnectionManager : IWebHub, IWebHubClientEvents
     {
-        // TODO: Move to configuration file
-        //private const string BaseConnectionUrl = "http://localhost:8000";
-        private const string BaseConnectionUrl = "https://digitalbattlemapserver.azurewebsites.net/";
-        private const string WebHubConnectionUrl = BaseConnectionUrl + "/WebHub";
-        private const string MapHubConnectionUrl = BaseConnectionUrl + "/MapHub";
+        private const string WebHubConnectionEndpoint = "/WebHub";
+        private const string MapHubConnectionEndpoint = "/MapHub";
 
         // HttpClients
-        private readonly HttpClient _httpClient;
+        private HttpClient _httpClient;
         
         // Hubs
-        private readonly HubConnection _webHubConnection;
-        private readonly HubConnection _mapHubConnection;
+        private HubConnection _webHubConnection;
+        private HubConnection _mapHubConnection;
 
         // Events
         public event EventHandler<EventArgs> OnConnected;
@@ -35,30 +32,26 @@ namespace DigitalBattleMap
 
         private bool _isConnected;
 
-        public ConnectionManager()
+        public void Connect(string address)
         {
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri(BaseConnectionUrl);
+            _httpClient = new HttpClient { BaseAddress = new Uri(address) };
 
             _webHubConnection = new HubConnectionBuilder()
-                .WithUrl(WebHubConnectionUrl)
+                .WithUrl($"{address}{WebHubConnectionEndpoint}")
                 .Build();
 
             _mapHubConnection = new HubConnectionBuilder()
-                .WithUrl(MapHubConnectionUrl)
+                .WithUrl($"{address}{MapHubConnectionEndpoint}")
                 .Build();
 
-            Configure();
-        }
-        
-        public void Connect()
-        {
             Task.Run(async () =>
             {
                 await Task.WhenAll(
                     _webHubConnection.StartAsync(),
                     _mapHubConnection.StartAsync());
             }).Wait();
+
+            Configure();
 
             _isConnected = true;
             OnConnected?.Invoke(this, EventArgs.Empty);
@@ -70,8 +63,13 @@ namespace DigitalBattleMap
             {
                 await Task.WhenAll(
                     _webHubConnection.StopAsync(),
-                    _mapHubConnection.StopAsync());
+                    _webHubConnection.DisposeAsync().AsTask(),
+
+                    _mapHubConnection.StopAsync(),
+                    _mapHubConnection.DisposeAsync().AsTask());
             }).Wait();
+
+            _httpClient.Dispose();
 
             _isConnected = false;
 
@@ -95,7 +93,7 @@ namespace DigitalBattleMap
 
             StringContent content = new(json);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            HttpRequestMessage message = new (HttpMethod.Post, $"{BaseConnectionUrl}/Map/Set") { Content = content };
+            HttpRequestMessage message = new (HttpMethod.Post, "/Map/Set") { Content = content };
             _httpClient.Send(message);
         }
 
@@ -104,7 +102,7 @@ namespace DigitalBattleMap
             if (!_isConnected)
                 return;
 
-            HttpRequestMessage message = new(HttpMethod.Delete, $"{BaseConnectionUrl}/Map/Delete");
+            HttpRequestMessage message = new(HttpMethod.Delete, "/Map/Delete");
             message.Headers.Add("Layer", DrawLayer.All.ToString());
             _httpClient.Send(message);
         }

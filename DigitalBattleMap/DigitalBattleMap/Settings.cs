@@ -15,8 +15,7 @@ namespace DigitalBattleMap
         public ScreenPosition MonitorPosition { get; set; } = new ScreenPosition();
         public int DefaultGridSize { get; set; } = 65;
         public bool IsSoftwareInstalled { get; set; }
-        public string ServerIp { get; set; } = "127.0.0.1";
-        public int ServerPort { get; set; } = 8001;
+        public string ServerAddress { get; set; } = "http://localhost:8000";
         public List<Token> CustomTokens { get; set; } = new List<Token>();
         public List<TokenGroup> TokenGroups { get; set; } = new List<TokenGroup>();
 
