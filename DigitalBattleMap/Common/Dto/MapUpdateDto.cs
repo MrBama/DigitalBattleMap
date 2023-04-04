@@ -1,7 +1,4 @@
-﻿using System.Drawing;
-using System.Text.Json.Serialization;
-
-namespace DigitalBattleMap.Common.Dto;
+﻿namespace DigitalBattleMap.Common.Dto;
 
 public class MapUpdateDto
 {

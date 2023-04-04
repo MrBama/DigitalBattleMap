@@ -1,15 +1,11 @@
-﻿using System;
+﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.Events;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
-using System.Runtime;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
-using DigitalBattleMap.Common;
-using DigitalBattleMap.Events;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace DigitalBattleMap
 {

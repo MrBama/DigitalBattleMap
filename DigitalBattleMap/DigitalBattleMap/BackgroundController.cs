@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
-using System.Linq.Expressions;
-using System.Windows;
-using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap

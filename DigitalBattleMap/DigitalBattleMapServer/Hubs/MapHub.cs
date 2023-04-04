@@ -1,7 +1,6 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMapServer.Handlers;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace DigitalBattleMapServer.Hubs;
 public class MapHub : Hub<IMapHub>

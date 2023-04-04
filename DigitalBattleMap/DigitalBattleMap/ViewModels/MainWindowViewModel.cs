@@ -1,18 +1,16 @@
-﻿using System;
+﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.Common.Dto;
+using DigitalBattleMap.Utility;
+using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
-using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using DigitalBattleMap.Common;
-using DigitalBattleMap.Common.Dto;
-using DigitalBattleMap.Utility;
 
 namespace DigitalBattleMap
 {

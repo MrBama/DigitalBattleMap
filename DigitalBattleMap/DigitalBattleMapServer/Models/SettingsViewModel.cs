@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-using DigitalBattleMapServer.Application;
+﻿using DigitalBattleMapServer.Application;
 using DigitalBattleMapServer.Properties;
+using System.ComponentModel.DataAnnotations;
 
 namespace DigitalBattleMapServer.Models;
 

@@ -1,7 +1,5 @@
-﻿using System.Text.Json;
-using AutoMapper;
+﻿using AutoMapper;
 using DigitalBattleMapServer.Application;
-using DigitalBattleMapServer.Handlers;
 using DigitalBattleMapServer.Models;
 using DigitalBattleMapServer.Utility;
 using Microsoft.AspNetCore.Mvc;

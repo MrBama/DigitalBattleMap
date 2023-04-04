@@ -1,15 +1,12 @@
-﻿using System;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Runtime.InteropServices;
-using System.Text.Json;
-using System.Threading.Tasks;
-using DigitalBattleMap.Common;
+﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.Common.Dto;
 using DigitalBattleMap.Events;
-using DigitalBattleMap.Utility;
 using Microsoft.AspNetCore.SignalR.Client;
+using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace DigitalBattleMap
 {

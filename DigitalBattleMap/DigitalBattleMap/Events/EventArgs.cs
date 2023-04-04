@@ -1,5 +1,5 @@
-﻿using System;
-using DigitalBattleMap.Common;
+﻿using DigitalBattleMap.Common;
+using System;
 
 namespace DigitalBattleMap.Events;
 
