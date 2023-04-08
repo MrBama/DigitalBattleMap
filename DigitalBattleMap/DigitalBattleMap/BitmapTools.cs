@@ -279,7 +279,7 @@ namespace DigitalBattleMap
                 using (var graphics = Graphics.FromImage(bitmap))
                 {
                     var brush = new SolidBrush(Color.White);
-                    var textSize = Math.Min(tokenSize.Width / 6, 1);
+                    var textSize = Math.Max(tokenSize.Width / 6, 1);
 
                     StringFormat stringFormat = new StringFormat();
                     stringFormat.LineAlignment = StringAlignment.Center;
@@ -298,26 +298,24 @@ namespace DigitalBattleMap
         {
             /* Position index:
              * 
+             *     3
+             *      
+             * 1       2
+             *      
              *     0
-             *   7   1
-             * 6       2
-             *   5   3
-             *     4 
              */
 
-            var xPositionFactor = new double[] { 0.5, 0.75, 1.0, 0.75, 0.5, 0.25, 0.0, 0.25 };
-            var yPositionFactor = new double[] { 0.0, 0.25, 0.5, 0.75, 1.0, 0.75, 0.5, 0.25 };
-            var xConditionPositionFactor = new double[] { 0.5, 0.5, 1.0, 0.5, 0.5, 0.5, 0.0, 0.5 };
-            var yConditionPositionFactor = new double[] { 0.0, 0.5, 0.5, 0.5, 1.0, 0.5, 0.5, 0.5 };
-            var conditionSize = new Size<double>(tokenSize.Width / 3.5, tokenSize.Height / 3.5);
+            var xFactor = new double[] { 0.5, 0.0, 1.0, 0.5 };
+            var yFactor = new double[] { 1.0, 0.5, 0.5, 0.0,};
+            var conditionSize = new Size<double>(tokenSize.Width / 2.5, tokenSize.Height / 2.5);
 
-            for(int i = 0; i < 8 && i < conditions.Count; i++)
+            for (int i = 0; i < 4 && i < conditions.Count; i++)
             {
                 var resizedConditionImage = ResizeBitmap(_conditionIcons.GetConditionIcon(conditions[i]), conditionSize.ToSizeInt());
                 
                 var drawingPosition = tokenDrawingPosition.ToPointDouble();
-                drawingPosition.X += (tokenSize.Width * xPositionFactor[i]) - (conditionSize.Width * xConditionPositionFactor[i]);
-                drawingPosition.Y += (tokenSize.Height * yPositionFactor[i]) - (conditionSize.Height * yConditionPositionFactor[i]);
+                drawingPosition.X += (tokenSize.Width * xFactor[i]) - (conditionSize.Width * xFactor[i]);
+                drawingPosition.Y += (tokenSize.Height * yFactor[i]) - (conditionSize.Height * yFactor[i]);
                 
                 DrawImageOnBitmap(bitmap, resizedConditionImage, drawingPosition.ToPointInt());
             }
@@ -342,8 +340,8 @@ namespace DigitalBattleMap
 
             // Calculate drawing position using the calculated grid cell, token offset and margin
             var drawingPosition = new Point<int>(gridStart);
-            drawingPosition.X += (gridCellX * gridSize) + (int)tokenOffset;
-            drawingPosition.Y += (gridCellY * gridSize) + (int)tokenOffset;
+            drawingPosition.X += (int)Math.Round((gridCellX * gridSize) + tokenOffset);
+            drawingPosition.Y += (int)Math.Round((gridCellY * gridSize) + tokenOffset);
             drawingPosition.X += margin;
             drawingPosition.Y += margin;
 

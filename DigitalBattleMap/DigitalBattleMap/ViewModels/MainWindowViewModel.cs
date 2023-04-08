@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
@@ -43,6 +45,7 @@ namespace DigitalBattleMap
         public bool IsGridShown { get => Get<bool>(); set => Set(value, GridShownChanged); }
         public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, () => UpdateMap(DrawLayer.All)); }
         public bool ServerConnectionButtonEnabled { get => Get<bool>(); set => Set(value); }
+        public bool IsConfigurationMenuExpanded { get => Get<bool>(); set => Set(value); }
         public double BackgroundZoomPercentage { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(BackgroundZoomPercentageLabel))); }
         public string ServerConnectionButtonText { get => Get<string>(); set => Set(value); }
         public string ServerConnectionStatus { get => Get<string>(); set => Set(value); }
@@ -120,6 +123,7 @@ namespace DigitalBattleMap
         public ICommand FitBackgroundToGridCommand { get; set; }
         public ICommand MapZoomInCommand { get; set; }
         public ICommand MapZoomOutCommand { get; set; }
+        public ICommand HideConfigurationCommand { get; set; }
 
         public void Initialize()
         {
@@ -168,6 +172,7 @@ namespace DigitalBattleMap
             FitBackgroundToGridCommand = new RelayCommand(p => _backgroundController.FitToGrid(GridSize));
             MapZoomInCommand = new RelayCommand(p => Zoom(GridSize + 10));
             MapZoomOutCommand = new RelayCommand(p => Zoom(GridSize - 10));
+            HideConfigurationCommand = new RelayCommand(p => { IsConfigurationMenuExpanded = false; });
 
             InkCanvasDrawingAttributes.Width = PenSize;
             InkCanvasDrawingAttributes.Height = PenSize;

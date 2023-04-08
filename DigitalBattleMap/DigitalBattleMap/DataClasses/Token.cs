@@ -14,7 +14,7 @@ namespace DigitalBattleMap
 {
     public class Token : PropertyHandler
     {
-        public event EventHandler SizeChanged;
+        public event EventHandler OnSizeChanged;
 
         public string Name { get; set; } = "";
         public TokenSize Size { get => Get<TokenSize>(); set => Set(value, NotifySizeChanged); }
@@ -60,7 +60,7 @@ namespace DigitalBattleMap
 
         private void NotifySizeChanged()
         {
-            SizeChanged?.Invoke(this, new EventArgs());
+            OnSizeChanged?.Invoke(this, new EventArgs());
         }
     }
 
@@ -74,14 +74,22 @@ namespace DigitalBattleMap
             PlayerControlCommand = new RelayCommand(p => PlayerControlToggled());
             ConditionChangedCommand = new RelayCommand(p => ConditionChanged((string)p));
             ClearAllConditionsCommand = new RelayCommand(p => ClearAllConditions());
+            TokenVisibilityCommand = new RelayCommand(p => ToggleTokenVisibility());
+            MoveToFrontCommand = new RelayCommand(p => MoveToFront());
+            MoveToBackCommand = new RelayCommand(p => MoveToBack());
         }
 
-        public event EventHandler ConditionsChanged;
+        public delegate void ZLevelChangedEventHandler(object sender, ZLevelChangedEventArgs e);
+
+        public event EventHandler OnTokenChanged;
+        public event ZLevelChangedEventHandler OnZLevelChanged;
 
         public Token Token { get; set; }
         public Point<int> Position { get; set; } = new Point<int>();
         public int Id { get; set; }
         public List<Condition> Conditions { get; set; } = new List<Condition>();
+        public bool Visible { get; set; } = true;
+        public int ZLevel { get; set; }
 
         [JsonIgnore]
         public ICommand TokenSizeChangedCommand { get; set; }
@@ -91,6 +99,12 @@ namespace DigitalBattleMap
         public ICommand ConditionChangedCommand { get; set; }
         [JsonIgnore]
         public ICommand ClearAllConditionsCommand { get; set; }
+        [JsonIgnore]
+        public ICommand TokenVisibilityCommand { get; set; }
+        [JsonIgnore]
+        public ICommand MoveToFrontCommand { get; set; }
+        [JsonIgnore]
+        public ICommand MoveToBackCommand { get; set; }
 
         public Bitmap GetBitmap()
         {
@@ -116,7 +130,7 @@ namespace DigitalBattleMap
         {
             var condition = Enum.Parse<Condition>(conditionString);
 
-            if(!Conditions.Contains(condition))
+            if (!Conditions.Contains(condition))
             {
                 Conditions.Add(condition);
             }
@@ -125,23 +139,40 @@ namespace DigitalBattleMap
                 Conditions.Remove(condition);
             }
 
-            NotifyConditionsChanged();
+            NotifyTokenChanged();
             NotifyPropertyChange(nameof(Conditions));
         }
 
         private void ClearAllConditions()
         {
-            if(Conditions.Count > 0)
+            if (Conditions.Count > 0)
             {
                 Conditions.Clear();
-                NotifyConditionsChanged();
+                NotifyTokenChanged();
                 NotifyPropertyChange(nameof(Conditions));
             }
         }
 
-        private void NotifyConditionsChanged()
+        private void NotifyTokenChanged()
         {
-            ConditionsChanged?.Invoke(this, new EventArgs());
+            OnTokenChanged?.Invoke(this, new EventArgs());
+        }
+
+        private void ToggleTokenVisibility()
+        {
+            Visible = !Visible;
+            NotifyTokenChanged();
+            NotifyPropertyChange(nameof(Visible));
+        }
+
+        private void MoveToFront()
+        {
+            OnZLevelChanged?.Invoke(this, new ZLevelChangedEventArgs { ZLevelDirection = ZLevelDirection.Front });
+        }
+
+        private void MoveToBack()
+        {
+            OnZLevelChanged?.Invoke(this, new ZLevelChangedEventArgs { ZLevelDirection = ZLevelDirection.Back });
         }
     }
 }

@@ -79,4 +79,10 @@ namespace DigitalBattleMap
         Stunned,
         Unconcious
     }
+
+    public enum ZLevelDirection
+    {
+        Back,
+        Front
+    }
 }

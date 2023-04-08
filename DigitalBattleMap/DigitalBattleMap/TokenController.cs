@@ -87,8 +87,9 @@ namespace DigitalBattleMap
                     {
                         var tokenListItem = new TokenListItem();
                         tokenListItem.Token = token;
-                        tokenListItem.Token.SizeChanged += TokenSizeChanged;
-                        tokenListItem.ConditionsChanged += ConditionsChanged;
+                        tokenListItem.Token.OnSizeChanged += TokenChanged;
+                        tokenListItem.OnTokenChanged += TokenChanged;
+                        tokenListItem.OnZLevelChanged += ZLevelChanged;
                         tokenListItem.Id = GetUniqueId(token.Name);
                         tokenListItem.Position = CalculateStartPosition(index);
                         TokenList.Add(tokenListItem);
@@ -268,8 +269,9 @@ namespace DigitalBattleMap
                 foreach (var tokenListItem in saveFile.TokenList)
                 {
                     TokenList.Add(tokenListItem);
-                    tokenListItem.Token.SizeChanged += TokenSizeChanged;
-                    tokenListItem.ConditionsChanged += ConditionsChanged;
+                    tokenListItem.Token.OnSizeChanged += TokenChanged;
+                    tokenListItem.OnTokenChanged += TokenChanged;
+                    tokenListItem.OnZLevelChanged += ZLevelChanged;
                 }
 
                 CreateTokenBitmap();
@@ -420,9 +422,12 @@ namespace DigitalBattleMap
 
                 if (TokenList.Count > 0)
                 {
-                    foreach (var tokenListItem in TokenList)
+                    foreach (var tokenListItem in TokenList.OrderBy(t => t.ZLevel))
                     {
-                        BitmapTools.DrawToken(_tokenBitmap, tokenListItem, GetTokenIdString(tokenListItem), _gridSize);
+                        if(tokenListItem.Visible)
+                        {
+                            BitmapTools.DrawToken(_tokenBitmap, tokenListItem, GetTokenIdString(tokenListItem), _gridSize);
+                        }
                     }
                     UpdateTokenSelection();
                 }
@@ -442,12 +447,7 @@ namespace DigitalBattleMap
             return tokenId;
         }
 
-        private void TokenSizeChanged(object? sender, EventArgs e)
-        {
-            CreateTokenBitmap();
-        }
-
-        private void ConditionsChanged(object? sender, EventArgs e)
+        private void TokenChanged(object? sender, EventArgs e)
         {
             CreateTokenBitmap();
         }
@@ -461,6 +461,34 @@ namespace DigitalBattleMap
             }
 
             NotifySelectedTokenBitmapUpdated();
+        }
+
+        private void ZLevelChanged(object? sender, ZLevelChangedEventArgs eventArgs)
+        {
+            lock (_lock)
+            {
+                if (SelectedToken != null)
+                {
+                    var newZLevel = SelectedToken.ZLevel;
+
+                    if (eventArgs.ZLevelDirection == ZLevelDirection.Front)
+                    {
+                        var maxZLevel = TokenList.Max(t => t.ZLevel);
+                        newZLevel = maxZLevel + 1;
+                    }
+                    else
+                    {
+                        var minZLevel = TokenList.Min(t => t.ZLevel);
+                        newZLevel = minZLevel - 1;
+                    }
+
+                    if (newZLevel != SelectedToken.ZLevel)
+                    {
+                        SelectedToken.ZLevel = newZLevel;
+                        CreateTokenBitmap();
+                    }
+                }
+            }
         }
     }
 }

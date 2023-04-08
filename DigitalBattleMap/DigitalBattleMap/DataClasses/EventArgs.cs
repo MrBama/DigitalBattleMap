@@ -12,4 +12,9 @@ namespace DigitalBattleMap
         public int Id { get; set; } = 1;
         public TokenDirection Direction { get; set; }
     }
+
+    public class ZLevelChangedEventArgs : EventArgs
+    {
+        public ZLevelDirection ZLevelDirection { get; set; }
+    }
 }

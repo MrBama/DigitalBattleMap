@@ -37,354 +37,312 @@
             <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
 
-        <!--Controls grid-->
-        <Grid Margin="0 0 10 0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="auto"/>
-            </Grid.RowDefinitions>
+        <!--Tab grid-->
+        <TabControl Margin="0 0 10 0" BorderBrush="Gray" BorderThickness="0" SelectedIndex="{Binding SelectedTabIndex}">
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock Text="Background" FontSize="20" FontWeight="Bold"/>
+                </TabItem.Header>
+                <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
+                    <!--Background editor grid-->
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-            <!--Tab grid-->
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+                        <Button Grid.ColumnSpan="2" Content="Open" Command="{Binding OpenBackgroundCommand}"/>
+                        <Button Grid.Row="1" Content="Zoom in" Margin="0 10 5 0" Command="{Binding BackgroundZoomInCommand}" IsEnabled="{Binding HasOpenedBackground}"/>
+                        <Button Grid.Row="1" Grid.Column="1" Content="Zoom out" Margin="5 10 0 0" Command="{Binding BackgroundZoomOutCommand}" IsEnabled="{Binding HasOpenedBackground}"/>
+                        <!--Zoom factor grid-->
+                        <Grid Grid.Row="2" Grid.ColumnSpan="2" Margin="0 10 0 0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.5*"/>
+                                <ColumnDefinition Width="7*"/>
+                                <ColumnDefinition Width="1.5*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Zoom"/>
+                            <Slider Grid.Column="1" VerticalAlignment="Center" Minimum="1" Maximum="100" Value="{Binding BackgroundZoomPercentage, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                            <Label Grid.Column="2" Content="{Binding BackgroundZoomPercentageLabel}" />
+                        </Grid>
+                        <Button Grid.Row="3" Grid.ColumnSpan="4" Margin="0 10 0 0" Content="Fit to grid" Command="{Binding FitBackgroundToGridCommand}" IsEnabled="{Binding HasOpenedBackground}"/>
 
-                <TabControl BorderBrush="Gray" BorderThickness="0" SelectedIndex="{Binding SelectedTabIndex}">
-                    <TabItem>
-                        <TabItem.Header>
-                            <TextBlock Text="Background" FontSize="20" FontWeight="Bold"/>
-                        </TabItem.Header>
-                        <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
-                            <!--Background editor grid-->
-                            <Grid Margin="10">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="auto"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
+                        <!--Fit background grid-->
+                        <Grid Grid.Row="4" Grid.ColumnSpan="2" Margin="0 10 0 0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
 
-                                <Button Grid.ColumnSpan="2" Content="Open" Command="{Binding OpenBackgroundCommand}"/>
-                                <Button Grid.Row="1" Content="Zoom in" Margin="0 10 5 0" Command="{Binding BackgroundZoomInCommand}" IsEnabled="{Binding HasOpenedBackground}"/>
-                                <Button Grid.Row="1" Grid.Column="1" Content="Zoom out" Margin="5 10 0 0" Command="{Binding BackgroundZoomOutCommand}" IsEnabled="{Binding HasOpenedBackground}"/>
-                                <!--Zoom factor grid-->
-                                <Grid Grid.Row="2" Grid.ColumnSpan="2" Margin="0 10 0 0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="1.5*"/>
-                                        <ColumnDefinition Width="7*"/>
-                                        <ColumnDefinition Width="1.5*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Label Content="Zoom"/>
-                                    <Slider Grid.Column="1" VerticalAlignment="Center" Minimum="1" Maximum="100" Value="{Binding BackgroundZoomPercentage, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True"/>
-                                    <Label Grid.Column="2" Content="{Binding BackgroundZoomPercentageLabel}" />
-                                </Grid>
-                                <Button Grid.Row="3" Grid.ColumnSpan="4" Margin="0 10 0 0" Content="Fit to grid" Command="{Binding FitBackgroundToGridCommand}" IsEnabled="{Binding HasOpenedBackground}"/>
+                            <Label Grid.Row="1" Content="Grid cells"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" VerticalContentAlignment="Center" Text="{Binding GridCellsWidth, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding HasOpenedBackground}"/>
+                            <Label Grid.Row="1" Grid.Column="2" Content="x"/>
+                            <TextBox Grid.Row="1" Grid.Column="3" VerticalContentAlignment="Center" Text="{Binding GridCellsHeight, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding HasOpenedBackground}"/>
+                        </Grid>
+                        <Button Grid.Row="5" Grid.ColumnSpan="2" Content="Clear" Command="{Binding ClearBackgroundCommand}" Margin="0 10 0 0"/>
+                    </Grid>
+                </Border>
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock Text="Grid" FontSize="20" FontWeight="Bold"/>
+                </TabItem.Header>
+                <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
+                    <!--Grid editor grid-->
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="6*"/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
 
-                                <!--Fit background grid-->
-                                <Grid Grid.Row="4" Grid.ColumnSpan="2" Margin="0 10 0 0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
+                        <Label Content="Grid size in pixels"/>
+                        <TextBox Grid.Column="1" Text="{Binding GridSize, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center">
+                            <TextBox.InputBindings>
+                                <KeyBinding Command="{Binding GridSizeEnterCommand}" Key="Enter" />
+                            </TextBox.InputBindings>
+                        </TextBox>
+                        <Label Grid.Row="1" Content="Show grid" Margin="0 10 0 0"/>
+                        <CheckBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding IsGridShown}" Margin="0 10 0 0"/>
+                    </Grid>
+                </Border>
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock Text="Drawing" FontSize="20" FontWeight="Bold"/>
+                </TabItem.Header>
+                <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
+                    <!--Drawing grid-->
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
 
-                                    <Label Grid.Row="1" Content="Grid cells"/>
-                                    <TextBox Grid.Row="1" Grid.Column="1" VerticalContentAlignment="Center" Text="{Binding GridCellsWidth, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding HasOpenedBackground}"/>
-                                    <Label Grid.Row="1" Grid.Column="2" Content="x"/>
-                                    <TextBox Grid.Row="1" Grid.Column="3" VerticalContentAlignment="Center" Text="{Binding GridCellsHeight, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding HasOpenedBackground}"/>
-                                </Grid>
-                                <Button Grid.Row="5" Grid.ColumnSpan="2" Content="Clear" Command="{Binding ClearBackgroundCommand}" Margin="0 10 0 0"/>
-                            </Grid>
-                        </Border>
-                    </TabItem>
-                    <TabItem>
-                        <TabItem.Header>
-                            <TextBlock Text="Grid" FontSize="20" FontWeight="Bold"/>
-                        </TabItem.Header>
-                        <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
-                            <!--Grid editor grid-->
-                            <Grid Margin="10">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="auto"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="6*"/>
-                                    <ColumnDefinition Width="2*"/>
-                                    <ColumnDefinition Width="2*"/>
-                                </Grid.ColumnDefinitions>
+                        <!--Color buttons grid-->
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Image Source="{Binding BlackButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="MouseLeftButtonUp">
+                                        <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Black" />
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                            </Image>
+                            <Image Grid.Column="1" Source="{Binding RedButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="MouseLeftButtonUp">
+                                        <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Red" />
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                            </Image>
+                            <Image Grid.Column="2" Source="{Binding GreenButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="MouseLeftButtonUp">
+                                        <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Green" />
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                            </Image>
+                            <Image Grid.Column="3" Source="{Binding BlueButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="MouseLeftButtonUp">
+                                        <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Blue" />
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                            </Image>
+                            <Image Grid.Row="1" Source="{Binding EraserButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="MouseLeftButtonUp">
+                                        <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Eraser" />
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                            </Image>
 
-                                <Label Content="Grid size in pixels"/>
-                                <TextBox Grid.Column="1" Text="{Binding GridSize, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center">
-                                    <TextBox.InputBindings>
-                                        <KeyBinding Command="{Binding GridSizeEnterCommand}" Key="Enter" />
-                                    </TextBox.InputBindings>
-                                </TextBox>
-                                <Label Grid.Row="1" Content="Show grid" Margin="0 10 0 0"/>
-                                <CheckBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding IsGridShown}" Margin="0 10 0 0"/>
-                            </Grid>
-                        </Border>
-                    </TabItem>
-                    <TabItem>
-                        <TabItem.Header>
-                            <TextBlock Text="Drawing" FontSize="20" FontWeight="Bold"/>
-                        </TabItem.Header>
-                        <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
-                            <!--Drawing grid-->
-                            <Grid Margin="10">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="auto"/>
-                                </Grid.RowDefinitions>
+                            <Image Source="{Binding BlackButtonSelectedBitmapSource}" Margin="5 10 15 10" Cursor="Hand" Visibility="{Binding BlackButtonSelectedVisibility}"/>
+                            <Image Grid.Column="1" Source="{Binding RedButtonSelectedBitmapSource}" Margin="5 10 15 10" Cursor="Hand" Visibility="{Binding RedButtonSelectedVisibility}"/>
+                            <Image Grid.Column="2" Source="{Binding GreenButtonSelectedBitmapSource}" Margin="5 10 15 10" Cursor="Hand" Visibility="{Binding GreenButtonSelectedVisibility}"/>
+                            <Image Grid.Column="3" Source="{Binding BlueButtonSelectedBitmapSource}" Margin="5 10 15 10" Cursor="Hand" Visibility="{Binding BlueButtonSelectedVisibility}"/>
+                            <Image Grid.Row="1" Source="{Binding EraserButtonSelectedBitmapSource}" Margin="5 10 15 10" Cursor="Hand" Visibility="{Binding EraserButtonSelectedVisibility}"/>
+                        </Grid>
 
-                                <!--Color buttons grid-->
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="auto"/>
-                                        <RowDefinition Height="auto"/>
-                                    </Grid.RowDefinitions>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Image Source="{Binding BlackButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
-                                        <i:Interaction.Triggers>
-                                            <i:EventTrigger EventName="MouseLeftButtonUp">
-                                                <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Black" />
-                                            </i:EventTrigger>
-                                        </i:Interaction.Triggers>
-                                    </Image>
-                                    <Image Grid.Column="1" Source="{Binding RedButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
-                                        <i:Interaction.Triggers>
-                                            <i:EventTrigger EventName="MouseLeftButtonUp">
-                                                <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Red" />
-                                            </i:EventTrigger>
-                                        </i:Interaction.Triggers>
-                                    </Image>
-                                    <Image Grid.Column="2" Source="{Binding GreenButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
-                                        <i:Interaction.Triggers>
-                                            <i:EventTrigger EventName="MouseLeftButtonUp">
-                                                <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Green" />
-                                            </i:EventTrigger>
-                                        </i:Interaction.Triggers>
-                                    </Image>
-                                    <Image Grid.Column="3" Source="{Binding BlueButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
-                                        <i:Interaction.Triggers>
-                                            <i:EventTrigger EventName="MouseLeftButtonUp">
-                                                <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Blue" />
-                                            </i:EventTrigger>
-                                        </i:Interaction.Triggers>
-                                    </Image>
-                                    <Image Grid.Row="1" Source="{Binding EraserButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
-                                        <i:Interaction.Triggers>
-                                            <i:EventTrigger EventName="MouseLeftButtonUp">
-                                                <i:InvokeCommandAction Command="{Binding DrawingColorChangedCommand}" CommandParameter="Eraser" />
-                                            </i:EventTrigger>
-                                        </i:Interaction.Triggers>
-                                    </Image>
+                        <!--Pen size grid-->
+                        <Grid Grid.Row="1" Margin="0 10 0 0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2.5*"/>
+                                <ColumnDefinition Width="6*"/>
+                                <ColumnDefinition Width="1.5*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Pen size" />
+                            <Slider Grid.Column="1" VerticalAlignment="Center" Margin="10 0 10 0" Minimum="1" Maximum="100" Value="{Binding PenSize, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                            <TextBox Grid.Column="2" Text="{Binding PenSize, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                        </Grid>
+                        <Button Grid.Row="2" Content="Clear" Command="{Binding ClearDrawingCommand}" Margin="0 10 0 0"/>
+                    </Grid>
+                </Border>
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock Text="Tokens" FontSize="20" FontWeight="Bold"/>
+                </TabItem.Header>
+                <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
+                    <!--Tokens grid-->
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
 
-                                    <Image Source="{Binding BlackButtonSelectedBitmapSource}" Margin="5 10 15 10" Cursor="Hand" Visibility="{Binding BlackButtonSelectedVisibility}"/>
-                                    <Image Grid.Column="1" Source="{Binding RedButtonSelectedBitmapSource}" Margin="5 10 15 10" Cursor="Hand" Visibility="{Binding RedButtonSelectedVisibility}"/>
-                                    <Image Grid.Column="2" Source="{Binding GreenButtonSelectedBitmapSource}" Margin="5 10 15 10" Cursor="Hand" Visibility="{Binding GreenButtonSelectedVisibility}"/>
-                                    <Image Grid.Column="3" Source="{Binding BlueButtonSelectedBitmapSource}" Margin="5 10 15 10" Cursor="Hand" Visibility="{Binding BlueButtonSelectedVisibility}"/>
-                                    <Image Grid.Row="1" Source="{Binding EraserButtonSelectedBitmapSource}" Margin="5 10 15 10" Cursor="Hand" Visibility="{Binding EraserButtonSelectedVisibility}"/>
-                                </Grid>
-
-                                <!--Pen size grid-->
-                                <Grid Grid.Row="1" Margin="0 10 0 0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="2.5*"/>
-                                        <ColumnDefinition Width="6*"/>
-                                        <ColumnDefinition Width="1.5*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Label Content="Pen size" />
-                                    <Slider Grid.Column="1" VerticalAlignment="Center" Margin="10 0 10 0" Minimum="1" Maximum="100" Value="{Binding PenSize, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True"/>
-                                    <TextBox Grid.Column="2" Text="{Binding PenSize, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
-                                </Grid>
-                                <Button Grid.Row="2" Content="Clear" Command="{Binding ClearDrawingCommand}" Margin="0 10 0 0"/>
-                            </Grid>
-                        </Border>
-                    </TabItem>
-                    <TabItem>
-                        <TabItem.Header>
-                            <TextBlock Text="Tokens" FontSize="20" FontWeight="Bold"/>
-                        </TabItem.Header>
-                        <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
-                            <!--Tokens grid-->
-                            <Grid Margin="10">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="auto"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Button Content="Custom tokens" Command="{Binding CustomTokensCommand}"/>
-                                <ListView Grid.Row="1" ItemsSource="{Binding TokenList}" HorizontalContentAlignment="Stretch" Margin="0 10 0 0" SelectedItem="{Binding SelectedToken}" FontSize="15">
-                                    <ListView.ItemTemplate>
-                                        <DataTemplate>
-                                            <Grid>
-                                                <Grid.ContextMenu>
-                                                    <ContextMenu>
-                                                        <MenuItem Header="Player control" IsChecked="{Binding Token.PlayerControl}" Command="{Binding PlayerControlCommand}"/>
-                                                        <MenuItem Header="Size">
-                                                            <MenuItem 
+                        <Button Content="Custom tokens" Command="{Binding CustomTokensCommand}"/>
+                        <ListView Grid.Row="1" ItemsSource="{Binding TokenList}" HorizontalContentAlignment="Stretch" Margin="0 10 0 0" SelectedItem="{Binding SelectedToken}" FontSize="15">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="Visible" IsChecked="{Binding Visible}" Command="{Binding TokenVisibilityCommand}"/>
+                                                <MenuItem Header="Player control" IsChecked="{Binding Token.PlayerControl}" Command="{Binding PlayerControlCommand}"/>
+                                                <MenuItem Header="Size">
+                                                    <MenuItem 
                                                                 Header="Tiny" 
                                                                 IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Tiny}"
                                                                 Command="{Binding TokenSizeChangedCommand}"
                                                                 CommandParameter="Tiny"/>
-                                                            <MenuItem 
+                                                    <MenuItem 
                                                                 Header="Small" 
                                                                 IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Small}"
                                                                 Command="{Binding TokenSizeChangedCommand}"
                                                                 CommandParameter="Small"/>
-                                                            <MenuItem 
+                                                    <MenuItem 
                                                                 Header="Medium" 
                                                                 IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Medium}"
                                                                 Command="{Binding TokenSizeChangedCommand}"
                                                                 CommandParameter="Medium"/>
-                                                            <MenuItem 
+                                                    <MenuItem 
                                                                 Header="Large" 
                                                                 IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Large}"
                                                                 Command="{Binding TokenSizeChangedCommand}"
                                                                 CommandParameter="Large"/>
-                                                            <MenuItem 
+                                                    <MenuItem 
                                                                 Header="Huge" 
                                                                 IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Huge}"
                                                                 Command="{Binding TokenSizeChangedCommand}"
                                                                 CommandParameter="Huge"/>
-                                                            <MenuItem 
+                                                    <MenuItem 
                                                                 Header="Gargantuan" 
                                                                 IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Gargantuan}"
                                                                 Command="{Binding TokenSizeChangedCommand}"
                                                                 CommandParameter="Gargantuan"/>
-                                                        </MenuItem>
-                                                        <MenuItem Header="Conditions">
-                                                            <MenuItem Header="Baned" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Baned}" Command="{Binding ConditionChangedCommand}" CommandParameter="Baned"/>
-                                                            <MenuItem Header="Blessed" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Blessed}" Command="{Binding ConditionChangedCommand}" CommandParameter="Blessed"/>
-                                                            <MenuItem Header="Blinded" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Blinded}" Command="{Binding ConditionChangedCommand}" CommandParameter="Blinded"/>
-                                                            <MenuItem Header="Charmed" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Charmed}" Command="{Binding ConditionChangedCommand}" CommandParameter="Charmed"/>
-                                                            <MenuItem Header="Concentration" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Concentration}" Command="{Binding ConditionChangedCommand}" CommandParameter="Concentration"/>
-                                                            <MenuItem Header="Deafened" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Deafened}" Command="{Binding ConditionChangedCommand}" CommandParameter="Deafened"/>
-                                                            <MenuItem Header="Exhausted" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Exhausted}" Command="{Binding ConditionChangedCommand}" CommandParameter="Exhausted"/>
-                                                            <MenuItem Header="Flying" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Flying}" Command="{Binding ConditionChangedCommand}" CommandParameter="Flying"/>
-                                                            <MenuItem Header="Frightened" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Frightened}" Command="{Binding ConditionChangedCommand}" CommandParameter="Frightened"/>
-                                                            <MenuItem Header="Grappled" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Grappled}" Command="{Binding ConditionChangedCommand}" CommandParameter="Grappled"/>
-                                                            <MenuItem Header="Hasted" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Hasted}" Command="{Binding ConditionChangedCommand}" CommandParameter="Hasted"/>
-                                                            <MenuItem Header="Hex" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Hex}" Command="{Binding ConditionChangedCommand}" CommandParameter="Hex"/>
-                                                            <MenuItem Header="Highlighted" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Highlighted}" Command="{Binding ConditionChangedCommand}" CommandParameter="Highlighted"/>
-                                                            <MenuItem Header="Incapacitated" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Incapacitated}" Command="{Binding ConditionChangedCommand}" CommandParameter="Incapacitated"/>
-                                                            <MenuItem Header="Invisible" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Invisible}" Command="{Binding ConditionChangedCommand}" CommandParameter="Invisible"/>
-                                                            <MenuItem Header="Mark" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Mark}" Command="{Binding ConditionChangedCommand}" CommandParameter="Mark"/>
-                                                            <MenuItem Header="Paralyzed" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Paralyzed}" Command="{Binding ConditionChangedCommand}" CommandParameter="Paralyzed"/>
-                                                            <MenuItem Header="Petrified" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Petrified}" Command="{Binding ConditionChangedCommand}" CommandParameter="Petrified"/>
-                                                            <MenuItem Header="Poisoned" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Poisoned}" Command="{Binding ConditionChangedCommand}" CommandParameter="Poisoned"/>
-                                                            <MenuItem Header="Prone" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Prone}" Command="{Binding ConditionChangedCommand}" CommandParameter="Prone"/>
-                                                            <MenuItem Header="Restrained" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Restrained}" Command="{Binding ConditionChangedCommand}" CommandParameter="Restrained"/>
-                                                            <MenuItem Header="Stabilized" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Stabilized}" Command="{Binding ConditionChangedCommand}" CommandParameter="Stabilized"/>
-                                                            <MenuItem Header="Stunned" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Stunned}" Command="{Binding ConditionChangedCommand}" CommandParameter="Stunned"/>
-                                                            <MenuItem Header="Unconcious" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Unconcious}" Command="{Binding ConditionChangedCommand}" CommandParameter="Unconcious"/>
-                                                            <Separator/>
-                                                            <MenuItem Header="Clear all" Command="{Binding ClearAllConditionsCommand}"/>
-                                                        </MenuItem>
-                                                    </ContextMenu>
-                                                </Grid.ContextMenu>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="8.5*"/>
-                                                    <ColumnDefinition Width="auto"/>
-                                                    <ColumnDefinition Width="1.5*"/>
-                                                </Grid.ColumnDefinitions>
-                                                <Label Content="{Binding Token.Name}"/>
-                                                <Label Grid.Column="1" Content="ID:" HorizontalAlignment="Right"/>
-                                                <Label Grid.Column="2" Content="{Binding Id}"/>
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ListView.ItemTemplate>
-                                </ListView>
-                                <!--Tokens listview grid-->
-                                <Grid Grid.Row="1" Grid.Column="1" Margin="0 10 0 0">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="5*"/>
-                                        <RowDefinition Height="*"/>
-                                        <RowDefinition Height="*"/>
-                                        <RowDefinition Height="5*"/>
-                                    </Grid.RowDefinitions>
-                                </Grid>
-                                <Grid Grid.Row="2" Margin="0 10 0 0">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="auto"/>
-                                        <RowDefinition Height="auto"/>
-                                    </Grid.RowDefinitions>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Button Margin="0 0 5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding IsTokenUpButtonEnabled}" Command="{Binding TokenUpCommand}">
-                                        <Image Source="{Binding MapArrowUpBitmapSource}"/>
-                                    </Button>
-                                    <Button Grid.Column="1" Margin="5 0 0 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding IsTokenDownButtonEnabled}" Command="{Binding TokenDownCommand}">
-                                        <Image Source="{Binding MapArrowDownBitmapSource}"/>
-                                    </Button>
-                                    <Button x:Name="AddTokenButton" Grid.Row="1" Content="Add" Margin="0 10 5 0" Command="{Binding AddTokenCommand}"/>
-                                    <Button Grid.Row="1" Grid.Column="1" Content="Remove" Margin="5 10 0 0" Command="{Binding RemoveTokenCommand}" IsEnabled="{Binding IsTokenSelected}"/>
-                                </Grid>
-                                <Button Grid.Row="3" Content="Clear" Margin="0 10 0 0" Command="{Binding ClearTokensCommand}"/>
-                            </Grid>
-                        </Border>
-                    </TabItem>
-                </TabControl>
-            </Grid>
-
-            <!--Configuration grid-->
-            <Border Grid.Row="1" BorderThickness="1" BorderBrush="Gray" CornerRadius="10" Margin="0 5 0 0">
-                <Grid Margin="10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Label Content="Configuration" FontSize="20" FontWeight="Bold"/>
-
-                    <!--Connection grid-->
-                    <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="0 10 0 0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="auto"/>
-                            <ColumnDefinition Width="auto"/>
-                            <ColumnDefinition Width="auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <Button Content="{Binding ServerConnectionButtonText}" Margin="0 0 5 0" Command="{Binding ServerConnectionCommand}" IsEnabled="{Binding ServerConnectionButtonEnabled}" Width="{Binding ElementName=OpenMapButton, Path=ActualWidth}"/>
-                        <Label Grid.Column="1" Margin="5 0 0 0" Padding="0 0 0 0" Content="Server:" HorizontalContentAlignment="Right"/>
-                        <Label Grid.Column="2" Padding="2 0 0 0" Content="{Binding ServerConnectionStatus}" HorizontalContentAlignment="Left" Foreground="{Binding ServerConnectionStatusColor}"/>
+                                                </MenuItem>
+                                                <MenuItem Header="Conditions">
+                                                    <MenuItem Header="Baned" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Baned}" Command="{Binding ConditionChangedCommand}" CommandParameter="Baned"/>
+                                                    <MenuItem Header="Blessed" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Blessed}" Command="{Binding ConditionChangedCommand}" CommandParameter="Blessed"/>
+                                                    <MenuItem Header="Blinded" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Blinded}" Command="{Binding ConditionChangedCommand}" CommandParameter="Blinded"/>
+                                                    <MenuItem Header="Charmed" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Charmed}" Command="{Binding ConditionChangedCommand}" CommandParameter="Charmed"/>
+                                                    <MenuItem Header="Concentration" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Concentration}" Command="{Binding ConditionChangedCommand}" CommandParameter="Concentration"/>
+                                                    <MenuItem Header="Deafened" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Deafened}" Command="{Binding ConditionChangedCommand}" CommandParameter="Deafened"/>
+                                                    <MenuItem Header="Exhausted" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Exhausted}" Command="{Binding ConditionChangedCommand}" CommandParameter="Exhausted"/>
+                                                    <MenuItem Header="Flying" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Flying}" Command="{Binding ConditionChangedCommand}" CommandParameter="Flying"/>
+                                                    <MenuItem Header="Frightened" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Frightened}" Command="{Binding ConditionChangedCommand}" CommandParameter="Frightened"/>
+                                                    <MenuItem Header="Grappled" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Grappled}" Command="{Binding ConditionChangedCommand}" CommandParameter="Grappled"/>
+                                                    <MenuItem Header="Hasted" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Hasted}" Command="{Binding ConditionChangedCommand}" CommandParameter="Hasted"/>
+                                                    <MenuItem Header="Hex" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Hex}" Command="{Binding ConditionChangedCommand}" CommandParameter="Hex"/>
+                                                    <MenuItem Header="Highlighted" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Highlighted}" Command="{Binding ConditionChangedCommand}" CommandParameter="Highlighted"/>
+                                                    <MenuItem Header="Incapacitated" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Incapacitated}" Command="{Binding ConditionChangedCommand}" CommandParameter="Incapacitated"/>
+                                                    <MenuItem Header="Invisible" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Invisible}" Command="{Binding ConditionChangedCommand}" CommandParameter="Invisible"/>
+                                                    <MenuItem Header="Mark" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Mark}" Command="{Binding ConditionChangedCommand}" CommandParameter="Mark"/>
+                                                    <MenuItem Header="Paralyzed" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Paralyzed}" Command="{Binding ConditionChangedCommand}" CommandParameter="Paralyzed"/>
+                                                    <MenuItem Header="Petrified" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Petrified}" Command="{Binding ConditionChangedCommand}" CommandParameter="Petrified"/>
+                                                    <MenuItem Header="Poisoned" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Poisoned}" Command="{Binding ConditionChangedCommand}" CommandParameter="Poisoned"/>
+                                                    <MenuItem Header="Prone" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Prone}" Command="{Binding ConditionChangedCommand}" CommandParameter="Prone"/>
+                                                    <MenuItem Header="Restrained" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Restrained}" Command="{Binding ConditionChangedCommand}" CommandParameter="Restrained"/>
+                                                    <MenuItem Header="Stabilized" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Stabilized}" Command="{Binding ConditionChangedCommand}" CommandParameter="Stabilized"/>
+                                                    <MenuItem Header="Stunned" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Stunned}" Command="{Binding ConditionChangedCommand}" CommandParameter="Stunned"/>
+                                                    <MenuItem Header="Unconcious" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Unconcious}" Command="{Binding ConditionChangedCommand}" CommandParameter="Unconcious"/>
+                                                    <Separator/>
+                                                    <MenuItem Header="Clear all" Command="{Binding ClearAllConditionsCommand}"/>
+                                                </MenuItem>
+                                                <MenuItem Header="Move to front" Command="{Binding MoveToFrontCommand}"/>
+                                                <MenuItem Header="Move to back" Command="{Binding MoveToBackCommand}"/>
+                                            </ContextMenu>
+                                        </Grid.ContextMenu>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="8.5*"/>
+                                            <ColumnDefinition Width="auto"/>
+                                            <ColumnDefinition Width="1.5*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Content="{Binding Token.Name}"/>
+                                        <Label Grid.Column="1" Content="ID:" HorizontalAlignment="Right"/>
+                                        <Label Grid.Column="2" Content="{Binding Id}"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        <!--Tokens listview grid-->
+                        <Grid Grid.Row="1" Grid.Column="1" Margin="0 10 0 0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="5*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="5*"/>
+                            </Grid.RowDefinitions>
+                        </Grid>
+                        <Grid Grid.Row="2" Margin="0 10 0 0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <!--Up and down buttons will be updated when initiative is being implemented-->
+                            <!--IsEnabled="{Binding IsTokenUpButtonEnabled}"-->
+                            <Button Margin="0 0 5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="False" Command="{Binding TokenUpCommand}">
+                                <Image Source="{Binding MapArrowUpBitmapSource}"/>
+                            </Button>
+                            <!--IsEnabled="{Binding IsTokenDownButtonEnabled}"-->
+                            <Button Grid.Column="1" Margin="5 0 0 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="False" Command="{Binding TokenDownCommand}">
+                                <Image Source="{Binding MapArrowDownBitmapSource}"/>
+                            </Button>
+                            <Button x:Name="AddTokenButton" Grid.Row="1" Content="Add" Margin="0 10 5 0" Command="{Binding AddTokenCommand}"/>
+                            <Button Grid.Row="1" Grid.Column="1" Content="Remove" Margin="5 10 0 0" Command="{Binding RemoveTokenCommand}" IsEnabled="{Binding IsTokenSelected}"/>
+                        </Grid>
+                        <Button Grid.Row="3" Content="Clear" Margin="0 10 0 0" Command="{Binding ClearTokensCommand}"/>
                     </Grid>
-
-                    <Button x:Name="OpenMapButton" Grid.Row="2" Content="Open" Margin="0 10 5 0" Command="{Binding OpenMapCommand}"/>
-                    <Button Grid.Row="2" Grid.Column="1" Content="Save" Margin="5 10 0 0" Command="{Binding SaveMapCommand}"/>
-                    <Button Grid.Row="3" Grid.ColumnSpan="2" Content="Settings" Command="{Binding SettingsCommand}" Margin="0 10 0 0"/>
-                </Grid>
-            </Border>
-        </Grid>
+                </Border>
+            </TabItem>
+        </TabControl>
 
         <!--Map grid-->
         <Grid Grid.Column="1" >
@@ -428,88 +386,137 @@
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="1.4*"/>
+                    <ColumnDefinition Width="auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
                 <!--Control grid-->
-                <Border Grid.Row="1" Grid.Column="1" BorderThickness="1" BorderBrush="Gray" CornerRadius="10" Margin="0 5 0 0">
-                    <Grid Margin="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="auto"/>
-                            <ColumnDefinition Width="auto"/>
-                            <ColumnDefinition Width="auto"/>
-                            <ColumnDefinition Width="auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <!--Zoom buttons grid-->
-                        <Grid Margin="0 0 20 0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="0.4*"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-
-                            <Button x:Name="ZoomInButton" Grid.Row="1" Grid.Column="2" Margin="0 0 0 5" Command="{Binding MapZoomInCommand}" CommandParameter="Up" Width="{Binding ElementName=ZoomInButton,Path=ActualHeight}">
-                                <Image Source="{Binding MapZoomInBitmapSource}"/>
-                            </Button>
-                            <Button x:Name="ZoomOutButton" Grid.Row="2" Grid.Column="2" Margin="0 5 0 0" Command="{Binding MapZoomOutCommand}" CommandParameter="Up" Width="{Binding ElementName=ZoomOutButton,Path=ActualHeight}">
-                                <Image Source="{Binding MapZoomOutBitmapSource}"/>
-                            </Button>
-                        </Grid>
-
-                        <Border Grid.Column="1" BorderThickness="0.5" BorderBrush="Gray" Margin="0 5 0 0"/>
-
-                        <!--Map arrows grid-->
-                        <Grid Grid.Column="2" Margin="15 0 15 0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="0.4*"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="auto"/>
-                                <ColumnDefinition Width="auto"/>
-                                <ColumnDefinition Width="auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <Button x:Name="MoveUpButton" Grid.Row="1" Grid.Column="2" Margin="5 0 5 5" Command="{Binding MoveMapArrowCommand}" CommandParameter="Up" Width="{Binding ElementName=MoveUpButton,Path=ActualHeight}">
-                                <Image Source="{Binding MapArrowUpBitmapSource}"/>
-                            </Button>
-                            <Button x:Name="MoveLeftButton" Grid.Row="2" Grid.Column="1" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Left" Width="{Binding ElementName=MoveLeftButton,Path=ActualHeight}">
-                                <Image Source="{Binding MapArrowLeftBitmapSource}"/>
-                            </Button>
-                            <Button x:Name="MoveDownButton" Grid.Row="2" Grid.Column="2" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Down" Width="{Binding ElementName=MoveDownButton,Path=ActualHeight}">
-                                <Image Source="{Binding MapArrowDownBitmapSource}"/>
-                            </Button>
-                            <Button x:Name="MoveRightButton" Grid.Row="2" Grid.Column="3" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Right" Width="{Binding ElementName=MoveRightButton,Path=ActualHeight}">
-                                <Image Source="{Binding MapArrowRightBitmapSource}"/>
-                            </Button>
-                        </Grid>
-
-                        <Border Grid.Column="3" BorderThickness="0.5" BorderBrush="Gray" Margin="0 5 0 0"/>
+                <Border Grid.Column="1" BorderThickness="1" BorderBrush="Gray" CornerRadius="10" Margin="0 10 0 0">
+                    <Grid Margin="10 10 5 10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
                         <!--Show map grid-->
-                        <Grid Grid.Column="4" Margin="20 0 0 0">
+                        <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
                                 <RowDefinition Height="auto"/>
                                 <RowDefinition Height="auto"/>
                             </Grid.RowDefinitions>
 
-                            <Button Grid.Row="1" Grid.Column="1" Content="Show map" Command="{Binding ShowMapCommand}"/>
-                            <CheckBox Grid.Row="1" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0 0 2 0" IsChecked="{Binding IsShowMapLocked}">
+                            <Button Content="Show map" Command="{Binding ShowMapCommand}"/>
+                            <CheckBox HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0 0 2 0" IsChecked="{Binding IsShowMapLocked}">
                                 <CheckBox.LayoutTransform>
                                     <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
                                 </CheckBox.LayoutTransform>
                             </CheckBox>
-                            <Button Grid.Row="2" Grid.Column="1" Content="Clear all" Margin="0 10 0 0" Command="{Binding ClearAllCommand}"/>
+                            <Button Grid.Row="1" Content="Clear all" Margin="0 10 0 0" Command="{Binding ClearAllCommand}"/>
+                        </Grid>
+
+                        <!--Control buttons grid-->
+                        <Grid Grid.Row="1" HorizontalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!--Zoom buttons grid-->
+                            <Grid Margin="0 10 10 0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <Button x:Name="ZoomInButton" Grid.Column="2" Margin="0 0 0 5" Command="{Binding MapZoomInCommand}" CommandParameter="Up" Width="{Binding ElementName=ZoomInButton,Path=ActualHeight}">
+                                    <Image Source="{Binding MapZoomInBitmapSource}"/>
+                                </Button>
+                                <Button x:Name="ZoomOutButton" Grid.Row="1" Grid.Column="2" Margin="0 5 0 0" Command="{Binding MapZoomOutCommand}" CommandParameter="Up" Width="{Binding ElementName=ZoomOutButton,Path=ActualHeight}">
+                                    <Image Source="{Binding MapZoomOutBitmapSource}"/>
+                                </Button>
+                            </Grid>
+
+                            <Border Grid.Column="1" BorderThickness="0.5" BorderBrush="Gray" Margin="0 10 0 0"/>
+
+                            <!--Map arrows grid-->
+                            <Grid Grid.Column="2" Margin="5 10 0 0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Button x:Name="MoveUpButton" Grid.Column="2" Margin="5 0 5 5" Command="{Binding MoveMapArrowCommand}" CommandParameter="Up" Width="{Binding ElementName=MoveUpButton,Path=ActualHeight}">
+                                    <Image Source="{Binding MapArrowUpBitmapSource}"/>
+                                </Button>
+                                <Button x:Name="MoveLeftButton" Grid.Row="1" Grid.Column="1" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Left" Width="{Binding ElementName=MoveLeftButton,Path=ActualHeight}">
+                                    <Image Source="{Binding MapArrowLeftBitmapSource}"/>
+                                </Button>
+                                <Button x:Name="MoveDownButton" Grid.Row="1" Grid.Column="2" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Down" Width="{Binding ElementName=MoveDownButton,Path=ActualHeight}">
+                                    <Image Source="{Binding MapArrowDownBitmapSource}"/>
+                                </Button>
+                                <Button x:Name="MoveRightButton" Grid.Row="1" Grid.Column="3" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Right" Width="{Binding ElementName=MoveRightButton,Path=ActualHeight}">
+                                    <Image Source="{Binding MapArrowRightBitmapSource}"/>
+                                </Button>
+                            </Grid>
                         </Grid>
                     </Grid>
                 </Border>
+
+                <!--Configuration menu-->
+                <Expander Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Top" ExpandDirection="Left" IsExpanded="{Binding IsConfigurationMenuExpanded}" Margin="0 10 0 0">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="MouseLeave">
+                            <i:InvokeCommandAction Command="{Binding HideConfigurationCommand}"/>
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                    <Expander.Header>
+                        <TextBlock Text="Settings" Margin="5 0 5 0" FontWeight="Bold">
+                            <TextBlock.LayoutTransform>
+                                <RotateTransform Angle="90"/>
+                            </TextBlock.LayoutTransform>
+                        </TextBlock>
+                    </Expander.Header>
+                    <Border Grid.Column="2" BorderThickness="1" BorderBrush="Gray" CornerRadius="10" MinWidth="220">
+                        <!--Settings grid-->
+                        <Grid Margin="10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+                            <!--Server status grid-->
+                            <Grid Grid.Row="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="Server:"/>
+                                <Label Grid.Column="1" Content="{Binding ServerConnectionStatus}" Foreground="{Binding ServerConnectionStatusColor}"/>
+                            </Grid>
+                            <Button Grid.Row="2" Content="{Binding ServerConnectionButtonText}" Command="{Binding ServerConnectionCommand}" IsEnabled="{Binding ServerConnectionButtonEnabled}"/>
+                            <!--Open and save grid-->
+                            <Grid Grid.Row="3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Content="Open" Margin="0 10 5 0" Command="{Binding OpenMapCommand}"/>
+                                <Button Grid.Column="1" Content="Save" Margin="5 10 0 0" Command="{Binding SaveMapCommand}"/>
+                            </Grid>
+                            <Button Grid.Row="4" Content="Settings" Margin="0 10 0 0" Command="{Binding SettingsCommand}"/>
+                        </Grid>
+                    </Border>
+                </Expander>
             </Grid>
         </Grid>
     </Grid>
