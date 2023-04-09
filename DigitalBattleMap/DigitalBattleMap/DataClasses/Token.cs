@@ -90,6 +90,7 @@ namespace DigitalBattleMap
         public List<Condition> Conditions { get; set; } = new List<Condition>();
         public bool Visible { get; set; } = true;
         public int ZLevel { get; set; }
+        public int Initiative { get; set; }
 
         [JsonIgnore]
         public ICommand TokenSizeChangedCommand { get; set; }

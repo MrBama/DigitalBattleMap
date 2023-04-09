@@ -248,6 +248,20 @@ namespace DigitalBattleMap
             }
         }
 
+        public static Point<int> CalculateGridOffset(int gridSize)
+        {
+            var middleGridCellX = (_width / 2) - (gridSize / 2);
+            var middleGridCellY = (_height / 2) - (gridSize / 2);
+
+            var xModulo = middleGridCellX % gridSize;
+            var yModulo = middleGridCellY % gridSize;
+
+            var startX = xModulo == 0 ? 0 : xModulo;
+            var startY = yModulo == 0 ? 0 : yModulo;
+
+            return new Point<int>(startX, startY);
+        }
+
         private static bool IsTokenVisible(Point<int> drawingPosition, int gridSize)
         {
             var isVisible = true;
@@ -359,20 +373,6 @@ namespace DigitalBattleMap
             {
                 graphics.DrawImage(image, position.X, position.Y);
             }
-        }
-
-        private static Point<int> CalculateGridOffset(int gridSize)
-        {
-            var middleGridCellX = (_width / 2) - (gridSize / 2);
-            var middleGridCellY = (_height / 2) - (gridSize / 2);
-
-            var xModulo = middleGridCellX % gridSize;
-            var yModulo = middleGridCellY % gridSize;
-
-            var startX = xModulo == 0 ? 0 : xModulo;
-            var startY = yModulo == 0 ? 0 : yModulo;
-
-            return new Point<int>(startX, startY);
         }
 
         private static void DrawGrid(Bitmap bitmap, int gridSize)

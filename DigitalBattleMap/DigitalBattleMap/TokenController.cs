@@ -364,6 +364,14 @@ namespace DigitalBattleMap
             }
         }
 
+        public void SortInitiative()
+        {
+            lock (_lock)
+            {
+                TokenList.OrderCurrentByDescending(t => t.Initiative);
+            }
+        }
+
         private void NotifyTokenEditorUpdated()
         {
             TokenEditorUpdated?.Invoke(this, new EventArgs());

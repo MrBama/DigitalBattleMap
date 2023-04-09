@@ -217,6 +217,7 @@
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -227,42 +228,18 @@
                         <ListView Grid.Row="1" ItemsSource="{Binding TokenList}" HorizontalContentAlignment="Stretch" Margin="0 10 0 0" SelectedItem="{Binding SelectedToken}" FontSize="15">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid>
+                                    <Grid Background="Transparent">
                                         <Grid.ContextMenu>
                                             <ContextMenu>
                                                 <MenuItem Header="Visible" IsChecked="{Binding Visible}" Command="{Binding TokenVisibilityCommand}"/>
                                                 <MenuItem Header="Player control" IsChecked="{Binding Token.PlayerControl}" Command="{Binding PlayerControlCommand}"/>
                                                 <MenuItem Header="Size">
-                                                    <MenuItem 
-                                                                Header="Tiny" 
-                                                                IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Tiny}"
-                                                                Command="{Binding TokenSizeChangedCommand}"
-                                                                CommandParameter="Tiny"/>
-                                                    <MenuItem 
-                                                                Header="Small" 
-                                                                IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Small}"
-                                                                Command="{Binding TokenSizeChangedCommand}"
-                                                                CommandParameter="Small"/>
-                                                    <MenuItem 
-                                                                Header="Medium" 
-                                                                IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Medium}"
-                                                                Command="{Binding TokenSizeChangedCommand}"
-                                                                CommandParameter="Medium"/>
-                                                    <MenuItem 
-                                                                Header="Large" 
-                                                                IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Large}"
-                                                                Command="{Binding TokenSizeChangedCommand}"
-                                                                CommandParameter="Large"/>
-                                                    <MenuItem 
-                                                                Header="Huge" 
-                                                                IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Huge}"
-                                                                Command="{Binding TokenSizeChangedCommand}"
-                                                                CommandParameter="Huge"/>
-                                                    <MenuItem 
-                                                                Header="Gargantuan" 
-                                                                IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Gargantuan}"
-                                                                Command="{Binding TokenSizeChangedCommand}"
-                                                                CommandParameter="Gargantuan"/>
+                                                    <MenuItem Header="Tiny" IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Tiny}" Command="{Binding TokenSizeChangedCommand}" CommandParameter="Tiny"/>
+                                                    <MenuItem Header="Small" IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Small}" Command="{Binding TokenSizeChangedCommand}" CommandParameter="Small"/>
+                                                    <MenuItem Header="Medium" IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Medium}" Command="{Binding TokenSizeChangedCommand}" CommandParameter="Medium"/>
+                                                    <MenuItem Header="Large" IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Large}" Command="{Binding TokenSizeChangedCommand}" CommandParameter="Large"/>
+                                                    <MenuItem Header="Huge" IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Huge}" Command="{Binding TokenSizeChangedCommand}" CommandParameter="Huge"/>
+                                                    <MenuItem Header="Gargantuan" IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Gargantuan}" Command="{Binding TokenSizeChangedCommand}" CommandParameter="Gargantuan"/>
                                                 </MenuItem>
                                                 <MenuItem Header="Conditions">
                                                     <MenuItem Header="Baned" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Baned}" Command="{Binding ConditionChangedCommand}" CommandParameter="Baned"/>
@@ -296,27 +273,43 @@
                                                 <MenuItem Header="Move to back" Command="{Binding MoveToBackCommand}"/>
                                             </ContextMenu>
                                         </Grid.ContextMenu>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="8.5*"/>
-                                            <ColumnDefinition Width="auto"/>
-                                            <ColumnDefinition Width="1.5*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Label Content="{Binding Token.Name}"/>
-                                        <Label Grid.Column="1" Content="ID:" HorizontalAlignment="Right"/>
-                                        <Label Grid.Column="2" Content="{Binding Id}"/>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="auto"/>
+                                            <RowDefinition Height="auto"/>
+                                        </Grid.RowDefinitions>
+                                        <!--Name and Id grid-->
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="auto"/>
+                                                <ColumnDefinition Width="auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Label Content="{Binding Token.Name}" FontWeight="Bold"/>
+                                            <Label Grid.Column="1" Content="ID:" HorizontalAlignment="Right" FontWeight="Bold"/>
+                                            <Label Grid.Column="2" Content="{Binding Id}" FontWeight="Bold"/>
+                                        </Grid>
+                                        <!--Initiative and HP grid-->
+                                        <Grid Grid.Row="1" Margin="0 5 0 0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="auto"/>
+                                                <ColumnDefinition Width="auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="auto"/>
+                                                <ColumnDefinition Width="auto"/>
+                                                <ColumnDefinition Width="auto"/>
+                                                <ColumnDefinition Width="auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Label Content="Initiative"/>
+                                            <TextBox Grid.Column="1" VerticalContentAlignment="Center" MinWidth="45" Margin="10 0 0 0" Text="{Binding Initiative, UpdateSourceTrigger=PropertyChanged}"/>
+                                            <TextBox Grid.Column="3" VerticalContentAlignment="Center" MinWidth="45"/>
+                                            <Label Grid.Column="4" Content="/"/>
+                                            <TextBox Grid.Column="5" VerticalContentAlignment="Center" MinWidth="45"/>
+                                            <Label Grid.Column="6" Content="HP"/>
+                                        </Grid>
                                     </Grid>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
-                        <!--Tokens listview grid-->
-                        <Grid Grid.Row="1" Grid.Column="1" Margin="0 10 0 0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="5*"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="5*"/>
-                            </Grid.RowDefinitions>
-                        </Grid>
                         <Grid Grid.Row="2" Margin="0 10 0 0">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto"/>
@@ -338,7 +331,8 @@
                             <Button x:Name="AddTokenButton" Grid.Row="1" Content="Add" Margin="0 10 5 0" Command="{Binding AddTokenCommand}"/>
                             <Button Grid.Row="1" Grid.Column="1" Content="Remove" Margin="5 10 0 0" Command="{Binding RemoveTokenCommand}" IsEnabled="{Binding IsTokenSelected}"/>
                         </Grid>
-                        <Button Grid.Row="3" Content="Clear" Margin="0 10 0 0" Command="{Binding ClearTokensCommand}"/>
+                        <Button Grid.Row="3" Content="Sort initiative" Margin="0 10 0 0" Command="{Binding SortInitiativeCommand}"/>
+                        <Button Grid.Row="4" Content="Clear" Margin="0 10 0 0" Command="{Binding ClearTokensCommand}"/>
                     </Grid>
                 </Border>
             </TabItem>

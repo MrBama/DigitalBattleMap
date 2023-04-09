@@ -118,22 +118,12 @@ namespace DigitalBattleMap
 
         private void OrderTokenList()
         {
-            var orderedTokens = TokenList.OrderBy(t => t.Name).ToList();
-            TokenList.Clear();
-            foreach (var token in orderedTokens)
-            {
-                TokenList.Add(token);
-            }
+            TokenList.OrderCurrentBy(t => t.Name);
         }
 
         private void OrderGroupList()
         {
-            var orderedGroups = GroupList.OrderBy(t => t.Name).ToList();
-            GroupList.Clear();
-            foreach (var group in orderedGroups)
-            {
-                GroupList.Add(group);
-            }
+            GroupList.OrderCurrentBy(t => t.Name);
         }
 
         private void AddGroup()

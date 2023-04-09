@@ -124,6 +124,7 @@ namespace DigitalBattleMap
         public ICommand MapZoomInCommand { get; set; }
         public ICommand MapZoomOutCommand { get; set; }
         public ICommand HideConfigurationCommand { get; set; }
+        public ICommand SortInitiativeCommand { get; set; }
 
         public void Initialize()
         {
@@ -173,6 +174,7 @@ namespace DigitalBattleMap
             MapZoomInCommand = new RelayCommand(p => Zoom(GridSize + 10));
             MapZoomOutCommand = new RelayCommand(p => Zoom(GridSize - 10));
             HideConfigurationCommand = new RelayCommand(p => { IsConfigurationMenuExpanded = false; });
+            SortInitiativeCommand = new RelayCommand(p => _tokenController.SortInitiative());
 
             InkCanvasDrawingAttributes.Width = PenSize;
             InkCanvasDrawingAttributes.Height = PenSize;
