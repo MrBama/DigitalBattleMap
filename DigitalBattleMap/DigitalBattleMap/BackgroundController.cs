@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Utilities;
+using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Media.Imaging;
@@ -24,8 +26,8 @@ namespace DigitalBattleMap
             _bitmapSize = BitmapTools.GetBitmapSize();
         }
 
-        public event EventHandler BackgroundEditorUpdated;
-        public event EventHandler BackgroundUpdated;
+        public event EventHandler OnBackgroundEditorUpdated;
+        public event EventHandler OnBackgroundUpdated;
 
         public int GridCellsWidth
         {
@@ -235,12 +237,12 @@ namespace DigitalBattleMap
 
         private void NotifyBackgroundUpdated()
         {
-            BackgroundUpdated?.Invoke(this, new EventArgs());
+            OnBackgroundUpdated?.Invoke(this, new EventArgs());
         }
 
         private void NotifyBackgroundEditorUpdated()
         {
-            BackgroundEditorUpdated?.Invoke(this, new EventArgs());
+            OnBackgroundEditorUpdated?.Invoke(this, new EventArgs());
         }
 
         private void CreateBackground()

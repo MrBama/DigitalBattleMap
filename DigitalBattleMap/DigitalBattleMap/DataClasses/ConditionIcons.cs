@@ -1,7 +1,7 @@
 ﻿using System.Drawing;
 using System.Reflection;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.DataClasses
 {
     public class ConditionIcons
     {

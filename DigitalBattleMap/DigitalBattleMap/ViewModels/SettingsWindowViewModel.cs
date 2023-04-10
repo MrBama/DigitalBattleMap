@@ -1,7 +1,10 @@
-﻿using System.Collections.ObjectModel;
+﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Utilities;
+using DigitalBattleMap.Views;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.ViewModels
 {
     public class SettingsWindowViewModel
     {

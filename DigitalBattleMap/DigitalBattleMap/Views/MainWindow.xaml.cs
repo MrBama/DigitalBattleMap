@@ -1,6 +1,7 @@
-﻿using System.Windows;
+﻿using DigitalBattleMap.ViewModels;
+using System.Windows;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

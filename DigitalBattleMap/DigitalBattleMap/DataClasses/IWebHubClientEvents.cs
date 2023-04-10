@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DigitalBattleMap;
+namespace DigitalBattleMap.DataClasses;
 
 public interface IWebHubClientEvents
 {

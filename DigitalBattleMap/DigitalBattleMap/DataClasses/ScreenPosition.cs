@@ -1,4 +1,4 @@
-﻿namespace DigitalBattleMap
+﻿namespace DigitalBattleMap.DataClasses
 {
     public class ScreenPosition
     {

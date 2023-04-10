@@ -1,18 +1,18 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.Common.Dto;
-using DigitalBattleMap.Utility;
+using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Utilities;
+using DigitalBattleMap.Views;
 using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.ViewModels
 {
     public class MainWindowViewModel : PropertyHandler
     {
@@ -135,12 +135,12 @@ namespace DigitalBattleMap
             _gridBitmap = BitmapTools.CreateGrid(GridSize);
             _inkCanvasBitmap = BitmapTools.CreateEmptyBitmap();
             _backgroundController = new BackgroundController(_windowService);
-            _backgroundController.BackgroundEditorUpdated += BackgroundEditorUpdated;
-            _backgroundController.BackgroundUpdated += BackgroundUpdated;
+            _backgroundController.OnBackgroundEditorUpdated += BackgroundEditorUpdated;
+            _backgroundController.OnBackgroundUpdated += BackgroundUpdated;
             _tokenController = new TokenController(_windowService, _settings, GridSize);
-            _tokenController.TokenEditorUpdated += TokenEditorUpdated;
-            _tokenController.TokenBitmapUpdated += TokenBitmapUpdated;
-            _tokenController.SelectedTokenBitmapUpdated += SelectedTokenBitmapUpdated;
+            _tokenController.OnTokenEditorUpdated += TokenEditorUpdated;
+            _tokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
+            _tokenController.OnSelectedTokenBitmapUpdated += SelectedTokenBitmapUpdated;
             
             _connectionManager = new ConnectionManager();
             _connectionManager.OnConnected += ConnectionManagerConnected;

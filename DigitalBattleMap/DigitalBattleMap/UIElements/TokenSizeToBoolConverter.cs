@@ -1,8 +1,9 @@
-﻿using System;
+﻿using DigitalBattleMap.DataClasses;
+using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.UIElements
 {
     public class TokenSizeToBoolConverter : IValueConverter
     {

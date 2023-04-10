@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Utilities;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.ViewModels
 {
     public class CreateTokenWindowViewModel : PropertyHandler
     {

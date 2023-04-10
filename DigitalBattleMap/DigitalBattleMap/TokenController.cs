@@ -1,4 +1,8 @@
 ﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Utilities;
+using DigitalBattleMap.ViewModels;
+using DigitalBattleMap.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -32,9 +36,9 @@ namespace DigitalBattleMap
             ReloadMonsterTokens();
         }
 
-        public event EventHandler TokenEditorUpdated;
-        public event EventHandler TokenBitmapUpdated;
-        public event EventHandler SelectedTokenBitmapUpdated;
+        public event EventHandler OnTokenEditorUpdated;
+        public event EventHandler OnTokenBitmapUpdated;
+        public event EventHandler OnSelectedTokenBitmapUpdated;
 
         public TokenListItem SelectedToken
         {
@@ -368,17 +372,17 @@ namespace DigitalBattleMap
 
         private void NotifyTokenEditorUpdated()
         {
-            TokenEditorUpdated?.Invoke(this, new EventArgs());
+            OnTokenEditorUpdated?.Invoke(this, new EventArgs());
         }
 
         private void NotifyTokenBitmapUpdated()
         {
-            TokenBitmapUpdated?.Invoke(this, new EventArgs());
+            OnTokenBitmapUpdated?.Invoke(this, new EventArgs());
         }
 
         private void NotifySelectedTokenBitmapUpdated()
         {
-            SelectedTokenBitmapUpdated?.Invoke(this, new EventArgs());
+            OnSelectedTokenBitmapUpdated?.Invoke(this, new EventArgs());
         }
 
         private Point<int> CalculateStartPosition(int index)

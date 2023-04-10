@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using DigitalBattleMap.Utilities;
+using System.Collections.Generic;
 using System.IO;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.DataClasses
 {
     public class Settings
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.Utilities
 {
     public class PropertyHandler : INotifyPropertyChanged
     {

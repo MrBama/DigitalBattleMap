@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.DataClasses
 {
     public class TokenGroup : INotifyPropertyChanged
     {

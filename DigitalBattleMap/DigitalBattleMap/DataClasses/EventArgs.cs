@@ -1,7 +1,7 @@
 ﻿using System;
 using DigitalBattleMap.Common;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.DataClasses
 {
     public class MoveTokenActionEventArgs : EventArgs
     {

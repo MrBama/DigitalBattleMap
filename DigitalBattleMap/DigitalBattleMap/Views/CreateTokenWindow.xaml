@@ -1,16 +1,19 @@
-﻿<Window x:Class="DigitalBattleMap.CreateTokenWindow"
+﻿<Window x:Class="DigitalBattleMap.Views.CreateTokenWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DigitalBattleMap" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:local="clr-namespace:DigitalBattleMap.Views" 
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
+        xmlns:dataclasses="clr-namespace:DigitalBattleMap.DataClasses"
+        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels"
         mc:Ignorable="d"
         Title="CreateTokenWindow" Height="500" Width="500"
         FontSize="17"
         WindowStartupLocation="CenterScreen"
         FocusManager.FocusedElement="{Binding ElementName=NameTextBox}">
     <Window.DataContext>
-        <local:CreateTokenWindowViewModel/>
+        <viewmodels:CreateTokenWindowViewModel/>
     </Window.DataContext>
 
     <!--Main grid-->
@@ -34,12 +37,12 @@
         <TextBox x:Name="NameTextBox" Grid.Row="2" Grid.Column="1" Margin="10 20 0 0" VerticalContentAlignment="Center" Text="{Binding TokenName, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding ToolTip}"/>
         <Label Grid.Row="3" Content="Size" Margin="0 10 0 0"/>
         <ComboBox Grid.Row="3" Grid.Column="1" Margin="10 10 0 0" SelectedItem="{Binding SelectedTokenSize}" VerticalContentAlignment="Center">
-            <local:TokenSize>Tiny</local:TokenSize>
-            <local:TokenSize>Small</local:TokenSize>
-            <local:TokenSize>Medium</local:TokenSize>
-            <local:TokenSize>Large</local:TokenSize>
-            <local:TokenSize>Huge</local:TokenSize>
-            <local:TokenSize>Gargantuan</local:TokenSize>
+            <dataclasses:TokenSize>Tiny</dataclasses:TokenSize>
+            <dataclasses:TokenSize>Small</dataclasses:TokenSize>
+            <dataclasses:TokenSize>Medium</dataclasses:TokenSize>
+            <dataclasses:TokenSize>Large</dataclasses:TokenSize>
+            <dataclasses:TokenSize>Huge</dataclasses:TokenSize>
+            <dataclasses:TokenSize>Gargantuan</dataclasses:TokenSize>
         </ComboBox>
         <Label Grid.Row="4" Content="Player control" Margin="0 10 0 0"/>
         <CheckBox Grid.Row="4" Grid.Column="1"  VerticalContentAlignment="Center" Margin="10 10 0 0" IsChecked="{Binding PlayerControl}"/>

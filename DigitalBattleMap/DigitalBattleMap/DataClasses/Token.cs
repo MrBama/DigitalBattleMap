@@ -1,10 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿using DigitalBattleMap.Utilities;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Input;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.DataClasses
 {
     public class Token : PropertyHandler
     {

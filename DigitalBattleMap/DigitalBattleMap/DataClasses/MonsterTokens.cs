@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.DataClasses
 {
     public static class MonsterTokens
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.DataClasses
 {
     public class Point<T> where T : IEquatable<T>
     {

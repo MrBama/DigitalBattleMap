@@ -6,8 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Windows.Media.Imaging;
 using System.Collections.ObjectModel;
+using DigitalBattleMap.DataClasses;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.Utilities
 {
     public static class Extensions
     {
@@ -85,6 +86,13 @@ namespace DigitalBattleMap
             {
                 source.Add(item);
             }
+        }
+
+        public static byte[] ToPng(this Bitmap bitmap)
+        {
+            using MemoryStream stream = new();
+            bitmap.Save(stream, ImageFormat.Png);
+            return stream.ToArray();
         }
     }
 }

@@ -1,11 +1,13 @@
-﻿using System;
+﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Utilities;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Windows.Input;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.ViewModels
 {
     public class DownloadWindowViewModel : PropertyHandler
     {
