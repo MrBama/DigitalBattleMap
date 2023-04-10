@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Input;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.UIElements
 {
     public class MouseBehavior : Behavior<FrameworkElement>
     {

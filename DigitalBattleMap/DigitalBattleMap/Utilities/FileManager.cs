@@ -2,7 +2,7 @@
 using System.IO;
 using Formatting = Newtonsoft.Json.Formatting;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.Utilities
 {
     public static class FileManager
     {

@@ -8,7 +8,7 @@ using System.Windows.Media.Imaging;
 using System.Collections.ObjectModel;
 using DigitalBattleMap.DataClasses;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.Utilities
 {
     public static class Extensions
     {

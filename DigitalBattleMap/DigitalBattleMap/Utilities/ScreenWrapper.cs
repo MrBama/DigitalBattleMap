@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Forms;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.Utilities
 {
     /// <summary>
     /// Unfortunately, there is no equivalent of the Screen class in WPF.

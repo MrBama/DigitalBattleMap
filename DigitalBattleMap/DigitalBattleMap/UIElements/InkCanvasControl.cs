@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Ink;
 using System.Windows.Media;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.UIElements
 {
     /// <summary>
     /// InkCanvasControl class extending the InkCanvas class

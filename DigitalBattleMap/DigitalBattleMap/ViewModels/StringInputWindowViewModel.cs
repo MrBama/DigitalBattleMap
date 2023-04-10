@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DigitalBattleMap.Utilities;
+using System;
 using System.Windows.Input;
 
 namespace DigitalBattleMap
