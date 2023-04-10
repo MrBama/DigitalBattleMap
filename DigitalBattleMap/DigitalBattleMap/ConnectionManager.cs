@@ -1,219 +1,115 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing.Imaging;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Net.Sockets;
-using System.Net;
-using System.Text;
-using System.Threading;
+﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.Common.Dto;
+using DigitalBattleMap.Events;
+using Microsoft.AspNetCore.SignalR.Client;
+using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.Json;
 using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Collections.Concurrent;
-using System.Windows.Shapes;
-using DigitalBattleMap.Common;
-using DigitalBattleMap.Common.DigitalBattleMap.Common;
-using System.Windows.Media;
 
 namespace DigitalBattleMap
 {
-    public class ConnectionManager
+    public class ConnectionManager : IWebHub, IWebHubClientEvents
     {
-        private Thread _thread;
-        private bool _isTerminated = false;
-        private bool _isConnected = false;
-        private ConcurrentQueue<MapUpdate> _messageQueue = new ConcurrentQueue<MapUpdate>();
-        private TcpMessageHandler _tcpMessageHandler;
+        private const string WebHubConnectionEndpoint = "/WebHub";
+        private const string MapHubConnectionEndpoint = "/MapHub";
 
-        public ConnectionManager()
+        // HttpClients
+        private HttpClient _httpClient;
+        
+        // Hubs
+        private HubConnection _webHubConnection;
+        private HubConnection _mapHubConnection;
+
+        // Events
+        public event EventHandler<EventArgs> OnConnected;
+        public event EventHandler<EventArgs> OnDisconnect;
+        public event IWebHubClientEvents.MoveTokenActionEventHandler OnMoveToken;
+
+        private bool _isConnected;
+
+        public void Connect(string address)
         {
-            _tcpMessageHandler = new TcpMessageHandler(() => _isTerminated);
-            _tcpMessageHandler.MessageReceived += OnMessageReceived;
-        }
+            _httpClient = new HttpClient { BaseAddress = new Uri(address) };
 
-        public delegate void MoveTokenActionEventHandler(object sender, MoveTokenActionEventArgs e);
+            _webHubConnection = new HubConnectionBuilder()
+                .WithUrl($"{address}{WebHubConnectionEndpoint}")
+                .Build();
 
-        public event EventHandler Connected;
-        public event EventHandler Disconnected;
-        public event MoveTokenActionEventHandler MoveTokenAction;
+            _mapHubConnection = new HubConnectionBuilder()
+                .WithUrl($"{address}{MapHubConnectionEndpoint}")
+                .Build();
 
-        public void Connect(string ipAddress, int port)
-        {
-            _isTerminated = false;
-            _thread = new Thread(() => InitiateConnection(ipAddress, port));
-            _thread.Start();
+            Task.Run(async () =>
+            {
+                await Task.WhenAll(
+                    _webHubConnection.StartAsync(),
+                    _mapHubConnection.StartAsync());
+            }).Wait();
+
+            Configure();
+
+            _isConnected = true;
+            OnConnected?.Invoke(this, EventArgs.Empty);
         }
 
         public void Disconnect()
         {
-            _isTerminated = true;
-            if (_thread != null)
-            {
-                _thread.Join();
-            }
-        }
+            if (!_isConnected)
+                return;
 
-        public void SendMapUpdate(MapUpdate mapUpdate)
-        {
-            if(_isConnected)
+            Task.Run(async () =>
             {
-                _messageQueue.Enqueue(mapUpdate);
-            }
-        }
+                await Task.WhenAll(
+                    _webHubConnection.StopAsync(),
+                    _webHubConnection.DisposeAsync().AsTask(),
 
-        private void InitiateConnection(string ipAddress, int port)
-        {
-            var ipEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), port);
-            var client = new Socket(ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    _mapHubConnection.StopAsync(),
+                    _mapHubConnection.DisposeAsync().AsTask());
+            }).Wait();
 
-            try
-            {
-                StartClient(client, ipEndPoint);
-            }
-            catch (TerminateException)
-            {
-                if (_isConnected)
-                {
-                    var tcpCommandMessage = new TcpCommandMessage(TcpConstants.TerminateAction);
-                    var sendTask = client.SendAsync(tcpCommandMessage.GetBytes(), SocketFlags.None);
-                    try
-                    {
-                        WaitOnTaskCompletion(sendTask, 2000);
-                    }
-                    catch
-                    {
-                    }
-                }
-                NotifyDisconnected();
-            }
-        }
+            _httpClient.Dispose();
 
-        public void StartClient(Socket client, IPEndPoint ipEndPoint)
-        {
             _isConnected = false;
-            var connectTask = client.ConnectAsync(ipEndPoint);
-            WaitOnTaskCompletion(connectTask, 3000);
-            if (!connectTask.IsCompletedSuccessfully)
-            {
-                throw new TerminateException();
-            }
 
-            _isConnected = true;
-            NotifyConnected();
-
-            while (!_isTerminated)
-            {
-                if (client.Available > 0)
-                {
-                    var receivedBuffer = new byte[client.Available];
-                    var receiveTask = client.ReceiveAsync(receivedBuffer, SocketFlags.None);
-                    WaitOnTaskCompletion(receiveTask);
-                    _tcpMessageHandler.ReceivedBytes(receivedBuffer);
-                }
-
-                if (_messageQueue.TryDequeue(out var mapUpdate))
-                {
-                    var tcpImageMessage = new TcpImageMessage(mapUpdate.GetAction(), mapUpdate.GetBitmap());
-                    var sendTask = client.SendAsync(tcpImageMessage.GetBytes(), SocketFlags.None);
-                    WaitOnTaskCompletion(sendTask);
-                }
-
-                Thread.Sleep(10);
-            }
-
-            throw new TerminateException();
+            OnDisconnect?.Invoke(this, EventArgs.Empty);
         }
 
-        private void OnMessageReceived(object sender, TcpMessageReceivedEventArgs e)
+        public Task MoveToken(string character, Direction direction)
         {
-            var tcpMessage = new TcpMessage(e.Bytes);
-            if (tcpMessage.IsValid)
-            {
-                switch (tcpMessage.Action)
-                {
-                    case TcpConstants.MoveTokenAction:
-                        MoveToken(tcpMessage);
-                        break;
-                    default:
-                        break;
-                }
-            }
+            OnMoveToken?.Invoke(this, new MoveTokenActionEventArgs() { Name = character, Direction = direction });
+            
+            // TODO: Is this clean, can we do without Task?
+            return Task.FromResult<object>(null);
+        }
+        
+        public void SendMapUpdate(MapUpdateDto mapUpdate)
+        {
+            if (!_isConnected)
+                return;
+
+            string json = JsonSerializer.Serialize(mapUpdate);
+
+            StringContent content = new(json);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            HttpRequestMessage message = new (HttpMethod.Post, "/Map/Set") { Content = content };
+            _httpClient.Send(message);
         }
 
-        private void MoveToken(TcpMessage tcpMessage)
+        public void ClearMap()
         {
-            if (TcpCommandMessage.TryParse(tcpMessage, out var tcpImageMessage))
-            {
-                var direction = Enum.Parse<TokenDirection>(tcpImageMessage.Arguments[1]);
+            if (!_isConnected)
+                return;
 
-                var rawName = tcpImageMessage.Arguments[0];
-                var indexOf_ = rawName.LastIndexOf("_");
-                var name = rawName;
-                var id = 1;
-
-                if (indexOf_ != -1 && int.TryParse(rawName.Substring(indexOf_ + 1), out var parsedId))
-                {
-                    name = rawName.Substring(0, indexOf_);
-                    id = parsedId;
-                }
-
-                NotifyMoveTokenAction(name, id, direction);
-            }
+            HttpRequestMessage message = new(HttpMethod.Delete, "/Map/Delete");
+            message.Headers.Add("Layer", DrawLayer.All.ToString());
+            _httpClient.Send(message);
         }
 
-        private void WaitOnTaskCompletion(Task task)
+        private void Configure()
         {
-            while (!task.IsCompleted && !_isTerminated)
-            {
-                Thread.Sleep(10);
-            }
-
-            if (_isTerminated)
-            {
-                throw new TerminateException();
-            }
-        }
-
-        private void WaitOnTaskCompletion(Task task, int timeoutInMilliseconds)
-        {
-            var startTime = DateTime.Now;
-            var endTime = DateTime.Now;
-            while (!task.IsCompleted && !_isTerminated && (endTime - startTime).TotalMilliseconds <= timeoutInMilliseconds)
-            {
-                Thread.Sleep(10);
-                endTime = DateTime.Now;
-            }
-
-            if (_isTerminated)
-            {
-                throw new TerminateException();
-            }
-
-            if ((endTime - startTime).TotalMilliseconds > timeoutInMilliseconds)
-            {
-                throw new TerminateException();
-            }
-        }
-
-        private void NotifyConnected()
-        {
-            Connected?.Invoke(this, new EventArgs());
-        }
-
-        private void NotifyDisconnected()
-        {
-            Disconnected?.Invoke(this, new EventArgs());
-        }
-
-        private void NotifyMoveTokenAction(string name, int id, TokenDirection direction)
-        {
-            var args = new MoveTokenActionEventArgs { Name = name, Id = id, Direction = direction };
-            MoveTokenAction?.Invoke(this, args);
-        }
-
-        public class TerminateException : Exception
-        {
+            _webHubConnection.On<string, Direction>(nameof(MoveToken), MoveToken);
         }
     }
 }

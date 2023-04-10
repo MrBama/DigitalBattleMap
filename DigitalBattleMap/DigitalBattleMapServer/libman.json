@@ -9,6 +9,16 @@
         "dist/browser/signalr.js",
         "dist/browser/signalr.min.js"
       ]
+    },
+    {
+      "provider": "unpkg",
+      "library": "font-awesome@4.7.0",
+      "destination": "wwwroot/lib/font-awesome/"
+    },
+    {
+      "provider": "cdnjs",
+      "library": "tagify@4.17.7",
+      "destination": "wwwroot/lib/tagify/"
     }
   ]
 }
