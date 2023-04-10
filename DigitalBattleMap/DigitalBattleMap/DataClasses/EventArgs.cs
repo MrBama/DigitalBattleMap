@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DigitalBattleMap.Common;
 
 namespace DigitalBattleMap
 {
@@ -10,7 +7,7 @@ namespace DigitalBattleMap
     {
         public string Name { get; set; } = "";
         public int Id { get; set; } = 1;
-        public TokenDirection Direction { get; set; }
+        public Direction Direction { get; set; }
     }
 
     public class ZLevelChangedEventArgs : EventArgs

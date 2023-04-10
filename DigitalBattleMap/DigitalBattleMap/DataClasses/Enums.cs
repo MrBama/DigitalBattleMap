@@ -26,18 +26,6 @@
         Gargantuan
     }
 
-    public enum TokenDirection
-    {
-        UpLeft,
-        Up,
-        UpRight,
-        Left,
-        Right,
-        DownLeft,
-        Down,
-        DownRight
-    }
-
     public enum Condition
     {
         Baned,
