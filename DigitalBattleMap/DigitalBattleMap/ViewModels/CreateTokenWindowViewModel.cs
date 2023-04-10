@@ -7,7 +7,7 @@ using System.Linq;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.ViewModels
 {
     public class CreateTokenWindowViewModel : PropertyHandler
     {

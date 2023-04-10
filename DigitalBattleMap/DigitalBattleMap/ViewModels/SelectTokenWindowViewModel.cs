@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.ViewModels
 {
     public class SelectTokenWindowViewModel : PropertyHandler
     {

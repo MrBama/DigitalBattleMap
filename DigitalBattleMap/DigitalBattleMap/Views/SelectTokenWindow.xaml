@@ -6,13 +6,14 @@
         xmlns:local="clr-namespace:DigitalBattleMap" 
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
         xmlns:dataclasses="clr-namespace:DigitalBattleMap.DataClasses"
+        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels"
         mc:Ignorable="d"
         Title="SelectTokenWindow" Height="550" Width="500"
         FontSize="17"
         WindowStartupLocation="CenterScreen" 
         FocusManager.FocusedElement="{Binding ElementName=SearchTextBox}">
     <Window.DataContext>
-        <local:SelectTokenWindowViewModel/>
+        <viewmodels:SelectTokenWindowViewModel/>
     </Window.DataContext>
     
     <!--Main grid-->

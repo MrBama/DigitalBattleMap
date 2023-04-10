@@ -13,7 +13,7 @@ using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.ViewModels
 {
     public class MainWindowViewModel : PropertyHandler
     {

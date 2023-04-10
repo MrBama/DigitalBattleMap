@@ -3,14 +3,16 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DigitalBattleMap" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:local="clr-namespace:DigitalBattleMap" 
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
+        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels"
         mc:Ignorable="d"
         Title="ConfirmationWindow" Height="200" Width="400"
         FontSize="17"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize">
     <Window.DataContext>
-        <local:ConfirmationWindowViewModel/>
+        <viewmodels:ConfirmationWindowViewModel/>
     </Window.DataContext>
     <Grid Margin="10">
         <Grid.RowDefinitions>

@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Windows.Input;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.ViewModels
 {
     public class DownloadWindowViewModel : PropertyHandler
     {

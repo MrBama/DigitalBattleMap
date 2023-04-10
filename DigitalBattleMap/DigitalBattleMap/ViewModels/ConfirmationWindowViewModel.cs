@@ -1,7 +1,7 @@
 ﻿using DigitalBattleMap.Utilities;
 using System.Windows.Input;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.ViewModels
 {
     public class ConfirmationWindowViewModel
     {

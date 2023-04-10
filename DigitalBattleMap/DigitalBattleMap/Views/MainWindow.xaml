@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:DigitalBattleMap" 
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
         xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements"
+        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels"
         mc:Ignorable="d"
         Title="MainWindow" Height="900" Width="1700"
         WindowStartupLocation="CenterScreen"
@@ -16,7 +17,7 @@
         MinHeight="{x:Static SystemParameters.MaximizedPrimaryScreenHeight}"
         MaxHeight="{x:Static SystemParameters.MaximizedPrimaryScreenHeight}">
     <Window.DataContext>
-        <local:MainWindowViewModel/>
+        <viewmodels:MainWindowViewModel/>
     </Window.DataContext>
     <Window.Resources>
         <uielements:TokenSizeToBoolConverter x:Key="TokenSizeToBoolConverter"/>

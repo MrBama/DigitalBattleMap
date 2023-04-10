@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Media.Imaging;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.ViewModels
 {
     public class MapWindowViewModel : PropertyHandler
     {

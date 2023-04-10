@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DigitalBattleMap"
+        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels"
         mc:Ignorable="d"
         Title="MapWindow" Height="1080" Width="1920"
         WindowStyle="None"
@@ -12,7 +13,7 @@
         Left="{Binding Left, Mode=TwoWay}"
         WindowState="{Binding WindowState, Mode=TwoWay}">
     <Window.DataContext>
-        <local:MapWindowViewModel/>
+        <viewmodels:MapWindowViewModel/>
     </Window.DataContext>
     <Grid>
         <Image Source="{Binding BackgroundBitmapSource}" Margin="6"/>
