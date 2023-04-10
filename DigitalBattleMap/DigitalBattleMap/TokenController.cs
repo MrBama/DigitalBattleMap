@@ -1,5 +1,4 @@
 ﻿using DigitalBattleMap.Common;
-using DigitalBattleMap.Events;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
