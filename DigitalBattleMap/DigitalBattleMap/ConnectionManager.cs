@@ -17,7 +17,7 @@ namespace DigitalBattleMap
 
         // HttpClients
         private HttpClient _httpClient;
-        
+
         // Hubs
         private HubConnection _webHubConnection;
         private HubConnection _mapHubConnection;
@@ -43,15 +43,25 @@ namespace DigitalBattleMap
 
             Task.Run(async () =>
             {
-                await Task.WhenAll(
-                    _webHubConnection.StartAsync(),
-                    _mapHubConnection.StartAsync());
-            }).Wait();
+                try
+                {
+                    await Task.WhenAll(
+                        _webHubConnection.StartAsync(),
+                        _mapHubConnection.StartAsync());
+                }
+                catch
+                {
+                    // Failed to make a connection
+                    _httpClient.Dispose();
+                    OnDisconnect?.Invoke(this, EventArgs.Empty);
+                    throw;
+                }
 
-            Configure();
+                Configure();
 
-            _isConnected = true;
-            OnConnected?.Invoke(this, EventArgs.Empty);
+                _isConnected = true;
+                OnConnected?.Invoke(this, EventArgs.Empty);
+            });
         }
 
         public void Disconnect()
@@ -67,23 +77,23 @@ namespace DigitalBattleMap
 
                     _mapHubConnection.StopAsync(),
                     _mapHubConnection.DisposeAsync().AsTask());
-            }).Wait();
 
-            _httpClient.Dispose();
+                _httpClient.Dispose();
 
-            _isConnected = false;
+                _isConnected = false;
 
-            OnDisconnect?.Invoke(this, EventArgs.Empty);
+                OnDisconnect?.Invoke(this, EventArgs.Empty);
+            });
         }
 
         public Task MoveToken(string character, Direction direction)
         {
             OnMoveToken?.Invoke(this, new MoveTokenActionEventArgs() { Name = character, Direction = direction });
-            
+
             // TODO: Is this clean, can we do without Task?
-            return Task.FromResult<object>(null);
+            return Task.CompletedTask;
         }
-        
+
         public void SendMapUpdate(MapUpdateDto mapUpdate)
         {
             if (!_isConnected)
@@ -93,8 +103,9 @@ namespace DigitalBattleMap
 
             StringContent content = new(json);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            HttpRequestMessage message = new (HttpMethod.Post, "/Map/Set") { Content = content };
-            _httpClient.Send(message);
+            HttpRequestMessage message = new(HttpMethod.Post, "/Map/Set") { Content = content };
+
+            Task.Run(async () => await _httpClient.SendAsync(message));
         }
 
         public void ClearMap()
