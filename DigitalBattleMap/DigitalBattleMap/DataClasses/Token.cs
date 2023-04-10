@@ -91,6 +91,7 @@ namespace DigitalBattleMap
         public bool Visible { get; set; } = true;
         public int ZLevel { get; set; }
         public int Initiative { get; set; }
+        public TokenHealth Health { get; set; } = new TokenHealth();
 
         [JsonIgnore]
         public ICommand TokenSizeChangedCommand { get; set; }

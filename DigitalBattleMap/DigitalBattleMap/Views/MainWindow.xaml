@@ -301,9 +301,19 @@
                                             </Grid.ColumnDefinitions>
                                             <Label Content="Initiative"/>
                                             <TextBox Grid.Column="1" VerticalContentAlignment="Center" MinWidth="45" Margin="10 0 0 0" Text="{Binding Initiative, UpdateSourceTrigger=PropertyChanged}"/>
-                                            <TextBox Grid.Column="3" VerticalContentAlignment="Center" MinWidth="45"/>
+                                            <TextBox Grid.Column="3" VerticalContentAlignment="Center" MinWidth="45" Text="{Binding Health.Hp, UpdateSourceTrigger=PropertyChanged}">
+                                                <TextBox.InputBindings>
+                                                    <KeyBinding Command="{Binding Health.HpEnterCommand}" Key="Enter" />
+                                                    <KeyBinding Command="{Binding Health.HpEscCommand}" Key="Esc" />
+                                                </TextBox.InputBindings>
+                                            </TextBox>
                                             <Label Grid.Column="4" Content="/"/>
-                                            <TextBox Grid.Column="5" VerticalContentAlignment="Center" MinWidth="45"/>
+                                            <TextBox Grid.Column="5" VerticalContentAlignment="Center" MinWidth="45" Text="{Binding Health.MaxHp, UpdateSourceTrigger=PropertyChanged}">
+                                                <TextBox.InputBindings>
+                                                    <KeyBinding Command="{Binding Health.MaxHpEnterCommand}" Key="Enter" />
+                                                    <KeyBinding Command="{Binding Health.MaxHpEscCommand}" Key="Esc" />
+                                                </TextBox.InputBindings>
+                                            </TextBox>
                                             <Label Grid.Column="6" Content="HP"/>
                                         </Grid>
                                     </Grid>
@@ -319,13 +329,10 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <!--Up and down buttons will be updated when initiative is being implemented-->
-                            <!--IsEnabled="{Binding IsTokenUpButtonEnabled}"-->
-                            <Button Margin="0 0 5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="False" Command="{Binding TokenUpCommand}">
+                            <Button Margin="0 0 5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding IsTokenUpButtonEnabled}" Command="{Binding TokenUpCommand}">
                                 <Image Source="{Binding MapArrowUpBitmapSource}"/>
                             </Button>
-                            <!--IsEnabled="{Binding IsTokenDownButtonEnabled}"-->
-                            <Button Grid.Column="1" Margin="5 0 0 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="False" Command="{Binding TokenDownCommand}">
+                            <Button Grid.Column="1" Margin="5 0 0 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding IsTokenDownButtonEnabled}" Command="{Binding TokenDownCommand}">
                                 <Image Source="{Binding MapArrowDownBitmapSource}"/>
                             </Button>
                             <Button x:Name="AddTokenButton" Grid.Row="1" Content="Add" Margin="0 10 5 0" Command="{Binding AddTokenCommand}"/>

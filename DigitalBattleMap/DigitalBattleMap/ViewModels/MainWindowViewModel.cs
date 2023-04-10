@@ -166,8 +166,8 @@ namespace DigitalBattleMap
             AddTokenCommand = new RelayCommand(p => _tokenController.AddToken());
             RemoveTokenCommand = new RelayCommand(p => _tokenController.RemoveToken());
             ClearTokensCommand = new RelayCommand(p => _tokenController.ClearTokens());
-            TokenUpCommand = new RelayCommand(p => _tokenController.TokenUp());
-            TokenDownCommand = new RelayCommand(p => _tokenController.TokenDown());
+            TokenUpCommand = new RelayCommand(p => _tokenController.InitiativeUp());
+            TokenDownCommand = new RelayCommand(p => _tokenController.InitiativeDown());
             CustomTokensCommand = new RelayCommand(p => _tokenController.CustomTokens());
             ServerConnectionCommand = new RelayCommand(p => ServerConnectionButton());
             FitBackgroundToGridCommand = new RelayCommand(p => _backgroundController.FitToGrid(GridSize));

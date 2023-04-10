@@ -301,9 +301,9 @@ namespace DigitalBattleMap
 
                     var textPosition = new Point<int>();
                     textPosition.X = drawingPosition.X + tokenSize.Width / 2;
-                    textPosition.Y = drawingPosition.Y + tokenSize.Height - textSize;
+                    textPosition.Y = drawingPosition.Y + tokenSize.Height / 2;
 
-                    graphics.DrawString(tokenId, new Font("", textSize), brush, textPosition.X, textPosition.Y, stringFormat);
+                    graphics.DrawString(tokenId, new Font("", textSize, FontStyle.Bold), brush, textPosition.X, textPosition.Y, stringFormat);
                 }
             }
         }
