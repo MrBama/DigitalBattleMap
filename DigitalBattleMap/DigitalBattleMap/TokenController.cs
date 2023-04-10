@@ -1,5 +1,4 @@
 ﻿using DigitalBattleMap.Common;
-using DigitalBattleMap.Events;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -136,7 +135,7 @@ namespace DigitalBattleMap
             }
         }
 
-        public void TokenUp()
+        public void InitiativeUp()
         {
             lock (_lock)
             {
@@ -145,12 +144,10 @@ namespace DigitalBattleMap
                 TokenList.Remove(selectedToken);
                 TokenList.Insert(index - 1, selectedToken);
                 SelectedToken = selectedToken;
-                NotifyTokenEditorUpdated();
-                CreateTokenBitmap();
             }
         }
 
-        public void TokenDown()
+        public void InitiativeDown()
         {
             lock (_lock)
             {
@@ -159,8 +156,6 @@ namespace DigitalBattleMap
                 TokenList.Remove(selectedToken);
                 TokenList.Insert(index + 1, selectedToken);
                 SelectedToken = selectedToken;
-                NotifyTokenEditorUpdated();
-                CreateTokenBitmap();
             }
         }
 
@@ -270,6 +265,7 @@ namespace DigitalBattleMap
                     tokenListItem.Token.OnSizeChanged += TokenChanged;
                     tokenListItem.OnTokenChanged += TokenChanged;
                     tokenListItem.OnZLevelChanged += ZLevelChanged;
+                    tokenListItem.Health.InitializeEditorHp();
                 }
 
                 CreateTokenBitmap();
@@ -359,6 +355,14 @@ namespace DigitalBattleMap
 
                     CreateTokenBitmap();
                 }
+            }
+        }
+
+        public void SortInitiative()
+        {
+            lock (_lock)
+            {
+                TokenList.OrderCurrentByDescending(t => t.Initiative);
             }
         }
 

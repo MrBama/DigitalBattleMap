@@ -31,6 +31,9 @@ namespace DigitalBattleMap
                 GroupList.Add(group);
             }
 
+            SelectedToken = TokenList.FirstOrDefault();
+            SelectedGroup = GroupList.FirstOrDefault();
+
             AddCommand = new RelayCommand(p => AddButton());
         }
 
@@ -65,6 +68,8 @@ namespace DigitalBattleMap
                         TokenList.Add(token);
                     }
                 }
+
+                SelectedToken = TokenList.FirstOrDefault();
             }
             else
             {
@@ -76,6 +81,8 @@ namespace DigitalBattleMap
                         GroupList.Add(group);
                     }
                 }
+
+                SelectedGroup = GroupList.FirstOrDefault();
             }
         }
 

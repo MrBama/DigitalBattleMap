@@ -5,6 +5,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows.Media.Imaging;
+using System.Collections.ObjectModel;
 
 namespace DigitalBattleMap
 {
@@ -64,6 +65,26 @@ namespace DigitalBattleMap
         public static IEnumerable<(T item, int index)> WithIndex<T>(this IEnumerable<T> source)
         {
             return source.Select((item, index) => (item, index));
+        }
+
+        public static void OrderCurrentBy<TSource, TKey>(this ObservableCollection<TSource> source, Func<TSource, TKey> keySelector)
+        {
+            var orderedCollection = new ObservableCollection<TSource>(source.OrderBy(keySelector));
+            source.Clear();
+            foreach (var item in orderedCollection)
+            {
+                source.Add(item);
+            }
+        }
+
+        public static void OrderCurrentByDescending<TSource, TKey>(this ObservableCollection<TSource> source, Func<TSource, TKey> keySelector)
+        {
+            var orderedCollection = new ObservableCollection<TSource>(source.OrderByDescending(keySelector));
+            source.Clear();
+            foreach (var item in orderedCollection)
+            {
+                source.Add(item);
+            }
         }
     }
 }

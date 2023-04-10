@@ -125,6 +125,7 @@ namespace DigitalBattleMap
         public ICommand MapZoomInCommand { get; set; }
         public ICommand MapZoomOutCommand { get; set; }
         public ICommand HideConfigurationCommand { get; set; }
+        public ICommand SortInitiativeCommand { get; set; }
 
         public void Initialize()
         {
@@ -168,14 +169,15 @@ namespace DigitalBattleMap
             AddTokenCommand = new RelayCommand(p => _tokenController.AddToken());
             RemoveTokenCommand = new RelayCommand(p => _tokenController.RemoveToken());
             ClearTokensCommand = new RelayCommand(p => _tokenController.ClearTokens());
-            TokenUpCommand = new RelayCommand(p => _tokenController.TokenUp());
-            TokenDownCommand = new RelayCommand(p => _tokenController.TokenDown());
+            TokenUpCommand = new RelayCommand(p => _tokenController.InitiativeUp());
+            TokenDownCommand = new RelayCommand(p => _tokenController.InitiativeDown());
             CustomTokensCommand = new RelayCommand(p => _tokenController.CustomTokens());
             ServerConnectionCommand = new RelayCommand(p => ServerConnectionButton());
             FitBackgroundToGridCommand = new RelayCommand(p => _backgroundController.FitToGrid(GridSize));
             MapZoomInCommand = new RelayCommand(p => Zoom(GridSize + 10));
             MapZoomOutCommand = new RelayCommand(p => Zoom(GridSize - 10));
             HideConfigurationCommand = new RelayCommand(p => { IsConfigurationMenuExpanded = false; });
+            SortInitiativeCommand = new RelayCommand(p => _tokenController.SortInitiative());
 
             InkCanvasDrawingAttributes.Width = PenSize;
             InkCanvasDrawingAttributes.Height = PenSize;

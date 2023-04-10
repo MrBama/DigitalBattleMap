@@ -164,8 +164,9 @@ namespace DigitalBattleMap
         {
             if (_fullBackgroundBitmap != null)
             {
-                var distanceX = gridSize.Map(0, _bitmapSize.Width, 0, _area.Width);
-                var distanceY = gridSize.Map(0, _bitmapSize.Height, 0, _area.Height);
+                double preciseGridSize = gridSize;
+                var distanceX = (int)Math.Round(preciseGridSize.Map(0, _bitmapSize.Width, 0, _area.Width));
+                var distanceY = (int)Math.Round(preciseGridSize.Map(0, _bitmapSize.Height, 0, _area.Height));
 
                 switch (direction)
                 {
@@ -189,11 +190,22 @@ namespace DigitalBattleMap
 
         public void FitToGrid(int gridSize)
         {
+            // Resize background to match grid size
             var newSize = new Size<double>(gridSize * GridCellsWidth, gridSize * GridCellsHeight);
             double factor = _fullBackgroundBitmap.Width / newSize.Width;
 
-            _area.Width = (int)(_bitmapSize.Width * factor);
-            _area.Height = (int)(_bitmapSize.Height * factor);
+            _area.Width = (int)Math.Round(_bitmapSize.Width * factor);
+            _area.Height = (int)Math.Round(_bitmapSize.Height * factor);
+
+            // Move background grid to 0,0
+            double backgroundGridSize = _fullBackgroundBitmap.Width / GridCellsWidth;
+            _area.X += (int)Math.Round(backgroundGridSize - (_area.X % backgroundGridSize));
+            _area.Y += (int)Math.Round(backgroundGridSize - (_area.Y % backgroundGridSize));
+
+            // Move background grid to overlap with normal grid
+            var gridOffset = BitmapTools.CalculateGridOffset(gridSize).ToPointDouble();
+            _area.X -= (int)Math.Round(gridOffset.X.Map(0, _bitmapSize.Width, 0, _area.Width));
+            _area.Y -= (int)Math.Round(gridOffset.Y.Map(0, _bitmapSize.Height, 0, _area.Height));
 
             CreateBackground();
         }

@@ -1,6 +1,5 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.Common.Dto;
-using DigitalBattleMap.Events;
 using Microsoft.AspNetCore.SignalR.Client;
 using System;
 using System.Net.Http;
