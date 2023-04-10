@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.DataClasses
 {
     public class Size<T> where T : IEquatable<T>
     {

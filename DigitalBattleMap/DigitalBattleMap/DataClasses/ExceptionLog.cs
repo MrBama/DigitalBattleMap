@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.DataClasses
 {
     public class ExceptionLog
     {

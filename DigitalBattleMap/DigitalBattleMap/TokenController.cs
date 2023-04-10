@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.DataClasses;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

@@ -1,6 +1,6 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.Common.Dto;
-using DigitalBattleMap.Utility;
+using DigitalBattleMap.DataClasses;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;

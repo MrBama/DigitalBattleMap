@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using DigitalBattleMap.DataClasses;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;

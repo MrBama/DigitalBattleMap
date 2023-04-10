@@ -1,4 +1,4 @@
-﻿namespace DigitalBattleMap
+﻿namespace DigitalBattleMap.DataClasses
 {
     public static class TabIndex
     {

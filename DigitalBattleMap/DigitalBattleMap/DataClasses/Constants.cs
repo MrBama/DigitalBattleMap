@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.DataClasses
 {
     public static class Constants
     {

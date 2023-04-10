@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DigitalBattleMap.DataClasses;
+using System;
 using System.Globalization;
 using System.Windows.Data;
 

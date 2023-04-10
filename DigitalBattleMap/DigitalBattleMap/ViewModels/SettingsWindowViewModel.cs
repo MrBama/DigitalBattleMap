@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using DigitalBattleMap.DataClasses;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
 
 namespace DigitalBattleMap

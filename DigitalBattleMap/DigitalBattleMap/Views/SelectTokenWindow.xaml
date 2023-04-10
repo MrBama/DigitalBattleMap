@@ -3,7 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DigitalBattleMap" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:local="clr-namespace:DigitalBattleMap" 
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
+        xmlns:dataclasses="clr-namespace:DigitalBattleMap.DataClasses"
         mc:Ignorable="d"
         Title="SelectTokenWindow" Height="550" Width="500"
         FontSize="17"
@@ -65,12 +67,12 @@
                         </Grid.ColumnDefinitions>
                         <Label Content="Size"/>
                         <ComboBox Grid.Column="1" Grid.ColumnSpan="2" SelectedItem="{Binding SelectedTokenSize}" IsEnabled="{Binding IsTokenSelected}">
-                            <local:TokenSize>Tiny</local:TokenSize>
-                            <local:TokenSize>Small</local:TokenSize>
-                            <local:TokenSize>Medium</local:TokenSize>
-                            <local:TokenSize>Large</local:TokenSize>
-                            <local:TokenSize>Huge</local:TokenSize>
-                            <local:TokenSize>Gargantuan</local:TokenSize>
+                            <dataclasses:TokenSize>Tiny</dataclasses:TokenSize>
+                            <dataclasses:TokenSize>Small</dataclasses:TokenSize>
+                            <dataclasses:TokenSize>Medium</dataclasses:TokenSize>
+                            <dataclasses:TokenSize>Large</dataclasses:TokenSize>
+                            <dataclasses:TokenSize>Huge</dataclasses:TokenSize>
+                            <dataclasses:TokenSize>Gargantuan</dataclasses:TokenSize>
                         </ComboBox>
                         <Label Grid.Row="1" Content="Number of tokens" Margin="0 10 0 0"/>
                         <TextBox Grid.Row="1" Grid.Column="1" Margin="0 10 0 0" VerticalContentAlignment="Center" Text="{Binding NumberOfTokens}" IsEnabled="{Binding IsTokenSelected}"/>
