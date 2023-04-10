@@ -1,8 +1,5 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.IO;
 using System.Text.RegularExpressions;
-using System.Xml;
 using Formatting = Newtonsoft.Json.Formatting;
 
 namespace MonsterIndexer

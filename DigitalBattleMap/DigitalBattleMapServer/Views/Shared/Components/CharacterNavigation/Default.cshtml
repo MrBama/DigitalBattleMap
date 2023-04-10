@@ -1,0 +1,54 @@
+﻿@model NavigationComponentViewModel
+
+@using DigitalBattleMap.Common
+
+<div class="container text-center">
+    <div class="card">
+        <div class="card-header">
+            Character Selection
+            <div class="row">
+                <select id="character" asp-for="Character" asp-items="Model.Characters"></select>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="grid-container">
+                
+                @* TOP *@
+                <button class="btn btn-secondary btn-direction" direction="@Direction.NorthWest">
+                    <i class="fa fa-arrow-up direction @Direction.NorthWest.ToString()"></i>
+                </button>
+                <button class="btn btn-secondary btn-direction" direction="@Direction.North">
+                    <i class="fa fa-arrow-up direction @Direction.North.ToString()"></i>
+                </button>
+                <button class="btn btn-secondary btn-direction" direction="@Direction.NorthEast">
+                    <i class="fa fa-arrow-up direction @Direction.NorthEast.ToString()"></i>
+                </button>
+                
+                @* MIDDLE *@
+                <button class="btn btn-secondary btn-direction" direction="@Direction.West">
+                    <i class="fa fa-arrow-up direction @Direction.West.ToString()"></i>
+                </button>
+                <button class="btn btn-secondary btn-direction">
+                    <i class="fa fa-times"></i>
+                </button>
+                <button class="btn btn-secondary btn-direction" direction="@Direction.East">
+                    <i class="fa fa-arrow-up direction @Direction.East.ToString()"></i>
+                </button>
+                
+                @* BOTTOM *@
+                <button class="btn btn-secondary btn-direction" direction="@Direction.SouthWest">
+                    <i class="fa fa-arrow-up direction @Direction.SouthWest.ToString()"></i>
+                </button>
+                <button class="btn btn-secondary btn-direction" direction="@Direction.South">
+                    <i class="fa fa-arrow-up direction @Direction.South.ToString()"></i>
+                </button>
+                <button class="btn btn-secondary btn-direction" direction="@Direction.SouthEast">
+                    <i class="fa fa-arrow-up direction @Direction.SouthEast.ToString()"></i>
+                </button>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/components/navigation.js"/>

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
 
 namespace DigitalBattleMap
@@ -46,26 +41,14 @@ namespace DigitalBattleMap
             }
         }
 
-        public string ServerIp
+        public string ServerAddress
         {
-            get => _settings.ServerIp;
+            get => _settings.ServerAddress;
             set
             {
-                if (value != _settings.ServerIp)
+                if (value != _settings.ServerAddress)
                 {
-                    _settings.ServerIp = value;
-                }
-            }
-        }
-
-        public int ServerPort
-        {
-            get => _settings.ServerPort;
-            set
-            {
-                if (value != _settings.ServerPort)
-                {
-                    _settings.ServerPort = value;
+                    _settings.ServerAddress = value;
                 }
             }
         }

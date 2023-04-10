@@ -1,13 +1,11 @@
-﻿using System;
+﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.Events;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
-using System.Runtime;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace DigitalBattleMap
 {
@@ -288,41 +286,41 @@ namespace DigitalBattleMap
         {
             lock (_lock)
             {
-                var tokenListItem = TokenList.SingleOrDefault(t => t.Token.Name.ToLower() == e.Name.ToLower() && t.Id == e.Id && t.Token.PlayerControl);
+                TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => string.Equals(t.Token.Name, e.Name, StringComparison.CurrentCultureIgnoreCase) && t.Token.PlayerControl);
                 if (tokenListItem != null)
                 {
                     switch (e.Direction)
                     {
-                        case TokenDirection.UpLeft:
-                            tokenListItem.Position.X -= _gridSize;
+                        case Direction.North:
                             tokenListItem.Position.Y -= _gridSize;
                             break;
-                        case TokenDirection.Up:
-                            tokenListItem.Position.Y -= _gridSize;
-                            break;
-                        case TokenDirection.UpRight:
+                        case Direction.NorthEast:
                             tokenListItem.Position.X += _gridSize;
                             tokenListItem.Position.Y -= _gridSize;
                             break;
-                        case TokenDirection.Left:
-                            tokenListItem.Position.X -= _gridSize;
-                            break;
-                        case TokenDirection.Right:
+                        case Direction.East:
                             tokenListItem.Position.X += _gridSize;
                             break;
-                        case TokenDirection.DownLeft:
+                        case Direction.SouthEast:
+                            tokenListItem.Position.X += _gridSize;
+                            tokenListItem.Position.Y += _gridSize;
+                            break;
+                        case Direction.South:
+                            tokenListItem.Position.Y += _gridSize;
+                            break;
+                        case Direction.SouthWest:
                             tokenListItem.Position.X -= _gridSize;
                             tokenListItem.Position.Y += _gridSize;
                             break;
-                        case TokenDirection.Down:
-                            tokenListItem.Position.Y += _gridSize;
+                        case Direction.West:
+                            tokenListItem.Position.X -= _gridSize;
                             break;
-                        case TokenDirection.DownRight:
-                            tokenListItem.Position.X += _gridSize;
-                            tokenListItem.Position.Y += _gridSize;
+                        case Direction.NorthWest:
+                            tokenListItem.Position.X -= _gridSize;
+                            tokenListItem.Position.Y -= _gridSize;
                             break;
                         default:
-                            break;
+                            throw new ArgumentOutOfRangeException();
                     }
 
                     CreateTokenBitmap();

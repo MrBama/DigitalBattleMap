@@ -1,33 +1,13 @@
 using DigitalBattleMapServer;
-using Microsoft.AspNetCore.SignalR;
-using WebServer;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddRazorPages();
-builder.Services.AddSignalR();
+// Add all settings file to the configuration
+builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
-var app = builder.Build();
+Startup startup = new (builder.Configuration);
+startup.ConfigureServices(builder.Services);
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error");
-}
-app.UseStaticFiles();
-
-app.UseRouting();
-
-app.UseAuthorization();
-
-app.MapRazorPages();
-app.MapHub<WebHub>("/WebHub");
-app.MapHub<MapHub>("/MapHub");
-
-var hubContext = app.Services.GetService(typeof(IHubContext<MapHub>));
-var connectionController = ConnectionController.GetInstance();
-connectionController.Initialize(hubContext as IHubContext<MapHub>);
-
+WebApplication app = builder.Build();
+startup.Configure(app, app.Environment);
 app.Run();
-connectionController.Terminate();

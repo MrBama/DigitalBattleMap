@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DigitalBattleMap
+﻿namespace DigitalBattleMap
 {
     public static class TabIndex
     {
@@ -12,14 +6,6 @@ namespace DigitalBattleMap
         public const int Grid = 1;
         public const int Drawing = 2;
         public const int Tokens = 3;
-    }
-
-    public enum DrawLayer
-    {
-        All,
-        Background,
-        GridAndStrokes,
-        Tokens
     }
 
     public enum ArrowDirection
@@ -38,18 +24,6 @@ namespace DigitalBattleMap
         Large,
         Huge,
         Gargantuan
-    }
-
-    public enum TokenDirection
-    {
-        UpLeft,
-        Up,
-        UpRight,
-        Left,
-        Right,
-        DownLeft,
-        Down,
-        DownRight
     }
 
     public enum Condition

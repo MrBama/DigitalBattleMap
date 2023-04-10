@@ -1,3 +1,52 @@
+/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+a {
+  color: #0077cc;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.border-top {
+  border-top: 1px solid #e5e5e5;
+}
+.border-bottom {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy {
+  font-size: 1rem;
+  line-height: inherit;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px;
+}
+
 html {
   font-size: 14px;
 }
@@ -15,4 +64,81 @@ html {
 
 body {
   margin-bottom: 60px;
+}
+
+/* Home css */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 25px;
+}
+
+.btn-direction {
+  height: 100px;
+}
+
+i.direction.NorthWest {
+  transform: rotate(-45deg);
+}
+
+i.direction.North {
+  transform: rotate(0deg);
+}
+
+i.direction.NorthEast {
+  transform: rotate(45deg);
+}
+
+i.direction.West {
+  transform: rotate(-90deg);
+}
+
+i.direction.East {
+  transform: rotate(90deg);
+}
+
+i.direction.SouthWest {
+  transform: rotate(-135deg);
+}
+
+i.direction.South {
+  transform: rotate(180deg);
+}
+
+i.direction.SouthEast {
+  transform: rotate(135deg);
+}
+
+/* Map css */
+.map-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.map-image.fullscreen {
+  position: absolute !important;
+  height: 100vh !important;
+  left: 50% !important;
+  transform: translateX(-50%);
+}
+
+.map-container:not(.fullscreen) {
+  position: relative;
+}
+
+.map-container.fullscreen {
+}
+
+.map-image.fullscreen.backdrop {
+  width: 100vw;
+  height: 100vh;
+  background-color: white;
+}
+
+.btn-fullscreen {
+  z-index: 100;
+  position: absolute;
+  bottom: 0;
+  right: 0;
 }

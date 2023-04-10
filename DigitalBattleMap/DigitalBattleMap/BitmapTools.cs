@@ -1,16 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrayNotify;
-using System.Windows.Controls;
-using System.Windows.Ink;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-using static System.Net.Mime.MediaTypeNames;
-using System.Windows.Media.TextFormatting;
+using System.Linq;
+using System.Windows.Ink;
 
 namespace DigitalBattleMap
 {

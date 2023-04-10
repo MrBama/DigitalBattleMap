@@ -1,13 +1,9 @@
-﻿using Microsoft.AspNetCore.SignalR;
-using WebServer;
+﻿using DigitalBattleMap.Common;
+using Microsoft.AspNetCore.SignalR;
 
-namespace DigitalBattleMapServer
+namespace DigitalBattleMapServer.Hubs
 {
-    public class WebHub : Hub
+    public class WebHub : Hub<IWebHub>
     {
-        public void MoveTokenButtonPressed(string user, string direction)
-        {
-            ConnectionController.GetInstance().ButtonPressed(user, direction);
-        }
     }
 }
