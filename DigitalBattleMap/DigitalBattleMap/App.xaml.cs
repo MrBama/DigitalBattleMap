@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.Utilities;
+using DigitalBattleMap.Views;
 using System.Windows;
 
 namespace DigitalBattleMap

@@ -2,6 +2,7 @@
 using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.ViewModels;
+using DigitalBattleMap.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

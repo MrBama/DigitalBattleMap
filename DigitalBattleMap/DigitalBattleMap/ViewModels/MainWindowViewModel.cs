@@ -2,6 +2,7 @@
 using DigitalBattleMap.Common.Dto;
 using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Utilities;
+using DigitalBattleMap.Views;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
