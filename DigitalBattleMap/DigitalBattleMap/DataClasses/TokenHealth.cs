@@ -3,21 +3,24 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Media;
+using Brush = System.Windows.Media.Brush;
+using Brushes = System.Windows.Media.Brushes;
 
 namespace DigitalBattleMap
 {
     public class TokenHealth : PropertyHandler
     {
-        private string _hp;
-        private string _maxHp;
         private string _editorHp;
         private string _editorMaxHp;
+        private Brush _color = Brushes.White;
         private Regex _integerRegex = new Regex(@"^[0-9]*$", RegexOptions.IgnoreCase);
         private Regex _hpRegex = new Regex(@"^([-+])?([0-9]+)*$", RegexOptions.IgnoreCase);
 
@@ -38,7 +41,8 @@ namespace DigitalBattleMap
         [JsonIgnore]
         public ICommand MaxHpEscCommand { get; set; }
 
-        public string Hp
+        [JsonIgnore]
+        public string EditorHp
         {
             get => _editorHp;
             set
@@ -51,7 +55,8 @@ namespace DigitalBattleMap
             }
         }
 
-        public string MaxHp
+        [JsonIgnore]
+        public string EditorMaxHp
         {
             get => _editorMaxHp;
             set
@@ -64,27 +69,46 @@ namespace DigitalBattleMap
             }
         }
 
-        public void ApplyEditorHp()
+        public string Hp { get; set; }
+
+        public string MaxHp { get; set; }
+
+        public Brush Color
         {
-            _hp = _editorHp;
-            _maxHp = _editorMaxHp;
+            get => _color;
+            set
+            {
+                if (value != _color)
+                {
+                    _color = value;
+                    NotifyPropertyChange();
+                }
+            }
+        }
+
+        public void InitializeEditorHp()
+        {
+            EditorHp = Hp;
+            EditorMaxHp = MaxHp;
+            SetHpColor();
         }
 
         private void SetMaxHp(string value)
         {
             if (value == "")
             {
-                _maxHp = null;
-                _hp = null;
+                MaxHp = null;
+                Hp = null;
+                return;
             }
 
             if (_integerRegex.IsMatch(value))
             {
-                if (_hp == null)
+                if (Hp == null)
                 {
-                    _hp = value;
+                    Hp = value;
                 }
-                _maxHp = value;
+                MaxHp = value;
             }
         }
 
@@ -92,15 +116,15 @@ namespace DigitalBattleMap
         {
             if (value == null)
             {
-                _hp = null;
+                Hp = null;
                 return;
             }
 
             if (value == "")
             {
-                if (_maxHp == null)
+                if (MaxHp == null)
                 {
-                    _hp = null;
+                    Hp = null;
                 }
                 return;
             }
@@ -112,49 +136,91 @@ namespace DigitalBattleMap
 
                 if (groups[1].Value == "+")
                 {
-                    newHp = int.Parse(_hp) + int.Parse(groups[2].Value);
+                    newHp = int.Parse(Hp) + int.Parse(groups[2].Value);
                 }
                 else if (groups[1].Value == "-")
                 {
-                    newHp = int.Parse(_hp) - int.Parse(groups[2].Value);
+                    newHp = int.Parse(Hp) - int.Parse(groups[2].Value);
                 }
 
-                if (_maxHp != null && _maxHp != "" && newHp > int.Parse(_maxHp))
+                if (MaxHp != null && MaxHp != "" && newHp > int.Parse(MaxHp))
                 {
-                    _hp = _maxHp;
+                    Hp = MaxHp;
                 }
                 else if (newHp < 0)
                 {
-                    _hp = "0";
+                    Hp = "0";
                 }
                 else
                 {
-                    _hp = newHp.ToString();
+                    Hp = newHp.ToString();
                 }
             }
         }
 
         private void ApplyHp()
         {
-            SetHp(_editorHp);
-            Hp = _hp;
+            SetHp(EditorHp);
+            EditorHp = Hp;
+            SetHpColor();
         }
 
         private void ApplyMaxHp()
         {
-            SetMaxHp(_editorMaxHp);
-            Hp = _hp;
-            MaxHp = _maxHp;
+            SetMaxHp(EditorMaxHp);
+            EditorHp = Hp;
+            EditorMaxHp = MaxHp;
+            SetHpColor();
         }
 
         private void DiscardHp()
         {
-            Hp = _hp;
+            EditorHp = Hp;
         }
 
         private void DiscardMaxHp()
         {
-            MaxHp = _maxHp;
+            EditorMaxHp = MaxHp;
+        }
+
+        private void SetHpColor()
+        {
+            if (Hp != null && MaxHp != null && Hp != "" && MaxHp != "")
+            {
+                var brush = Brushes.LimeGreen;
+                double percentage = double.Parse(Hp) / double.Parse(MaxHp) * 100;
+
+                if (percentage <= 75)
+                {
+                    brush = Brushes.LightGreen;
+                }
+
+                if (percentage <= 50)
+                {
+                    brush = Brushes.Khaki;
+                }
+
+                if (percentage <= 25)
+                {
+                    brush = Brushes.SandyBrown;
+                }
+
+                if (percentage <= 10)
+                {
+                    brush = Brushes.Tomato;
+                }
+
+                if (percentage == 0)
+                {
+                    brush = Brushes.LightGray;
+                }
+
+                Color = brush;
+            }
+            else
+            {
+                Color = Brushes.White;
+            }
         }
     }
 }

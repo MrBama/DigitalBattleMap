@@ -268,7 +268,7 @@ namespace DigitalBattleMap
                     tokenListItem.Token.OnSizeChanged += TokenChanged;
                     tokenListItem.OnTokenChanged += TokenChanged;
                     tokenListItem.OnZLevelChanged += ZLevelChanged;
-                    tokenListItem.Health.ApplyEditorHp();
+                    tokenListItem.Health.InitializeEditorHp();
                 }
 
                 CreateTokenBitmap();

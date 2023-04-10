@@ -225,7 +225,7 @@
                         </Grid.ColumnDefinitions>
 
                         <Button Content="Custom tokens" Command="{Binding CustomTokensCommand}"/>
-                        <ListView Grid.Row="1" ItemsSource="{Binding TokenList}" HorizontalContentAlignment="Stretch" Margin="0 10 0 0" SelectedItem="{Binding SelectedToken}" FontSize="15">
+                        <ListView Grid.Row="1" ItemsSource="{Binding TokenList}" HorizontalContentAlignment="Stretch" Margin="0 10 0 0" SelectedItem="{Binding SelectedToken}" FontSize="14">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
                                     <Grid Background="Transparent">
@@ -289,7 +289,7 @@
                                             <Label Grid.Column="2" Content="{Binding Id}" FontWeight="Bold"/>
                                         </Grid>
                                         <!--Initiative and HP grid-->
-                                        <Grid Grid.Row="1" Margin="0 5 0 0">
+                                        <Grid Grid.Row="1">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="auto"/>
                                                 <ColumnDefinition Width="auto"/>
@@ -301,14 +301,14 @@
                                             </Grid.ColumnDefinitions>
                                             <Label Content="Initiative"/>
                                             <TextBox Grid.Column="1" VerticalContentAlignment="Center" MinWidth="45" Margin="10 0 0 0" Text="{Binding Initiative, UpdateSourceTrigger=PropertyChanged}"/>
-                                            <TextBox Grid.Column="3" VerticalContentAlignment="Center" MinWidth="45" Text="{Binding Health.Hp, UpdateSourceTrigger=PropertyChanged}">
+                                            <TextBox Grid.Column="3" VerticalContentAlignment="Center" MinWidth="45" Text="{Binding Health.EditorHp, UpdateSourceTrigger=PropertyChanged}" Background="{Binding Health.Color}">
                                                 <TextBox.InputBindings>
                                                     <KeyBinding Command="{Binding Health.HpEnterCommand}" Key="Enter" />
                                                     <KeyBinding Command="{Binding Health.HpEscCommand}" Key="Esc" />
                                                 </TextBox.InputBindings>
                                             </TextBox>
                                             <Label Grid.Column="4" Content="/"/>
-                                            <TextBox Grid.Column="5" VerticalContentAlignment="Center" MinWidth="45" Text="{Binding Health.MaxHp, UpdateSourceTrigger=PropertyChanged}">
+                                            <TextBox Grid.Column="5" VerticalContentAlignment="Center" MinWidth="45" Text="{Binding Health.EditorMaxHp, UpdateSourceTrigger=PropertyChanged}" Background="{Binding Health.Color}">
                                                 <TextBox.InputBindings>
                                                     <KeyBinding Command="{Binding Health.MaxHpEnterCommand}" Key="Enter" />
                                                     <KeyBinding Command="{Binding Health.MaxHpEscCommand}" Key="Esc" />
