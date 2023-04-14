@@ -205,7 +205,7 @@ namespace DigitalBattleMap
             _area.Y += (int)Math.Round(backgroundGridSize - (_area.Y % backgroundGridSize));
 
             // Move background grid to overlap with normal grid
-            var gridOffset = BitmapTools.CalculateGridOffset(gridSize).ToPointDouble();
+            var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(gridSize));
             _area.X -= (int)Math.Round(gridOffset.X.Map(0, _bitmapSize.Width, 0, _area.Width));
             _area.Y -= (int)Math.Round(gridOffset.Y.Map(0, _bitmapSize.Height, 0, _area.Height));
 

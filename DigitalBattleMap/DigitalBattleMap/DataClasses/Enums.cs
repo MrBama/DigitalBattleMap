@@ -59,4 +59,13 @@
         Back,
         Front
     }
+
+    public enum DrawingButtons
+    {
+        Black,
+        Red,
+        Green,
+        Blue,
+        Eraser
+    }
 }

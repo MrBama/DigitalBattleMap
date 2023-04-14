@@ -321,13 +321,13 @@ namespace DigitalBattleMap
 
             for (int i = 0; i < 4 && i < conditions.Count; i++)
             {
-                var resizedConditionImage = ResizeBitmap(_conditionIcons.GetConditionIcon(conditions[i]), conditionSize.ToSizeInt());
+                var resizedConditionImage = ResizeBitmap(_conditionIcons.GetConditionIcon(conditions[i]), Size<int>.Create(conditionSize));
                 
-                var drawingPosition = tokenDrawingPosition.ToPointDouble();
+                var drawingPosition = Point<double>.Create(tokenDrawingPosition);
                 drawingPosition.X += (tokenSize.Width * xFactor[i]) - (conditionSize.Width * xFactor[i]);
                 drawingPosition.Y += (tokenSize.Height * yFactor[i]) - (conditionSize.Height * yFactor[i]);
                 
-                DrawImageOnBitmap(bitmap, resizedConditionImage, drawingPosition.ToPointInt());
+                DrawImageOnBitmap(bitmap, resizedConditionImage, Point<int>.Create(drawingPosition));
             }
         }
 
