@@ -136,6 +136,7 @@
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
                         </Grid.RowDefinitions>
 
                         <!--Color buttons grid-->
@@ -197,7 +198,7 @@
                             </Grid.ColumnDefinitions>
                             <Label Content="Pen size" />
                             <Slider Grid.Column="1" VerticalAlignment="Center" Margin="10 0 10 0" Minimum="1" Maximum="100" Value="{Binding PenSize, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True"/>
-                            <TextBox Grid.Column="2" Text="{Binding PenSize, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="2" Text="{Binding PenSize, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
                         </Grid>
                         
                         <!--Snapping grid-->
@@ -209,7 +210,30 @@
                             <Label Content="Snap to grid"/>
                             <CheckBox Grid.Column="1" VerticalContentAlignment="Center" Margin="10 0 0 0" IsChecked="{Binding IsSnapToGridEnabled}"/>
                         </Grid>
-                        <Button Grid.Row="3" Content="Clear" Command="{Binding ClearDrawingCommand}" Margin="0 10 0 0"/>
+
+                        <!--Draw shape grid-->
+                        <Grid Grid.Row="3" Margin="0 10 0 0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <RadioButton Content="Square" VerticalContentAlignment="Center" IsChecked="{Binding DrawingShapeSquareSelected}"/>
+                            <RadioButton Grid.Column="1" Content="Circle" VerticalContentAlignment="Center" IsChecked="{Binding DrawingShapeCircleSelected}"/>
+                            <Label Grid.Row="1" Content="Size" Margin="0 10 0 0"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" VerticalContentAlignment="Center" Margin="0 10 0 0" Text="{Binding DrawingShapeSize}"/>
+                            <Label Grid.Row="1" Grid.Column="2" Content="ft" Margin="0 10 0 0"/>
+                            <Button Grid.Row="2" Grid.ColumnSpan="4" Content="Draw shape" Margin="0 10 0 0" Visibility="{Binding DrawShapeButtonVisibility}" Command="{Binding DrawShapeCommand}"/>
+                            <Button Grid.Row="2" Grid.ColumnSpan="2" Content="Cancel" Margin="0 10 5 0" Visibility="{Binding CancelShapeButtonVisibility}" Command="{Binding CancelShapeCommand}"/>
+                            <Button Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Content="Apply" Margin="5 10 0 0" Visibility="{Binding ApplyShapeButtonVisibility}" Command="{Binding ApplyShapeCommand}"/>
+                        </Grid>
+                        <Button Grid.Row="4" Content="Clear" Command="{Binding ClearDrawingCommand}" Margin="0 10 0 0"/>
                     </Grid>
                 </Border>
             </TabItem>

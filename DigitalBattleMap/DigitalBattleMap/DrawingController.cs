@@ -1,14 +1,14 @@
-﻿using DigitalBattleMap.Common;
-using DigitalBattleMap.DataClasses;
+﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Ink;
 using System.Windows.Input;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace DigitalBattleMap;
 
@@ -17,6 +17,7 @@ public class DrawingController
     private DrawingButtons _selectedDrawingButton = DrawingButtons.Black;
     private double _penSize = 5;
     private Size<double> _canvasSize;
+    private Size<int> _bitmapSize;
     private InkCanvasEditingMode _editingMode = InkCanvasEditingMode.Ink;
     private StylusShape _eraserShape;
     private DrawingAttributes _iInkCanvasDrawingAttributes = new DrawingAttributes();
@@ -27,10 +28,13 @@ public class DrawingController
     private Bitmap _eraserButtonBitmap = BitmapTools.CreateEraserButton(false);
     private Bitmap _inkCanvasBitmap = BitmapTools.CreateEmptyBitmap();
     private int _gridSize;
+    private bool _isShapeEditorActive;
+    private Stroke _shapeStroke;
 
     public DrawingController(int gridSize)
     {
         _gridSize = gridSize;
+        _bitmapSize = BitmapTools.GetBitmapSize();
 
         _iInkCanvasDrawingAttributes.Width = PenSize;
         _iInkCanvasDrawingAttributes.Height = PenSize;
@@ -41,6 +45,7 @@ public class DrawingController
     }
 
     public event EventHandler OnDrawingButtonsUpdated;
+    public event EventHandler OnDrawingShapeButtonsUpdated;
     public event EventHandler OnDrawingStrokesUpdated;
 
     public double PenSize
@@ -55,6 +60,9 @@ public class DrawingController
 
     public StrokeCollection Strokes { get; set; }
     public bool IsSnapToGridEnabled { get; set; }
+    public int ShapeSize { get; set; } = 10;
+    public bool SquareShapeSelected { get; set; } = true;
+    public bool CircleShapeSelected { get; set; }
 
     public void SetCanvasSize(Size<double> canvasSize)
     {
@@ -164,6 +172,21 @@ public class DrawingController
         return _inkCanvasBitmap;
     }
 
+    public Visibility GetDrawShapeButtonVisibility()
+    {
+        return _isShapeEditorActive ? Visibility.Hidden : Visibility.Visible;
+    }
+
+    public Visibility GetCancelShapeButtonVisibility()
+    {
+        return _isShapeEditorActive ? Visibility.Visible : Visibility.Hidden;
+    }
+
+    public Visibility GetApplyShapeButtonVisibility()
+    {
+        return _isShapeEditorActive ? Visibility.Visible : Visibility.Hidden;
+    }
+
     public void AddToSaveFile(SaveFile saveFile)
     {
         saveFile.Strokes = Strokes;
@@ -184,12 +207,39 @@ public class DrawingController
     public void ClearDrawings()
     {
         Strokes.Clear();
+        NotifyDrawingShapeButtonsUpdated();
         NotifyDrawingStrokesUpdated();
+    }
+
+    public void DrawShape()
+    {
+        _isShapeEditorActive = true;
+        NotifyDrawingShapeButtonsUpdated();
+    }
+
+    public void CancelShape()
+    {
+        _isShapeEditorActive = false;
+        Strokes.Remove(_shapeStroke);
+        NotifyDrawingShapeButtonsUpdated();
+        NotifyDrawingStrokesUpdated();
+    }
+
+    public void ApplyShape()
+    {
+        _isShapeEditorActive = false;
+        _shapeStroke = null;
+        NotifyDrawingShapeButtonsUpdated();
     }
 
     private void NotifyDrawingButtonsUpdated()
     {
         OnDrawingButtonsUpdated?.Invoke(this, new EventArgs());
+    }
+
+    private void NotifyDrawingShapeButtonsUpdated()
+    {
+        OnDrawingShapeButtonsUpdated?.Invoke(this, new EventArgs());
     }
 
     private void NotifyDrawingStrokesUpdated()
@@ -212,7 +262,14 @@ public class DrawingController
 
     private void OnStrokesChanged(object sender, StrokeCollectionChangedEventArgs e)
     {
-        if (IsSnapToGridEnabled)
+        if (_isShapeEditorActive)
+        {
+            if (e.Added.Count > 0)
+            {
+                CreateShapeStroke(e.Added.First());
+            }
+        }
+        else if (IsSnapToGridEnabled)
         {
             SnapToGrid(e.Added);
         }
@@ -222,10 +279,8 @@ public class DrawingController
 
     private void SnapToGrid(StrokeCollection strokes)
     {
-        var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(_gridSize));
-        var inkCanvasGridOffset = new Point<double>(gridOffset.X.Map(0, 1920, 0, _canvasSize.Width), gridOffset.Y.Map(0, 1080, 0, _canvasSize.Height));
-        double inkCanvasGridSize = _gridSize;
-        inkCanvasGridSize = inkCanvasGridSize.Map(0, 1920, 0, _canvasSize.Width);
+        var inkCanvasGridOffset = CalculateInkCanvasGridOffset();
+        double inkCanvasGridSize = CalculateInkCanvasGridSize();
 
         foreach (var stroke in strokes)
         {
@@ -238,32 +293,11 @@ public class DrawingController
                 var point = new Point<double>(stylusPoint.X, stylusPoint.Y);
                 var task = Task.Run(() =>
                 {
-                    var x = point.X - inkCanvasGridOffset.X;
-                    var y = point.Y - inkCanvasGridOffset.Y;
-                    var leftOverX = x % inkCanvasGridSize;
-                    var leftOverY = y % inkCanvasGridSize;
-
-                    if (leftOverX < inkCanvasGridSize / 2)
-                    {
-                        point.X -= leftOverX;
-                    }
-                    else
-                    {
-                        point.X += (inkCanvasGridSize - leftOverX);
-                    }
-
-                    if (leftOverY < inkCanvasGridSize / 2)
-                    {
-                        point.Y -= leftOverY;
-                    }
-                    else
-                    {
-                        point.Y += (inkCanvasGridSize - leftOverY);
-                    }
+                    var snappedPoint = SnapPoint(point, inkCanvasGridOffset, inkCanvasGridSize);
 
                     lock (lockObject)
                     {
-                        points.Add(new StylusPoint(point.X, point.Y));
+                        points.Add(new StylusPoint(snappedPoint.X, snappedPoint.Y));
                     }
                 });
                 tasks.Add(task);
@@ -272,5 +306,82 @@ public class DrawingController
             Task.WhenAll(tasks).Wait();
             stroke.StylusPoints = points;
         }
+    }
+
+    private Point<double> CalculateInkCanvasGridOffset()
+    {
+        var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(_gridSize));
+        return new Point<double>(gridOffset.X.Map(0, _bitmapSize.Width, 0, _canvasSize.Width), gridOffset.Y.Map(0, _bitmapSize.Height, 0, _canvasSize.Height));
+    }
+
+    private double CalculateInkCanvasGridSize()
+    {
+        double inkCanvasGridSize = _gridSize;
+        return inkCanvasGridSize.Map(0, _bitmapSize.Width, 0, _canvasSize.Width);
+    }
+
+    private Point<double> SnapPoint(Point<double> point, Point<double> inkCanvasGridOffset, double inkCanvasGridSize)
+    {
+        var result = new Point<double>(point);
+        var x = result.X - inkCanvasGridOffset.X;
+        var y = result.Y - inkCanvasGridOffset.Y;
+        var leftOverX = x % inkCanvasGridSize;
+        var leftOverY = y % inkCanvasGridSize;
+
+        if (leftOverX < inkCanvasGridSize / 2)
+        {
+            result.X -= leftOverX;
+        }
+        else
+        {
+            result.X += (inkCanvasGridSize - leftOverX);
+        }
+
+        if (leftOverY < inkCanvasGridSize / 2)
+        {
+            result.Y -= leftOverY;
+        }
+        else
+        {
+            result.Y += (inkCanvasGridSize - leftOverY);
+        }
+
+        return result;
+    }
+
+    private void CreateShapeStroke(Stroke addedStroke)
+    {
+        var inkCanvasGridOffset = CalculateInkCanvasGridOffset();
+        double inkCanvasGridSize = CalculateInkCanvasGridSize();
+        var startPoint = SnapPoint(new Point<double>(addedStroke.StylusPoints.First().X, addedStroke.StylusPoints.First().Y), inkCanvasGridOffset, inkCanvasGridSize);
+        var distanceToEdge = Math.Round((double)ShapeSize / Constants.FeetPerGridCell);
+        distanceToEdge *= inkCanvasGridSize;
+
+        Strokes.Remove(_shapeStroke);
+
+        var points = new StylusPointCollection();
+
+        if (SquareShapeSelected)
+        {
+            points.Add(new StylusPoint(startPoint.X - distanceToEdge, startPoint.Y - distanceToEdge));
+            points.Add(new StylusPoint(startPoint.X + distanceToEdge, startPoint.Y - distanceToEdge));
+            points.Add(new StylusPoint(startPoint.X + distanceToEdge, startPoint.Y + distanceToEdge));
+            points.Add(new StylusPoint(startPoint.X - distanceToEdge, startPoint.Y + distanceToEdge));
+            points.Add(new StylusPoint(startPoint.X - distanceToEdge, startPoint.Y - distanceToEdge));
+        }
+        else
+        {
+            double stepsize = 0.05;
+            for (double i = 0; i <= 2 * Math.PI; i += stepsize)
+            {
+                var x = startPoint.X + distanceToEdge * Math.Cos(i);
+                var y = startPoint.Y + distanceToEdge * Math.Sin(i);
+                points.Add(new StylusPoint(x, y));
+            }
+            points.Add(new StylusPoint(startPoint.X + distanceToEdge, startPoint.Y));
+        }
+
+        addedStroke.StylusPoints = points;
+        _shapeStroke = addedStroke;
     }
 }

@@ -76,6 +76,9 @@ namespace DigitalBattleMap.ViewModels
         public InkCanvasEditingMode EditingMode { get => _drawingController.GetEditingMode(); }
         public StylusShape EraserShape { get => _drawingController.GetEraserShape(); }
         public StrokeCollection Strokes { get => _drawingController.Strokes; set => _drawingController.Strokes = value; }
+        public Visibility DrawShapeButtonVisibility { get => _drawingController.GetDrawShapeButtonVisibility(); }
+        public Visibility CancelShapeButtonVisibility { get => _drawingController.GetCancelShapeButtonVisibility(); }
+        public Visibility ApplyShapeButtonVisibility { get => _drawingController.GetApplyShapeButtonVisibility(); }
         public string BackgroundZoomPercentageLabel { get => $"{BackgroundZoomPercentage}%"; }
         public double MouseInputX { get; set; }
         public double MouseInputY { get; set; }
@@ -87,6 +90,9 @@ namespace DigitalBattleMap.ViewModels
         public bool IsSnapToGridEnabled { get => _drawingController.IsSnapToGridEnabled; set => _drawingController.IsSnapToGridEnabled = value; }
         public int GridCellsWidth { get => _backgroundController.GridCellsWidth; set => _backgroundController.GridCellsWidth = value; }
         public int GridCellsHeight { get => _backgroundController.GridCellsHeight; set => _backgroundController.GridCellsHeight = value; }
+        public int DrawingShapeSize { get => _drawingController.ShapeSize; set => _drawingController.ShapeSize = value; }
+        public bool DrawingShapeSquareSelected { get => _drawingController.SquareShapeSelected; set => _drawingController.SquareShapeSelected = value; }
+        public bool DrawingShapeCircleSelected { get => _drawingController.CircleShapeSelected; set => _drawingController.CircleShapeSelected = value; }
 
         public ICommand GridSizeEnterCommand { get; set; }
         public ICommand ShowMapCommand { get; set; }
@@ -117,6 +123,9 @@ namespace DigitalBattleMap.ViewModels
         public ICommand MapZoomOutCommand { get; set; }
         public ICommand HideConfigurationCommand { get; set; }
         public ICommand SortInitiativeCommand { get; set; }
+        public ICommand DrawShapeCommand { get; set; }
+        public ICommand CancelShapeCommand { get; set; }
+        public ICommand ApplyShapeCommand { get; set; }
 
         public void Initialize()
         {
@@ -129,6 +138,7 @@ namespace DigitalBattleMap.ViewModels
             _backgroundController.OnBackgroundUpdated += BackgroundUpdated;
             _drawingController = new DrawingController(GridSize);
             _drawingController.OnDrawingButtonsUpdated += DrawingButtonsUpdated;
+            _drawingController.OnDrawingShapeButtonsUpdated += DrawingShapeButtonsUpdated;
             _drawingController.OnDrawingStrokesUpdated += DrawingStrokesUpdated;
             _tokenController = new TokenController(_windowService, _settings, GridSize);
             _tokenController.OnTokenEditorUpdated += TokenEditorUpdated;
@@ -169,6 +179,9 @@ namespace DigitalBattleMap.ViewModels
             MapZoomOutCommand = new RelayCommand(p => Zoom(GridSize - 10));
             HideConfigurationCommand = new RelayCommand(p => { IsConfigurationMenuExpanded = false; });
             SortInitiativeCommand = new RelayCommand(p => _tokenController.SortInitiative());
+            DrawShapeCommand = new RelayCommand(p => _drawingController.DrawShape());
+            CancelShapeCommand = new RelayCommand(p => _drawingController.CancelShape());
+            ApplyShapeCommand = new RelayCommand(p => _drawingController.ApplyShape());
         }
 
         private void InitializeProperties()
@@ -210,6 +223,14 @@ namespace DigitalBattleMap.ViewModels
             NotifyPropertyChange(nameof(PenSize));
             NotifyPropertyChange(nameof(EditingMode));
             NotifyPropertyChange(nameof(EraserShape));
+        }
+
+        private void DrawingShapeButtonsUpdated(object? sender, EventArgs e)
+        {
+            NotifyPropertyChange(nameof(DrawingShapeSize));
+            NotifyPropertyChange(nameof(DrawShapeButtonVisibility));
+            NotifyPropertyChange(nameof(CancelShapeButtonVisibility));
+            NotifyPropertyChange(nameof(ApplyShapeButtonVisibility));
         }
 
         private void DrawingStrokesUpdated(object? sender, EventArgs e)
