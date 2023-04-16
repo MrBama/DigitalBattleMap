@@ -10,6 +10,7 @@ namespace DigitalBattleMap
     public class BackgroundController
     {
         private Bitmap _backgroundBitmap;
+        private BitmapSource _backgroundBitmapSource;
         private Bitmap _fullBackgroundBitmap;
         private Rectangle _area;
         private IWindowService _windowService;
@@ -22,7 +23,7 @@ namespace DigitalBattleMap
         public BackgroundController(IWindowService windowService)
         {
             _windowService = windowService;
-            _backgroundBitmap = BitmapTools.CreateEmptyBitmap();
+            BackgroundBitmap = BitmapTools.CreateEmptyBitmap();
             _bitmapSize = BitmapTools.GetBitmapSize();
         }
 
@@ -55,14 +56,27 @@ namespace DigitalBattleMap
             }
         }
 
+        private Bitmap BackgroundBitmap
+        {
+            get => _backgroundBitmap;
+            set
+            {
+                if(value != _backgroundBitmap)
+                {
+                    _backgroundBitmap = value;
+                    _backgroundBitmapSource = value.ToBitmapImage();
+                }
+            }
+        }
+
         public BitmapSource GetBackgroundBitmapSource()
         {
-            return _backgroundBitmap.ToBitmapImage();
+            return _backgroundBitmapSource;
         }
 
         public Bitmap GetBackgroundBitmap()
         {
-            return _backgroundBitmap;
+            return BackgroundBitmap;
         }
 
         public bool HasOpenedBackground()
@@ -81,7 +95,7 @@ namespace DigitalBattleMap
                     _bitmapSize.Width,
                     _bitmapSize.Height);
 
-                _backgroundBitmap = BitmapTools.CropBitmap(_fullBackgroundBitmap, _area);
+                BackgroundBitmap = BitmapTools.CropBitmap(_fullBackgroundBitmap, _area);
                 ExtractGridCells(Path.GetFileNameWithoutExtension(path));
                 NotifyBackgroundUpdated();
             }
@@ -90,7 +104,7 @@ namespace DigitalBattleMap
         public void ClearBackground()
         {
             _fullBackgroundBitmap = null;
-            _backgroundBitmap = BitmapTools.CreateEmptyBitmap();
+            BackgroundBitmap = BitmapTools.CreateEmptyBitmap();
             NotifyBackgroundUpdated();
         }
 
@@ -248,7 +262,7 @@ namespace DigitalBattleMap
         private void CreateBackground()
         {
             var croppedBitmap = BitmapTools.CropBitmap(_fullBackgroundBitmap, _area);
-            _backgroundBitmap = BitmapTools.ResizeBitmap(croppedBitmap);
+            BackgroundBitmap = BitmapTools.ResizeBitmap(croppedBitmap);
             NotifyBackgroundUpdated();
         }
 

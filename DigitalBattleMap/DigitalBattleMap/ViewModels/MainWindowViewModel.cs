@@ -1,5 +1,4 @@
 ﻿using DigitalBattleMap.Common;
-using DigitalBattleMap.Common.Dto;
 using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
@@ -284,22 +283,22 @@ namespace DigitalBattleMap.ViewModels
                     _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.GetBackgroundBitmapSource();
                     _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
                     _mapWindowViewModel.TokenBitmapSource = _tokenController.GetTokenBitmapSource();
-                    _connectionManager.SendMapUpdate(new MapUpdateDto { Layer = DrawLayer.Background, Data = _backgroundController.GetBackgroundBitmap().ToPng() });
-                    _connectionManager.SendMapUpdate(new MapUpdateDto { Layer = DrawLayer.GridAndStrokes, Data = gridAndTokenBitmapAll.ToPng() });
-                    _connectionManager.SendMapUpdate(new MapUpdateDto { Layer = DrawLayer.Tokens, Data = _tokenController.GetTokenBitmap().ToPng() });
+                    _connectionManager.SendMapUpdate(new MapUpdate{ Layer = DrawLayer.Background, Bitmap = new Bitmap(_backgroundController.GetBackgroundBitmap()) });
+                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmapAll) });
+                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(_tokenController.GetTokenBitmap()) });
                     break;
                 case DrawLayer.Background:
                     _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.GetBackgroundBitmapSource();
-                    _connectionManager.SendMapUpdate(new MapUpdateDto { Layer = DrawLayer.Background, Data = _backgroundController.GetBackgroundBitmap().ToPng() });
+                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(_backgroundController.GetBackgroundBitmap()) });
                     break;
                 case DrawLayer.GridAndStrokes:
                     var gridAndTokenBitmap = CreateGridAndDrawingBitmap();
                     _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmap.ToBitmapImage();
-                    _connectionManager.SendMapUpdate(new MapUpdateDto { Layer = DrawLayer.GridAndStrokes, Data = gridAndTokenBitmap.ToPng() });
+                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmap) });
                     break;
                 case DrawLayer.Tokens:
                     _mapWindowViewModel.TokenBitmapSource = _tokenController.GetTokenBitmapSource();
-                    _connectionManager.SendMapUpdate(new MapUpdateDto { Layer = DrawLayer.Tokens, Data = _tokenController.GetTokenBitmap().ToPng() });
+                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(_tokenController.GetTokenBitmap()) });
                     break;
             }
         }
@@ -307,7 +306,7 @@ namespace DigitalBattleMap.ViewModels
         private Bitmap CreateGridAndDrawingBitmap()
         {
             var gridBitmap = IsGridShown ? _gridBitmap : BitmapTools.CreateEmptyBitmap();
-            return BitmapTools.CreateGridAndStrokesBitmap(gridBitmap, Strokes, Size<int>.Create(_canvasSize));
+            return BitmapTools.CreateGridAndStrokesBitmap(gridBitmap, _drawingController.Strokes, Size<int>.Create(_canvasSize));
         }
 
         private void WindowClosing()
@@ -433,31 +432,8 @@ namespace DigitalBattleMap.ViewModels
         private void MoveMap(string direction)
         {
             var arrowDirection = Enum.Parse<ArrowDirection>(direction);
-            var matrix = new System.Windows.Media.Matrix();
-            var windowSize = BitmapTools.GetBitmapSize();
-            double gridSize = GridSize;
-            var distanceX = gridSize.Map(0, windowSize.Width, 0, _canvasSize.Width);
-            var distanceY = gridSize.Map(0, windowSize.Height, 0, _canvasSize.Height);
-
-            switch (arrowDirection)
-            {
-                case ArrowDirection.Up:
-                    matrix.Translate(0, distanceY);
-                    break;
-                case ArrowDirection.Down:
-                    matrix.Translate(0, -distanceY);
-                    break;
-                case ArrowDirection.Left:
-                    matrix.Translate(distanceX, 0);
-                    break;
-                case ArrowDirection.Right:
-                    matrix.Translate(-distanceX, 0);
-                    break;
-            }
-
-            Strokes.Transform(matrix, false);
-            UpdateMap(DrawLayer.GridAndStrokes);
             _backgroundController.MoveBackground(arrowDirection, GridSize);
+            _drawingController.MoveDrawings(arrowDirection); 
             _tokenController.MoveTokens(arrowDirection);
         }
 

@@ -16,7 +16,9 @@ namespace DigitalBattleMap
     {
         private IWindowService _windowService;
         private Bitmap _tokenBitmap;
+        private BitmapSource _tokenBitmapSource;
         private Bitmap _tokenSelectionBitmap;
+        private BitmapSource _tokenSelectionBitmapSource;
         private List<Token> _monsterTokens = new List<Token>();
         private TokenListItem _selectedToken;
         private Size<int> _bitmapSize;
@@ -30,8 +32,8 @@ namespace DigitalBattleMap
             _windowService = windowService;
             _settings = settings;
             _gridSize = gridSize;
-            _tokenBitmap = BitmapTools.CreateEmptyBitmap();
-            _tokenSelectionBitmap = BitmapTools.CreateEmptyBitmap();
+            TokenBitmap = BitmapTools.CreateEmptyBitmap();
+            TokenSelectionBitmap = BitmapTools.CreateEmptyBitmap();
             _bitmapSize = BitmapTools.GetBitmapSize();
             ReloadMonsterTokens();
         }
@@ -55,6 +57,32 @@ namespace DigitalBattleMap
         }
 
         public ObservableCollection<TokenListItem> TokenList { get; set; } = new ObservableCollection<TokenListItem>();
+
+        private Bitmap TokenBitmap
+        {
+            get => _tokenBitmap;
+            set
+            {
+                if (value != _tokenBitmap)
+                {
+                    _tokenBitmap = value;
+                    _tokenBitmapSource = value.ToBitmapImage();
+                }
+            }
+        }
+
+        private Bitmap TokenSelectionBitmap
+        {
+            get => _tokenSelectionBitmap;
+            set
+            {
+                if (value != _tokenSelectionBitmap)
+                {
+                    _tokenSelectionBitmap = value;
+                    _tokenSelectionBitmapSource = value.ToBitmapImage();
+                }
+            }
+        }
 
         public void ReloadMonsterTokens()
         {
@@ -167,7 +195,7 @@ namespace DigitalBattleMap
         {
             lock (_lock)
             {
-                return _tokenBitmap.ToBitmapImage();
+                return _tokenBitmapSource;
             }
         }
 
@@ -175,7 +203,7 @@ namespace DigitalBattleMap
         {
             lock (_lock)
             {
-                return _tokenBitmap;
+                return TokenBitmap;
             }
         }
 
@@ -183,7 +211,7 @@ namespace DigitalBattleMap
         {
             lock (_lock)
             {
-                return _tokenSelectionBitmap.ToBitmapImage();
+                return _tokenSelectionBitmapSource;
             }
         }
 
@@ -423,8 +451,8 @@ namespace DigitalBattleMap
         {
             lock (_lock)
             {
-                _tokenBitmap = BitmapTools.CreateEmptyBitmap();
-                _tokenSelectionBitmap = BitmapTools.CreateEmptyBitmap();
+                var bitmap = BitmapTools.CreateEmptyBitmap();
+                TokenSelectionBitmap = BitmapTools.CreateEmptyBitmap();
 
                 if (TokenList.Count > 0)
                 {
@@ -432,12 +460,13 @@ namespace DigitalBattleMap
                     {
                         if(tokenListItem.Visible)
                         {
-                            BitmapTools.DrawToken(_tokenBitmap, tokenListItem, GetTokenIdString(tokenListItem), _gridSize);
+                            BitmapTools.DrawToken(bitmap, tokenListItem, GetTokenIdString(tokenListItem), _gridSize);
                         }
                     }
                     UpdateTokenSelection();
                 }
 
+                TokenBitmap = bitmap;
                 NotifyTokenBitmapUpdated();
             }
         }
@@ -460,12 +489,13 @@ namespace DigitalBattleMap
 
         private void UpdateTokenSelection()
         {
-            _tokenSelectionBitmap = BitmapTools.CreateEmptyBitmap();
+            var bitmap = BitmapTools.CreateEmptyBitmap();
             if (SelectedToken != null)
             {
-                BitmapTools.DrawTokenSelection(_tokenSelectionBitmap, SelectedToken.Token.GetSizeFactor(), SelectedToken.Position, _gridSize);
+                BitmapTools.DrawTokenSelection(bitmap, SelectedToken.Token.GetSizeFactor(), SelectedToken.Position, _gridSize);
             }
 
+            TokenSelectionBitmap = bitmap;
             NotifySelectedTokenBitmapUpdated();
         }
 

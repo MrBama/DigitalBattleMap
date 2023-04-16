@@ -1,4 +1,5 @@
-﻿using DigitalBattleMap.DataClasses;
+﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Ink;
 using System.Windows.Input;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace DigitalBattleMap;
 
@@ -125,6 +127,33 @@ public class DrawingController
         }
 
         NotifyDrawingButtonsUpdated();
+    }
+
+    public void MoveDrawings(ArrowDirection direction)
+    {
+        var matrix = new System.Windows.Media.Matrix();
+        double gridSize = _gridSize;
+        var distanceX = gridSize.Map(0, _bitmapSize.Width, 0, _canvasSize.Width);
+        var distanceY = gridSize.Map(0, _bitmapSize.Height, 0, _canvasSize.Height);
+
+        switch (direction)
+        {
+            case ArrowDirection.Up:
+                matrix.Translate(0, distanceY);
+                break;
+            case ArrowDirection.Down:
+                matrix.Translate(0, -distanceY);
+                break;
+            case ArrowDirection.Left:
+                matrix.Translate(distanceX, 0);
+                break;
+            case ArrowDirection.Right:
+                matrix.Translate(-distanceX, 0);
+                break;
+        }
+
+        Strokes.Transform(matrix, false);
+        NotifyDrawingStrokesUpdated();
     }
 
     public InkCanvasEditingMode GetEditingMode()

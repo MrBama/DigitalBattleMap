@@ -1,11 +1,15 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.Common.Dto;
 using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Utilities;
 using Microsoft.AspNetCore.SignalR.Client;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DigitalBattleMap
@@ -28,6 +32,9 @@ namespace DigitalBattleMap
         public event IWebHubClientEvents.MoveTokenActionEventHandler OnMoveToken;
 
         private bool _isConnected;
+        private Queue<MapUpdate> _mapUpdateQueue = new Queue<MapUpdate>();
+        private Thread _thread;
+        private object _lock = "";
 
         public void Connect(string address)
         {
@@ -60,6 +67,8 @@ namespace DigitalBattleMap
                 Configure();
 
                 _isConnected = true;
+                _thread = new Thread(SendMessages);
+                _thread.Start();
                 OnConnected?.Invoke(this, EventArgs.Empty);
             });
         }
@@ -81,6 +90,10 @@ namespace DigitalBattleMap
                 _httpClient.Dispose();
 
                 _isConnected = false;
+                if (_thread != null)
+                {
+                    _thread.Join();
+                }
 
                 OnDisconnect?.Invoke(this, EventArgs.Empty);
             });
@@ -94,18 +107,20 @@ namespace DigitalBattleMap
             return Task.CompletedTask;
         }
 
-        public void SendMapUpdate(MapUpdateDto mapUpdate)
+        public void SendMapUpdate(MapUpdate mapUpdate)
         {
             if (!_isConnected)
                 return;
 
-            string json = JsonSerializer.Serialize(mapUpdate);
-
-            StringContent content = new(json);
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            HttpRequestMessage message = new(HttpMethod.Post, "/Map/Set") { Content = content };
-
-            Task.Run(async () => await _httpClient.SendAsync(message));
+            lock (_lock)
+            {
+                var existingUpdateCount = _mapUpdateQueue.Count(u => u.Layer != mapUpdate.Layer);
+                if (existingUpdateCount > 0)
+                {
+                    _mapUpdateQueue = new Queue<MapUpdate>(_mapUpdateQueue.Where(u => u.Layer != mapUpdate.Layer));
+                }
+                _mapUpdateQueue.Enqueue(mapUpdate);
+            }
         }
 
         public void ClearMap()
@@ -121,6 +136,34 @@ namespace DigitalBattleMap
         private void Configure()
         {
             _webHubConnection.On<string, Direction>(nameof(MoveToken), MoveToken);
+        }
+
+        private void SendMessages()
+        {
+            while (_isConnected)
+            {
+                MapUpdate? mapUpdate;
+                var newMapUpdate = false;
+                lock (_lock)
+                {
+                    newMapUpdate = _mapUpdateQueue.TryDequeue(out mapUpdate);
+                }
+
+                if (newMapUpdate)
+                {
+                    var dto = new MapUpdateDto { Layer = mapUpdate!.Layer, Data = mapUpdate!.Bitmap.ToPng() };
+                    string json = JsonSerializer.Serialize(dto);
+
+                    StringContent content = new(json);
+                    content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                    HttpRequestMessage message = new(HttpMethod.Post, "/Map/Set") { Content = content };
+
+                    _httpClient.SendAsync(message).Wait();
+                }
+
+                Thread.Sleep(100);
+            }
+
         }
     }
 }
