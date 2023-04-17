@@ -456,6 +456,9 @@ namespace DigitalBattleMap.ViewModels
         {
             if (_windowService.ShowOpenFileDialog(out string path, "(*.dbm)|*.dbm"))
             {
+                var currentIsShowMapLocked = IsShowMapLocked;
+                IsShowMapLocked = false;
+
                 var saveFile = SaveFile.Open(path);
                 _backgroundController.OpenSaveFile(saveFile);
                 GridSize = saveFile.GridSize;
@@ -464,6 +467,8 @@ namespace DigitalBattleMap.ViewModels
                 _drawingController.OpenSaveFile(saveFile);
                 _tokenController.OpenSaveFile(saveFile);
                 SelectedTabIndex = TabIndex.Tokens;
+
+                IsShowMapLocked = currentIsShowMapLocked;
             }
         }
 

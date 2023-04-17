@@ -223,6 +223,8 @@ public class DrawingController
 
     public void OpenSaveFile(SaveFile saveFile)
     {
+        ClearDrawings();
+
         Strokes = saveFile.Strokes;
         Strokes.StrokesChanged += OnStrokesChanged;
         NotifyDrawingStrokesUpdated();
@@ -235,6 +237,7 @@ public class DrawingController
 
     public void ClearDrawings()
     {
+        _isShapeEditorActive = false;
         Strokes.Clear();
         NotifyDrawingShapeButtonsUpdated();
         NotifyDrawingStrokesUpdated();
