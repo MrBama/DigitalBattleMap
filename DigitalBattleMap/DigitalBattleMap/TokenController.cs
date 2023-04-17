@@ -359,6 +359,27 @@ namespace DigitalBattleMap
             }
         }
 
+        public void OnToggleConditionAction(object sender, ToggleConditionActionEventArgs e)
+        {
+            lock (_lock)
+            {
+                TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => string.Equals(t.Token.Name, e.Name, StringComparison.CurrentCultureIgnoreCase) && t.Token.PlayerControl);
+                if (tokenListItem != null)
+                {
+                    if (!tokenListItem.Conditions.Contains(e.Condition))
+                    {
+                        tokenListItem.Conditions.Add(e.Condition);
+                    }
+                    else
+                    {
+                        tokenListItem.Conditions.Remove(e.Condition);
+                    }
+                    
+                    CreateTokenBitmap();
+                }
+            }
+        }
+
         public void Zoom(double zoomFactor)
         {
             lock (_lock)

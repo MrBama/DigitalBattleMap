@@ -6,8 +6,13 @@ namespace DigitalBattleMap.DataClasses
     public class MoveTokenActionEventArgs : EventArgs
     {
         public string Name { get; set; } = "";
-        public int Id { get; set; } = 1;
         public Direction Direction { get; set; }
+    }
+
+    public class ToggleConditionActionEventArgs : EventArgs
+    {
+        public string Name { get; set; } = "";
+        public Condition Condition { get; set; }
     }
 
     public class ZLevelChangedEventArgs : EventArgs

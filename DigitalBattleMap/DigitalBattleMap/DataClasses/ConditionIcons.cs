@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using DigitalBattleMap.Common;
+using System.Drawing;
 using System.Reflection;
 
 namespace DigitalBattleMap.DataClasses

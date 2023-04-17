@@ -30,6 +30,7 @@ namespace DigitalBattleMap
         public event EventHandler<EventArgs> OnConnected;
         public event EventHandler<EventArgs> OnDisconnect;
         public event IWebHubClientEvents.MoveTokenActionEventHandler OnMoveToken;
+        public event IWebHubClientEvents.ToggleConditionActionEventHandler OnToggleCondition;
 
         private bool _isConnected;
         private Queue<MapUpdate> _mapUpdateQueue = new Queue<MapUpdate>();
@@ -107,6 +108,14 @@ namespace DigitalBattleMap
             return Task.CompletedTask;
         }
 
+        public Task ToggleCondition(string character, Condition condition)
+        {
+            OnToggleCondition?.Invoke(this, new ToggleConditionActionEventArgs() { Name = character, Condition = condition });
+
+            // TODO: Is this clean, can we do without Task?
+            return Task.CompletedTask;
+        }
+
         public void SendMapUpdate(MapUpdate mapUpdate)
         {
             if (!_isConnected)
@@ -136,6 +145,7 @@ namespace DigitalBattleMap
         private void Configure()
         {
             _webHubConnection.On<string, Direction>(nameof(MoveToken), MoveToken);
+            _webHubConnection.On<string, Condition>(nameof(ToggleCondition), ToggleCondition);
         }
 
         private void SendMessages()

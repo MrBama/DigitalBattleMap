@@ -1,4 +1,5 @@
-﻿using DigitalBattleMap.Utilities;
+﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.Utilities;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

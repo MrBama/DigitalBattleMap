@@ -73,8 +73,22 @@ body {
   grid-gap: 25px;
 }
 
+.grid-container-conditions {
+  display: grid;
+  grid-template-columns: repeat(1, 0.5fr);
+  grid-row-gap: 10px;
+  grid-column-gap: 25px;
+  justify-content: center;
+  margin-top: 50px;
+  margin-bottom: 15px;
+}
+
 .btn-direction {
   height: 100px;
+}
+
+.btn-condition {
+  height: 40px;
 }
 
 i.direction.NorthWest {
