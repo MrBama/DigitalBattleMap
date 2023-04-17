@@ -20,6 +20,17 @@ namespace DigitalBattleMap.DataClasses
             Y = point.Y;
         }
 
+        public static Point<T> Create<T1>(Point<T1> point) where T1 : IEquatable<T1>
+        {
+            dynamic x = point.X;
+            dynamic y = point.Y;
+
+            var result = new Point<T>();
+            result.X = (T)x;
+            result.Y = (T)y;
+            return result;
+        }
+
         public T X { get; set; }
 
         public T Y { get; set; }

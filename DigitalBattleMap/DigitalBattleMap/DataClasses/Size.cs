@@ -20,6 +20,18 @@ namespace DigitalBattleMap.DataClasses
             Height = size.Height;
         }
 
+        public static Size<T> Create<T1>(Size<T1> size) where T1 : IEquatable<T1>
+        {
+            dynamic width = size.Width;
+            dynamic height = size.Height;
+
+            var result = new Size<T>();
+            result.Width = (T)width;
+            result.Height = (T)height;
+
+            return result;
+        }
+
         public T Width { get; set; }
 
         public T Height { get; set; }
