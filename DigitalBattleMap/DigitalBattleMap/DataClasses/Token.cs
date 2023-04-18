@@ -114,6 +114,20 @@ namespace DigitalBattleMap.DataClasses
             return _bitmap;
         }
 
+        public void ToggleCondition(Condition condition)
+        {
+            if (!Conditions.Contains(condition))
+            {
+                Conditions.Add(condition);
+            }
+            else
+            {
+                Conditions.Remove(condition);
+            }
+
+            NotifyPropertyChange(nameof(Conditions));
+        }
+
         private void TokenSizeChanged(string size)
         {
             Token.Size = Enum.Parse<TokenSize>(size);
@@ -127,18 +141,8 @@ namespace DigitalBattleMap.DataClasses
         private void ConditionChanged(string conditionString)
         {
             var condition = Enum.Parse<Condition>(conditionString);
-
-            if (!Conditions.Contains(condition))
-            {
-                Conditions.Add(condition);
-            }
-            else
-            {
-                Conditions.Remove(condition);
-            }
-
+            ToggleCondition(condition);
             NotifyTokenChanged();
-            NotifyPropertyChange(nameof(Conditions));
         }
 
         private void ClearAllConditions()
