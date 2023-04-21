@@ -21,10 +21,20 @@ public class TokenControllerViewModel : ControllerViewModelBase
     private Settings _settings;
     private object _lock = "";
 
+    public TokenControllerViewModel() : base(50)
+    {
+        Initialize();
+    }
+
     public TokenControllerViewModel(IWindowService windowService, Settings settings, int gridSize) : base(gridSize)
     {
         _windowService = windowService;
         _settings = settings;
+        Initialize();
+    }
+
+    private void Initialize()
+    {
         TokenBitmap = BitmapTools.CreateEmptyBitmap();
         TokenSelectionBitmap = BitmapTools.CreateEmptyBitmap();
         ReloadMonsterTokens();
@@ -60,6 +70,8 @@ public class TokenControllerViewModel : ControllerViewModelBase
     public bool IsTokenUpButtonEnabled { get => TokenList.IndexOf(SelectedToken) > 0; }
     public bool IsTokenDownButtonEnabled { get => TokenList.IndexOf(SelectedToken) < TokenList.Count - 1; }
     public ObservableCollection<TokenListItem> TokenList { get; set; } = new ObservableCollection<TokenListItem>();
+    public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToBitmapImage(); }
+    public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
 
     public ICommand AddTokenCommand { get; set; }
     public ICommand RemoveTokenCommand { get; set; }

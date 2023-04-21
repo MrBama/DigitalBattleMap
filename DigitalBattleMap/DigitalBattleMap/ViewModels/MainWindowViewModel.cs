@@ -3,7 +3,6 @@ using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System;
-using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Input;
