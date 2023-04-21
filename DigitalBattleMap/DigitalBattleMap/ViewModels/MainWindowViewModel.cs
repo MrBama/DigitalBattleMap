@@ -17,7 +17,6 @@ public class MainWindowViewModel : ViewModelBase
     private IWindowService _windowService;
     private MapWindowViewModel _mapWindowViewModel;
     private Settings _settings;
-    private TokenController _tokenController;
     private ConnectionManager _connectionManager;
     private Size<double> _canvasSize;
 
@@ -50,8 +49,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public BackgroundControllerViewModel BackgroundController { get; set; }
     public DrawingControllerViewModel DrawingController { get; set; }
-    public BitmapSource TokenBitmapSource { get => _tokenController.GetTokenBitmapSource(); }
-    public BitmapSource TokenSelectionBitmapSource { get => _tokenController.GetTokenSelectionBitmapSource(); }
+    public TokenControllerViewModel TokenController { get; set; }
     public BitmapSource GridBitmapSource { get => _gridBitmap.ToBitmapImage(); }
     public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToBitmapImage(); }
     public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
@@ -59,13 +57,8 @@ public class MainWindowViewModel : ViewModelBase
     public BitmapSource MapArrowRightBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Right).ToBitmapImage(); }
     public BitmapSource MapZoomInBitmapSource { get => BitmapTools.CreateZoomButton(true).ToBitmapImage(); }
     public BitmapSource MapZoomOutBitmapSource { get => BitmapTools.CreateZoomButton(false).ToBitmapImage(); }
-    public ObservableCollection<TokenListItem> TokenList { get => _tokenController.TokenList; }
-    public TokenListItem SelectedToken { get => _tokenController.SelectedToken; set => _tokenController.SelectedToken = value; }
     public double MouseInputX { get; set; }
     public double MouseInputY { get; set; }
-    public bool IsTokenSelected { get => _tokenController.IsTokenSelected(); }
-    public bool IsTokenUpButtonEnabled { get => _tokenController.IsUpButtonEnabled(); }
-    public bool IsTokenDownButtonEnabled { get => _tokenController.IsDownButtonEnabled(); }
 
     public ICommand GridSizeEnterCommand { get; set; }
     public ICommand ShowMapCommand { get; set; }
@@ -78,17 +71,10 @@ public class MainWindowViewModel : ViewModelBase
     public ICommand MoveMapArrowCommand { get; set; }
     public ICommand SaveMapCommand { get; set; }
     public ICommand OpenMapCommand { get; set; }
-    public ICommand AddTokenCommand { get; set; }
-    public ICommand RemoveTokenCommand { get; set; }
-    public ICommand ClearTokensCommand { get; set; }
-    public ICommand TokenUpCommand { get; set; }
-    public ICommand TokenDownCommand { get; set; }
-    public ICommand CustomTokensCommand { get; set; }
     public ICommand ServerConnectionCommand { get; set; }
     public ICommand MapZoomInCommand { get; set; }
     public ICommand MapZoomOutCommand { get; set; }
     public ICommand HideConfigurationCommand { get; set; }
-    public ICommand SortInitiativeCommand { get; set; }
 
     public void Initialize()
     {
@@ -100,10 +86,8 @@ public class MainWindowViewModel : ViewModelBase
         BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
         DrawingController = new DrawingControllerViewModel(GridSize);
         DrawingController.OnDrawingStrokesUpdated += DrawingStrokesUpdated;
-        _tokenController = new TokenController(_windowService, _settings, GridSize);
-        _tokenController.OnTokenEditorUpdated += TokenEditorUpdated;
-        _tokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
-        _tokenController.OnSelectedTokenBitmapUpdated += SelectedTokenBitmapUpdated;
+        TokenController = new TokenControllerViewModel(_windowService, _settings, GridSize);
+        TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
 
         _connectionManager = new ConnectionManager();
         _connectionManager.OnConnected += ConnectionManagerConnected;
@@ -139,17 +123,10 @@ public class MainWindowViewModel : ViewModelBase
         MoveMapArrowCommand = new RelayCommand(p => MoveMap((string)p));
         SaveMapCommand = new RelayCommand(p => SaveMap());
         OpenMapCommand = new RelayCommand(p => OpenMap());
-        AddTokenCommand = new RelayCommand(p => _tokenController.AddToken());
-        RemoveTokenCommand = new RelayCommand(p => _tokenController.RemoveToken());
-        ClearTokensCommand = new RelayCommand(p => _tokenController.ClearTokens());
-        TokenUpCommand = new RelayCommand(p => _tokenController.InitiativeUp());
-        TokenDownCommand = new RelayCommand(p => _tokenController.InitiativeDown());
-        CustomTokensCommand = new RelayCommand(p => _tokenController.CustomTokens());
         ServerConnectionCommand = new RelayCommand(p => ServerConnectionButton());
         MapZoomInCommand = new RelayCommand(p => Zoom(GridSize + 10));
         MapZoomOutCommand = new RelayCommand(p => Zoom(GridSize - 10));
         HideConfigurationCommand = new RelayCommand(p => { IsConfigurationMenuExpanded = false; });
-        SortInitiativeCommand = new RelayCommand(p => _tokenController.SortInitiative());
     }
 
     private void OnBackgroundUpdated(object? sender, EventArgs e)
@@ -162,30 +139,16 @@ public class MainWindowViewModel : ViewModelBase
         UpdateMap(DrawLayer.GridAndStrokes);
     }
 
-    private void TokenEditorUpdated(object? sender, EventArgs e)
-    {
-        NotifyPropertyChange(nameof(IsTokenSelected));
-        NotifyPropertyChange(nameof(IsTokenUpButtonEnabled));
-        NotifyPropertyChange(nameof(IsTokenDownButtonEnabled));
-        NotifyPropertyChange(nameof(SelectedToken));
-    }
-
     private void TokenBitmapUpdated(object? sender, EventArgs e)
     {
-        NotifyPropertyChange(nameof(TokenBitmapSource));
         UpdateMap(DrawLayer.Tokens);
-    }
-
-    private void SelectedTokenBitmapUpdated(object? sender, EventArgs e)
-    {
-        NotifyPropertyChange(nameof(TokenSelectionBitmapSource));
     }
 
     private void ConnectionManagerOnMoveToken(object sender, MoveTokenActionEventArgs e)
     {
         if (IsShowMapLocked)
         {
-            _tokenController.OnMoveTokenAction(sender, e);
+            TokenController.OnMoveTokenAction(sender, e);
         }
     }
 
@@ -193,7 +156,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (IsShowMapLocked)
         {
-            _tokenController.OnToggleConditionAction(sender, e);
+            TokenController.OnToggleConditionAction(sender, e);
         }
     }
 
@@ -210,7 +173,7 @@ public class MainWindowViewModel : ViewModelBase
         _gridBitmap = BitmapTools.CreateGrid(GridSize);
         BackgroundController.UpdateGridSize(GridSize);
         DrawingController.UpdateGridSize(GridSize);
-        _tokenController.UpdateGridSize(GridSize);
+        TokenController.UpdateGridSize(GridSize);
         NotifyPropertyChange(nameof(GridBitmapSource));
         UpdateMap(DrawLayer.GridAndStrokes);
     }
@@ -223,10 +186,10 @@ public class MainWindowViewModel : ViewModelBase
                 var gridAndTokenBitmapAll = CreateGridAndDrawingBitmap();
                 _mapWindowViewModel.BackgroundBitmapSource = BackgroundController.BackgroundBitmapSource;
                 _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
-                _mapWindowViewModel.TokenBitmapSource = _tokenController.GetTokenBitmapSource();
+                _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
                 _connectionManager.SendMapUpdate(new MapUpdate{ Layer = DrawLayer.Background, Bitmap = new Bitmap(BackgroundController.GetBackgroundBitmap()) });
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmapAll) });
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(_tokenController.GetTokenBitmap()) });
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
                 break;
             case DrawLayer.Background:
                 _mapWindowViewModel.BackgroundBitmapSource = BackgroundController.BackgroundBitmapSource;
@@ -238,8 +201,8 @@ public class MainWindowViewModel : ViewModelBase
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmap) });
                 break;
             case DrawLayer.Tokens:
-                _mapWindowViewModel.TokenBitmapSource = _tokenController.GetTokenBitmapSource();
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(_tokenController.GetTokenBitmap()) });
+                _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
                 break;
         }
     }
@@ -265,7 +228,7 @@ public class MainWindowViewModel : ViewModelBase
 
         BackgroundController.SetCanvasSize(_canvasSize);
         DrawingController.SetCanvasSize(_canvasSize);
-        _tokenController.SetCanvasSize(_canvasSize);
+        TokenController.SetCanvasSize(_canvasSize);
     }
 
     private void ClearMap()
@@ -278,7 +241,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             BackgroundController.ClearBackground();
             DrawingController.ClearDrawings();
-            _tokenController.ClearTokens();
+            TokenController.ClearTokens();
             IsGridShown = true;
             GridSize = _settings.DefaultGridSize;
             GridSizeChanged();
@@ -299,7 +262,7 @@ public class MainWindowViewModel : ViewModelBase
 
         if (settingsWindowViewModel.MonsterTokensDownloaded)
         {
-            _tokenController.ReloadMonsterTokens();
+            TokenController.ReloadMonsterTokens();
         }
     }
 
@@ -353,7 +316,7 @@ public class MainWindowViewModel : ViewModelBase
                 BackgroundController.MouseDown(new Point<double>(MouseInputX, MouseInputY));
                 break;
             case TabIndex.Tokens:
-                _tokenController.MouseDown(new Point<double>(MouseInputX, MouseInputY));
+                TokenController.MouseDown(new Point<double>(MouseInputX, MouseInputY));
                 break;
         }
     }
@@ -373,7 +336,7 @@ public class MainWindowViewModel : ViewModelBase
         var arrowDirection = Enum.Parse<ArrowDirection>(direction);
         BackgroundController.Move(arrowDirection);
         DrawingController.Move(arrowDirection); 
-        _tokenController.MoveTokens(arrowDirection);
+        TokenController.Move(arrowDirection);
     }
 
     private void SaveMap()
@@ -385,7 +348,7 @@ public class MainWindowViewModel : ViewModelBase
             saveFile.IsGridShown = IsGridShown;
             BackgroundController.AddToSaveFile(saveFile);
             DrawingController.AddToSaveFile(saveFile);
-            _tokenController.AddToSaveFile(saveFile);
+            TokenController.AddToSaveFile(saveFile);
             saveFile.Save(path);
         }
     }
@@ -403,7 +366,7 @@ public class MainWindowViewModel : ViewModelBase
             GridSizeChanged();
             IsGridShown = saveFile.IsGridShown;
             DrawingController.OpenSaveFile(saveFile);
-            _tokenController.OpenSaveFile(saveFile);
+            TokenController.OpenSaveFile(saveFile);
             SelectedTabIndex = TabIndex.Tokens;
 
             IsShowMapLocked = currentIsShowMapLocked;
@@ -422,7 +385,7 @@ public class MainWindowViewModel : ViewModelBase
         GridSizeChanged();
 
         DrawingController.Zoom(zoomFactor);
-        _tokenController.Zoom(zoomFactor);
+        TokenController.Zoom(zoomFactor);
 
         IsShowMapLocked = currentIsShowMapLocked;
     }

@@ -1,62 +1,73 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Utilities;
-using DigitalBattleMap.ViewModels;
 using DigitalBattleMap.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
-namespace DigitalBattleMap;
+namespace DigitalBattleMap.ViewModels;
 
-public class TokenController
+public class TokenControllerViewModel : ControllerViewModelBase
 {
     private IWindowService _windowService;
     private Bitmap _tokenBitmap;
-    private BitmapSource _tokenBitmapSource;
     private Bitmap _tokenSelectionBitmap;
-    private BitmapSource _tokenSelectionBitmapSource;
     private List<Token> _monsterTokens = new();
-    private TokenListItem _selectedToken;
-    private Size<int> _bitmapSize;
-    private Size<double> _canvasSize;
-    private int _gridSize;
     private Settings _settings;
     private object _lock = "";
 
-    public TokenController(IWindowService windowService, Settings settings, int gridSize)
+    public TokenControllerViewModel(IWindowService windowService, Settings settings, int gridSize) : base(gridSize)
     {
         _windowService = windowService;
         _settings = settings;
-        _gridSize = gridSize;
         TokenBitmap = BitmapTools.CreateEmptyBitmap();
         TokenSelectionBitmap = BitmapTools.CreateEmptyBitmap();
-        _bitmapSize = BitmapTools.GetBitmapSize();
         ReloadMonsterTokens();
     }
 
-    public event EventHandler OnTokenEditorUpdated;
-    public event EventHandler OnTokenBitmapUpdated;
-    public event EventHandler OnSelectedTokenBitmapUpdated;
-
-    public TokenListItem SelectedToken
+    protected override void InitializeCommands()
     {
-        get => _selectedToken;
-        set
-        {
-            if (value != _selectedToken)
-            {
-                _selectedToken = value;
-                UpdateTokenSelection();
-                NotifyTokenEditorUpdated();
-            }
-        }
+        AddTokenCommand = new RelayCommand(p => AddToken());
+        RemoveTokenCommand = new RelayCommand(p => RemoveToken());
+        ClearTokensCommand = new RelayCommand(p => ClearTokens());
+        TokenUpCommand = new RelayCommand(p => InitiativeUp());
+        TokenDownCommand = new RelayCommand(p => InitiativeDown());
+        CustomTokensCommand = new RelayCommand(p => CustomTokens());
+        SortInitiativeCommand = new RelayCommand(p => SortInitiative());
     }
 
+    public event EventHandler OnTokenBitmapUpdated;
+
+    public BitmapSource TokenBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
+    public BitmapSource TokenSelectionBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
+    public TokenListItem SelectedToken
+    {
+        get => Get<TokenListItem>();
+        set => Set(value, () =>
+        {
+            UpdateTokenSelection();
+            NotifyPropertyChange(nameof(IsTokenSelected));
+            NotifyPropertyChange(nameof(IsTokenUpButtonEnabled));
+            NotifyPropertyChange(nameof(IsTokenDownButtonEnabled));
+        });
+    }
+    public bool IsTokenSelected { get; set; }
+    public bool IsTokenUpButtonEnabled { get => TokenList.IndexOf(SelectedToken) > 0; }
+    public bool IsTokenDownButtonEnabled { get => TokenList.IndexOf(SelectedToken) < TokenList.Count - 1; }
     public ObservableCollection<TokenListItem> TokenList { get; set; } = new ObservableCollection<TokenListItem>();
+
+    public ICommand AddTokenCommand { get; set; }
+    public ICommand RemoveTokenCommand { get; set; }
+    public ICommand ClearTokensCommand { get; set; }
+    public ICommand TokenUpCommand { get; set; }
+    public ICommand TokenDownCommand { get; set; }
+    public ICommand CustomTokensCommand { get; set; }
+    public ICommand SortInitiativeCommand { get; set; }
 
     private Bitmap TokenBitmap
     {
@@ -66,7 +77,7 @@ public class TokenController
             if (value != _tokenBitmap)
             {
                 _tokenBitmap = value;
-                _tokenBitmapSource = value.ToBitmapImage();
+                TokenBitmapSource = value.ToBitmapImage();
             }
         }
     }
@@ -79,7 +90,7 @@ public class TokenController
             if (value != _tokenSelectionBitmap)
             {
                 _tokenSelectionBitmap = value;
-                _tokenSelectionBitmapSource = value.ToBitmapImage();
+                TokenSelectionBitmapSource = value.ToBitmapImage();
             }
         }
     }
@@ -89,14 +100,6 @@ public class TokenController
         lock (_lock)
         {
             _monsterTokens = MonsterTokens.GetTokens();
-        }
-    }
-
-    public bool IsTokenSelected()
-    {
-        lock (_lock)
-        {
-            return SelectedToken != null;
         }
     }
 
@@ -151,22 +154,6 @@ public class TokenController
         }
     }
 
-    public bool IsUpButtonEnabled()
-    {
-        lock (_lock)
-        {
-            return TokenList.IndexOf(SelectedToken) > 0;
-        }
-    }
-
-    public bool IsDownButtonEnabled()
-    {
-        lock (_lock)
-        {
-            return TokenList.IndexOf(SelectedToken) < TokenList.Count - 1;
-        }
-    }
-
     public void InitiativeUp()
     {
         lock (_lock)
@@ -191,14 +178,6 @@ public class TokenController
         }
     }
 
-    public BitmapSource GetTokenBitmapSource()
-    {
-        lock (_lock)
-        {
-            return _tokenBitmapSource;
-        }
-    }
-
     public Bitmap GetTokenBitmap()
     {
         lock (_lock)
@@ -207,15 +186,7 @@ public class TokenController
         }
     }
 
-    public BitmapSource GetTokenSelectionBitmapSource()
-    {
-        lock (_lock)
-        {
-            return _tokenSelectionBitmapSource;
-        }
-    }
-
-    public void UpdateGridSize(int gridSize)
+    public override void UpdateGridSize(int gridSize)
     {
         lock (_lock)
         {
@@ -243,7 +214,7 @@ public class TokenController
         }
     }
 
-    public void SetCanvasSize(Size<double> canvasSize)
+    public override void SetCanvasSize(Size<double> canvasSize)
     {
         lock (_lock)
         {
@@ -251,7 +222,7 @@ public class TokenController
         }
     }
 
-    public void MoveTokens(ArrowDirection direction)
+    public override void Move(ArrowDirection direction)
     {
         lock (_lock)
         {
@@ -278,7 +249,7 @@ public class TokenController
         }
     }
 
-    public void AddToSaveFile(SaveFile saveFile)
+    public override void AddToSaveFile(SaveFile saveFile)
     {
         lock (_lock)
         {
@@ -286,7 +257,7 @@ public class TokenController
         }
     }
 
-    public void OpenSaveFile(SaveFile saveFile)
+    public override void OpenSaveFile(SaveFile saveFile)
     {
         lock (_lock)
         {
@@ -366,13 +337,13 @@ public class TokenController
             TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => string.Equals(t.Token.Name, e.Name, StringComparison.CurrentCultureIgnoreCase) && t.Token.PlayerControl);
             if (tokenListItem != null)
             {
-                tokenListItem.ToggleCondition(e.Condition);                    
+                tokenListItem.ToggleCondition(e.Condition);
                 CreateTokenBitmap();
             }
         }
     }
 
-    public void Zoom(double zoomFactor)
+    public override void Zoom(double zoomFactor)
     {
         lock (_lock)
         {
@@ -411,19 +382,9 @@ public class TokenController
         }
     }
 
-    private void NotifyTokenEditorUpdated()
-    {
-        OnTokenEditorUpdated?.Invoke(this, new EventArgs());
-    }
-
     private void NotifyTokenBitmapUpdated()
     {
         OnTokenBitmapUpdated?.Invoke(this, new EventArgs());
-    }
-
-    private void NotifySelectedTokenBitmapUpdated()
-    {
-        OnSelectedTokenBitmapUpdated?.Invoke(this, new EventArgs());
     }
 
     private Point<int> CalculateStartPosition(int index)
@@ -471,7 +432,7 @@ public class TokenController
             {
                 foreach (var tokenListItem in TokenList.OrderBy(t => t.ZLevel))
                 {
-                    if(tokenListItem.Visible)
+                    if (tokenListItem.Visible)
                     {
                         BitmapTools.DrawToken(bitmap, tokenListItem, GetTokenIdString(tokenListItem), _gridSize);
                     }
@@ -509,7 +470,6 @@ public class TokenController
         }
 
         TokenSelectionBitmap = bitmap;
-        NotifySelectedTokenBitmapUpdated();
     }
 
     private void ZLevelChanged(object? sender, ZLevelChangedEventArgs eventArgs)

@@ -61,19 +61,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     public event EventHandler OnDrawingStrokesUpdated;
 
-    private Stroke ShapeStroke
-    {
-        get => _shapeStroke;
-        set
-        {
-            if (value != _shapeStroke)
-            {
-                _shapeStroke = value;
-                NotifyPropertyChange(nameof(IsShapeDrawn));
-            }
-        }
-    }
-
     public BitmapSource BlackButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource RedButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource GreenButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
@@ -103,6 +90,19 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public ICommand ApplyShapeCommand { get; set; }
     public ICommand EditShapeCommand { get; set; }
     public ICommand RemoveShapeCommand { get; set; }
+
+    private Stroke ShapeStroke
+    {
+        get => _shapeStroke;
+        set
+        {
+            if (value != _shapeStroke)
+            {
+                _shapeStroke = value;
+                NotifyPropertyChange(nameof(IsShapeDrawn));
+            }
+        }
+    }
 
     public void SelectedDrawingButtonChanged(string button)
     {

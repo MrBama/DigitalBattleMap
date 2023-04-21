@@ -12,12 +12,12 @@ public abstract class ControllerViewModelBase : ViewModelBase
         _gridSize = gridSize;
     }
 
-    public void UpdateGridSize(int gridSize)
+    public virtual void UpdateGridSize(int gridSize)
     {
         _gridSize = gridSize;
     }
 
-    public void SetCanvasSize(Size<double> canvasSize)
+    public virtual void SetCanvasSize(Size<double> canvasSize)
     {
         _canvasSize = canvasSize;
     }

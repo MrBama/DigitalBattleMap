@@ -47,19 +47,6 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     public event EventHandler OnBackgroundUpdated;
 
-    private Bitmap BackgroundBitmap
-    {
-        get => _backgroundBitmap;
-        set
-        {
-            if(value != _backgroundBitmap)
-            {
-                _backgroundBitmap = value;
-                BackgroundBitmapSource = value.ToBitmapImage();
-            }
-        }
-    }
-
     public bool HasOpenedBackground { get => Get<bool>(); set => Set(value); }
     public int GridCellsWidth { get => Get<int>(); set => Set(value); }
     public int GridCellsHeight { get => Get<int>(); set => Set(value); }
@@ -72,6 +59,19 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public ICommand BackgroundZoomInCommand { get; set; }
     public ICommand BackgroundZoomOutCommand { get; set; }
     public ICommand FitBackgroundToGridCommand { get; set; }
+
+    private Bitmap BackgroundBitmap
+    {
+        get => _backgroundBitmap;
+        set
+        {
+            if (value != _backgroundBitmap)
+            {
+                _backgroundBitmap = value;
+                BackgroundBitmapSource = value.ToBitmapImage();
+            }
+        }
+    }
 
     public Bitmap GetBackgroundBitmap()
     {

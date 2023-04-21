@@ -104,8 +104,8 @@
                             <ColumnDefinition Width="auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <Button Content="Custom tokens" Command="{Binding CustomTokensCommand}"/>
-                        <ListView Grid.Row="1" ItemsSource="{Binding TokenList}" HorizontalContentAlignment="Stretch" Margin="0 10 0 0" SelectedItem="{Binding SelectedToken}" FontSize="14">
+                        <Button Content="Custom tokens" Command="{Binding TokenController.CustomTokensCommand}"/>
+                        <ListView Grid.Row="1" ItemsSource="{Binding TokenController.TokenList}" HorizontalContentAlignment="Stretch" Margin="0 10 0 0" SelectedItem="{Binding TokenController.SelectedToken}" FontSize="14">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
                                     <Grid Background="Transparent">
@@ -210,17 +210,17 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Button Margin="0 0 5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding IsTokenUpButtonEnabled}" Command="{Binding TokenUpCommand}">
+                            <Button Margin="0 0 5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding TokenController.IsTokenUpButtonEnabled}" Command="{Binding TokenController.TokenUpCommand}">
                                 <Image Source="{Binding MapArrowUpBitmapSource}"/>
                             </Button>
-                            <Button Grid.Column="1" Margin="5 0 0 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding IsTokenDownButtonEnabled}" Command="{Binding TokenDownCommand}">
+                            <Button Grid.Column="1" Margin="5 0 0 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding TokenController.IsTokenDownButtonEnabled}" Command="{Binding TokenController.TokenDownCommand}">
                                 <Image Source="{Binding MapArrowDownBitmapSource}"/>
                             </Button>
-                            <Button x:Name="AddTokenButton" Grid.Row="1" Content="Add" Margin="0 10 5 0" Command="{Binding AddTokenCommand}"/>
-                            <Button Grid.Row="1" Grid.Column="1" Content="Remove" Margin="5 10 0 0" Command="{Binding RemoveTokenCommand}" IsEnabled="{Binding IsTokenSelected}"/>
+                            <Button x:Name="AddTokenButton" Grid.Row="1" Content="Add" Margin="0 10 5 0" Command="{Binding TokenController.AddTokenCommand}"/>
+                            <Button Grid.Row="1" Grid.Column="1" Content="Remove" Margin="5 10 0 0" Command="{Binding TokenController.RemoveTokenCommand}" IsEnabled="{Binding TokenController.IsTokenSelected}"/>
                         </Grid>
-                        <Button Grid.Row="3" Content="Sort initiative" Margin="0 10 0 0" Command="{Binding SortInitiativeCommand}"/>
-                        <Button Grid.Row="4" Content="Clear" Margin="0 10 0 0" Command="{Binding ClearTokensCommand}"/>
+                        <Button Grid.Row="3" Content="Sort initiative" Margin="0 10 0 0" Command="{Binding TokenController.SortInitiativeCommand}"/>
+                        <Button Grid.Row="4" Content="Clear" Margin="0 10 0 0" Command="{Binding TokenController.ClearTokensCommand}"/>
                     </Grid>
                 </Border>
             </TabItem>
@@ -247,8 +247,8 @@
                                             Visibility="{Binding InkCanvasVisibility}"
                                             Panel.ZIndex="{Binding InkCanvasZIndex}">
                     </uielements:InkCanvasControl>
-                    <Image Source="{Binding TokenBitmapSource}" Visibility="{Binding TokenVisibility}"/>
-                    <Image Source="{Binding TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
+                    <Image Source="{Binding TokenController.TokenBitmapSource}" Visibility="{Binding TokenVisibility}"/>
+                    <Image Source="{Binding TokenController.TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
                     <Canvas Visibility="{Binding MouseInputCanvasVisibility}" Background="Transparent" Cursor="Hand">
                         <i:Interaction.Behaviors>
                             <uielements:MouseBehavior MouseX="{Binding MouseInputX, Mode=OneWayToSource}" MouseY="{Binding MouseInputY, Mode=OneWayToSource}"/>
