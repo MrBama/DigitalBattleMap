@@ -29,6 +29,8 @@ namespace DigitalBattleMap
 
         public List<TokenListItem> TokenList { get; set; } = new List<TokenListItem>();
 
+        public List<DrawingShapeSave> DrawingShapes { get; set; } = new List<DrawingShapeSave>();
+
         [JsonIgnore]
         public StrokeCollection Strokes { get; set; } = new StrokeCollection();
 

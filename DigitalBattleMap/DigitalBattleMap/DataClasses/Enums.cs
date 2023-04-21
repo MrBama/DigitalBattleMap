@@ -32,12 +32,18 @@
         Front
     }
 
-    public enum DrawingButtons
+    public enum DrawingButton
     {
         Black,
         Red,
         Green,
         Blue,
         Eraser
+    }
+
+    public enum DrawingShapeType
+    {
+        Square,
+        Circle
     }
 }

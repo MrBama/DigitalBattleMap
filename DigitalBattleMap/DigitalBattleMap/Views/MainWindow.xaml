@@ -135,8 +135,11 @@
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
+                            <RowDefinition Height="*"/>
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="0.5*"/>
                         </Grid.RowDefinitions>
 
                         <!--Color buttons grid-->
@@ -211,8 +214,27 @@
                             <CheckBox Grid.Column="1" VerticalContentAlignment="Center" Margin="10 0 0 0" IsChecked="{Binding IsSnapToGridEnabled}"/>
                         </Grid>
 
+                        <ListView Grid.Row="3" Margin="0 10 0 0" ItemsSource="{Binding DrawingShapes}" SelectedItem="{Binding SelectedDrawingShape}" HorizontalContentAlignment="Stretch">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="0.5*"/>
+                                            <ColumnDefinition Width="0.5*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Content="{Binding DrawingShapeType}"/>
+                                        <Label Grid.Column="1" Content="{Binding Radius}" HorizontalAlignment="Right"/>
+                                        <Label Grid.Column="2" Content="ft"/>
+                                        <Label Grid.Column="3" Background="{Binding Color}"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        
                         <!--Draw shape grid-->
-                        <Grid Grid.Row="3" Margin="0 10 0 0">
+                        <Grid Grid.Row="4" Margin="0 10 0 0">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto"/>
                                 <RowDefinition Height="auto"/>
@@ -226,14 +248,24 @@
                             </Grid.ColumnDefinitions>
                             <RadioButton Content="Square" VerticalContentAlignment="Center" IsChecked="{Binding DrawingShapeSquareSelected}"/>
                             <RadioButton Grid.Column="1" Content="Circle" VerticalContentAlignment="Center" IsChecked="{Binding DrawingShapeCircleSelected}"/>
-                            <Label Grid.Row="1" Content="Size" Margin="0 10 0 0"/>
-                            <TextBox Grid.Row="1" Grid.Column="1" VerticalContentAlignment="Center" Margin="0 10 0 0" Text="{Binding DrawingShapeSize}"/>
+                            <Label Grid.Row="1" Content="Radius" Margin="0 10 0 0"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" VerticalContentAlignment="Center" Margin="0 10 0 0" Text="{Binding DrawingShapeRadius}"/>
                             <Label Grid.Row="1" Grid.Column="2" Content="ft" Margin="0 10 0 0"/>
                             <Button Grid.Row="2" Grid.ColumnSpan="4" Content="Draw shape" Margin="0 10 0 0" Visibility="{Binding DrawShapeButtonVisibility}" Command="{Binding DrawShapeCommand}"/>
                             <Button Grid.Row="2" Grid.ColumnSpan="2" Content="Cancel" Margin="0 10 5 0" Visibility="{Binding CancelShapeButtonVisibility}" Command="{Binding CancelShapeCommand}"/>
-                            <Button Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Content="Apply" Margin="5 10 0 0" Visibility="{Binding ApplyShapeButtonVisibility}" Command="{Binding ApplyShapeCommand}"/>
+                            <Button Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Content="Apply" Margin="5 10 0 0" Visibility="{Binding ApplyShapeButtonVisibility}" Command="{Binding ApplyShapeCommand}" IsEnabled="{Binding IsDrawingShapeDrawn}"/>
                         </Grid>
-                        <Button Grid.Row="4" Content="Clear" Command="{Binding ClearDrawingCommand}" Margin="0 10 0 0"/>
+                        
+                        <!--Edit and remove shape grid-->
+                        <Grid Grid.Row="5" Margin="0 10 0 0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Button Content="Edit shape" Command="{Binding EditShapeCommand}" Margin="0 0 5 0" IsEnabled="{Binding IsDrawingShapeSelected}"/>
+                            <Button Grid.Column="1" Content="Remove shape" Command="{Binding RemoveShapeCommand}" Margin="5 0 0 0" IsEnabled="{Binding IsDrawingShapeSelected}"/>
+                        </Grid>
+                        <Button Grid.Row="6" Content="Clear" Command="{Binding ClearDrawingCommand}" Margin="0 10 0 0"/>
                     </Grid>
                 </Border>
             </TabItem>
