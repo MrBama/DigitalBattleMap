@@ -22,6 +22,10 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     private bool _isShapeEditorActive;
     private Stroke _shapeStroke;
 
+    public DrawingControllerViewModel() : this(50)
+    {
+    }
+
     public DrawingControllerViewModel(int gridSize) : base(gridSize)
     {
         InkCanvasDrawingAttributes = new DrawingAttributes();

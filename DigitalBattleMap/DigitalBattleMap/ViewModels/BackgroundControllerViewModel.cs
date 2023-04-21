@@ -17,10 +17,19 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     private Point<double> _mouseDownPosition;
     private bool _mouseDown;
 
+    public BackgroundControllerViewModel() : base(50)
+    {
+        Initialize();
+    }
+
     public BackgroundControllerViewModel(IWindowService windowService, int gridSize) : base(gridSize)
     {
         _windowService = windowService;
+        Initialize();
+    }
 
+    private void Initialize()
+    {
         BackgroundBitmap = BitmapTools.CreateEmptyBitmap();
         BackgroundZoomPercentage = 10;
         GridCellsWidth = 10;
