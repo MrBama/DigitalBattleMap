@@ -6,7 +6,7 @@ using System.Windows.Input;
 
 namespace DigitalBattleMap.ViewModels
 {
-    public class SettingsWindowViewModel
+    public class SettingsWindowViewModel : ViewModelBase
     {
         private Settings _settings;
         private IWindowService _windowService;
@@ -16,8 +16,6 @@ namespace DigitalBattleMap.ViewModels
         {
             _settings = settings;
             _windowService = windowService;
-            SaveCommand = new RelayCommand(p => SaveButtonClicked());
-            DownloadMonsterTokensCommand = new RelayCommand(p => DownloadMonsterTokens());
             _initialMonitorPosition = _settings.MonitorPosition;
 
             foreach (var screenPosition in ScreenWrapper.GetScreenPositions())
@@ -26,11 +24,18 @@ namespace DigitalBattleMap.ViewModels
             }
         }
 
-        public ICommand SaveCommand { get; set; }
-        public ICommand DownloadMonsterTokensCommand { get; set; }
+        protected override void InitializeCommands()
+        {
+            SaveCommand = new RelayCommand(p => SaveButtonClicked());
+            DownloadMonsterTokensCommand = new RelayCommand(p => DownloadMonsterTokens());
+        }
+
         public ObservableCollection<ScreenPosition> MonitorPositions { get; private set; } = new ObservableCollection<ScreenPosition>();
         public bool MonitorChanged { get; set; }
         public bool MonsterTokensDownloaded { get; set; }
+
+        public ICommand SaveCommand { get; set; }
+        public ICommand DownloadMonsterTokensCommand { get; set; }
 
         public int DefaultGridSize 
         {

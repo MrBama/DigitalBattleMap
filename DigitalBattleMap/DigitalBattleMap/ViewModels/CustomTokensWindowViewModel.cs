@@ -9,7 +9,7 @@ using System.Windows.Input;
 
 namespace DigitalBattleMap.ViewModels
 {
-    public class CustomTokensWindowViewModel : PropertyHandler
+    public class CustomTokensWindowViewModel : ViewModelBase
     {
         private IWindowService _windowService;
         private Settings _settings;
@@ -34,7 +34,10 @@ namespace DigitalBattleMap.ViewModels
             {
                 GroupList.Add(group);
             }
+        }
 
+        protected override void InitializeCommands()
+        {
             AddTokenCommand = new RelayCommand(p => AddToken());
             RemoveTokenCommand = new RelayCommand(p => RemoveToken());
             EditTokenCommand = new RelayCommand(p => EditToken());

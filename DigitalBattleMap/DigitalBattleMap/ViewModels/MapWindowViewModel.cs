@@ -4,7 +4,7 @@ using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.ViewModels
 {
-    public class MapWindowViewModel : PropertyHandler
+    public class MapWindowViewModel : ViewModelBase
     {
         public double Left { get => Get<double>(); set => Set(value); }
         public WindowState WindowState { get => Get<WindowState>(); set => Set(value); }
@@ -17,6 +17,10 @@ namespace DigitalBattleMap.ViewModels
             WindowState = WindowState.Normal;
             Left = x + 10;
             WindowState = WindowState.Maximized;
+        }
+
+        protected override void InitializeCommands()
+        {
         }
     }
 }

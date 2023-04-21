@@ -3,16 +3,16 @@ using System.Windows.Input;
 
 namespace DigitalBattleMap.ViewModels
 {
-    public class ConfirmationWindowViewModel
+    public class ConfirmationWindowViewModel : ViewModelBase
     {
-        public ConfirmationWindowViewModel()
+        protected override void InitializeCommands()
         {
             YesCommand = new RelayCommand(p => YesButtonClicked());
         }
 
         public string Content { get; set; } = "Are you sure?";
-        public ICommand YesCommand { get; set; }
         public bool Confirmed { get; set; } = false;
+        public ICommand YesCommand { get; set; }
 
         private void YesButtonClicked()
         {

@@ -5,9 +5,10 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:DigitalBattleMap.Views"
              mc:Ignorable="d" 
-             d:DesignHeight="1080" d:DesignWidth="480">
+             d:DesignHeight="1080" d:DesignWidth="480"
+             Background="White">
     <!--Background editor grid-->
-    <Grid Margin="10">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>

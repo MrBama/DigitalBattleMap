@@ -46,7 +46,7 @@
                     <TextBlock Text="Background" FontSize="20" FontWeight="Bold"/>
                 </TabItem.Header>
                 <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
-                    <views:BackgroundView DataContext="{Binding BackgroundController}"/>
+                    <views:BackgroundView DataContext="{Binding BackgroundController}"  Margin="10"/>
                 </Border>
             </TabItem>
             <TabItem>

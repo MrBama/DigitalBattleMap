@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.ViewModels
 {
-    public class CreateTokenWindowViewModel : PropertyHandler
+    public class CreateTokenWindowViewModel : ViewModelBase
     {
         private IWindowService _windowService;
         private Bitmap _tokenBitmap = new Bitmap(256, 256);
@@ -31,18 +31,24 @@ namespace DigitalBattleMap.ViewModels
         public CreateTokenWindowViewModel(IWindowService windowService, List<string> tokenNames, Token editToken)
         {
             _windowService = windowService;
-            ExistingTokenNames = tokenNames;
-            InitializeProperties();
+            _tokenBitmap = BitmapTools.LoadBitmap(editToken.ImagePath);
+            _originalTokenImagePath = editToken.ImagePath;
+            _tokenImageSelected = true;
 
+            ExistingTokenNames = tokenNames;
             TokenName = editToken.Name;
             SelectedTokenSize = editToken.Size;
             PlayerControl = editToken.PlayerControl;
-            _tokenBitmap = BitmapTools.LoadBitmap(editToken.ImagePath);
-            _originalTokenImagePath = editToken.ImagePath;
+            InitializeProperties();
 
-            _tokenImageSelected = true;
             NotifyPropertyChange(nameof(TokenBitmapSource));
             NotifyPropertyChange(nameof(IsOkButtonEnabled));
+        }
+
+        protected override void InitializeCommands()
+        {
+            SelectImageCommand = new RelayCommand(p => SelectImage());
+            OkCommand = new RelayCommand(p => OkButton());
         }
 
         public TokenSize SelectedTokenSize { get => Get<TokenSize>(); set => Set(value); }
@@ -51,14 +57,14 @@ namespace DigitalBattleMap.ViewModels
         public string ToolTip { get => Get<string>(); set => Set(value); }
         public bool IsOkButtonEnabled { get => AllInformationAvailable(); }
         public bool PlayerControl { get => Get<bool>(); set => Set(value); }
-        public ICommand SelectImageCommand { get; set; }
-        public ICommand OkCommand { get; set; }
         public BitmapSource TokenBitmapSource { get => _tokenBitmap.ToBitmapImage(); }
         public List<string> ExistingTokenNames { get; set; } = new List<string>();
-
         public Token Token { get; set; }
 
-        public void SelectImage()
+        public ICommand SelectImageCommand { get; set; }
+        public ICommand OkCommand { get; set; }
+
+        private void SelectImage()
         {
             if (_windowService.ShowOpenFileDialog(out var path))
             {
@@ -73,8 +79,6 @@ namespace DigitalBattleMap.ViewModels
         {
             SelectedTokenSize = TokenSize.Medium;
             NameBorderBrush = System.Windows.Media.Brushes.Transparent;
-            SelectImageCommand = new RelayCommand(p => SelectImage());
-            OkCommand = new RelayCommand(p => OkButton());
         }
 
         private bool AllInformationAvailable()

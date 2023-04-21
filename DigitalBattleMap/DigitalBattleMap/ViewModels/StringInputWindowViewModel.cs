@@ -4,7 +4,7 @@ using System.Windows.Input;
 
 namespace DigitalBattleMap.ViewModels
 {
-    public class StringInputWindowViewModel : PropertyHandler
+    public class StringInputWindowViewModel : ViewModelBase
     {
         private Func<string, bool> _validate = (p) => true;
 
@@ -18,17 +18,22 @@ namespace DigitalBattleMap.ViewModels
 
         public StringInputWindowViewModel(string header, string input, Func<string, bool> validate)
         {
-            Header = header;
             _validate = validate;
+            Header = header;            
             Input = input;
+        }
+
+        protected override void InitializeCommands()
+        {
             OkCommand = new RelayCommand(p => OkButton());
         }
 
         public string Header { get => Get<string>(); set => Set(value); }
         public string Input { get => Get<string>(); set => Set(value, OnInputChange); }
-        public ICommand OkCommand { get; set; }
         public bool Success { get; set; }
         public bool IsOkEnabled { get => Get<bool>(); set => Set(value); }
+
+        public ICommand OkCommand { get; set; }
 
         private void OkButton()
         {

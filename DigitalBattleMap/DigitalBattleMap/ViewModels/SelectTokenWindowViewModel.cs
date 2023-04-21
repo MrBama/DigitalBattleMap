@@ -7,7 +7,7 @@ using System.Windows.Input;
 
 namespace DigitalBattleMap.ViewModels
 {
-    public class SelectTokenWindowViewModel : PropertyHandler
+    public class SelectTokenWindowViewModel : ViewModelBase
     {
         private List<Token> _tokens = new List<Token>();
         private List<TokenGroup> _groups = new List<TokenGroup>();
@@ -35,7 +35,10 @@ namespace DigitalBattleMap.ViewModels
 
             SelectedToken = TokenList.FirstOrDefault();
             SelectedGroup = GroupList.FirstOrDefault();
+        }
 
+        protected override void InitializeCommands()
+        {
             AddCommand = new RelayCommand(p => AddButton());
         }
 
@@ -49,6 +52,7 @@ namespace DigitalBattleMap.ViewModels
         public ObservableCollection<TokenGroup> GroupList { get; set; } = new ObservableCollection<TokenGroup>();
         public bool IsTokenSelected { get => AreTokensSelected(); }
         public List<Token> AddedTokens { get; set; } = new List<Token>();
+
         public ICommand AddCommand { get; set; }
 
         private void InitializeProperties()

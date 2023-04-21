@@ -9,25 +9,28 @@ using System.Windows.Input;
 
 namespace DigitalBattleMap.ViewModels
 {
-    public class DownloadWindowViewModel : PropertyHandler
+    public class DownloadWindowViewModel : ViewModelBase
     {
         private const int _numberOfThreads = 4;
-
         private List<Thread> _threadPool = new List<Thread>();
         private bool _isTerminated = false;
-
         private object _lock = "";
 
         public DownloadWindowViewModel()
         {
             ProgressBarMaximum = 100;
+        }
+
+        protected override void InitializeCommands()
+        {
             CancelCommand = new RelayCommand(p => Cancel());
         }
 
-        public ICommand CancelCommand { get; set; }
         public double ProgressBarValue { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(IsOkButtonEnabled))); }
         public double ProgressBarMinimum { get => Get<double>(); set => Set(value); }
         public double ProgressBarMaximum { get => Get<double>(); set => Set(value); }
+
+        public ICommand CancelCommand { get; set; }
 
         public bool IsOkButtonEnabled
         {
