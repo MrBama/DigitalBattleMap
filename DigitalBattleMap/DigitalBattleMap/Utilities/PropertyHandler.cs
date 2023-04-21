@@ -7,7 +7,7 @@ namespace DigitalBattleMap.Utilities;
 
 public class PropertyHandler : INotifyPropertyChanged
 {
-    private Dictionary<string, object> _properties = new Dictionary<string, object>();
+    private Dictionary<string, object> _properties = new();
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

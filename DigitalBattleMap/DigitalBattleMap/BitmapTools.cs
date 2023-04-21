@@ -15,7 +15,7 @@ public static class BitmapTools
 {
     private const int _width = 1920;
     private const int _height = 1080;
-    private static ConditionIcons _conditionIcons = new ConditionIcons();
+    private static ConditionIcons _conditionIcons = new();
 
     public static Bitmap LoadBitmap(string path)
     {
@@ -292,7 +292,7 @@ public static class BitmapTools
                 var brush = new SolidBrush(Color.White);
                 var textSize = Math.Max(tokenSize.Width / 6, 1);
 
-                StringFormat stringFormat = new StringFormat();
+                StringFormat stringFormat = new();
                 stringFormat.LineAlignment = StringAlignment.Center;
                 stringFormat.Alignment = StringAlignment.Center;
 
@@ -378,7 +378,7 @@ public static class BitmapTools
 
         using (var graphics = Graphics.FromImage(bitmap))
         {
-            Pen blackPen = new Pen(Color.Black, 1);
+            Pen blackPen = new(Color.Black, 1);
 
             for (int x = gridOffset.X; x < _width; x += gridSize)
             {

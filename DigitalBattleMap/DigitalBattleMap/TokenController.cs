@@ -19,7 +19,7 @@ public class TokenController
     private BitmapSource _tokenBitmapSource;
     private Bitmap _tokenSelectionBitmap;
     private BitmapSource _tokenSelectionBitmapSource;
-    private List<Token> _monsterTokens = new List<Token>();
+    private List<Token> _monsterTokens = new();
     private TokenListItem _selectedToken;
     private Size<int> _bitmapSize;
     private Size<double> _canvasSize;

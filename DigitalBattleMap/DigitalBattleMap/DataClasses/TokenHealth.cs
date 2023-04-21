@@ -12,8 +12,8 @@ public class TokenHealth : PropertyHandler
     private string _editorHp;
     private string _editorMaxHp;
     private Brush _color = Brushes.White;
-    private Regex _integerRegex = new Regex(@"^[0-9]*$", RegexOptions.IgnoreCase);
-    private Regex _hpRegex = new Regex(@"^([-+])?([0-9]+)*$", RegexOptions.IgnoreCase);
+    private Regex _integerRegex = new(@"^[0-9]*$", RegexOptions.IgnoreCase);
+    private Regex _hpRegex = new(@"^([-+])?([0-9]+)*$", RegexOptions.IgnoreCase);
 
     public TokenHealth()
     {

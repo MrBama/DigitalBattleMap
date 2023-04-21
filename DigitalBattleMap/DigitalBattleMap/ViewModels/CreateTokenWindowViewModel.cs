@@ -12,7 +12,7 @@ namespace DigitalBattleMap.ViewModels;
 public class CreateTokenWindowViewModel : ViewModelBase
 {
     private IWindowService _windowService;
-    private Bitmap _tokenBitmap = new Bitmap(256, 256);
+    private Bitmap _tokenBitmap = new(256, 256);
     private bool _tokenImageSelected = false;
     private string _originalTokenImagePath = "";
 

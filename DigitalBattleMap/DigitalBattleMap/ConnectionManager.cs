@@ -33,7 +33,7 @@ public class ConnectionManager : IWebHub, IWebHubClientEvents
     public event IWebHubClientEvents.ToggleConditionActionEventHandler OnToggleCondition;
 
     private bool _isConnected;
-    private Queue<MapUpdate> _mapUpdateQueue = new Queue<MapUpdate>();
+    private Queue<MapUpdate> _mapUpdateQueue = new();
     private Thread _thread;
     private object _lock = "";
 

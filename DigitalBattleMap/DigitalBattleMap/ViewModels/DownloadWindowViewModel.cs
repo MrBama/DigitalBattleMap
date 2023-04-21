@@ -12,7 +12,7 @@ namespace DigitalBattleMap.ViewModels;
 public class DownloadWindowViewModel : ViewModelBase
 {
     private const int _numberOfThreads = 4;
-    private List<Thread> _threadPool = new List<Thread>();
+    private List<Thread> _threadPool = new();
     private bool _isTerminated = false;
     private object _lock = "";
 

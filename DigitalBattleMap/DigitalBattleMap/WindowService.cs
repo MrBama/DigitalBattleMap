@@ -18,7 +18,7 @@ public interface IWindowService
 
 public class WindowService : IWindowService
 {
-    private List<Window> _windows = new List<Window>();
+    private List<Window> _windows = new();
 
     public void ShowWindow<T>(object dataContext) where T : Window, new()
     {

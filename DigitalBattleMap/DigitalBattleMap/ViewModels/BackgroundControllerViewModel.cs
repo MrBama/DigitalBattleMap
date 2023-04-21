@@ -19,10 +19,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     public BackgroundControllerViewModel(IWindowService windowService, int gridSize) : base(gridSize)
     {
-        // Fields
         _windowService = windowService;
 
-        // Properties
         BackgroundBitmap = BitmapTools.CreateEmptyBitmap();
         BackgroundZoomPercentage = 10;
         GridCellsWidth = 10;

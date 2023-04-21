@@ -9,8 +9,8 @@ namespace DigitalBattleMap.ViewModels;
 
 public class SelectTokenWindowViewModel : ViewModelBase
 {
-    private List<Token> _tokens = new List<Token>();
-    private List<TokenGroup> _groups = new List<TokenGroup>();
+    private List<Token> _tokens = new();
+    private List<TokenGroup> _groups = new();
 
     public SelectTokenWindowViewModel()
     {
