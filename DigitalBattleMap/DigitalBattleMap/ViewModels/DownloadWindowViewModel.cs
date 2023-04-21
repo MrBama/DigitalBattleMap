@@ -7,126 +7,125 @@ using System.Net.Http;
 using System.Threading;
 using System.Windows.Input;
 
-namespace DigitalBattleMap.ViewModels
+namespace DigitalBattleMap.ViewModels;
+
+public class DownloadWindowViewModel : ViewModelBase
 {
-    public class DownloadWindowViewModel : ViewModelBase
+    private const int _numberOfThreads = 4;
+    private List<Thread> _threadPool = new List<Thread>();
+    private bool _isTerminated = false;
+    private object _lock = "";
+
+    public DownloadWindowViewModel()
     {
-        private const int _numberOfThreads = 4;
-        private List<Thread> _threadPool = new List<Thread>();
-        private bool _isTerminated = false;
-        private object _lock = "";
+        ProgressBarMaximum = 100;
+    }
 
-        public DownloadWindowViewModel()
+    protected override void InitializeCommands()
+    {
+        CancelCommand = new RelayCommand(p => Cancel());
+    }
+
+    public double ProgressBarValue { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(IsOkButtonEnabled))); }
+    public double ProgressBarMinimum { get => Get<double>(); set => Set(value); }
+    public double ProgressBarMaximum { get => Get<double>(); set => Set(value); }
+
+    public ICommand CancelCommand { get; set; }
+
+    public bool IsOkButtonEnabled
+    {
+        get => ProgressBarValue == ProgressBarMaximum;
+    }
+
+    public void StartDownload()
+    {
+        var data = MonsterTokens.GetRawData();
+
+        ProgressBarMinimum = 0;
+        ProgressBarMaximum = data.Tokens.Count;
+
+        var tokenLists = new List<List<MonsterToken>>();
+
+        for (int i = 0; i < _numberOfThreads; i++)
         {
-            ProgressBarMaximum = 100;
+            tokenLists.Add(new List<MonsterToken>());
         }
 
-        protected override void InitializeCommands()
+        int index = 0;
+        foreach (var token in data.Tokens)
         {
-            CancelCommand = new RelayCommand(p => Cancel());
-        }
-
-        public double ProgressBarValue { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(IsOkButtonEnabled))); }
-        public double ProgressBarMinimum { get => Get<double>(); set => Set(value); }
-        public double ProgressBarMaximum { get => Get<double>(); set => Set(value); }
-
-        public ICommand CancelCommand { get; set; }
-
-        public bool IsOkButtonEnabled
-        {
-            get => ProgressBarValue == ProgressBarMaximum;
-        }
-
-        public void StartDownload()
-        {
-            var data = MonsterTokens.GetRawData();
-
-            ProgressBarMinimum = 0;
-            ProgressBarMaximum = data.Tokens.Count;
-
-            var tokenLists = new List<List<MonsterToken>>();
-
-            for (int i = 0; i < _numberOfThreads; i++)
+            if (index == _numberOfThreads)
             {
-                tokenLists.Add(new List<MonsterToken>());
+                index = 0;
             }
 
-            int index = 0;
-            foreach (var token in data.Tokens)
+            tokenLists[index].Add(token);
+            index++;
+        }
+
+        for (int i = 0; i < _numberOfThreads; i++)
+        {
+            var tokenList = new List<MonsterToken>(tokenLists[i]);
+            var thread = new Thread(() => DownloadTokens(tokenList));
+            thread.Start();
+            _threadPool.Add(thread);
+        }
+    }
+
+    private void DownloadTokens(List<MonsterToken> tokens)
+    {
+        using (var client = new HttpClient())
+        {
+            for (int i = 0; i < tokens.Count; i++)
             {
-                if (index == _numberOfThreads)
+                if (_isTerminated)
                 {
-                    index = 0;
+                    return;
                 }
 
-                tokenLists[index].Add(token);
-                index++;
-            }
 
-            for (int i = 0; i < _numberOfThreads; i++)
-            {
-                var tokenList = new List<MonsterToken>(tokenLists[i]);
-                var thread = new Thread(() => DownloadTokens(tokenList));
-                thread.Start();
-                _threadPool.Add(thread);
-            }
-        }
-
-        private void DownloadTokens(List<MonsterToken> tokens)
-        {
-            using (var client = new HttpClient())
-            {
-                for (int i = 0; i < tokens.Count; i++)
+                var imagePath = Path.Combine(Constants.MonsterTokensPath, $"{tokens[i].Name}.png");
+                if (!File.Exists(imagePath))
                 {
-                    if (_isTerminated)
+                    try
                     {
-                        return;
-                    }
-
-
-                    var imagePath = Path.Combine(Constants.MonsterTokensPath, $"{tokens[i].Name}.png");
-                    if (!File.Exists(imagePath))
-                    {
-                        try
+                        using (var stream = client.GetStreamAsync(tokens[i].TokenUrl).Result)
                         {
-                            using (var stream = client.GetStreamAsync(tokens[i].TokenUrl).Result)
+                            using (var fileStream = new FileStream(imagePath, FileMode.OpenOrCreate))
                             {
-                                using (var fileStream = new FileStream(imagePath, FileMode.OpenOrCreate))
-                                {
-                                    stream.CopyTo(fileStream);
-                                }
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            // If the exception is caused by too many request, wait a bit and retry
-                            if (e.Message.Contains("429"))
-                            {
-                                Thread.Sleep(500);
-                                i--;
-                                lock (_lock)
-                                {
-                                    ProgressBarValue--;
-                                }
+                                stream.CopyTo(fileStream);
                             }
                         }
                     }
-
-                    lock (_lock)
+                    catch (Exception e)
                     {
-                        ProgressBarValue++;
+                        // If the exception is caused by too many request, wait a bit and retry
+                        if (e.Message.Contains("429"))
+                        {
+                            Thread.Sleep(500);
+                            i--;
+                            lock (_lock)
+                            {
+                                ProgressBarValue--;
+                            }
+                        }
                     }
+                }
+
+                lock (_lock)
+                {
+                    ProgressBarValue++;
                 }
             }
         }
+    }
 
-        public void Cancel()
+    public void Cancel()
+    {
+        _isTerminated = true;
+        foreach (var thread in _threadPool)
         {
-            _isTerminated = true;
-            foreach (var thread in _threadPool)
-            {
-                thread.Join();
-            }
+            thread.Join();
         }
     }
 }

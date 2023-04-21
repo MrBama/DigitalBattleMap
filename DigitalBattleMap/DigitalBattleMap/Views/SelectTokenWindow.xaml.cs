@@ -1,15 +1,14 @@
 ﻿using System.Windows;
 
-namespace DigitalBattleMap.Views
+namespace DigitalBattleMap.Views;
+
+/// <summary>
+/// Interaction logic for SelectTokenWindow.xaml
+/// </summary>
+public partial class SelectTokenWindow : Window
 {
-    /// <summary>
-    /// Interaction logic for SelectTokenWindow.xaml
-    /// </summary>
-    public partial class SelectTokenWindow : Window
+    public SelectTokenWindow()
     {
-        public SelectTokenWindow()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

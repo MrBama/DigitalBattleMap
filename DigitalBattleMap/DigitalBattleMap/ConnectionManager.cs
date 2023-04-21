@@ -12,168 +12,167 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap;
+
+public class ConnectionManager : IWebHub, IWebHubClientEvents
 {
-    public class ConnectionManager : IWebHub, IWebHubClientEvents
+    private const string WebHubConnectionEndpoint = "/WebHub";
+    private const string MapHubConnectionEndpoint = "/MapHub";
+
+    // HttpClients
+    private HttpClient _httpClient;
+
+    // Hubs
+    private HubConnection _webHubConnection;
+    private HubConnection _mapHubConnection;
+
+    // Events
+    public event EventHandler<EventArgs> OnConnected;
+    public event EventHandler<EventArgs> OnDisconnect;
+    public event IWebHubClientEvents.MoveTokenActionEventHandler OnMoveToken;
+    public event IWebHubClientEvents.ToggleConditionActionEventHandler OnToggleCondition;
+
+    private bool _isConnected;
+    private Queue<MapUpdate> _mapUpdateQueue = new Queue<MapUpdate>();
+    private Thread _thread;
+    private object _lock = "";
+
+    public void Connect(string address)
     {
-        private const string WebHubConnectionEndpoint = "/WebHub";
-        private const string MapHubConnectionEndpoint = "/MapHub";
+        _httpClient = new HttpClient { BaseAddress = new Uri(address) };
 
-        // HttpClients
-        private HttpClient _httpClient;
+        _webHubConnection = new HubConnectionBuilder()
+            .WithUrl($"{address}{WebHubConnectionEndpoint}")
+            .Build();
 
-        // Hubs
-        private HubConnection _webHubConnection;
-        private HubConnection _mapHubConnection;
+        _mapHubConnection = new HubConnectionBuilder()
+            .WithUrl($"{address}{MapHubConnectionEndpoint}")
+            .Build();
 
-        // Events
-        public event EventHandler<EventArgs> OnConnected;
-        public event EventHandler<EventArgs> OnDisconnect;
-        public event IWebHubClientEvents.MoveTokenActionEventHandler OnMoveToken;
-        public event IWebHubClientEvents.ToggleConditionActionEventHandler OnToggleCondition;
-
-        private bool _isConnected;
-        private Queue<MapUpdate> _mapUpdateQueue = new Queue<MapUpdate>();
-        private Thread _thread;
-        private object _lock = "";
-
-        public void Connect(string address)
+        Task.Run(async () =>
         {
-            _httpClient = new HttpClient { BaseAddress = new Uri(address) };
-
-            _webHubConnection = new HubConnectionBuilder()
-                .WithUrl($"{address}{WebHubConnectionEndpoint}")
-                .Build();
-
-            _mapHubConnection = new HubConnectionBuilder()
-                .WithUrl($"{address}{MapHubConnectionEndpoint}")
-                .Build();
-
-            Task.Run(async () =>
-            {
-                try
-                {
-                    await Task.WhenAll(
-                        _webHubConnection.StartAsync(),
-                        _mapHubConnection.StartAsync());
-                }
-                catch
-                {
-                    // Failed to make a connection
-                    _httpClient.Dispose();
-                    OnDisconnect?.Invoke(this, EventArgs.Empty);
-                    throw;
-                }
-
-                Configure();
-
-                _isConnected = true;
-                _thread = new Thread(SendMessages);
-                _thread.Start();
-                OnConnected?.Invoke(this, EventArgs.Empty);
-            });
-        }
-
-        public void Disconnect()
-        {
-            if (!_isConnected)
-                return;
-
-            Task.Run(async () =>
+            try
             {
                 await Task.WhenAll(
-                    _webHubConnection.StopAsync(),
-                    _webHubConnection.DisposeAsync().AsTask(),
-
-                    _mapHubConnection.StopAsync(),
-                    _mapHubConnection.DisposeAsync().AsTask());
-
+                    _webHubConnection.StartAsync(),
+                    _mapHubConnection.StartAsync());
+            }
+            catch
+            {
+                // Failed to make a connection
                 _httpClient.Dispose();
-
-                _isConnected = false;
-                if (_thread != null)
-                {
-                    _thread.Join();
-                }
-
                 OnDisconnect?.Invoke(this, EventArgs.Empty);
-            });
-        }
+                throw;
+            }
 
-        public Task MoveToken(string character, Direction direction)
+            Configure();
+
+            _isConnected = true;
+            _thread = new Thread(SendMessages);
+            _thread.Start();
+            OnConnected?.Invoke(this, EventArgs.Empty);
+        });
+    }
+
+    public void Disconnect()
+    {
+        if (!_isConnected)
+            return;
+
+        Task.Run(async () =>
         {
-            OnMoveToken?.Invoke(this, new MoveTokenActionEventArgs() { Name = character, Direction = direction });
+            await Task.WhenAll(
+                _webHubConnection.StopAsync(),
+                _webHubConnection.DisposeAsync().AsTask(),
 
-            // TODO: Is this clean, can we do without Task?
-            return Task.CompletedTask;
-        }
+                _mapHubConnection.StopAsync(),
+                _mapHubConnection.DisposeAsync().AsTask());
 
-        public Task ToggleCondition(string character, Condition condition)
+            _httpClient.Dispose();
+
+            _isConnected = false;
+            if (_thread != null)
+            {
+                _thread.Join();
+            }
+
+            OnDisconnect?.Invoke(this, EventArgs.Empty);
+        });
+    }
+
+    public Task MoveToken(string character, Direction direction)
+    {
+        OnMoveToken?.Invoke(this, new MoveTokenActionEventArgs() { Name = character, Direction = direction });
+
+        // TODO: Is this clean, can we do without Task?
+        return Task.CompletedTask;
+    }
+
+    public Task ToggleCondition(string character, Condition condition)
+    {
+        OnToggleCondition?.Invoke(this, new ToggleConditionActionEventArgs() { Name = character, Condition = condition });
+
+        // TODO: Is this clean, can we do without Task?
+        return Task.CompletedTask;
+    }
+
+    public void SendMapUpdate(MapUpdate mapUpdate)
+    {
+        if (!_isConnected)
+            return;
+
+        lock (_lock)
         {
-            OnToggleCondition?.Invoke(this, new ToggleConditionActionEventArgs() { Name = character, Condition = condition });
-
-            // TODO: Is this clean, can we do without Task?
-            return Task.CompletedTask;
+            var existingUpdateCount = _mapUpdateQueue.Count(u => u.Layer != mapUpdate.Layer);
+            if (existingUpdateCount > 0)
+            {
+                _mapUpdateQueue = new Queue<MapUpdate>(_mapUpdateQueue.Where(u => u.Layer != mapUpdate.Layer));
+            }
+            _mapUpdateQueue.Enqueue(mapUpdate);
         }
+    }
 
-        public void SendMapUpdate(MapUpdate mapUpdate)
+    public void ClearMap()
+    {
+        if (!_isConnected)
+            return;
+
+        HttpRequestMessage message = new(HttpMethod.Delete, "/Map/Delete");
+        message.Headers.Add("Layer", DrawLayer.All.ToString());
+        _httpClient.Send(message);
+    }
+
+    private void Configure()
+    {
+        _webHubConnection.On<string, Direction>(nameof(MoveToken), MoveToken);
+        _webHubConnection.On<string, Condition>(nameof(ToggleCondition), ToggleCondition);
+    }
+
+    private void SendMessages()
+    {
+        while (_isConnected)
         {
-            if (!_isConnected)
-                return;
-
+            MapUpdate? mapUpdate;
+            var newMapUpdate = false;
             lock (_lock)
             {
-                var existingUpdateCount = _mapUpdateQueue.Count(u => u.Layer != mapUpdate.Layer);
-                if (existingUpdateCount > 0)
-                {
-                    _mapUpdateQueue = new Queue<MapUpdate>(_mapUpdateQueue.Where(u => u.Layer != mapUpdate.Layer));
-                }
-                _mapUpdateQueue.Enqueue(mapUpdate);
+                newMapUpdate = _mapUpdateQueue.TryDequeue(out mapUpdate);
             }
-        }
 
-        public void ClearMap()
-        {
-            if (!_isConnected)
-                return;
-
-            HttpRequestMessage message = new(HttpMethod.Delete, "/Map/Delete");
-            message.Headers.Add("Layer", DrawLayer.All.ToString());
-            _httpClient.Send(message);
-        }
-
-        private void Configure()
-        {
-            _webHubConnection.On<string, Direction>(nameof(MoveToken), MoveToken);
-            _webHubConnection.On<string, Condition>(nameof(ToggleCondition), ToggleCondition);
-        }
-
-        private void SendMessages()
-        {
-            while (_isConnected)
+            if (newMapUpdate)
             {
-                MapUpdate? mapUpdate;
-                var newMapUpdate = false;
-                lock (_lock)
-                {
-                    newMapUpdate = _mapUpdateQueue.TryDequeue(out mapUpdate);
-                }
+                var dto = new MapUpdateDto { Layer = mapUpdate!.Layer, Data = mapUpdate!.Bitmap.ToPng() };
+                string json = JsonSerializer.Serialize(dto);
 
-                if (newMapUpdate)
-                {
-                    var dto = new MapUpdateDto { Layer = mapUpdate!.Layer, Data = mapUpdate!.Bitmap.ToPng() };
-                    string json = JsonSerializer.Serialize(dto);
+                StringContent content = new(json);
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                HttpRequestMessage message = new(HttpMethod.Post, "/Map/Set") { Content = content };
 
-                    StringContent content = new(json);
-                    content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                    HttpRequestMessage message = new(HttpMethod.Post, "/Map/Set") { Content = content };
-
-                    _httpClient.SendAsync(message).Wait();
-                }
-
-                Thread.Sleep(100);
+                _httpClient.SendAsync(message).Wait();
             }
 
+            Thread.Sleep(100);
         }
+
     }
 }
