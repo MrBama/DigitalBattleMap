@@ -1,5 +1,4 @@
-﻿using DigitalBattleMap.Utilities;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.ViewModels

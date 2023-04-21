@@ -143,7 +143,7 @@ namespace DigitalBattleMap.ViewModels
             }
         }
 
-        public void Zoom(double zoomFactor)
+        public override void Zoom(double zoomFactor)
         {
             if (_fullBackgroundBitmap != null)
             {
@@ -162,11 +162,11 @@ namespace DigitalBattleMap.ViewModels
             _area.Height = (int)Math.Round(newHeight);
         }
 
-        public void MoveBackground(ArrowDirection direction, int gridSize)
+        public override void Move(ArrowDirection direction)
         {
             if (_fullBackgroundBitmap != null)
             {
-                double preciseGridSize = gridSize;
+                double preciseGridSize = _gridSize;
                 var distanceX = (int)Math.Round(preciseGridSize.Map(0, _bitmapSize.Width, 0, _area.Width));
                 var distanceY = (int)Math.Round(preciseGridSize.Map(0, _bitmapSize.Height, 0, _area.Height));
 

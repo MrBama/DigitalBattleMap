@@ -25,4 +25,8 @@ public abstract class ControllerViewModelBase : ViewModelBase
     public abstract void AddToSaveFile(SaveFile saveFile);
 
     public abstract void OpenSaveFile(SaveFile saveFile);
+
+    public abstract void Zoom(double zoomFactor);
+
+    public abstract void Move(ArrowDirection arrowDirection);
 }
