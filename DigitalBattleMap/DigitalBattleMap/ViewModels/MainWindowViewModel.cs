@@ -148,6 +148,7 @@ namespace DigitalBattleMap.ViewModels
             _connectionManager.OnConnected += ConnectionManagerConnected;
             _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
             _connectionManager.OnMoveToken += _tokenController.OnMoveTokenAction;
+            _connectionManager.OnToggleCondition += _tokenController.OnToggleConditionAction;
 
             GridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
             ShowMapCommand = new RelayCommand(p => ShowMap());

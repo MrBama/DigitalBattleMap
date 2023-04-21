@@ -26,6 +26,13 @@ public class NavigationController : Controller
         
     }
 
+    [HttpPost]
+    public IActionResult ToggleCondition(string character, Condition condition)
+    {
+        _webHub.Clients.All.ToggleCondition(character, condition);
+        return Ok();
+    }
+
     private Direction TranslateDirection(Orientation orientation, Direction direction)
     {
         int maxValue = Enum.GetValues(typeof(Direction)).Cast<int>().Max();

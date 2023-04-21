@@ -3,4 +3,5 @@
 public interface IWebHub
 {
     Task MoveToken(string character, Direction direction);
+    Task ToggleCondition(string character, Condition condition);
 }

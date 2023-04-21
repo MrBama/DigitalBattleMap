@@ -1,5 +1,4 @@
-﻿using DigitalBattleMap.Common;
-using DigitalBattleMap.DataClasses;
+﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
@@ -10,7 +9,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Ink;
 using System.Windows.Input;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace DigitalBattleMap;
 

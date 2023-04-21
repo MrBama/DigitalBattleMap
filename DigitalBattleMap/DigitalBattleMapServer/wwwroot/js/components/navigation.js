@@ -13,4 +13,15 @@
             data: { 'character': character, 'direction': direction }
         })
     })
+
+    $(".btn-condition").click(function () {
+        let character = $("#character").val();
+        let condition = $(this).attr('condition');
+
+        $.ajax({
+            url: "Navigation/ToggleCondition",
+            type: "POST",
+            data: { 'character': character, 'condition': condition}
+        })
+    })
 });
