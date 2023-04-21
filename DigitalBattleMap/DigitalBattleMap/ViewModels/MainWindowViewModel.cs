@@ -13,13 +13,12 @@ using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.ViewModels
 {
-    public class MainWindowViewModel : PropertyHandler
+    public class MainWindowViewModel : ViewModelBase
     {
         private Bitmap _gridBitmap;
         private IWindowService _windowService;
         private MapWindowViewModel _mapWindowViewModel;
         private Settings _settings;
-        private BackgroundController _backgroundController;
         private DrawingController _drawingController;
         private TokenController _tokenController;
         private ConnectionManager _connectionManager;
@@ -44,7 +43,6 @@ namespace DigitalBattleMap.ViewModels
         public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, () => UpdateMap(DrawLayer.All)); }
         public bool ServerConnectionButtonEnabled { get => Get<bool>(); set => Set(value); }
         public bool IsConfigurationMenuExpanded { get => Get<bool>(); set => Set(value); }
-        public double BackgroundZoomPercentage { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(BackgroundZoomPercentageLabel))); }
         public string ServerConnectionButtonText { get => Get<string>(); set => Set(value); }
         public string ServerConnectionStatus { get => Get<string>(); set => Set(value); }
         public Visibility GridVisibility { get => Get<Visibility>(); set => Set(value); }
@@ -53,7 +51,7 @@ namespace DigitalBattleMap.ViewModels
         public Visibility TokenVisibility { get => Get<Visibility>(); set => Set(value); }
         public System.Windows.Media.Brush ServerConnectionStatusColor { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
 
-        public BitmapSource BackgroundBitmapSource { get => _backgroundController.GetBackgroundBitmapSource(); }
+        public BackgroundControllerViewModel BackgroundController { get; set; }
         public BitmapSource TokenBitmapSource { get => _tokenController.GetTokenBitmapSource(); }
         public BitmapSource TokenSelectionBitmapSource { get => _tokenController.GetTokenSelectionBitmapSource(); }
         public BitmapSource GridBitmapSource { get => _gridBitmap.ToBitmapImage(); }
@@ -80,19 +78,15 @@ namespace DigitalBattleMap.ViewModels
         public Visibility DrawShapeButtonVisibility { get => _drawingController.GetDrawShapeButtonVisibility(); }
         public Visibility CancelShapeButtonVisibility { get => _drawingController.GetCancelShapeButtonVisibility(); }
         public Visibility ApplyShapeButtonVisibility { get => _drawingController.GetApplyShapeButtonVisibility(); }
-        public string BackgroundZoomPercentageLabel { get => $"{BackgroundZoomPercentage}%"; }
         public double MouseInputX { get; set; }
         public double MouseInputY { get; set; }
         public double PenSize { get => _drawingController.PenSize; set => _drawingController.PenSize = value; }
-        public bool HasOpenedBackground { get => _backgroundController.HasOpenedBackground(); }
         public bool IsTokenSelected { get => _tokenController.IsTokenSelected(); }
         public bool IsDrawingShapeSelected { get => _drawingController.IsShapeSelected(); }
         public bool IsDrawingShapeDrawn { get => _drawingController.IsShapeDrawn(); }
         public bool IsTokenUpButtonEnabled { get => _tokenController.IsUpButtonEnabled(); }
         public bool IsTokenDownButtonEnabled { get => _tokenController.IsDownButtonEnabled(); }
         public bool IsSnapToGridEnabled { get => _drawingController.IsSnapToGridEnabled; set => _drawingController.IsSnapToGridEnabled = value; }
-        public int GridCellsWidth { get => _backgroundController.GridCellsWidth; set => _backgroundController.GridCellsWidth = value; }
-        public int GridCellsHeight { get => _backgroundController.GridCellsHeight; set => _backgroundController.GridCellsHeight = value; }
         public int DrawingShapeRadius { get => _drawingController.ShapeRadius; set => _drawingController.ShapeRadius = value; }
         public bool DrawingShapeSquareSelected { get => _drawingController.SquareShapeSelected; set => _drawingController.SquareShapeSelected = value; }
         public bool DrawingShapeCircleSelected { get => _drawingController.CircleShapeSelected; set => _drawingController.CircleShapeSelected = value; }
@@ -104,13 +98,9 @@ namespace DigitalBattleMap.ViewModels
         public ICommand InkCanvasSizeOnStartupCommand { get; set; }
         public ICommand ClearAllCommand { get; set; }
         public ICommand SettingsCommand { get; set; }
-        public ICommand OpenBackgroundCommand { get; set; }
-        public ICommand ClearBackgroundCommand { get; set; }
         public ICommand ClearDrawingCommand { get; set; }
         public ICommand MouseInputCanvasDownCommand { get; set; }
         public ICommand MouseInputCanvasUpCommand { get; set; }
-        public ICommand BackgroundZoomInCommand { get; set; }
-        public ICommand BackgroundZoomOutCommand { get; set; }
         public ICommand MoveMapArrowCommand { get; set; }
         public ICommand SaveMapCommand { get; set; }
         public ICommand OpenMapCommand { get; set; }
@@ -121,7 +111,6 @@ namespace DigitalBattleMap.ViewModels
         public ICommand TokenDownCommand { get; set; }
         public ICommand CustomTokensCommand { get; set; }
         public ICommand ServerConnectionCommand { get; set; }
-        public ICommand FitBackgroundToGridCommand { get; set; }
         public ICommand MapZoomInCommand { get; set; }
         public ICommand MapZoomOutCommand { get; set; }
         public ICommand HideConfigurationCommand { get; set; }
@@ -138,9 +127,8 @@ namespace DigitalBattleMap.ViewModels
             _settings = Settings.Load();
             GridSize = _settings.DefaultGridSize;
             _gridBitmap = BitmapTools.CreateGrid(GridSize);
-            _backgroundController = new BackgroundController(_windowService);
-            _backgroundController.OnBackgroundEditorUpdated += BackgroundEditorUpdated;
-            _backgroundController.OnBackgroundUpdated += BackgroundUpdated;
+            BackgroundController = new BackgroundControllerViewModel(_windowService, GridSize);
+            BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
             _drawingController = new DrawingController(GridSize);
             _drawingController.OnDrawingButtonsUpdated += DrawingButtonsUpdated;
             _drawingController.OnDrawingShapeButtonsUpdated += DrawingShapeButtonsUpdated;
@@ -155,7 +143,24 @@ namespace DigitalBattleMap.ViewModels
             _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
             _connectionManager.OnMoveToken += ConnectionManagerOnMoveToken;
             _connectionManager.OnToggleCondition += ConnectionManagerOnToggleCondition;
+        }
 
+        private void InitializeProperties()
+        {
+            IsGridShown = true;
+            IsShowMapLocked = false;
+            GridVisibility = Visibility.Visible;
+            InkCanvasVisibility = Visibility.Hidden;
+            MouseInputCanvasVisibility = Visibility.Visible;
+            TokenVisibility = Visibility.Hidden;
+            ServerConnectionButtonText = "Connect";
+            ServerConnectionStatus = "Disconnected";
+            ServerConnectionStatusColor = System.Windows.Media.Brushes.Red;
+            ServerConnectionButtonEnabled = true;
+        }
+
+        protected override void InitializeCommands()
+        {
             GridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
             ShowMapCommand = new RelayCommand(p => ShowMap());
             WindowClosingCommand = new RelayCommand(p => WindowClosing());
@@ -163,13 +168,9 @@ namespace DigitalBattleMap.ViewModels
             InkCanvasSizeOnStartupCommand = new RelayCommand(p => InkCanvasSizeOnStartup((double)p));
             ClearAllCommand = new RelayCommand(p => ClearMap());
             SettingsCommand = new RelayCommand(p => OpenSettings());
-            OpenBackgroundCommand = new RelayCommand(p => _backgroundController.OpenBackground());
-            ClearBackgroundCommand = new RelayCommand(p => _backgroundController.ClearBackground());
             ClearDrawingCommand = new RelayCommand(p => _drawingController.ClearDrawings());
             MouseInputCanvasDownCommand = new RelayCommand(p => MouseDown());
             MouseInputCanvasUpCommand = new RelayCommand(p => MouseUp());
-            BackgroundZoomInCommand = new RelayCommand(p => _backgroundController.ZoomIn(BackgroundZoomPercentage));
-            BackgroundZoomOutCommand = new RelayCommand(p => _backgroundController.ZoomOut(BackgroundZoomPercentage));
             MoveMapArrowCommand = new RelayCommand(p => MoveMap((string)p));
             SaveMapCommand = new RelayCommand(p => SaveMap());
             OpenMapCommand = new RelayCommand(p => OpenMap());
@@ -180,7 +181,6 @@ namespace DigitalBattleMap.ViewModels
             TokenDownCommand = new RelayCommand(p => _tokenController.InitiativeDown());
             CustomTokensCommand = new RelayCommand(p => _tokenController.CustomTokens());
             ServerConnectionCommand = new RelayCommand(p => ServerConnectionButton());
-            FitBackgroundToGridCommand = new RelayCommand(p => _backgroundController.FitToGrid(GridSize));
             MapZoomInCommand = new RelayCommand(p => Zoom(GridSize + 10));
             MapZoomOutCommand = new RelayCommand(p => Zoom(GridSize - 10));
             HideConfigurationCommand = new RelayCommand(p => { IsConfigurationMenuExpanded = false; });
@@ -192,31 +192,8 @@ namespace DigitalBattleMap.ViewModels
             RemoveShapeCommand = new RelayCommand(p => _drawingController.RemoveShape());
         }
 
-        private void InitializeProperties()
+        private void OnBackgroundUpdated(object? sender, EventArgs e)
         {
-            IsGridShown = true;
-            IsShowMapLocked = false;
-            BackgroundZoomPercentage = 10;
-            GridVisibility = Visibility.Visible;
-            InkCanvasVisibility = Visibility.Hidden;
-            MouseInputCanvasVisibility = Visibility.Visible;
-            TokenVisibility = Visibility.Hidden;
-            ServerConnectionButtonText = "Connect";
-            ServerConnectionStatus = "Disconnected";
-            ServerConnectionStatusColor = System.Windows.Media.Brushes.Red;
-            ServerConnectionButtonEnabled = true;
-        }
-
-        private void BackgroundEditorUpdated(object? sender, EventArgs e)
-        {
-            NotifyPropertyChange(nameof(GridCellsWidth));
-            NotifyPropertyChange(nameof(GridCellsHeight));
-        }
-
-        private void BackgroundUpdated(object? sender, EventArgs e)
-        {
-            NotifyPropertyChange(nameof(BackgroundBitmapSource));
-            NotifyPropertyChange(nameof(HasOpenedBackground));
             UpdateMap(DrawLayer.Background);
         }
 
@@ -297,6 +274,7 @@ namespace DigitalBattleMap.ViewModels
         {
             GridSize = Math.Max(GridSize, 1);
             _gridBitmap = BitmapTools.CreateGrid(GridSize);
+            BackgroundController.UpdateGridSize(GridSize);
             _drawingController.UpdateGridSize(GridSize);
             _tokenController.UpdateGridSize(GridSize);
             NotifyPropertyChange(nameof(GridBitmapSource));
@@ -309,16 +287,16 @@ namespace DigitalBattleMap.ViewModels
             {
                 case DrawLayer.All:
                     var gridAndTokenBitmapAll = CreateGridAndDrawingBitmap();
-                    _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.GetBackgroundBitmapSource();
+                    _mapWindowViewModel.BackgroundBitmapSource = BackgroundController.BackgroundBitmapSource;
                     _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
                     _mapWindowViewModel.TokenBitmapSource = _tokenController.GetTokenBitmapSource();
-                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(_backgroundController.GetBackgroundBitmap()) });
+                    _connectionManager.SendMapUpdate(new MapUpdate{ Layer = DrawLayer.Background, Bitmap = new Bitmap(BackgroundController.GetBackgroundBitmap()) });
                     _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmapAll) });
                     _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(_tokenController.GetTokenBitmap()) });
                     break;
                 case DrawLayer.Background:
-                    _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.GetBackgroundBitmapSource();
-                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(_backgroundController.GetBackgroundBitmap()) });
+                    _mapWindowViewModel.BackgroundBitmapSource = BackgroundController.BackgroundBitmapSource;
+                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(BackgroundController.GetBackgroundBitmap()) });
                     break;
                 case DrawLayer.GridAndStrokes:
                     var gridAndTokenBitmap = CreateGridAndDrawingBitmap();
@@ -351,7 +329,7 @@ namespace DigitalBattleMap.ViewModels
             _canvasSize.Width = width;
             _canvasSize.Height = width / 16 * 9;
 
-            _backgroundController.SetCanvasSize(_canvasSize);
+            BackgroundController.SetCanvasSize(_canvasSize);
             _drawingController.SetCanvasSize(_canvasSize);
             _tokenController.SetCanvasSize(_canvasSize);
         }
@@ -364,13 +342,11 @@ namespace DigitalBattleMap.ViewModels
 
             if (confirmationWindowViewModel.Confirmed)
             {
-                _backgroundController.ClearBackground();
+                BackgroundController.ClearBackground();
                 _drawingController.ClearDrawings();
                 _tokenController.ClearTokens();
                 IsGridShown = true;
                 GridSize = _settings.DefaultGridSize;
-                GridCellsWidth = 10;
-                GridCellsHeight = 10;
                 GridSizeChanged();
 
                 _connectionManager.ClearMap();
@@ -440,7 +416,7 @@ namespace DigitalBattleMap.ViewModels
             switch (SelectedTabIndex)
             {
                 case TabIndex.Background:
-                    _backgroundController.MouseDown(new Point<double>(MouseInputX, MouseInputY));
+                    BackgroundController.MouseDown(new Point<double>(MouseInputX, MouseInputY));
                     break;
                 case TabIndex.Tokens:
                     _tokenController.MouseDown(new Point<double>(MouseInputX, MouseInputY));
@@ -453,7 +429,7 @@ namespace DigitalBattleMap.ViewModels
             switch (SelectedTabIndex)
             {
                 case TabIndex.Background:
-                    _backgroundController.MouseUp(new Point<double>(MouseInputX, MouseInputY));
+                    BackgroundController.MouseUp(new Point<double>(MouseInputX, MouseInputY));
                     break;
             }
         }
@@ -461,8 +437,8 @@ namespace DigitalBattleMap.ViewModels
         private void MoveMap(string direction)
         {
             var arrowDirection = Enum.Parse<ArrowDirection>(direction);
-            _backgroundController.MoveBackground(arrowDirection, GridSize);
-            _drawingController.MoveDrawings(arrowDirection);
+            BackgroundController.MoveBackground(arrowDirection, GridSize);
+            _drawingController.MoveDrawings(arrowDirection); 
             _tokenController.MoveTokens(arrowDirection);
         }
 
@@ -474,7 +450,7 @@ namespace DigitalBattleMap.ViewModels
                 saveFile.GridSize = GridSize;
                 saveFile.IsGridShown = IsGridShown;
                 saveFile.Strokes = Strokes;
-                _backgroundController.AddToSaveFile(saveFile);
+                BackgroundController.AddToSaveFile(saveFile);
                 _drawingController.AddToSaveFile(saveFile);
                 _tokenController.AddToSaveFile(saveFile);
                 saveFile.Save(path);
@@ -489,7 +465,7 @@ namespace DigitalBattleMap.ViewModels
                 IsShowMapLocked = false;
 
                 var saveFile = SaveFile.Open(path);
-                _backgroundController.OpenSaveFile(saveFile);
+                BackgroundController.OpenSaveFile(saveFile);
                 GridSize = saveFile.GridSize;
                 GridSizeChanged();
                 IsGridShown = saveFile.IsGridShown;
@@ -507,7 +483,7 @@ namespace DigitalBattleMap.ViewModels
             IsShowMapLocked = false;
             var zoomFactor = newGridSize / GridSize;
 
-            _backgroundController.Zoom(zoomFactor);
+            BackgroundController.Zoom(zoomFactor);
 
             GridSize = (int)newGridSize;
             GridSizeChanged();

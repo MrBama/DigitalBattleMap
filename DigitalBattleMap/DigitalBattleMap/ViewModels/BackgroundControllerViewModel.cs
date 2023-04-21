@@ -3,58 +3,42 @@ using DigitalBattleMap.Utilities;
 using System;
 using System.Drawing;
 using System.IO;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap.ViewModels
 {
-    public class BackgroundController
+    public class BackgroundControllerViewModel : ControllerViewModelBase
     {
         private Bitmap _backgroundBitmap;
-        private BitmapSource _backgroundBitmapSource;
         private Bitmap _fullBackgroundBitmap;
         private Rectangle _area;
         private IWindowService _windowService;
-        private Size<int> _bitmapSize;
-        private Size<double> _canvasSize;
-        private Size<int> _gridCells = new Size<int>(10, 10);
         private Point<double> _mouseDownPosition;
         private bool _mouseDown;
 
-        public BackgroundController(IWindowService windowService)
+        public BackgroundControllerViewModel(IWindowService windowService, int gridSize) : base(gridSize)
         {
+            // Fields
             _windowService = windowService;
+
+            // Properties
             BackgroundBitmap = BitmapTools.CreateEmptyBitmap();
-            _bitmapSize = BitmapTools.GetBitmapSize();
+            BackgroundZoomPercentage = 10;
+            GridCellsWidth = 10;
+            GridCellsHeight = 10;
         }
 
-        public event EventHandler OnBackgroundEditorUpdated;
+        protected override void InitializeCommands()
+        {
+            OpenBackgroundCommand = new RelayCommand(p => OpenBackground());
+            ClearBackgroundCommand = new RelayCommand(p => ClearBackground());
+            BackgroundZoomInCommand = new RelayCommand(p => ZoomIn(BackgroundZoomPercentage));
+            BackgroundZoomOutCommand = new RelayCommand(p => ZoomOut(BackgroundZoomPercentage));
+            FitBackgroundToGridCommand = new RelayCommand(p => FitToGrid(_gridSize));
+        }
+
         public event EventHandler OnBackgroundUpdated;
-
-        public int GridCellsWidth
-        {
-            get => _gridCells.Width;
-            set
-            {
-                if (value != _gridCells.Width)
-                {
-                    _gridCells.Width = value;
-                    NotifyBackgroundEditorUpdated();
-                }
-            }
-        }
-
-        public int GridCellsHeight
-        {
-            get => _gridCells.Height;
-            set
-            {
-                if (value != _gridCells.Height)
-                {
-                    _gridCells.Height = value;
-                    NotifyBackgroundEditorUpdated();
-                }
-            }
-        }
 
         private Bitmap BackgroundBitmap
         {
@@ -64,24 +48,27 @@ namespace DigitalBattleMap
                 if(value != _backgroundBitmap)
                 {
                     _backgroundBitmap = value;
-                    _backgroundBitmapSource = value.ToBitmapImage();
+                    BackgroundBitmapSource = value.ToBitmapImage();
                 }
             }
         }
 
-        public BitmapSource GetBackgroundBitmapSource()
-        {
-            return _backgroundBitmapSource;
-        }
+        public bool HasOpenedBackground { get => Get<bool>(); set => Set(value); }
+        public int GridCellsWidth { get => Get<int>(); set => Set(value); }
+        public int GridCellsHeight { get => Get<int>(); set => Set(value); }
+        public double BackgroundZoomPercentage { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(BackgroundZoomPercentageLabel))); }
+        public BitmapSource BackgroundBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
+        public string BackgroundZoomPercentageLabel { get => $"{BackgroundZoomPercentage}%"; }
+
+        public ICommand OpenBackgroundCommand { get; set; }
+        public ICommand ClearBackgroundCommand { get; set; }
+        public ICommand BackgroundZoomInCommand { get; set; }
+        public ICommand BackgroundZoomOutCommand { get; set; }
+        public ICommand FitBackgroundToGridCommand { get; set; }
 
         public Bitmap GetBackgroundBitmap()
         {
             return BackgroundBitmap;
-        }
-
-        public bool HasOpenedBackground()
-        {
-            return _fullBackgroundBitmap != null;
         }
 
         public void OpenBackground()
@@ -97,6 +84,7 @@ namespace DigitalBattleMap
 
                 BackgroundBitmap = BitmapTools.CropBitmap(_fullBackgroundBitmap, _area);
                 ExtractGridCells(Path.GetFileNameWithoutExtension(path));
+                HasOpenedBackground = true;
                 NotifyBackgroundUpdated();
             }
         }
@@ -105,6 +93,9 @@ namespace DigitalBattleMap
         {
             _fullBackgroundBitmap = null;
             BackgroundBitmap = BitmapTools.CreateEmptyBitmap();
+            GridCellsWidth = 10;
+            GridCellsHeight = 10;
+            HasOpenedBackground = false;
             NotifyBackgroundUpdated();
         }
 
@@ -129,11 +120,6 @@ namespace DigitalBattleMap
                 CreateBackground();
             }
             _mouseDown = false;
-        }
-
-        public void SetCanvasSize(Size<double> canvasSize)
-        {
-            _canvasSize = canvasSize;
         }
 
         public void ZoomIn(double zoomPercentage)
@@ -226,7 +212,7 @@ namespace DigitalBattleMap
             CreateBackground();
         }
 
-        public void AddToSaveFile(SaveFile saveFile)
+        public override void AddToSaveFile(SaveFile saveFile)
         {
             saveFile.FullBackground = _fullBackgroundBitmap;
             saveFile.BackgroundArea = _area;
@@ -234,7 +220,7 @@ namespace DigitalBattleMap
             saveFile.GridCellsHeight = GridCellsHeight;
         }
 
-        public void OpenSaveFile(SaveFile saveFile)
+        public override void OpenSaveFile(SaveFile saveFile)
         {
             ClearBackground();
 
@@ -245,6 +231,7 @@ namespace DigitalBattleMap
             {
                 _fullBackgroundBitmap = saveFile.FullBackground;
                 _area = saveFile.BackgroundArea;
+                HasOpenedBackground = true;
                 CreateBackground();
             }
         }
@@ -252,11 +239,6 @@ namespace DigitalBattleMap
         private void NotifyBackgroundUpdated()
         {
             OnBackgroundUpdated?.Invoke(this, new EventArgs());
-        }
-
-        private void NotifyBackgroundEditorUpdated()
-        {
-            OnBackgroundEditorUpdated?.Invoke(this, new EventArgs());
         }
 
         private void CreateBackground()
