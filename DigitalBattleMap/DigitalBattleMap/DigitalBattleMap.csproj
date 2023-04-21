@@ -19,6 +19,7 @@
     <None Remove="Resources\ConditionIcons\Concentration.png" />
     <None Remove="Resources\ConditionIcons\Confused.png" />
     <None Remove="Resources\ConditionIcons\Deafened.png" />
+    <None Remove="Resources\ConditionIcons\Death.png" />
     <None Remove="Resources\ConditionIcons\Exhausted.png" />
     <None Remove="Resources\ConditionIcons\Flying.png" />
     <None Remove="Resources\ConditionIcons\Frightened.png" />
@@ -50,6 +51,7 @@
     <EmbeddedResource Include="Resources\ConditionIcons\Concentration.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Confused.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Deafened.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Death.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Exhausted.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Flying.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Frightened.png" />

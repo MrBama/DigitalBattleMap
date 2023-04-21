@@ -333,7 +333,7 @@ public class DrawingController
                 tasks.Add(task);
             }
 
-            Task.WhenAll(tasks).Wait();
+            Task.WaitAll(tasks.ToArray());
             stroke.StylusPoints = points;
         }
     }
@@ -381,14 +381,29 @@ public class DrawingController
 
     private void CreateShapeStroke(Stroke addedStroke)
     {
-        var inkCanvasGridOffset = CalculateInkCanvasGridOffset();
-        double inkCanvasGridSize = CalculateInkCanvasGridSize();
-        var startPoint = SnapPoint(new Point<double>(addedStroke.StylusPoints.First().X, addedStroke.StylusPoints.First().Y), inkCanvasGridOffset, inkCanvasGridSize);
+        var inkCanvasGridSize = CalculateInkCanvasGridSize();
+        var halfGridSize = inkCanvasGridSize / 2;
+        var gridOffset = CalculateInkCanvasGridOffset();
+        if (gridOffset.X - halfGridSize >= 0)
+        {
+            gridOffset.X -= halfGridSize;
+        }
+        if (gridOffset.Y - halfGridSize >= 0)
+        {
+            gridOffset.Y -= halfGridSize;
+        }
+
+        var startPoint = SnapPoint(new Point<double>(addedStroke.StylusPoints.First().X, addedStroke.StylusPoints.First().Y), gridOffset, halfGridSize);
         var distanceToEdge = Math.Round((double)ShapeSize / Constants.FeetPerGridCell);
         distanceToEdge *= inkCanvasGridSize;
 
         Strokes.Remove(_shapeStroke);
+        addedStroke.StylusPoints = CreateShape(startPoint, distanceToEdge);
+        _shapeStroke = addedStroke;
+    }
 
+    private StylusPointCollection CreateShape(Point<double> startPoint, double distanceToEdge)
+    {
         var points = new StylusPointCollection();
 
         if (SquareShapeSelected)
@@ -411,7 +426,6 @@ public class DrawingController
             points.Add(new StylusPoint(startPoint.X + distanceToEdge, startPoint.Y));
         }
 
-        addedStroke.StylusPoints = points;
-        _shapeStroke = addedStroke;
+        return points;
     }
 }

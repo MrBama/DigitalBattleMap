@@ -14,6 +14,7 @@ namespace DigitalBattleMap.DataClasses
         private Bitmap _charmed;
         private Bitmap _concentration;
         private Bitmap _deafened;
+        private Bitmap _death;
         private Bitmap _exhausted;
         private Bitmap _flying;
         private Bitmap _frightened;
@@ -58,6 +59,10 @@ namespace DigitalBattleMap.DataClasses
             using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Deafened.png")))
             {
                 _deafened = new Bitmap(bitmap);
+            }
+            using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Death.png")))
+            {
+                _death = new Bitmap(bitmap);
             }
             using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Exhausted.png")))
             {
@@ -149,6 +154,8 @@ namespace DigitalBattleMap.DataClasses
                     return _concentration;
                 case Condition.Deafened:
                     return _deafened;
+                case Condition.Death:
+                    return _death;
                 case Condition.Exhausted:
                     return _exhausted;
                 case Condition.Flying:

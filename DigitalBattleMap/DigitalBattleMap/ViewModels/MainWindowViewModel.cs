@@ -147,8 +147,8 @@ namespace DigitalBattleMap.ViewModels
             _connectionManager = new ConnectionManager();
             _connectionManager.OnConnected += ConnectionManagerConnected;
             _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
-            _connectionManager.OnMoveToken += _tokenController.OnMoveTokenAction;
-            _connectionManager.OnToggleCondition += _tokenController.OnToggleConditionAction;
+            _connectionManager.OnMoveToken += ConnectionManagerOnMoveToken;
+            _connectionManager.OnToggleCondition += ConnectionManagerOnToggleCondition;
 
             GridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
             ShowMapCommand = new RelayCommand(p => ShowMap());
@@ -258,6 +258,22 @@ namespace DigitalBattleMap.ViewModels
             NotifyPropertyChange(nameof(TokenSelectionBitmapSource));
         }
 
+        private void ConnectionManagerOnMoveToken(object sender, MoveTokenActionEventArgs e)
+        {
+            if (IsShowMapLocked)
+            {
+                _tokenController.OnMoveTokenAction(sender, e);
+            }
+        }
+
+        private void ConnectionManagerOnToggleCondition(object sender, ToggleConditionActionEventArgs e)
+        {
+            if (IsShowMapLocked)
+            {
+                _tokenController.OnToggleConditionAction(sender, e);
+            }
+        }
+
         public void OpenMapWindow()
         {
             _mapWindowViewModel = new MapWindowViewModel();
@@ -284,7 +300,7 @@ namespace DigitalBattleMap.ViewModels
                     _mapWindowViewModel.BackgroundBitmapSource = _backgroundController.GetBackgroundBitmapSource();
                     _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
                     _mapWindowViewModel.TokenBitmapSource = _tokenController.GetTokenBitmapSource();
-                    _connectionManager.SendMapUpdate(new MapUpdate{ Layer = DrawLayer.Background, Bitmap = new Bitmap(_backgroundController.GetBackgroundBitmap()) });
+                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(_backgroundController.GetBackgroundBitmap()) });
                     _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmapAll) });
                     _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(_tokenController.GetTokenBitmap()) });
                     break;
@@ -434,7 +450,7 @@ namespace DigitalBattleMap.ViewModels
         {
             var arrowDirection = Enum.Parse<ArrowDirection>(direction);
             _backgroundController.MoveBackground(arrowDirection, GridSize);
-            _drawingController.MoveDrawings(arrowDirection); 
+            _drawingController.MoveDrawings(arrowDirection);
             _tokenController.MoveTokens(arrowDirection);
         }
 

@@ -8,6 +8,7 @@ public enum Condition
     Charmed,
     Concentration,
     Deafened,
+    Death,
     Exhausted,
     Flying,
     Frightened,
