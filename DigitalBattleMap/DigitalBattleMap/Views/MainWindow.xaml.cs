@@ -1,4 +1,5 @@
-﻿using DigitalBattleMap.ViewModels;
+﻿using DigitalBattleMap.Interfaces;
+using DigitalBattleMap.ViewModels;
 using System.Windows;
 
 namespace DigitalBattleMap.Views;

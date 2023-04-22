@@ -13,7 +13,7 @@ namespace DigitalBattleMap;
 
 public static class BitmapTools
 {
-    private static ConditionIcons _conditionIcons = new();
+    private static readonly ConditionIcons _conditionIcons = new();
 
     public static Bitmap LoadBitmap(string path)
     {

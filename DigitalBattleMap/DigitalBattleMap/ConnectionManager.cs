@@ -1,6 +1,7 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.Common.Dto;
 using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using Microsoft.AspNetCore.SignalR.Client;
 using System;
@@ -29,13 +30,18 @@ public class ConnectionManager : IWebHub, IWebHubClientEvents
     // Events
     public event EventHandler<EventArgs> OnConnected;
     public event EventHandler<EventArgs> OnDisconnect;
-    public event IWebHubClientEvents.MoveTokenActionEventHandler OnMoveToken;
-    public event IWebHubClientEvents.ToggleConditionActionEventHandler OnToggleCondition;
 
     private bool _isConnected;
     private Queue<MapUpdate> _mapUpdateQueue = new();
     private Thread _thread;
     private object _lock = "";
+    private ITokenController _tokenController;
+    private bool _playerControlAllowed;
+
+    public ConnectionManager(ITokenController tokenController)
+    {
+        _tokenController = tokenController;
+    }
 
     public void Connect(string address)
     {
@@ -97,19 +103,28 @@ public class ConnectionManager : IWebHub, IWebHubClientEvents
         });
     }
 
+    public void UpdatePlayerControlAllowed(bool isAllowed)
+    {
+        _playerControlAllowed = isAllowed;
+    }
+
     public Task MoveToken(string character, Direction direction)
     {
-        OnMoveToken?.Invoke(this, new MoveTokenActionEventArgs() { Name = character, Direction = direction });
+        if(_playerControlAllowed)
+        {
+            _tokenController.MoveToken(character, direction);
+        }
 
-        // TODO: Is this clean, can we do without Task?
         return Task.CompletedTask;
     }
 
     public Task ToggleCondition(string character, Condition condition)
     {
-        OnToggleCondition?.Invoke(this, new ToggleConditionActionEventArgs() { Name = character, Condition = condition });
+        if (_playerControlAllowed)
+        {
+            _tokenController.ToggleCondition(character, condition);
+        }
 
-        // TODO: Is this clean, can we do without Task?
         return Task.CompletedTask;
     }
 

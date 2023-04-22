@@ -1,7 +1,9 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Drawing;
 using System.Windows;
@@ -35,7 +37,7 @@ public class MainWindowViewModel : ViewModelBase
     public int GridSize { get => Get<int>(); set => Set(value); }
     public int InkCanvasZIndex { get => Get<int>(); set => Set(value); }
     public bool IsGridShown { get => Get<bool>(); set => Set(value, GridShownChanged); }
-    public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, () => UpdateMap(DrawLayer.All)); }
+    public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, IsShowMapLockedChanged); }
     public bool ServerConnectionButtonEnabled { get => Get<bool>(); set => Set(value); }
     public bool IsConfigurationMenuExpanded { get => Get<bool>(); set => Set(value); }
     public string ServerConnectionButtonText { get => Get<string>(); set => Set(value); }
@@ -88,11 +90,9 @@ public class MainWindowViewModel : ViewModelBase
         TokenController = new TokenControllerViewModel(_windowService, _settings, GridSize);
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
 
-        _connectionManager = new ConnectionManager();
+        _connectionManager = new ConnectionManager(TokenController);
         _connectionManager.OnConnected += ConnectionManagerConnected;
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
-        _connectionManager.OnMoveToken += ConnectionManagerOnMoveToken;
-        _connectionManager.OnToggleCondition += ConnectionManagerOnToggleCondition;
     }
 
     private void InitializeProperties()
@@ -141,22 +141,6 @@ public class MainWindowViewModel : ViewModelBase
     private void TokenBitmapUpdated(object? sender, EventArgs e)
     {
         UpdateMap(DrawLayer.Tokens);
-    }
-
-    private void ConnectionManagerOnMoveToken(object sender, MoveTokenActionEventArgs e)
-    {
-        if (IsShowMapLocked)
-        {
-            TokenController.OnMoveTokenAction(sender, e);
-        }
-    }
-
-    private void ConnectionManagerOnToggleCondition(object sender, ToggleConditionActionEventArgs e)
-    {
-        if (IsShowMapLocked)
-        {
-            TokenController.OnToggleConditionAction(sender, e);
-        }
     }
 
     public void OpenMapWindow()
@@ -434,5 +418,11 @@ public class MainWindowViewModel : ViewModelBase
         ServerConnectionButtonEnabled = true;
         ServerConnectionStatus = "Connected";
         ServerConnectionStatusColor = System.Windows.Media.Brushes.Green;
+    }
+
+    private void IsShowMapLockedChanged()
+    {
+        _connectionManager?.UpdatePlayerControlAllowed(IsShowMapLocked);
+        UpdateMap(DrawLayer.All);
     }
 }

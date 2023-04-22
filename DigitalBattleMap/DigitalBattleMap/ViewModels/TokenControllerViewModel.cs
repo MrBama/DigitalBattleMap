@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System;
@@ -12,7 +13,7 @@ using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.ViewModels;
 
-public class TokenControllerViewModel : ControllerViewModelBase
+public class TokenControllerViewModel : ControllerViewModelBase, ITokenController
 {
     private IWindowService _windowService;
     private Bitmap _tokenBitmap;
@@ -286,14 +287,14 @@ public class TokenControllerViewModel : ControllerViewModelBase
         }
     }
 
-    public void OnMoveTokenAction(object sender, MoveTokenActionEventArgs e)
+    public void MoveToken(string name, Direction direction)
     {
         lock (_lock)
         {
-            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => string.Equals(t.Token.Name, e.Name, StringComparison.CurrentCultureIgnoreCase) && t.Token.PlayerControl);
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => string.Equals(t.Token.Name, name, StringComparison.CurrentCultureIgnoreCase) && t.Token.PlayerControl);
             if (tokenListItem != null)
             {
-                switch (e.Direction)
+                switch (direction)
                 {
                     case Direction.North:
                         tokenListItem.Position.Y -= _gridSize;
@@ -324,7 +325,7 @@ public class TokenControllerViewModel : ControllerViewModelBase
                         tokenListItem.Position.Y -= _gridSize;
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException($"Unknown direction: {e.Direction}");
+                        throw new ArgumentOutOfRangeException($"Unknown direction: {direction}");
                 }
 
                 CreateTokenBitmap();
@@ -332,14 +333,14 @@ public class TokenControllerViewModel : ControllerViewModelBase
         }
     }
 
-    public void OnToggleConditionAction(object sender, ToggleConditionActionEventArgs e)
+    public void ToggleCondition(string name, Condition condition)
     {
         lock (_lock)
         {
-            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => string.Equals(t.Token.Name, e.Name, StringComparison.CurrentCultureIgnoreCase) && t.Token.PlayerControl);
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => string.Equals(t.Token.Name, name, StringComparison.CurrentCultureIgnoreCase) && t.Token.PlayerControl);
             if (tokenListItem != null)
             {
-                tokenListItem.ToggleCondition(e.Condition);
+                tokenListItem.ToggleCondition(condition);
                 CreateTokenBitmap();
             }
         }
