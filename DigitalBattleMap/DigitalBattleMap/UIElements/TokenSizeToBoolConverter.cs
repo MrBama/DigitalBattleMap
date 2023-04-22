@@ -3,28 +3,27 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace DigitalBattleMap.UIElements
+namespace DigitalBattleMap.UIElements;
+
+public class TokenSizeToBoolConverter : IValueConverter
 {
-    public class TokenSizeToBoolConverter : IValueConverter
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            var tokenSize = (TokenSize)value;
-            var parameterSize = Enum.Parse<TokenSize>((string)parameter);
+        var tokenSize = (TokenSize)value;
+        var parameterSize = Enum.Parse<TokenSize>((string)parameter);
 
-            if(tokenSize == parameterSize)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        if(tokenSize == parameterSize)
         {
-            throw new NotImplementedException();
+            return true;
         }
+        else
+        {
+            return false;
+        }
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
     }
 }

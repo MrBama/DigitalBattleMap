@@ -1,22 +1,21 @@
 ﻿using DigitalBattleMap.Utilities;
 using System.Windows.Input;
 
-namespace DigitalBattleMap.ViewModels
+namespace DigitalBattleMap.ViewModels;
+
+public class ConfirmationWindowViewModel : ViewModelBase
 {
-    public class ConfirmationWindowViewModel
+    protected override void InitializeCommands()
     {
-        public ConfirmationWindowViewModel()
-        {
-            YesCommand = new RelayCommand(p => YesButtonClicked());
-        }
+        YesCommand = new RelayCommand(p => YesButtonClicked());
+    }
 
-        public string Content { get; set; } = "Are you sure?";
-        public ICommand YesCommand { get; set; }
-        public bool Confirmed { get; set; } = false;
+    public string Content { get; set; } = "Are you sure?";
+    public bool Confirmed { get; set; } = false;
+    public ICommand YesCommand { get; set; }
 
-        private void YesButtonClicked()
-        {
-            Confirmed = true;
-        }
+    private void YesButtonClicked()
+    {
+        Confirmed = true;
     }
 }

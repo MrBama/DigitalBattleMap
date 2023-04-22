@@ -1,89 +1,94 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
-namespace DigitalBattleMap.ViewModels
+namespace DigitalBattleMap.ViewModels;
+
+public class SettingsWindowViewModel : ViewModelBase
 {
-    public class SettingsWindowViewModel
+    private Settings _settings;
+    private IWindowService _windowService;
+    private ScreenPosition _initialMonitorPosition;
+
+    public SettingsWindowViewModel(Settings settings, IWindowService windowService)
     {
-        private Settings _settings;
-        private IWindowService _windowService;
-        private ScreenPosition _initialMonitorPosition;
+        _settings = settings;
+        _windowService = windowService;
+        _initialMonitorPosition = _settings.MonitorPosition;
 
-        public SettingsWindowViewModel(Settings settings, IWindowService windowService)
+        foreach (var screenPosition in ScreenWrapper.GetScreenPositions())
         {
-            _settings = settings;
-            _windowService = windowService;
-            SaveCommand = new RelayCommand(p => SaveButtonClicked());
-            DownloadMonsterTokensCommand = new RelayCommand(p => DownloadMonsterTokens());
-            _initialMonitorPosition = _settings.MonitorPosition;
+            MonitorPositions.Add(screenPosition);
+        }
+    }
 
-            foreach (var screenPosition in ScreenWrapper.GetScreenPositions())
+    protected override void InitializeCommands()
+    {
+        SaveCommand = new RelayCommand(p => SaveButtonClicked());
+        DownloadMonsterTokensCommand = new RelayCommand(p => DownloadMonsterTokens());
+    }
+
+    public ObservableCollection<ScreenPosition> MonitorPositions { get; private set; } = new ObservableCollection<ScreenPosition>();
+    public bool MonitorChanged { get; set; }
+    public bool MonsterTokensDownloaded { get; set; }
+
+    public ICommand SaveCommand { get; set; }
+    public ICommand DownloadMonsterTokensCommand { get; set; }
+
+    public int DefaultGridSize 
+    {
+        get => _settings.DefaultGridSize; 
+        set
+        {
+            if(value != _settings.DefaultGridSize)
             {
-                MonitorPositions.Add(screenPosition);
+                _settings.DefaultGridSize = value;
             }
         }
+    }
 
-        public ICommand SaveCommand { get; set; }
-        public ICommand DownloadMonsterTokensCommand { get; set; }
-        public ObservableCollection<ScreenPosition> MonitorPositions { get; private set; } = new ObservableCollection<ScreenPosition>();
-        public bool MonitorChanged { get; set; }
-        public bool MonsterTokensDownloaded { get; set; }
-
-        public int DefaultGridSize 
+    public string ServerAddress
+    {
+        get => _settings.ServerAddress;
+        set
         {
-            get => _settings.DefaultGridSize; 
-            set
+            if (value != _settings.ServerAddress)
             {
-                if(value != _settings.DefaultGridSize)
-                {
-                    _settings.DefaultGridSize = value;
-                }
+                _settings.ServerAddress = value;
             }
         }
+    }
 
-        public string ServerAddress
+    public ScreenPosition SelectedMonitorPosition
+    {
+        get => _settings.MonitorPosition;
+        set
         {
-            get => _settings.ServerAddress;
-            set
+            if (value != _settings.MonitorPosition)
             {
-                if (value != _settings.ServerAddress)
-                {
-                    _settings.ServerAddress = value;
-                }
+                _settings.MonitorPosition = value;
             }
         }
+    }
 
-        public ScreenPosition SelectedMonitorPosition
+    private void SaveButtonClicked()
+    {
+        if(!SelectedMonitorPosition.Equals(_initialMonitorPosition))
         {
-            get => _settings.MonitorPosition;
-            set
-            {
-                if (value != _settings.MonitorPosition)
-                {
-                    _settings.MonitorPosition = value;
-                }
-            }
+            MonitorChanged = true;
         }
 
-        private void SaveButtonClicked()
-        {
-            if(!SelectedMonitorPosition.Equals(_initialMonitorPosition))
-            {
-                MonitorChanged = true;
-            }
+        _settings.Save();
+    }
 
-            _settings.Save();
-        }
-
-        private void DownloadMonsterTokens()
-        {
-            var downloadWindowViewModel = new DownloadWindowViewModel();
-            downloadWindowViewModel.StartDownload();
-            _windowService.ShowWindowDialog<DownloadWindow>(downloadWindowViewModel);
-            MonsterTokensDownloaded = true;
-        }
+    private void DownloadMonsterTokens()
+    {
+        var downloadWindowViewModel = new DownloadWindowViewModel();
+        downloadWindowViewModel.StartDownload();
+        _windowService.ShowWindowDialog<DownloadWindow>(downloadWindowViewModel);
+        MonsterTokensDownloaded = true;
     }
 }

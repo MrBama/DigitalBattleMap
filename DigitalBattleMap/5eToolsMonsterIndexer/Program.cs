@@ -17,67 +17,65 @@ namespace MonsterIndexer
          * 5. Run this application
          * 6. A "MonsterTokens.json" file will be created in \img
          */
-        static void Main(string[] args)
+        static void Main()
         {
-            using (var httpClient = new HttpClient())
+            using var httpClient = new HttpClient();
+            var json = httpClient.GetStringAsync("https://raw.githubusercontent.com/5etools-mirror-1/5etools-mirror-1.github.io/master/data/bestiary/index.json").Result;
+            var parsedJson = Regex.Replace(json, @"[^0-9a-zA-Z:,-.]+", "");
+
+            // Gather different books
+            var books = new List<Book>();
+            var monsterDictionary = new Dictionary<string, string>();
+
+            foreach (var pair in parsedJson.Split(','))
             {
-                var json = httpClient.GetStringAsync("https://raw.githubusercontent.com/5etools-mirror-1/5etools-mirror-1.github.io/master/data/bestiary/index.json").Result;
-                var parsedJson = Regex.Replace(json, @"[^0-9a-zA-Z:,-.]+", "");
-
-                // Gather different books
-                var books = new List<Book>();
-                var monsterDictionary = new Dictionary<string, string>();
-
-                foreach (var pair in parsedJson.Split(','))
-                {
-                    var values = pair.Split(':');
-                    books.Add(new Book { Source = values[0], Json = values[1] });
-                }
-
-                // Gather monsters from bestiary
-                foreach (var book in books)
-                {
-                    json = httpClient.GetStringAsync($"https://raw.githubusercontent.com/5etools-mirror-1/5etools-mirror-1.github.io/master/data/bestiary/{book.Json}").Result;
-                    var monsterRoot = JsonConvert.DeserializeObject<MonsterData>(json);
-                    foreach (var monster in monsterRoot.Monster)
-                    {
-                        if (monster.Size.Count != 0)
-                        {
-                            monsterDictionary[monster.Name] = monster.Size.First();
-                        }
-                        else
-                        {
-                            monsterDictionary[monster.Name] = "M";
-                        }
-                    }
-                }
-
-                // Index images on disk using monster data
-                var data = new TokenData();
-                foreach (var directory in Directory.GetDirectories(_path))
-                {
-                    foreach (var file in Directory.GetFiles(directory))
-                    {
-                        var name = Path.GetFileNameWithoutExtension(file);
-
-                        if (file.EndsWith(".png") && monsterDictionary.ContainsKey(name) && !data.ContainsToken(name))
-                        {
-                            var source = Path.GetFileName(directory);
-
-                            data.Tokens.Add(new Token
-                            {
-                                Name = name,
-                                Size = monsterDictionary[name],
-                                Source = source,
-                                TokenUrl = $"https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/{source}/{Uri.EscapeDataString(name)}.png?raw=true"
-                            });
-                        }
-                    }
-                }
-
-                data.FillSources();
-                File.WriteAllText(_path + @"\MonsterTokens.json", JsonConvert.SerializeObject(data, Formatting.Indented));
+                var values = pair.Split(':');
+                books.Add(new Book { Source = values[0], Json = values[1] });
             }
+
+            // Gather monsters from bestiary
+            foreach (var book in books)
+            {
+                json = httpClient.GetStringAsync($"https://raw.githubusercontent.com/5etools-mirror-1/5etools-mirror-1.github.io/master/data/bestiary/{book.Json}").Result;
+                var monsterRoot = JsonConvert.DeserializeObject<MonsterData>(json);
+                foreach (var monster in monsterRoot!.Monster)
+                {
+                    if (monster.Size.Count != 0)
+                    {
+                        monsterDictionary[monster.Name] = monster.Size.First();
+                    }
+                    else
+                    {
+                        monsterDictionary[monster.Name] = "M";
+                    }
+                }
+            }
+
+            // Index images on disk using monster data
+            var data = new TokenData();
+            foreach (var directory in Directory.GetDirectories(_path))
+            {
+                foreach (var file in Directory.GetFiles(directory))
+                {
+                    var name = Path.GetFileNameWithoutExtension(file);
+
+                    if (file.EndsWith(".png") && monsterDictionary.ContainsKey(name) && !data.ContainsToken(name))
+                    {
+                        var source = Path.GetFileName(directory);
+
+                        data.Tokens.Add(new Token
+                        {
+                            Name = name,
+                            Size = monsterDictionary[name],
+                            Source = source,
+                            TokenUrl = $"https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/{source}/{Uri.EscapeDataString(name)}.png?raw=true"
+                        });
+                    }
+                }
+            }
+
+            data.FillSources();
+            File.WriteAllText(_path + @"\MonsterTokens.json", JsonConvert.SerializeObject(data, Formatting.Indented));
         }
     }
 

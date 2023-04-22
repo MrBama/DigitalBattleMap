@@ -1,15 +1,14 @@
 ﻿using System.Windows;
 
-namespace DigitalBattleMap.Views
+namespace DigitalBattleMap.Views;
+
+/// <summary>
+/// Interaction logic for StringInputWindow.xaml
+/// </summary>
+public partial class StringInputWindow : Window
 {
-    /// <summary>
-    /// Interaction logic for StringInputWindow.xaml
-    /// </summary>
-    public partial class StringInputWindow : Window
+    public StringInputWindow()
     {
-        public StringInputWindow()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

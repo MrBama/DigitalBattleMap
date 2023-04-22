@@ -2,36 +2,35 @@
 using System.IO;
 using Formatting = Newtonsoft.Json.Formatting;
 
-namespace DigitalBattleMap.Utilities
+namespace DigitalBattleMap.Utilities;
+
+public static class FileManager
 {
-    public static class FileManager
+    public static bool OpenFile<T>(string path, out T data)
     {
-        public static bool OpenFile<T>(string path, out T data)
+        string text;
+        try
         {
-            string text;
-            try
-            {
-                text = File.ReadAllText(path);
-            }
-            catch
-            {
-                data = default(T);
-                return false;
-            }
-
-            data = JsonConvert.DeserializeObject<T>(text);
-            return true;
+            text = File.ReadAllText(path);
+        }
+        catch
+        {
+            data = default(T);
+            return false;
         }
 
-        public static void SaveFile(object data, string path)
-        {
-            var directory = Path.GetDirectoryName(path);
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
+        data = JsonConvert.DeserializeObject<T>(text);
+        return true;
+    }
 
-            File.WriteAllText(path, JsonConvert.SerializeObject(data, Formatting.Indented));
+    public static void SaveFile(object data, string path)
+    {
+        var directory = Path.GetDirectoryName(path);
+        if (!Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
         }
+
+        File.WriteAllText(path, JsonConvert.SerializeObject(data, Formatting.Indented));
     }
 }

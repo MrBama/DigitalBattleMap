@@ -1,15 +1,14 @@
 ﻿using System.Windows;
 
-namespace DigitalBattleMap.Views
+namespace DigitalBattleMap.Views;
+
+/// <summary>
+/// Interaction logic for DownloadWindow.xaml
+/// </summary>
+public partial class DownloadWindow : Window
 {
-    /// <summary>
-    /// Interaction logic for DownloadWindow.xaml
-    /// </summary>
-    public partial class DownloadWindow : Window
+    public DownloadWindow()
     {
-        public DownloadWindow()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

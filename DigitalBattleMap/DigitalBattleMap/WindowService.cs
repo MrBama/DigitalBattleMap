@@ -1,82 +1,77 @@
-﻿using System.Collections.Generic;
+﻿using DigitalBattleMap.Interfaces;
+using System.Collections.Generic;
 using System.Windows;
 
-namespace DigitalBattleMap
+namespace DigitalBattleMap;
+
+public class WindowService : IWindowService
 {
-    public interface IWindowService
+    private List<Window> _windows = new();
+
+    public void ShowWindow<T>(object dataContext) where T : Window, new()
     {
-        public void ShowWindow<T>(object dataContext) where T : Window, new();
-
-        public void ShowWindowDialog<T>(object dataContext) where T : Window, new();
-
-        public bool ShowOpenFileDialog(out string path, string filter = "All files (*.*)|*.*");
-
-        public bool ShowSaveFileDialog(out string path, string filter = "All files (*.*)|*.*");
-
-        public void CloseAllWindows();
+        var window = new T
+        {
+            DataContext = dataContext
+        };
+        _windows.Add(window);
+        window.Show();
     }
 
-    public class WindowService : IWindowService
+    public void ShowWindowDialog<T>(object dataContext) where T : Window, new()
     {
-        private List<Window> _windows = new List<Window>();
-
-        public void ShowWindow<T>(object dataContext) where T : Window, new()
+        var window = new T
         {
-            var window = new T();
-            window.DataContext = dataContext;
-            _windows.Add(window);
-            window.Show();
+            DataContext = dataContext
+        };
+        window.ShowDialog();
+    }
+
+    public bool ShowOpenFileDialog(out string path, string filter)
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = filter
+        };
+
+        var result = dialog.ShowDialog();
+        if (result.HasValue && result.Value)
+        {
+            path = dialog.FileName;
+            return true;
         }
-
-        public void ShowWindowDialog<T>(object dataContext) where T : Window, new()
+        else
         {
-            var window = new T();
-            window.DataContext = dataContext;
-            window.ShowDialog();
+            path = "";
+            return false;
         }
+    }
 
-        public bool ShowOpenFileDialog(out string path, string filter)
+    public bool ShowSaveFileDialog(out string path, string filter)
+    {
+        var dialog = new Microsoft.Win32.SaveFileDialog
         {
-            var dialog = new Microsoft.Win32.OpenFileDialog();
-            dialog.Filter = filter;
+            Filter = filter
+        };
 
-            var result = dialog.ShowDialog();
-            if (result.HasValue && result.Value)
-            {
-                path = dialog.FileName;
-                return true;
-            }
-            else
-            {
-                path = "";
-                return false;
-            }
+        var result = dialog.ShowDialog();
+        if (result.HasValue && result.Value)
+        {
+            path = dialog.FileName;
+            return true;
         }
-
-        public bool ShowSaveFileDialog(out string path, string filter)
+        else
         {
-            var dialog = new Microsoft.Win32.SaveFileDialog();
-            dialog.Filter = filter;
-
-            var result = dialog.ShowDialog();
-            if (result.HasValue && result.Value)
-            {
-                path = dialog.FileName;
-                return true;
-            }
-            else
-            {
-                path = "";
-                return false;
-            }
+            path = "";
+            return false;
         }
+    }
 
-        public void CloseAllWindows()
+    public void CloseAllWindows()
+    {
+        foreach (var window in _windows)
         {
-            foreach (var window in _windows)
-            {
-                window.Close();
-            }
+            window.Close();
         }
     }
 }

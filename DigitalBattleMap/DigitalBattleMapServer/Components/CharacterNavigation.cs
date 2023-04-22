@@ -14,22 +14,22 @@ public class CharacterNavigation : ViewComponent
     {
         _settingsState = settingsState;
     }
-    
-    public async Task<IViewComponentResult> InvokeAsync()
+
+    public Task<IViewComponentResult> InvokeAsync()
     {
         Settings settings = _settingsState.Get();
-        
+
         // TODO: Write tag helper for IEnumerable<T> to List<SelectListItem>
-        List<SelectListItem> selectListItems = new ();
+        List<SelectListItem> selectListItems = new();
         if (!string.IsNullOrWhiteSpace(settings?.Characters))
             selectListItems.AddRange(settings.Characters.Split(',').Select(value => new SelectListItem(value, value)));
-        
-        NavigationComponentViewModel componentViewModel = new NavigationComponentViewModel
+
+        NavigationComponentViewModel componentViewModel = new()
         {
             Orientation = settings?.Orientation ?? Orientation.Down,
             Characters = selectListItems
         };
-    
-        return View(componentViewModel);
+
+        return Task.FromResult<IViewComponentResult>(View(componentViewModel));
     }
 }

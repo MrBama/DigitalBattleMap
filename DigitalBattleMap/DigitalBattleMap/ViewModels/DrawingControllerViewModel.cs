@@ -11,97 +11,111 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Ink;
 using System.Windows.Input;
-using System.Windows.Shapes;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
-namespace DigitalBattleMap;
+namespace DigitalBattleMap.ViewModels;
 
-public class DrawingController
+public class DrawingControllerViewModel : ControllerViewModelBase
 {
     private DrawingButton _selectedDrawingButton = DrawingButton.Black;
-    private double _penSize = 5;
-    private Size<double> _canvasSize;
-    private Size<int> _bitmapSize;
-    private InkCanvasEditingMode _editingMode = InkCanvasEditingMode.Ink;
-    private StylusShape _eraserShape;
-    private DrawingAttributes _inkCanvasDrawingAttributes = new DrawingAttributes();
-    private Bitmap _blackButtonBitmap = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 0, 0), true);
-    private Bitmap _redButtonBitmap = BitmapTools.CreateColorButton(Color.FromArgb(255, 255, 0, 0), false);
-    private Bitmap _greenButtonBitmap = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 255, 0), false);
-    private Bitmap _blueButtonBitmap = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 0, 255), false);
-    private Bitmap _eraserButtonBitmap = BitmapTools.CreateEraserButton(false);
-    private Bitmap _inkCanvasBitmap = BitmapTools.CreateEmptyBitmap();
-    private int _gridSize;
     private bool _isShapeEditorActive;
     private Stroke _shapeStroke;
-    private DrawingShape _selectedShape;
 
-    public DrawingController(int gridSize)
+    public DrawingControllerViewModel() : this(50)
     {
-        _gridSize = gridSize;
-        _bitmapSize = BitmapTools.GetBitmapSize();
+    }
 
-        _inkCanvasDrawingAttributes.Width = PenSize;
-        _inkCanvasDrawingAttributes.Height = PenSize;
-        _inkCanvasDrawingAttributes.IgnorePressure = true;
-        _eraserShape = new EllipseStylusShape(PenSize, PenSize);
+    public DrawingControllerViewModel(int gridSize) : base(gridSize)
+    {
+        InkCanvasDrawingAttributes = new DrawingAttributes();
+        PenSize = 5;
+        InkCanvasDrawingAttributes.Width = PenSize;
+        InkCanvasDrawingAttributes.Height = PenSize;
+        InkCanvasDrawingAttributes.IgnorePressure = true;
+        BlackButtonBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 0, 0), true).ToBitmapImage();
+        RedButtonBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 255, 0, 0), false).ToBitmapImage();
+        GreenButtonBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 255, 0), false).ToBitmapImage();
+        BlueButtonBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 0, 255), false).ToBitmapImage();
+        EraserButtonBitmapSource = BitmapTools.CreateEraserButton(false).ToBitmapImage();
+        EditingMode = InkCanvasEditingMode.Ink;
+        EraserShape = new EllipseStylusShape(PenSize, PenSize);
+        ShapeRadius = 10;
+        SquareShapeSelected = true;
+        CancelShapeButtonVisibility = Visibility.Hidden;
+        ApplyShapeButtonVisibility = Visibility.Hidden;
         Strokes = new StrokeCollection();
         Strokes.StrokesChanged += OnStrokesChanged;
     }
 
-    public event EventHandler OnDrawingButtonsUpdated;
-    public event EventHandler OnDrawingShapeButtonsUpdated;
+    protected override void InitializeCommands()
+    {
+        SelectedDrawingButtonChangedCommand = new RelayCommand(p => SelectedDrawingButtonChanged((string)p));
+        ClearDrawingCommand = new RelayCommand(p => ClearDrawings());
+        DrawShapeCommand = new RelayCommand(p => DrawShape());
+        CancelShapeCommand = new RelayCommand(p => CancelShape());
+        ApplyShapeCommand = new RelayCommand(p => ApplyShape());
+        EditShapeCommand = new RelayCommand(p => EditShape());
+        RemoveShapeCommand = new RelayCommand(p => RemoveShape());
+    }
+
     public event EventHandler OnDrawingStrokesUpdated;
 
-    public double PenSize
-    {
-        get => _penSize;
-        set
-        {
-            _penSize = Math.Clamp(value, 1, 100);
-            PenSizeChanged();
-        }
-    }
+    public BitmapSource BlackButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
+    public BitmapSource RedButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
+    public BitmapSource GreenButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
+    public BitmapSource BlueButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
+    public BitmapSource EraserButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
+    public DrawingAttributes InkCanvasDrawingAttributes { get => Get<DrawingAttributes>(); set => Set(value); }
+    public DrawingShape SelectedShape { get => Get<DrawingShape>(); set => Set(value, () => { ShowShapeSelection(); NotifyPropertyChange(nameof(IsShapeSelected)); }); }
+    public InkCanvasEditingMode EditingMode { get => Get<InkCanvasEditingMode>(); set => Set(value); }
+    public StylusShape EraserShape { get => Get<StylusShape>(); set => Set(value); }
+    public Visibility DrawShapeButtonVisibility { get => Get<Visibility>(); set => Set(value); }
+    public Visibility CancelShapeButtonVisibility { get => Get<Visibility>(); set => Set(value); }
+    public Visibility ApplyShapeButtonVisibility { get => Get<Visibility>(); set => Set(value); }
+    public double PenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100), PenSizeChanged); }
+    public bool IsSnapToGridEnabled { get => Get<bool>(); set => Set(value); }
+    public int ShapeRadius { get => Get<int>(); set => Set(value); }
+    public bool SquareShapeSelected { get => Get<bool>(); set => Set(value); }
+    public bool CircleShapeSelected { get => Get<bool>(); set => Set(value); }
+    public StrokeCollection Strokes { get => Get<StrokeCollection>(); set => Set(value); }
+    public bool IsShapeSelected { get => SelectedShape != null; }
+    public bool IsShapeDrawn { get => ShapeStroke != null; }
+    public BitmapSource InkCanvasBackgroundBitmapSource { get => BitmapTools.CreateEmptyBitmap().ToBitmapImage(); }
+    public ObservableCollection<DrawingShape> Shapes { get; set; } = new ObservableCollection<DrawingShape>();
+    public ICommand SelectedDrawingButtonChangedCommand { get; set; }
+    public ICommand ClearDrawingCommand { get; set; }
+    public ICommand DrawShapeCommand { get; set; }
+    public ICommand CancelShapeCommand { get; set; }
+    public ICommand ApplyShapeCommand { get; set; }
+    public ICommand EditShapeCommand { get; set; }
+    public ICommand RemoveShapeCommand { get; set; }
 
-    public DrawingShape SelectedShape
+    private Stroke ShapeStroke
     {
-        get => _selectedShape;
+        get => _shapeStroke;
         set
         {
-            if (value != _selectedShape)
+            if (value != _shapeStroke)
             {
-                _selectedShape = value;
-                ShowShapeSelection();
-                NotifyDrawingShapeButtonsUpdated();
+                _shapeStroke = value;
+                NotifyPropertyChange(nameof(IsShapeDrawn));
             }
         }
-    }
-
-    public StrokeCollection Strokes { get; set; }
-    public bool IsSnapToGridEnabled { get; set; }
-    public int ShapeRadius { get; set; } = 10;
-    public bool SquareShapeSelected { get; set; } = true;
-    public bool CircleShapeSelected { get; set; }
-    public ObservableCollection<DrawingShape> Shapes { get; set; } = new ObservableCollection<DrawingShape>();
-
-    public void SetCanvasSize(Size<double> canvasSize)
-    {
-        _canvasSize = canvasSize;
     }
 
     public void SelectedDrawingButtonChanged(string button)
     {
         var drawingButton = Enum.Parse<DrawingButton>(button);
         ChangeDrawingButton(drawingButton);
-        NotifyDrawingButtonsUpdated();
     }
 
-    public void MoveDrawings(ArrowDirection direction)
+    public override void Move(ArrowDirection direction)
     {
         var matrix = new System.Windows.Media.Matrix();
         double gridSize = _gridSize;
-        var distanceX = gridSize.Map(0, _bitmapSize.Width, 0, _canvasSize.Width);
-        var distanceY = gridSize.Map(0, _bitmapSize.Height, 0, _canvasSize.Height);
+        var distanceX = gridSize.Map(0, Constants.BitmapSize.Width, 0, _canvasSize.Width);
+        var distanceY = gridSize.Map(0, Constants.BitmapSize.Height, 0, _canvasSize.Height);
 
         switch (direction)
         {
@@ -123,77 +137,7 @@ public class DrawingController
         NotifyDrawingStrokesUpdated();
     }
 
-    public InkCanvasEditingMode GetEditingMode()
-    {
-        return _editingMode;
-    }
-
-    public StylusShape GetEraserShape()
-    {
-        return _eraserShape;
-    }
-
-    public DrawingAttributes GetInkCanvasDrawingAttributes()
-    {
-        return _inkCanvasDrawingAttributes;
-    }
-
-    public Bitmap GetBlackButtonBitmap()
-    {
-        return _blackButtonBitmap;
-    }
-
-    public Bitmap GetRedButtonBitmap()
-    {
-        return _redButtonBitmap;
-    }
-
-    public Bitmap GetGreenButtonBitmap()
-    {
-        return _greenButtonBitmap;
-    }
-
-    public Bitmap GetBlueButtonBitmap()
-    {
-        return _blueButtonBitmap;
-    }
-
-    public Bitmap GetEraserButtonBitmap()
-    {
-        return _eraserButtonBitmap;
-    }
-
-    public Bitmap GetInkCanvasBitmap()
-    {
-        return _inkCanvasBitmap;
-    }
-
-    public Visibility GetDrawShapeButtonVisibility()
-    {
-        return _isShapeEditorActive ? Visibility.Hidden : Visibility.Visible;
-    }
-
-    public Visibility GetCancelShapeButtonVisibility()
-    {
-        return _isShapeEditorActive ? Visibility.Visible : Visibility.Hidden;
-    }
-
-    public Visibility GetApplyShapeButtonVisibility()
-    {
-        return _isShapeEditorActive ? Visibility.Visible : Visibility.Hidden;
-    }
-
-    public bool IsShapeSelected()
-    {
-        return SelectedShape != null;
-    }
-
-    public bool IsShapeDrawn()
-    {
-        return _shapeStroke != null;
-    }
-
-    public void AddToSaveFile(SaveFile saveFile)
+    public override void AddToSaveFile(SaveFile saveFile)
     {
         saveFile.Strokes = Strokes;
 
@@ -204,7 +148,7 @@ public class DrawingController
         }
     }
 
-    public void OpenSaveFile(SaveFile saveFile)
+    public override void OpenSaveFile(SaveFile saveFile)
     {
         ClearDrawings();
 
@@ -225,54 +169,45 @@ public class DrawingController
         NotifyDrawingStrokesUpdated();
     }
 
-    public void UpdateGridSize(int gridSize)
-    {
-        _gridSize = gridSize;
-    }
-
     public void ClearDrawings()
     {
-        _isShapeEditorActive = false;
+        ActivateShapeEditor(false);
         Shapes.Clear();
         Strokes.Clear();
-        NotifyDrawingShapeButtonsUpdated();
         NotifyDrawingStrokesUpdated();
     }
 
     public void DrawShape()
     {
-        _isShapeEditorActive = true;
-        NotifyDrawingShapeButtonsUpdated();
+        ActivateShapeEditor(true);
     }
 
     public void CancelShape()
     {
-        _isShapeEditorActive = false;
-        Strokes.Remove(_shapeStroke);
-        _shapeStroke = null;
-        NotifyDrawingShapeButtonsUpdated();
+        ActivateShapeEditor(false);
+        Strokes.Remove(ShapeStroke);
+        ShapeStroke = null;
         NotifyDrawingStrokesUpdated();
     }
 
     public void ApplyShape()
     {
-        var shape = new DrawingShape 
-        { 
-            DrawingShapeType = GetDrawingShapeType(), 
-            Radius = ShapeRadius, 
-            Stroke = _shapeStroke, 
-            DrawingButton = _selectedDrawingButton 
+        var shape = new DrawingShape
+        {
+            DrawingShapeType = GetDrawingShapeType(),
+            Radius = ShapeRadius,
+            Stroke = ShapeStroke,
+            DrawingButton = _selectedDrawingButton
         };
 
         Shapes.Add(shape);
-        _isShapeEditorActive = false;
-        _shapeStroke = null;
-        NotifyDrawingShapeButtonsUpdated();
+        ActivateShapeEditor(false);
+        ShapeStroke = null;
     }
 
     public void EditShape()
     {
-        _shapeStroke = SelectedShape.Stroke;
+        ShapeStroke = SelectedShape.Stroke;
         PenSize = SelectedShape.Stroke.DrawingAttributes.Width;
         SquareShapeSelected = SelectedShape.DrawingShapeType == DrawingShapeType.Square;
         CircleShapeSelected = SelectedShape.DrawingShapeType == DrawingShapeType.Circle;
@@ -280,9 +215,7 @@ public class DrawingController
         ChangeDrawingButton(SelectedShape.DrawingButton);
 
         Shapes.Remove(SelectedShape);
-        _isShapeEditorActive = true;
-        NotifyDrawingButtonsUpdated();
-        NotifyDrawingShapeButtonsUpdated();
+        ActivateShapeEditor(true);
     }
 
     public void RemoveShape()
@@ -290,8 +223,34 @@ public class DrawingController
         var stroke = SelectedShape.Stroke;
         Shapes.Remove(SelectedShape);
         Strokes.Remove(stroke);
-        _isShapeEditorActive = false;
-        NotifyDrawingShapeButtonsUpdated();
+        ActivateShapeEditor(false);
+    }
+
+    public override void Zoom(double zoomFactor)
+    {
+        var matrix = new System.Windows.Media.Matrix();
+        matrix.Translate(-(_canvasSize.Width / 2), -(_canvasSize.Height / 2));
+        matrix.Scale(zoomFactor, zoomFactor);
+        matrix.Translate((_canvasSize.Width / 2), (_canvasSize.Height / 2));
+        Strokes.Transform(matrix, false);
+    }
+
+    private void ActivateShapeEditor(bool activate)
+    {
+        _isShapeEditorActive = activate;
+
+        if (_isShapeEditorActive)
+        {
+            DrawShapeButtonVisibility = Visibility.Hidden;
+            CancelShapeButtonVisibility = Visibility.Visible;
+            ApplyShapeButtonVisibility = Visibility.Visible;
+        }
+        else
+        {
+            DrawShapeButtonVisibility = Visibility.Visible;
+            CancelShapeButtonVisibility = Visibility.Hidden;
+            ApplyShapeButtonVisibility = Visibility.Hidden;
+        }
     }
 
     private void ChangeDrawingButton(DrawingButton drawingButton)
@@ -304,20 +263,20 @@ public class DrawingController
         switch (_selectedDrawingButton)
         {
             case DrawingButton.Black:
-                _blackButtonBitmap = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 0, 0), false);
+                BlackButtonBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 0, 0), false).ToBitmapImage();
                 break;
             case DrawingButton.Red:
-                _redButtonBitmap = BitmapTools.CreateColorButton(Color.FromArgb(255, 255, 0, 0), false);
+                RedButtonBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 255, 0, 0), false).ToBitmapImage();
                 break;
             case DrawingButton.Green:
-                _greenButtonBitmap = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 255, 0), false);
+                GreenButtonBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 255, 0), false).ToBitmapImage();
                 break;
             case DrawingButton.Blue:
-                _blueButtonBitmap = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 0, 255), false);
+                BlueButtonBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 0, 255), false).ToBitmapImage();
                 break;
             case DrawingButton.Eraser:
-                _editingMode = InkCanvasEditingMode.Ink;
-                _eraserButtonBitmap = BitmapTools.CreateEraserButton(false);
+                EditingMode = InkCanvasEditingMode.Ink;
+                EraserButtonBitmapSource = BitmapTools.CreateEraserButton(false).ToBitmapImage();
                 break;
         }
 
@@ -326,37 +285,27 @@ public class DrawingController
         switch (_selectedDrawingButton)
         {
             case DrawingButton.Black:
-                _inkCanvasDrawingAttributes.Color = System.Windows.Media.Color.FromRgb(0, 0, 0);
-                _blackButtonBitmap = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 0, 0), true);
+                InkCanvasDrawingAttributes.Color = System.Windows.Media.Color.FromRgb(0, 0, 0);
+                BlackButtonBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 0, 0), true).ToBitmapImage();
                 break;
             case DrawingButton.Red:
-                _inkCanvasDrawingAttributes.Color = System.Windows.Media.Color.FromRgb(255, 0, 0);
-                _redButtonBitmap = BitmapTools.CreateColorButton(Color.FromArgb(255, 255, 0, 0), true);
+                InkCanvasDrawingAttributes.Color = System.Windows.Media.Color.FromRgb(255, 0, 0);
+                RedButtonBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 255, 0, 0), true).ToBitmapImage();
                 break;
             case DrawingButton.Green:
-                _inkCanvasDrawingAttributes.Color = System.Windows.Media.Color.FromRgb(0, 255, 0);
-                _greenButtonBitmap = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 255, 0), true);
+                InkCanvasDrawingAttributes.Color = System.Windows.Media.Color.FromRgb(0, 255, 0);
+                GreenButtonBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 255, 0), true).ToBitmapImage();
                 break;
             case DrawingButton.Blue:
-                _inkCanvasDrawingAttributes.Color = System.Windows.Media.Color.FromRgb(0, 0, 255);
-                _blueButtonBitmap = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 0, 255), true);
+                InkCanvasDrawingAttributes.Color = System.Windows.Media.Color.FromRgb(0, 0, 255);
+                BlueButtonBitmapSource = BitmapTools.CreateColorButton(Color.FromArgb(255, 0, 0, 255), true).ToBitmapImage();
                 break;
             case DrawingButton.Eraser:
-                _editingMode = InkCanvasEditingMode.EraseByPoint;
-                _eraserShape = new EllipseStylusShape(PenSize, PenSize);
-                _eraserButtonBitmap = BitmapTools.CreateEraserButton(true);
+                EditingMode = InkCanvasEditingMode.EraseByPoint;
+                EraserShape = new EllipseStylusShape(PenSize, PenSize);
+                EraserButtonBitmapSource = BitmapTools.CreateEraserButton(true).ToBitmapImage();
                 break;
         }
-    }
-
-    private void NotifyDrawingButtonsUpdated()
-    {
-        OnDrawingButtonsUpdated?.Invoke(this, new EventArgs());
-    }
-
-    private void NotifyDrawingShapeButtonsUpdated()
-    {
-        OnDrawingShapeButtonsUpdated?.Invoke(this, new EventArgs());
     }
 
     private void NotifyDrawingStrokesUpdated()
@@ -366,15 +315,13 @@ public class DrawingController
 
     private void PenSizeChanged()
     {
-        _inkCanvasDrawingAttributes.Width = PenSize;
-        _inkCanvasDrawingAttributes.Height = PenSize;
+        InkCanvasDrawingAttributes.Width = PenSize;
+        InkCanvasDrawingAttributes.Height = PenSize;
 
-        if (_editingMode == InkCanvasEditingMode.EraseByPoint)
+        if (EditingMode == InkCanvasEditingMode.EraseByPoint)
         {
-            _eraserShape = new EllipseStylusShape(PenSize, PenSize);
+            EraserShape = new EllipseStylusShape(PenSize, PenSize);
         }
-
-        NotifyDrawingButtonsUpdated();
     }
 
     private void OnStrokesChanged(object sender, StrokeCollectionChangedEventArgs e)
@@ -391,7 +338,7 @@ public class DrawingController
             SnapToGrid(e.Added);
         }
 
-        if(!_isShapeEditorActive)
+        if (!_isShapeEditorActive)
         {
             PreventErasingShape(e.Removed, e.Added);
         }
@@ -433,13 +380,13 @@ public class DrawingController
     private Point<double> CalculateInkCanvasGridOffset()
     {
         var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(_gridSize));
-        return new Point<double>(gridOffset.X.Map(0, _bitmapSize.Width, 0, _canvasSize.Width), gridOffset.Y.Map(0, _bitmapSize.Height, 0, _canvasSize.Height));
+        return new(gridOffset.X.Map(0, Constants.BitmapSize.Width, 0, _canvasSize.Width), gridOffset.Y.Map(0, Constants.BitmapSize.Height, 0, _canvasSize.Height));
     }
 
     private double CalculateInkCanvasGridSize()
     {
         double inkCanvasGridSize = _gridSize;
-        return inkCanvasGridSize.Map(0, _bitmapSize.Width, 0, _canvasSize.Width);
+        return inkCanvasGridSize.Map(0, Constants.BitmapSize.Width, 0, _canvasSize.Width);
     }
 
     private Point<double> SnapPoint(Point<double> point, Point<double> inkCanvasGridOffset, double inkCanvasGridSize)
@@ -489,11 +436,9 @@ public class DrawingController
         var distanceToEdge = Math.Round((double)ShapeRadius / Constants.FeetPerGridCell);
         distanceToEdge *= inkCanvasGridSize;
 
-        Strokes.Remove(_shapeStroke);
+        Strokes.Remove(ShapeStroke);
         addedStroke.StylusPoints = CreateShape(startPoint, distanceToEdge);
-        _shapeStroke = addedStroke;
-
-        NotifyDrawingShapeButtonsUpdated();
+        ShapeStroke = addedStroke;
     }
 
     private StylusPointCollection CreateShape(Point<double> startPoint, double distanceToEdge)
@@ -543,7 +488,7 @@ public class DrawingController
 
     private void ShowShapeSelection()
     {
-        if(SelectedShape != null)
+        if (SelectedShape != null)
         {
             var color = SelectedShape.Stroke.DrawingAttributes.Color;
             SelectedShape.Stroke.DrawingAttributes.Color = System.Windows.Media.Colors.Transparent;

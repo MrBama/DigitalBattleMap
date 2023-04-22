@@ -30,8 +30,12 @@ public class CookieHandler : ICookieHandler
         
         if (HasKey(key))
             Delete(key);
-        
-        Response.Cookies.Append(key, json);
+
+        var options = new CookieOptions
+        {
+            Expires = DateTime.MaxValue
+        };
+        Response.Cookies.Append(key, json, options);
     }
 
     public void Delete(string key)

@@ -1,24 +1,23 @@
-﻿namespace DigitalBattleMap.DataClasses
+﻿namespace DigitalBattleMap.DataClasses;
+
+public class ScreenPosition
 {
-    public class ScreenPosition
+    public int X { get; set; }
+
+    public int Y { get; set; }
+
+    public override int GetHashCode()
     {
-        public int X { get; set; }
+        return base.GetHashCode();
+    }
 
-        public int Y { get; set; }
+    public override bool Equals(object? obj)
+    {
+        return obj is ScreenPosition other && other.X == X && other.Y == Y;
+    }
 
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is ScreenPosition other && other.X == X && other.Y == Y;
-        }
-
-        public override string ToString()
-        {
-            return $"X: {X} Y: {Y}";
-        }
+    public override string ToString()
+    {
+        return $"X: {X} Y: {Y}";
     }
 }

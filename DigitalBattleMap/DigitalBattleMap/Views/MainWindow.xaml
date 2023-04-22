@@ -3,10 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DigitalBattleMap.Views" 
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
         xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements"
-        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels"
+        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels" xmlns:views="clr-namespace:DigitalBattleMap.Views"
         mc:Ignorable="d"
         Title="MainWindow" Height="900" Width="1700"
         WindowStartupLocation="CenterScreen"
@@ -19,10 +18,6 @@
     <Window.DataContext>
         <viewmodels:MainWindowViewModel/>
     </Window.DataContext>
-    <Window.Resources>
-        <uielements:TokenSizeToBoolConverter x:Key="TokenSizeToBoolConverter"/>
-        <uielements:ConditionToBoolConverter x:Key="ConditionToBoolConverter"/>
-    </Window.Resources>
 
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closing">
@@ -47,53 +42,7 @@
                     <TextBlock Text="Background" FontSize="20" FontWeight="Bold"/>
                 </TabItem.Header>
                 <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
-                    <!--Background editor grid-->
-                    <Grid Margin="10">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <Button Grid.ColumnSpan="2" Content="Open" Command="{Binding OpenBackgroundCommand}"/>
-                        <Button Grid.Row="1" Content="Zoom in" Margin="0 10 5 0" Command="{Binding BackgroundZoomInCommand}" IsEnabled="{Binding HasOpenedBackground}"/>
-                        <Button Grid.Row="1" Grid.Column="1" Content="Zoom out" Margin="5 10 0 0" Command="{Binding BackgroundZoomOutCommand}" IsEnabled="{Binding HasOpenedBackground}"/>
-                        <!--Zoom factor grid-->
-                        <Grid Grid.Row="2" Grid.ColumnSpan="2" Margin="0 10 0 0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="1.5*"/>
-                                <ColumnDefinition Width="7*"/>
-                                <ColumnDefinition Width="1.5*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Content="Zoom"/>
-                            <Slider Grid.Column="1" VerticalAlignment="Center" Minimum="1" Maximum="100" Value="{Binding BackgroundZoomPercentage, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True"/>
-                            <Label Grid.Column="2" Content="{Binding BackgroundZoomPercentageLabel}" />
-                        </Grid>
-                        <Button Grid.Row="3" Grid.ColumnSpan="4" Margin="0 10 0 0" Content="Fit to grid" Command="{Binding FitBackgroundToGridCommand}" IsEnabled="{Binding HasOpenedBackground}"/>
-
-                        <!--Fit background grid-->
-                        <Grid Grid.Row="4" Grid.ColumnSpan="2" Margin="0 10 0 0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <Label Grid.Row="1" Content="Grid cells"/>
-                            <TextBox Grid.Row="1" Grid.Column="1" VerticalContentAlignment="Center" Text="{Binding GridCellsWidth, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding HasOpenedBackground}"/>
-                            <Label Grid.Row="1" Grid.Column="2" Content="x"/>
-                            <TextBox Grid.Row="1" Grid.Column="3" VerticalContentAlignment="Center" Text="{Binding GridCellsHeight, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding HasOpenedBackground}"/>
-                        </Grid>
-                        <Button Grid.Row="5" Grid.ColumnSpan="2" Content="Clear" Command="{Binding ClearBackgroundCommand}" Margin="0 10 0 0"/>
-                    </Grid>
+                    <views:BackgroundView DataContext="{Binding BackgroundController}" Margin="10"/>
                 </Border>
             </TabItem>
             <TabItem>
@@ -129,144 +78,7 @@
                     <TextBlock Text="Drawing" FontSize="20" FontWeight="Bold"/>
                 </TabItem.Header>
                 <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
-                    <!--Drawing grid-->
-                    <Grid Margin="10">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="0.5*"/>
-                        </Grid.RowDefinitions>
-
-                        <!--Color buttons grid-->
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="auto"/>
-                                <RowDefinition Height="auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Image Source="{Binding BlackButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
-                                <i:Interaction.Triggers>
-                                    <i:EventTrigger EventName="MouseLeftButtonUp">
-                                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="Black" />
-                                    </i:EventTrigger>
-                                </i:Interaction.Triggers>
-                            </Image>
-                            <Image Grid.Column="1" Source="{Binding RedButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
-                                <i:Interaction.Triggers>
-                                    <i:EventTrigger EventName="MouseLeftButtonUp">
-                                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="Red" />
-                                    </i:EventTrigger>
-                                </i:Interaction.Triggers>
-                            </Image>
-                            <Image Grid.Column="2" Source="{Binding GreenButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
-                                <i:Interaction.Triggers>
-                                    <i:EventTrigger EventName="MouseLeftButtonUp">
-                                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="Green" />
-                                    </i:EventTrigger>
-                                </i:Interaction.Triggers>
-                            </Image>
-                            <Image Grid.Column="3" Source="{Binding BlueButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
-                                <i:Interaction.Triggers>
-                                    <i:EventTrigger EventName="MouseLeftButtonUp">
-                                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="Blue" />
-                                    </i:EventTrigger>
-                                </i:Interaction.Triggers>
-                            </Image>
-                            <Image Grid.Row="1" Source="{Binding EraserButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
-                                <i:Interaction.Triggers>
-                                    <i:EventTrigger EventName="MouseLeftButtonUp">
-                                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="Eraser" />
-                                    </i:EventTrigger>
-                                </i:Interaction.Triggers>
-                            </Image>
-                        </Grid>
-
-                        <!--Pen size grid-->
-                        <Grid Grid.Row="1" Margin="0 10 0 0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto"/>
-                                <ColumnDefinition Width="8*"/>
-                                <ColumnDefinition Width="2*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Content="Pen size" />
-                            <Slider Grid.Column="1" VerticalAlignment="Center" Margin="10 0 10 0" Minimum="1" Maximum="100" Value="{Binding PenSize, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True"/>
-                            <TextBox Grid.Column="2" Text="{Binding PenSize, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
-                        </Grid>
-                        
-                        <!--Snapping grid-->
-                        <Grid Grid.Row="2" Margin="0 10 0 0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Content="Snap to grid"/>
-                            <CheckBox Grid.Column="1" VerticalContentAlignment="Center" Margin="10 0 0 0" IsChecked="{Binding IsSnapToGridEnabled}"/>
-                        </Grid>
-
-                        <ListView Grid.Row="3" Margin="0 10 0 0" ItemsSource="{Binding DrawingShapes}" SelectedItem="{Binding SelectedDrawingShape}" HorizontalContentAlignment="Stretch">
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="0.5*"/>
-                                            <ColumnDefinition Width="0.5*"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Label Content="{Binding DrawingShapeType}"/>
-                                        <Label Grid.Column="1" Content="{Binding Radius}" HorizontalAlignment="Right"/>
-                                        <Label Grid.Column="2" Content="ft"/>
-                                        <Label Grid.Column="3" Background="{Binding Color}"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
-                        
-                        <!--Draw shape grid-->
-                        <Grid Grid.Row="4" Margin="0 10 0 0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="auto"/>
-                                <RowDefinition Height="auto"/>
-                                <RowDefinition Height="auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <RadioButton Content="Square" VerticalContentAlignment="Center" IsChecked="{Binding DrawingShapeSquareSelected}"/>
-                            <RadioButton Grid.Column="1" Content="Circle" VerticalContentAlignment="Center" IsChecked="{Binding DrawingShapeCircleSelected}"/>
-                            <Label Grid.Row="1" Content="Radius" Margin="0 10 0 0"/>
-                            <TextBox Grid.Row="1" Grid.Column="1" VerticalContentAlignment="Center" Margin="0 10 0 0" Text="{Binding DrawingShapeRadius}"/>
-                            <Label Grid.Row="1" Grid.Column="2" Content="ft" Margin="0 10 0 0"/>
-                            <Button Grid.Row="2" Grid.ColumnSpan="4" Content="Draw shape" Margin="0 10 0 0" Visibility="{Binding DrawShapeButtonVisibility}" Command="{Binding DrawShapeCommand}"/>
-                            <Button Grid.Row="2" Grid.ColumnSpan="2" Content="Cancel" Margin="0 10 5 0" Visibility="{Binding CancelShapeButtonVisibility}" Command="{Binding CancelShapeCommand}"/>
-                            <Button Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Content="Apply" Margin="5 10 0 0" Visibility="{Binding ApplyShapeButtonVisibility}" Command="{Binding ApplyShapeCommand}" IsEnabled="{Binding IsDrawingShapeDrawn}"/>
-                        </Grid>
-                        
-                        <!--Edit and remove shape grid-->
-                        <Grid Grid.Row="5" Margin="0 10 0 0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Button Content="Edit shape" Command="{Binding EditShapeCommand}" Margin="0 0 5 0" IsEnabled="{Binding IsDrawingShapeSelected}"/>
-                            <Button Grid.Column="1" Content="Remove shape" Command="{Binding RemoveShapeCommand}" Margin="5 0 0 0" IsEnabled="{Binding IsDrawingShapeSelected}"/>
-                        </Grid>
-                        <Button Grid.Row="6" Content="Clear" Command="{Binding ClearDrawingCommand}" Margin="0 10 0 0"/>
-                    </Grid>
+                    <views:DrawingView DataContext="{Binding DrawingController}" Margin="10"/>
                 </Border>
             </TabItem>
             <TabItem>
@@ -274,138 +86,7 @@
                     <TextBlock Text="Tokens" FontSize="20" FontWeight="Bold"/>
                 </TabItem.Header>
                 <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
-                    <!--Tokens grid-->
-                    <Grid Margin="10">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <Button Content="Custom tokens" Command="{Binding CustomTokensCommand}"/>
-                        <ListView Grid.Row="1" ItemsSource="{Binding TokenList}" HorizontalContentAlignment="Stretch" Margin="0 10 0 0" SelectedItem="{Binding SelectedToken}" FontSize="14">
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Background="Transparent">
-                                        <Grid.ContextMenu>
-                                            <ContextMenu>
-                                                <MenuItem Header="Visible" IsChecked="{Binding Visible}" Command="{Binding TokenVisibilityCommand}"/>
-                                                <MenuItem Header="Player control" IsChecked="{Binding Token.PlayerControl}" Command="{Binding PlayerControlCommand}"/>
-                                                <MenuItem Header="Size">
-                                                    <MenuItem Header="Tiny" IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Tiny}" Command="{Binding TokenSizeChangedCommand}" CommandParameter="Tiny"/>
-                                                    <MenuItem Header="Small" IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Small}" Command="{Binding TokenSizeChangedCommand}" CommandParameter="Small"/>
-                                                    <MenuItem Header="Medium" IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Medium}" Command="{Binding TokenSizeChangedCommand}" CommandParameter="Medium"/>
-                                                    <MenuItem Header="Large" IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Large}" Command="{Binding TokenSizeChangedCommand}" CommandParameter="Large"/>
-                                                    <MenuItem Header="Huge" IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Huge}" Command="{Binding TokenSizeChangedCommand}" CommandParameter="Huge"/>
-                                                    <MenuItem Header="Gargantuan" IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Gargantuan}" Command="{Binding TokenSizeChangedCommand}" CommandParameter="Gargantuan"/>
-                                                </MenuItem>
-                                                <MenuItem Header="Conditions">
-                                                    <MenuItem Header="Baned" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Baned}" Command="{Binding ConditionChangedCommand}" CommandParameter="Baned"/>
-                                                    <MenuItem Header="Blessed" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Blessed}" Command="{Binding ConditionChangedCommand}" CommandParameter="Blessed"/>
-                                                    <MenuItem Header="Blinded" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Blinded}" Command="{Binding ConditionChangedCommand}" CommandParameter="Blinded"/>
-                                                    <MenuItem Header="Charmed" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Charmed}" Command="{Binding ConditionChangedCommand}" CommandParameter="Charmed"/>
-                                                    <MenuItem Header="Concentration" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Concentration}" Command="{Binding ConditionChangedCommand}" CommandParameter="Concentration"/>
-                                                    <MenuItem Header="Deafened" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Deafened}" Command="{Binding ConditionChangedCommand}" CommandParameter="Deafened"/>
-                                                    <MenuItem Header="Death" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Death}" Command="{Binding ConditionChangedCommand}" CommandParameter="Death"/>
-                                                    <MenuItem Header="Exhausted" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Exhausted}" Command="{Binding ConditionChangedCommand}" CommandParameter="Exhausted"/>
-                                                    <MenuItem Header="Flying" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Flying}" Command="{Binding ConditionChangedCommand}" CommandParameter="Flying"/>
-                                                    <MenuItem Header="Frightened" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Frightened}" Command="{Binding ConditionChangedCommand}" CommandParameter="Frightened"/>
-                                                    <MenuItem Header="Grappled" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Grappled}" Command="{Binding ConditionChangedCommand}" CommandParameter="Grappled"/>
-                                                    <MenuItem Header="Hasted" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Hasted}" Command="{Binding ConditionChangedCommand}" CommandParameter="Hasted"/>
-                                                    <MenuItem Header="Hex" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Hex}" Command="{Binding ConditionChangedCommand}" CommandParameter="Hex"/>
-                                                    <MenuItem Header="Highlighted" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Highlighted}" Command="{Binding ConditionChangedCommand}" CommandParameter="Highlighted"/>
-                                                    <MenuItem Header="Incapacitated" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Incapacitated}" Command="{Binding ConditionChangedCommand}" CommandParameter="Incapacitated"/>
-                                                    <MenuItem Header="Invisible" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Invisible}" Command="{Binding ConditionChangedCommand}" CommandParameter="Invisible"/>
-                                                    <MenuItem Header="Mark" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Mark}" Command="{Binding ConditionChangedCommand}" CommandParameter="Mark"/>
-                                                    <MenuItem Header="Paralyzed" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Paralyzed}" Command="{Binding ConditionChangedCommand}" CommandParameter="Paralyzed"/>
-                                                    <MenuItem Header="Petrified" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Petrified}" Command="{Binding ConditionChangedCommand}" CommandParameter="Petrified"/>
-                                                    <MenuItem Header="Poisoned" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Poisoned}" Command="{Binding ConditionChangedCommand}" CommandParameter="Poisoned"/>
-                                                    <MenuItem Header="Prone" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Prone}" Command="{Binding ConditionChangedCommand}" CommandParameter="Prone"/>
-                                                    <MenuItem Header="Restrained" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Restrained}" Command="{Binding ConditionChangedCommand}" CommandParameter="Restrained"/>
-                                                    <MenuItem Header="Stabilized" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Stabilized}" Command="{Binding ConditionChangedCommand}" CommandParameter="Stabilized"/>
-                                                    <MenuItem Header="Stunned" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Stunned}" Command="{Binding ConditionChangedCommand}" CommandParameter="Stunned"/>
-                                                    <MenuItem Header="Unconcious" IsChecked="{Binding Conditions, Converter={StaticResource ConditionToBoolConverter}, ConverterParameter=Unconcious}" Command="{Binding ConditionChangedCommand}" CommandParameter="Unconcious"/>
-                                                    <Separator/>
-                                                    <MenuItem Header="Clear all" Command="{Binding ClearAllConditionsCommand}"/>
-                                                </MenuItem>
-                                                <MenuItem Header="Move to front" Command="{Binding MoveToFrontCommand}"/>
-                                                <MenuItem Header="Move to back" Command="{Binding MoveToBackCommand}"/>
-                                            </ContextMenu>
-                                        </Grid.ContextMenu>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="auto"/>
-                                            <RowDefinition Height="auto"/>
-                                        </Grid.RowDefinitions>
-                                        <!--Name and Id grid-->
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="auto"/>
-                                                <ColumnDefinition Width="auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Label Content="{Binding Token.Name}" FontWeight="Bold"/>
-                                            <Label Grid.Column="1" Content="ID:" HorizontalAlignment="Right" FontWeight="Bold"/>
-                                            <Label Grid.Column="2" Content="{Binding Id}" FontWeight="Bold"/>
-                                        </Grid>
-                                        <!--Initiative and HP grid-->
-                                        <Grid Grid.Row="1">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="auto"/>
-                                                <ColumnDefinition Width="auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="auto"/>
-                                                <ColumnDefinition Width="auto"/>
-                                                <ColumnDefinition Width="auto"/>
-                                                <ColumnDefinition Width="auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Label Content="Initiative"/>
-                                            <TextBox Grid.Column="1" VerticalContentAlignment="Center" MinWidth="45" Margin="10 0 0 0" Text="{Binding Initiative, UpdateSourceTrigger=PropertyChanged}"/>
-                                            <TextBox Grid.Column="3" VerticalContentAlignment="Center" MinWidth="45" Text="{Binding Health.EditorHp, UpdateSourceTrigger=PropertyChanged}" Background="{Binding Health.Color}">
-                                                <TextBox.InputBindings>
-                                                    <KeyBinding Command="{Binding Health.HpEnterCommand}" Key="Enter" />
-                                                    <KeyBinding Command="{Binding Health.HpEscCommand}" Key="Esc" />
-                                                </TextBox.InputBindings>
-                                            </TextBox>
-                                            <Label Grid.Column="4" Content="/"/>
-                                            <TextBox Grid.Column="5" VerticalContentAlignment="Center" MinWidth="45" Text="{Binding Health.EditorMaxHp, UpdateSourceTrigger=PropertyChanged}" Background="{Binding Health.Color}">
-                                                <TextBox.InputBindings>
-                                                    <KeyBinding Command="{Binding Health.MaxHpEnterCommand}" Key="Enter" />
-                                                    <KeyBinding Command="{Binding Health.MaxHpEscCommand}" Key="Esc" />
-                                                </TextBox.InputBindings>
-                                            </TextBox>
-                                            <Label Grid.Column="6" Content="HP"/>
-                                        </Grid>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
-                        <Grid Grid.Row="2" Margin="0 10 0 0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="auto"/>
-                                <RowDefinition Height="auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Button Margin="0 0 5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding IsTokenUpButtonEnabled}" Command="{Binding TokenUpCommand}">
-                                <Image Source="{Binding MapArrowUpBitmapSource}"/>
-                            </Button>
-                            <Button Grid.Column="1" Margin="5 0 0 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding IsTokenDownButtonEnabled}" Command="{Binding TokenDownCommand}">
-                                <Image Source="{Binding MapArrowDownBitmapSource}"/>
-                            </Button>
-                            <Button x:Name="AddTokenButton" Grid.Row="1" Content="Add" Margin="0 10 5 0" Command="{Binding AddTokenCommand}"/>
-                            <Button Grid.Row="1" Grid.Column="1" Content="Remove" Margin="5 10 0 0" Command="{Binding RemoveTokenCommand}" IsEnabled="{Binding IsTokenSelected}"/>
-                        </Grid>
-                        <Button Grid.Row="3" Content="Sort initiative" Margin="0 10 0 0" Command="{Binding SortInitiativeCommand}"/>
-                        <Button Grid.Row="4" Content="Clear" Margin="0 10 0 0" Command="{Binding ClearTokensCommand}"/>
-                    </Grid>
+                    <views:TokenView DataContext="{Binding TokenController}" Margin="10"/>
                 </Border>
             </TabItem>
         </TabControl>
@@ -419,20 +100,20 @@
 
             <Border BorderThickness="3" BorderBrush="Black">
                 <Grid x:Name="MapCanvas">
-                    <Image Source="{Binding BackgroundBitmapSource}"/>
+                    <Image Source="{Binding BackgroundController.BackgroundBitmapSource}"/>
                     <Image x:Name="GridLayer" Source="{Binding GridBitmapSource}" Visibility="{Binding GridVisibility}"/>
-                    <uielements:InkCanvasControl Background="{Binding InkCanvasBackgroundBitmapSource}" 
-                                            DefaultDrawingAttributes="{Binding InkCanvasDrawingAttributes}" 
+                    <uielements:InkCanvasControl Background="{Binding DrawingController.InkCanvasBackgroundBitmapSource}" 
+                                            DefaultDrawingAttributes="{Binding DrawingController.InkCanvasDrawingAttributes}" 
                                             Width="{Binding ElementName=GridLayer, Path=ActualWidth}" 
                                             Height="{Binding ElementName=GridLayer, Path=ActualHeight}"
-                                            EditingMode="{Binding EditingMode}"
-                                            EraserShape="{Binding EraserShape}"
-                                            Strokes="{Binding Strokes, Mode=TwoWay}"
+                                            EditingMode="{Binding DrawingController.EditingMode}"
+                                            EraserShape="{Binding DrawingController.EraserShape}"
+                                            Strokes="{Binding DrawingController.Strokes, Mode=TwoWay}"
                                             Visibility="{Binding InkCanvasVisibility}"
                                             Panel.ZIndex="{Binding InkCanvasZIndex}">
                     </uielements:InkCanvasControl>
-                    <Image Source="{Binding TokenBitmapSource}" Visibility="{Binding TokenVisibility}"/>
-                    <Image Source="{Binding TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
+                    <Image Source="{Binding TokenController.TokenBitmapSource}" Visibility="{Binding TokenVisibility}"/>
+                    <Image Source="{Binding TokenController.TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
                     <Canvas Visibility="{Binding MouseInputCanvasVisibility}" Background="Transparent" Cursor="Hand">
                         <i:Interaction.Behaviors>
                             <uielements:MouseBehavior MouseX="{Binding MouseInputX, Mode=OneWayToSource}" MouseY="{Binding MouseInputY, Mode=OneWayToSource}"/>

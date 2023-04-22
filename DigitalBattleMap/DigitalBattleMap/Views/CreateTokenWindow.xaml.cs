@@ -1,15 +1,14 @@
 ﻿using System.Windows;
 
-namespace DigitalBattleMap.Views
+namespace DigitalBattleMap.Views;
+
+/// <summary>
+/// Interaction logic for CreateTokenWindow.xaml
+/// </summary>
+public partial class CreateTokenWindow : Window
 {
-    /// <summary>
-    /// Interaction logic for CreateTokenWindow.xaml
-    /// </summary>
-    public partial class CreateTokenWindow : Window
+    public CreateTokenWindow()
     {
-        public CreateTokenWindow()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }
