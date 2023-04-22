@@ -16,7 +16,6 @@ public class TokenControllerViewModel : ControllerViewModelBase
 {
     private IWindowService _windowService;
     private Bitmap _tokenBitmap;
-    private Bitmap _tokenSelectionBitmap;
     private List<Token> _monsterTokens = new();
     private Settings _settings;
     private object _lock = "";
@@ -36,7 +35,7 @@ public class TokenControllerViewModel : ControllerViewModelBase
     private void Initialize()
     {
         TokenBitmap = BitmapTools.CreateEmptyBitmap();
-        TokenSelectionBitmap = BitmapTools.CreateEmptyBitmap();
+        TokenSelectionBitmapSource = BitmapTools.CreateEmptyBitmap().ToBitmapImage();
         ReloadMonsterTokens();
     }
 
@@ -94,19 +93,6 @@ public class TokenControllerViewModel : ControllerViewModelBase
         }
     }
 
-    private Bitmap TokenSelectionBitmap
-    {
-        get => _tokenSelectionBitmap;
-        set
-        {
-            if (value != _tokenSelectionBitmap)
-            {
-                _tokenSelectionBitmap = value;
-                TokenSelectionBitmapSource = value.ToBitmapImage();
-            }
-        }
-    }
-
     public void ReloadMonsterTokens()
     {
         lock (_lock)
@@ -129,8 +115,10 @@ public class TokenControllerViewModel : ControllerViewModelBase
             {
                 foreach (var (token, index) in selectTokenWindowViewModel.AddedTokens.WithIndex())
                 {
-                    var tokenListItem = new TokenListItem();
-                    tokenListItem.Token = token;
+                    var tokenListItem = new TokenListItem
+                    {
+                        Token = token
+                    };
                     tokenListItem.Token.OnSizeChanged += TokenChanged;
                     tokenListItem.OnTokenChanged += TokenChanged;
                     tokenListItem.OnZLevelChanged += ZLevelChanged;
@@ -216,9 +204,11 @@ public class TokenControllerViewModel : ControllerViewModelBase
         {
             if (SelectedToken != null)
             {
-                var newPosition = new Point<int>();
-                newPosition.X = (int)point.X.Map(0, _canvasSize.Width, 0, _bitmapSize.Width);
-                newPosition.Y = (int)point.Y.Map(0, _canvasSize.Height, 0, _bitmapSize.Height);
+                var newPosition = new Point<int>
+                {
+                    X = (int)point.X.Map(0, _canvasSize.Width, 0, Constants.BitmapSize.Width),
+                    Y = (int)point.Y.Map(0, _canvasSize.Height, 0, Constants.BitmapSize.Height)
+                };
                 SelectedToken.Position = newPosition;
 
                 CreateTokenBitmap();
@@ -334,7 +324,7 @@ public class TokenControllerViewModel : ControllerViewModelBase
                         tokenListItem.Position.Y -= _gridSize;
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException($"Unknown direction: {e.Direction}");
                 }
 
                 CreateTokenBitmap();
@@ -366,8 +356,8 @@ public class TokenControllerViewModel : ControllerViewModelBase
                     double newX = tokenListItem.Position.X;
                     double newY = tokenListItem.Position.Y;
 
-                    double halfWidth = _bitmapSize.Width / 2;
-                    double halfHeight = _bitmapSize.Height / 2;
+                    double halfWidth = Constants.BitmapSize.Width / 2;
+                    double halfHeight = Constants.BitmapSize.Height / 2;
 
                     newX -= halfWidth;
                     newX *= zoomFactor;
@@ -401,7 +391,7 @@ public class TokenControllerViewModel : ControllerViewModelBase
 
     private Point<int> CalculateStartPosition(int index)
     {
-        var position = new Point<int>(_bitmapSize.Width / 2, _bitmapSize.Height / 2);
+        var position = new Point<int>(Constants.BitmapSize.Width / 2, Constants.BitmapSize.Height / 2);
         var maxGridCellsX = position.X + (_gridSize / 2);
         maxGridCellsX /= _gridSize;
         var maxGridCellsY = position.Y + (_gridSize / 2);
@@ -438,7 +428,7 @@ public class TokenControllerViewModel : ControllerViewModelBase
         lock (_lock)
         {
             var bitmap = BitmapTools.CreateEmptyBitmap();
-            TokenSelectionBitmap = BitmapTools.CreateEmptyBitmap();
+            TokenSelectionBitmapSource = BitmapTools.CreateEmptyBitmap().ToBitmapImage();
 
             if (TokenList.Count > 0)
             {
@@ -481,7 +471,7 @@ public class TokenControllerViewModel : ControllerViewModelBase
             BitmapTools.DrawTokenSelection(bitmap, SelectedToken.Token.GetSizeFactor(), SelectedToken.Position, _gridSize);
         }
 
-        TokenSelectionBitmap = bitmap;
+        TokenSelectionBitmapSource = bitmap.ToBitmapImage();
     }
 
     private void ZLevelChanged(object? sender, ZLevelChangedEventArgs eventArgs)

@@ -13,33 +13,24 @@ namespace DigitalBattleMap;
 
 public static class BitmapTools
 {
-    private const int _width = 1920;
-    private const int _height = 1080;
     private static ConditionIcons _conditionIcons = new();
 
     public static Bitmap LoadBitmap(string path)
     {
-        using (var tempBitmap = new Bitmap(path))
-        {
-            return new Bitmap(tempBitmap);
-        }
+        using var tempBitmap = new Bitmap(path);
+        return new(tempBitmap);
     }
 
     public static Bitmap CreateGrid(int gridSize)
     {
-        var gridBitMap = new Bitmap(_width, _height);
+        var gridBitMap = CreateEmptyBitmap();
         DrawGrid(gridBitMap, gridSize);
         return gridBitMap;
     }
 
     public static Bitmap CreateEmptyBitmap()
     {
-        return new Bitmap(_width, _height);
-    }
-
-    public static Size<int> GetBitmapSize()
-    {
-        return new Size<int>(_width, _height);
+        return new(Constants.BitmapSize.Width, Constants.BitmapSize.Height);
     }
 
     public static Bitmap CreateGridAndStrokesBitmap(Bitmap grid, StrokeCollection strokes, Size<int> inkCanvasSize)
@@ -52,41 +43,37 @@ public static class BitmapTools
     public static Bitmap CreateColorButton(Color color, bool addSelectionIndicator)
     {
         var bitmap = new Bitmap(70, 70);
-        using (var graphics = Graphics.FromImage(bitmap))
+        using var graphics = Graphics.FromImage(bitmap);
+        var brush = new SolidBrush(color);
+        var borderPen = new Pen(Color.Gray, 4);
+
+        graphics.FillEllipse(brush, 9, 9, 50, 50);
+
+        if (addSelectionIndicator)
         {
-            var brush = new SolidBrush(color);
-            var borderPen = new Pen(Color.Gray, 4);
-
-            graphics.FillEllipse(brush, 9, 9, 50, 50);
-
-            if (addSelectionIndicator)
-            {
-                graphics.DrawEllipse(borderPen, 4, 4, 60, 60);
-            }
-
-            return bitmap;
+            graphics.DrawEllipse(borderPen, 4, 4, 60, 60);
         }
+
+        return bitmap;
     }
 
     public static Bitmap CreateEraserButton(bool addSelectionIndicator)
     {
         var bitmap = new Bitmap(70, 70);
-        using (var graphics = Graphics.FromImage(bitmap))
+        using var graphics = Graphics.FromImage(bitmap);
+        var yellowBrush = new SolidBrush(Color.Yellow);
+        var pinkBrush = new SolidBrush(Color.Pink);
+
+        graphics.FillRectangle(yellowBrush, 19, 14, 30, 40);
+        graphics.FillRectangle(pinkBrush, 19, 14, 30, 12);
+
+        if (addSelectionIndicator)
         {
-            var yellowBrush = new SolidBrush(Color.Yellow);
-            var pinkBrush = new SolidBrush(Color.Pink);
-
-            graphics.FillRectangle(yellowBrush, 19, 14, 30, 40);
-            graphics.FillRectangle(pinkBrush, 19, 14, 30, 12);
-
-            if (addSelectionIndicator)
-            {
-                var borderPen = new Pen(Color.Gray, 4);
-                graphics.DrawEllipse(borderPen, 4, 4, 60, 60);
-            }
-
-            return bitmap;
+            var borderPen = new Pen(Color.Gray, 4);
+            graphics.DrawEllipse(borderPen, 4, 4, 60, 60);
         }
+
+        return bitmap;
     }
 
     public static Bitmap CreateArrowButton(ArrowDirection direction)
@@ -110,30 +97,26 @@ public static class BitmapTools
                 break;
         }
 
-        using (var graphics = Graphics.FromImage(bitmap))
-        {
-            var brush = new SolidBrush(Color.Black);
-            graphics.FillPolygon(brush, points);
-            return bitmap;
-        }
+        using var graphics = Graphics.FromImage(bitmap);
+        var brush = new SolidBrush(Color.Black);
+        graphics.FillPolygon(brush, points);
+        return bitmap;
     }
 
     public static Bitmap CreateZoomButton(bool isZoomInButton)
     {
         var bitmap = new Bitmap(70, 70);
 
-        using (var graphics = Graphics.FromImage(bitmap))
+        using var graphics = Graphics.FromImage(bitmap);
+        var brush = new SolidBrush(Color.Black);
+        graphics.FillRectangle(brush, 9, 30, 50, 8);
+
+        if (isZoomInButton)
         {
-            var brush = new SolidBrush(Color.Black);
-            graphics.FillRectangle(brush, 9, 30, 50, 8);
-
-            if (isZoomInButton)
-            {
-                graphics.FillRectangle(brush, 30, 9, 8, 50);
-            }
-
-            return bitmap;
+            graphics.FillRectangle(brush, 30, 9, 8, 50);
         }
+
+        return bitmap;
     }
 
     public static Bitmap CropBitmap(Bitmap bitmap, Rectangle rectangle)
@@ -148,7 +131,7 @@ public static class BitmapTools
 
     public static Bitmap ResizeBitmap(Bitmap bitmap)
     {
-        return ResizeBitmap(bitmap, new Size<int>(_width, _height));
+        return ResizeBitmap(bitmap, Constants.BitmapSize);
     }
 
     public static Bitmap ResizeBitmap(Bitmap bitmap, Size<int> size)
@@ -166,11 +149,9 @@ public static class BitmapTools
             graphics.SmoothingMode = SmoothingMode.HighQuality;
             graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-            using (var wrapMode = new ImageAttributes())
-            {
-                wrapMode.SetWrapMode(WrapMode.TileFlipXY);
-                graphics.DrawImage(bitmap, destinationRectangle, 0, 0, bitmap.Width, bitmap.Height, GraphicsUnit.Pixel, wrapMode);
-            }
+            using var wrapMode = new ImageAttributes();
+            wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+            graphics.DrawImage(bitmap, destinationRectangle, 0, 0, bitmap.Width, bitmap.Height, GraphicsUnit.Pixel, wrapMode);
         }
 
         return resizedBitmap;
@@ -196,11 +177,9 @@ public static class BitmapTools
 
         if (IsTokenVisible(drawingPosition, gridSize))
         {
-            using (var graphics = Graphics.FromImage(bitmap))
-            {
-                var pen = new Pen(Color.Blue, 4);
-                graphics.DrawEllipse(pen, drawingPosition.X, drawingPosition.Y, tokenSize.Width, tokenSize.Height);
-            }
+            using var graphics = Graphics.FromImage(bitmap);
+            var pen = new Pen(Color.Blue, 4);
+            graphics.DrawEllipse(pen, drawingPosition.X, drawingPosition.Y, tokenSize.Width, tokenSize.Height);
         }
     }
 
@@ -208,7 +187,7 @@ public static class BitmapTools
     {
         if (image.Width == image.Height)
         {
-            return new Bitmap(image);
+            return new(image);
         }
 
         var size = Math.Max(image.Width, image.Height);
@@ -241,14 +220,14 @@ public static class BitmapTools
         }
         else
         {
-            return new Bitmap(_width, _height);
+            return CreateEmptyBitmap();
         }
     }
 
     public static Point<int> CalculateGridOffset(int gridSize)
     {
-        var middleGridCellX = (_width / 2) - (gridSize / 2);
-        var middleGridCellY = (_height / 2) - (gridSize / 2);
+        var middleGridCellX = (Constants.BitmapSize.Width / 2) - (gridSize / 2);
+        var middleGridCellY = (Constants.BitmapSize.Height / 2) - (gridSize / 2);
 
         var xModulo = middleGridCellX % gridSize;
         var yModulo = middleGridCellY % gridSize;
@@ -256,7 +235,7 @@ public static class BitmapTools
         var startX = xModulo == 0 ? 0 : xModulo;
         var startY = yModulo == 0 ? 0 : yModulo;
 
-        return new Point<int>(startX, startY);
+        return new(startX, startY);
     }
 
     private static bool IsTokenVisible(Point<int> drawingPosition, int gridSize)
@@ -267,7 +246,7 @@ public static class BitmapTools
         {
             isVisible = false;
         }
-        else if (drawingPosition.X - gridSize > _width)
+        else if (drawingPosition.X - gridSize > Constants.BitmapSize.Width)
         {
             isVisible = false;
         }
@@ -275,7 +254,7 @@ public static class BitmapTools
         {
             isVisible = false;
         }
-        else if (drawingPosition.Y - gridSize > _height)
+        else if (drawingPosition.Y - gridSize > Constants.BitmapSize.Height)
         {
             isVisible = false;
         }
@@ -287,21 +266,23 @@ public static class BitmapTools
     {
         if (tokenId != null && tokenId != "")
         {
-            using (var graphics = Graphics.FromImage(bitmap))
+            using var graphics = Graphics.FromImage(bitmap);
+            var brush = new SolidBrush(Color.White);
+            var textSize = Math.Max(tokenSize.Width / 6, 1);
+
+            StringFormat stringFormat = new()
             {
-                var brush = new SolidBrush(Color.White);
-                var textSize = Math.Max(tokenSize.Width / 6, 1);
+                LineAlignment = StringAlignment.Center,
+                Alignment = StringAlignment.Center
+            };
 
-                StringFormat stringFormat = new();
-                stringFormat.LineAlignment = StringAlignment.Center;
-                stringFormat.Alignment = StringAlignment.Center;
+            var textPosition = new Point<int>
+            {
+                X = drawingPosition.X + tokenSize.Width / 2,
+                Y = drawingPosition.Y + tokenSize.Height / 2
+            };
 
-                var textPosition = new Point<int>();
-                textPosition.X = drawingPosition.X + tokenSize.Width / 2;
-                textPosition.Y = drawingPosition.Y + tokenSize.Height / 2;
-
-                graphics.DrawString(tokenId, new Font("", textSize, FontStyle.Bold), brush, textPosition.X, textPosition.Y, stringFormat);
-            }
+            graphics.DrawString(tokenId, new Font("", textSize, FontStyle.Bold), brush, textPosition.X, textPosition.Y, stringFormat);
         }
     }
 
@@ -366,64 +347,60 @@ public static class BitmapTools
 
     private static void DrawImageOnBitmap(Bitmap bitmap, Bitmap image, Point<int> position)
     {
-        using (var graphics = Graphics.FromImage(bitmap))
-        {
-            graphics.DrawImage(image, position.X, position.Y);
-        }
+        using var graphics = Graphics.FromImage(bitmap);
+        graphics.DrawImage(image, position.X, position.Y);
     }
 
     private static void DrawGrid(Bitmap bitmap, int gridSize)
     {
         var gridOffset = CalculateGridOffset(gridSize);
 
-        using (var graphics = Graphics.FromImage(bitmap))
+        using var graphics = Graphics.FromImage(bitmap);
+        Pen blackPen = new(Color.Black, 1);
+
+        for (int x = gridOffset.X; x < Constants.BitmapSize.Width; x += gridSize)
         {
-            Pen blackPen = new(Color.Black, 1);
+            graphics.DrawLine(blackPen, x, 0, x, Constants.BitmapSize.Height);
+        }
 
-            for (int x = gridOffset.X; x < _width; x += gridSize)
-            {
-                graphics.DrawLine(blackPen, x, 0, x, _height);
-            }
-
-            for (int y = gridOffset.Y; y < _height; y += gridSize)
-            {
-                graphics.DrawLine(blackPen, 0, y, _width, y);
-            }
+        for (int y = gridOffset.Y; y < Constants.BitmapSize.Height; y += gridSize)
+        {
+            graphics.DrawLine(blackPen, 0, y, Constants.BitmapSize.Width, y);
         }
     }
 
     private static void DrawStrokes(Bitmap bitmap, StrokeCollection strokes, Size<int> canvasSize)
     {
-        using (var graphics = Graphics.FromImage(bitmap))
+        using var graphics = Graphics.FromImage(bitmap);
+        for (int strokeIndex = 0; strokeIndex < strokes.Count; strokeIndex++)
         {
-            for (int strokeIndex = 0; strokeIndex < strokes.Count; strokeIndex++)
+            var points = new List<PointF>();
+            var drawingAttributs = strokes[strokeIndex].DrawingAttributes;
+            var mediaColor = drawingAttributs.Color;
+            var brush = new SolidBrush(Color.FromArgb(mediaColor.A, mediaColor.R, mediaColor.G, mediaColor.B));
+            var penSize = (int)drawingAttributs.Width; // We always use the same width and height
+
+            for (int pointIndex = 0; pointIndex < strokes[strokeIndex].StylusPoints.Count; pointIndex++)
             {
-                var points = new List<PointF>();
-                var drawingAttributs = strokes[strokeIndex].DrawingAttributes;
-                var mediaColor = drawingAttributs.Color;
-                var brush = new SolidBrush(Color.FromArgb(mediaColor.A, mediaColor.R, mediaColor.G, mediaColor.B));
-                var penSize = (int)drawingAttributs.Width; // We always use the same width and height
-
-                for (int pointIndex = 0; pointIndex < strokes[strokeIndex].StylusPoints.Count; pointIndex++)
+                var point = new PointF
                 {
-                    var point = new PointF();
-                    point.X = (float)strokes[strokeIndex].StylusPoints[pointIndex].X;
-                    point.Y = (float)strokes[strokeIndex].StylusPoints[pointIndex].Y;
-                    point.X -= penSize / 2;
-                    point.Y -= penSize / 2;
+                    X = (float)strokes[strokeIndex].StylusPoints[pointIndex].X,
+                    Y = (float)strokes[strokeIndex].StylusPoints[pointIndex].Y
+                };
+                point.X -= penSize / 2;
+                point.Y -= penSize / 2;
 
-                    var resizedX = point.X.Map(0, canvasSize.Width, 0, _width);
-                    var resizedY = point.Y.Map(0, canvasSize.Height, 0, _height);
-                    points.Add(new PointF(resizedX, resizedY));
-                }
+                var resizedX = point.X.Map(0, canvasSize.Width, 0, Constants.BitmapSize.Width);
+                var resizedY = point.Y.Map(0, canvasSize.Height, 0, Constants.BitmapSize.Height);
+                points.Add(new PointF(resizedX, resizedY));
+            }
 
-                SmoothLine(points, penSize);
+            SmoothLine(points, penSize);
 
-                foreach (var point in points)
-                {
-                    var resizedPenSize = penSize.Map(0, canvasSize.Width, 0, _width);
-                    graphics.FillEllipse(brush, point.X, point.Y, resizedPenSize, resizedPenSize);
-                }
+            foreach (var point in points)
+            {
+                var resizedPenSize = penSize.Map(0, canvasSize.Width, 0, Constants.BitmapSize.Width);
+                graphics.FillEllipse(brush, point.X, point.Y, resizedPenSize, resizedPenSize);
             }
         }
     }

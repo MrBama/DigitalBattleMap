@@ -13,10 +13,8 @@ public static class MonsterTokens
         var json = "";
         using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("DigitalBattleMap.Resources.MonsterTokens.json"))
         {
-            using (var reader = new StreamReader(stream))
-            {
-                json = reader.ReadToEnd();
-            }
+            using var reader = new StreamReader(stream);
+            json = reader.ReadToEnd();
         }
 
         var data = JsonConvert.DeserializeObject<MonsterTokenData>(json);
@@ -33,10 +31,12 @@ public static class MonsterTokens
             var monsterToken = rawData.Tokens.SingleOrDefault(t => t.Name == tokenName);
             if(monsterToken != null)
             {
-                var token = new Token();
-                token.Name = tokenName;
-                token.Size = ConvertSize(monsterToken.Size);
-                token.ImagePath = file;
+                var token = new Token
+                {
+                    Name = tokenName,
+                    Size = ConvertSize(monsterToken.Size),
+                    ImagePath = file
+                };
 
                 tokens.Add(token);
             }

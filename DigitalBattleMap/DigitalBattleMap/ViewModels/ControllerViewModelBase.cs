@@ -3,7 +3,6 @@
 namespace DigitalBattleMap.ViewModels;
 public abstract class ControllerViewModelBase : ViewModelBase
 {
-    protected Size<int> _bitmapSize = BitmapTools.GetBitmapSize();
     protected Size<double> _canvasSize;
     protected int _gridSize;
 

@@ -25,9 +25,11 @@ public class Size<T> where T : IEquatable<T>
         dynamic width = size.Width;
         dynamic height = size.Height;
 
-        var result = new Size<T>();
-        result.Width = (T)width;
-        result.Height = (T)height;
+        var result = new Size<T>
+        {
+            Width = (T)width,
+            Height = (T)height
+        };
 
         return result;
     }

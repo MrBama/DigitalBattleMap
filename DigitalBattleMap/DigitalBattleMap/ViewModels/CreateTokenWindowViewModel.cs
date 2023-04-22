@@ -96,11 +96,13 @@ public class CreateTokenWindowViewModel : ViewModelBase
         var imagePath = Path.Combine(Constants.CustomTokensPath, $"{TokenName}.png");
         _tokenBitmap.Save(imagePath);
 
-        var token = new Token();
-        token.Name = TokenName;
-        token.ImagePath = imagePath;
-        token.Size = SelectedTokenSize;
-        token.PlayerControl = PlayerControl;
+        var token = new Token
+        {
+            Name = TokenName,
+            ImagePath = imagePath,
+            Size = SelectedTokenSize,
+            PlayerControl = PlayerControl
+        };
 
         Token = token;            
     }

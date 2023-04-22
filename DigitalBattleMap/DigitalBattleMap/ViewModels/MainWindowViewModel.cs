@@ -221,9 +221,11 @@ public class MainWindowViewModel : ViewModelBase
     private void InkCanvasSizeOnStartup(double width)
     {
         // It's enough to only use the width, since everything is done in a 16:9 ratio
-        _canvasSize = new Size<double>();
-        _canvasSize.Width = width;
-        _canvasSize.Height = width / 16 * 9;
+        _canvasSize = new Size<double>
+        {
+            Width = width,
+            Height = width / 16 * 9
+        };
 
         BackgroundController.SetCanvasSize(_canvasSize);
         DrawingController.SetCanvasSize(_canvasSize);
@@ -232,8 +234,10 @@ public class MainWindowViewModel : ViewModelBase
 
     private void ClearMap()
     {
-        var confirmationWindowViewModel = new ConfirmationWindowViewModel();
-        confirmationWindowViewModel.Content = "Are you sure you want to clear everything?";
+        var confirmationWindowViewModel = new ConfirmationWindowViewModel
+        {
+            Content = "Are you sure you want to clear everything?"
+        };
         _windowService.ShowWindowDialog<ConfirmationWindow>(confirmationWindowViewModel);
 
         if (confirmationWindowViewModel.Confirmed)
@@ -342,9 +346,11 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (_windowService.ShowSaveFileDialog(out string path, "(*.dbm)|*.dbm"))
         {
-            var saveFile = new SaveFile();
-            saveFile.GridSize = GridSize;
-            saveFile.IsGridShown = IsGridShown;
+            var saveFile = new SaveFile
+            {
+                GridSize = GridSize,
+                IsGridShown = IsGridShown
+            };
             BackgroundController.AddToSaveFile(saveFile);
             DrawingController.AddToSaveFile(saveFile);
             TokenController.AddToSaveFile(saveFile);

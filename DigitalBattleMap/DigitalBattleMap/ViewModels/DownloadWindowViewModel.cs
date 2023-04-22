@@ -74,48 +74,42 @@ public class DownloadWindowViewModel : ViewModelBase
 
     private void DownloadTokens(List<MonsterToken> tokens)
     {
-        using (var client = new HttpClient())
+        using var client = new HttpClient();
+        for (int i = 0; i < tokens.Count; i++)
         {
-            for (int i = 0; i < tokens.Count; i++)
+            if (_isTerminated)
             {
-                if (_isTerminated)
+                return;
+            }
+
+
+            var imagePath = Path.Combine(Constants.MonsterTokensPath, $"{tokens[i].Name}.png");
+            if (!File.Exists(imagePath))
+            {
+                try
                 {
-                    return;
+                    using var stream = client.GetStreamAsync(tokens[i].TokenUrl).Result;
+                    using var fileStream = new FileStream(imagePath, FileMode.OpenOrCreate);
+                    stream.CopyTo(fileStream);
                 }
-
-
-                var imagePath = Path.Combine(Constants.MonsterTokensPath, $"{tokens[i].Name}.png");
-                if (!File.Exists(imagePath))
+                catch (Exception e)
                 {
-                    try
+                    // If the exception is caused by too many request, wait a bit and retry
+                    if (e.Message.Contains("429"))
                     {
-                        using (var stream = client.GetStreamAsync(tokens[i].TokenUrl).Result)
+                        Thread.Sleep(500);
+                        i--;
+                        lock (_lock)
                         {
-                            using (var fileStream = new FileStream(imagePath, FileMode.OpenOrCreate))
-                            {
-                                stream.CopyTo(fileStream);
-                            }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        // If the exception is caused by too many request, wait a bit and retry
-                        if (e.Message.Contains("429"))
-                        {
-                            Thread.Sleep(500);
-                            i--;
-                            lock (_lock)
-                            {
-                                ProgressBarValue--;
-                            }
+                            ProgressBarValue--;
                         }
                     }
                 }
+            }
 
-                lock (_lock)
-                {
-                    ProgressBarValue++;
-                }
+            lock (_lock)
+            {
+                ProgressBarValue++;
             }
         }
     }

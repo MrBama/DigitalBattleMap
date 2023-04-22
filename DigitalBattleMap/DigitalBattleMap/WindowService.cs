@@ -22,23 +22,29 @@ public class WindowService : IWindowService
 
     public void ShowWindow<T>(object dataContext) where T : Window, new()
     {
-        var window = new T();
-        window.DataContext = dataContext;
+        var window = new T
+        {
+            DataContext = dataContext
+        };
         _windows.Add(window);
         window.Show();
     }
 
     public void ShowWindowDialog<T>(object dataContext) where T : Window, new()
     {
-        var window = new T();
-        window.DataContext = dataContext;
+        var window = new T
+        {
+            DataContext = dataContext
+        };
         window.ShowDialog();
     }
 
     public bool ShowOpenFileDialog(out string path, string filter)
     {
-        var dialog = new Microsoft.Win32.OpenFileDialog();
-        dialog.Filter = filter;
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = filter
+        };
 
         var result = dialog.ShowDialog();
         if (result.HasValue && result.Value)
@@ -55,8 +61,10 @@ public class WindowService : IWindowService
 
     public bool ShowSaveFileDialog(out string path, string filter)
     {
-        var dialog = new Microsoft.Win32.SaveFileDialog();
-        dialog.Filter = filter;
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Filter = filter
+        };
 
         var result = dialog.ShowDialog();
         if (result.HasValue && result.Value)

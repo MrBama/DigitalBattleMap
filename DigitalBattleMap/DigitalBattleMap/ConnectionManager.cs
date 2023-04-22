@@ -91,10 +91,7 @@ public class ConnectionManager : IWebHub, IWebHubClientEvents
             _httpClient.Dispose();
 
             _isConnected = false;
-            if (_thread != null)
-            {
-                _thread.Join();
-            }
+            _thread?.Join();
 
             OnDisconnect?.Invoke(this, EventArgs.Empty);
         });

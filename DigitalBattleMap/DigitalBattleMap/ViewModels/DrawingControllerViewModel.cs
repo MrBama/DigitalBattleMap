@@ -114,8 +114,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     {
         var matrix = new System.Windows.Media.Matrix();
         double gridSize = _gridSize;
-        var distanceX = gridSize.Map(0, _bitmapSize.Width, 0, _canvasSize.Width);
-        var distanceY = gridSize.Map(0, _bitmapSize.Height, 0, _canvasSize.Height);
+        var distanceX = gridSize.Map(0, Constants.BitmapSize.Width, 0, _canvasSize.Width);
+        var distanceY = gridSize.Map(0, Constants.BitmapSize.Height, 0, _canvasSize.Height);
 
         switch (direction)
         {
@@ -380,13 +380,13 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     private Point<double> CalculateInkCanvasGridOffset()
     {
         var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(_gridSize));
-        return new Point<double>(gridOffset.X.Map(0, _bitmapSize.Width, 0, _canvasSize.Width), gridOffset.Y.Map(0, _bitmapSize.Height, 0, _canvasSize.Height));
+        return new(gridOffset.X.Map(0, Constants.BitmapSize.Width, 0, _canvasSize.Width), gridOffset.Y.Map(0, Constants.BitmapSize.Height, 0, _canvasSize.Height));
     }
 
     private double CalculateInkCanvasGridSize()
     {
         double inkCanvasGridSize = _gridSize;
-        return inkCanvasGridSize.Map(0, _bitmapSize.Width, 0, _canvasSize.Width);
+        return inkCanvasGridSize.Map(0, Constants.BitmapSize.Width, 0, _canvasSize.Width);
     }
 
     private Point<double> SnapPoint(Point<double> point, Point<double> inkCanvasGridOffset, double inkCanvasGridSize)

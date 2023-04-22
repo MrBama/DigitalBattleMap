@@ -19,7 +19,7 @@ public class Settings
     {
         if (!FileManager.OpenFile(_settingsPath, out Settings storage))
         {
-            return new Settings();
+            return new();
         }
         return storage;
     }

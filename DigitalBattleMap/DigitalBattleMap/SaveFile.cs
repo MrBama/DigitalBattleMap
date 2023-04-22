@@ -39,70 +39,63 @@ public class SaveFile
 
     public void Save(string path)
     {
-        using (var tempDirectory = new TempDirectory(_tempDirectoryPath))
+        using var tempDirectory = new TempDirectory(_tempDirectoryPath);
+        FileManager.SaveFile(this, _saveFilePath);
+
+        using (var fileStream = new FileStream(_drawingFilePath, FileMode.Create))
         {
-            FileManager.SaveFile(this, _saveFilePath);
-
-            using (var fileStream = new FileStream(_drawingFilePath, FileMode.Create))
-            {
-                Strokes.Save(fileStream);
-            }
-
-            if (FullBackground != null)
-            {
-                FullBackground.Save(_fullBackgrondFilePath);
-            }
-
-            for (int i = 0; i < TokenList.Count; i++)
-            {
-                var tokenImagePath = Path.Combine(_tempDirectoryPath, $"Token{i}.png");
-                TokenList[i].GetBitmap().Save(tokenImagePath);
-                TokenList[i].Token.ImagePath = "";
-            }
-
-            var pathWithExtension = Path.ChangeExtension(path, ".dbm");
-            if (File.Exists(pathWithExtension))
-            {
-                File.Delete(pathWithExtension);
-            }
-
-            ZipFile.CreateFromDirectory(_tempDirectoryPath, pathWithExtension);
+            Strokes.Save(fileStream);
         }
+
+        FullBackground?.Save(_fullBackgrondFilePath);
+
+        for (int i = 0; i < TokenList.Count; i++)
+        {
+            var tokenImagePath = Path.Combine(_tempDirectoryPath, $"Token{i}.png");
+            TokenList[i].GetBitmap().Save(tokenImagePath);
+            TokenList[i].Token.ImagePath = "";
+        }
+
+        var pathWithExtension = Path.ChangeExtension(path, ".dbm");
+        if (File.Exists(pathWithExtension))
+        {
+            File.Delete(pathWithExtension);
+        }
+
+        ZipFile.CreateFromDirectory(_tempDirectoryPath, pathWithExtension);
     }
 
     public static SaveFile Open(string path)
     {
-        using (var tempDirectory = new TempDirectory(_tempDirectoryPath))
+        using var tempDirectory = new TempDirectory(_tempDirectoryPath);
+        ZipFile.ExtractToDirectory(path, _tempDirectoryPath);
+
+        SaveFile saveFile;
+
+        if (!FileManager.OpenFile(_saveFilePath, out saveFile))
         {
-            ZipFile.ExtractToDirectory(path, _tempDirectoryPath);
-
-            SaveFile saveFile;
-
-            if (!FileManager.OpenFile(_saveFilePath, out saveFile))
-            {
-                saveFile = new SaveFile();
-            }
-
-            using (var fileStream = new FileStream(_drawingFilePath, FileMode.Open))
-            {
-                saveFile.Strokes = new StrokeCollection(fileStream);
-            }
-
-            if (File.Exists(_fullBackgrondFilePath))
-            {
-                saveFile.FullBackground = BitmapTools.LoadBitmap(_fullBackgrondFilePath);
-            }
-
-            for (int i = 0; i < saveFile.TokenList.Count; i++)
-            {
-                var tokenImagePath = Path.Combine(_tempDirectoryPath, $"Token{i}.png");
-                saveFile.TokenList[i].Token.ImagePath = tokenImagePath;
-                saveFile.TokenList[i].GetBitmap();
-            }
-
-            return saveFile;
+            saveFile = new SaveFile();
         }
-        
+
+        using (var fileStream = new FileStream(_drawingFilePath, FileMode.Open))
+        {
+            saveFile.Strokes = new StrokeCollection(fileStream);
+        }
+
+        if (File.Exists(_fullBackgrondFilePath))
+        {
+            saveFile.FullBackground = BitmapTools.LoadBitmap(_fullBackgrondFilePath);
+        }
+
+        for (int i = 0; i < saveFile.TokenList.Count; i++)
+        {
+            var tokenImagePath = Path.Combine(_tempDirectoryPath, $"Token{i}.png");
+            saveFile.TokenList[i].Token.ImagePath = tokenImagePath;
+            saveFile.TokenList[i].GetBitmap();
+        }
+
+        return saveFile;
+
     }
 
     private class TempDirectory : IDisposable

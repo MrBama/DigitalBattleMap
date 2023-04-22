@@ -25,9 +25,11 @@ public class Point<T> where T : IEquatable<T>
         dynamic x = point.X;
         dynamic y = point.Y;
 
-        var result = new Point<T>();
-        result.X = (T)x;
-        result.Y = (T)y;
+        var result = new Point<T>
+        {
+            X = (T)x,
+            Y = (T)y
+        };
         return result;
     }
 

@@ -84,10 +84,10 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         {
             _fullBackgroundBitmap = BitmapTools.LoadBitmap(path);
             _area = new Rectangle(
-                (_fullBackgroundBitmap.Width / 2) - (_bitmapSize.Width / 2),
-                (_fullBackgroundBitmap.Height / 2) - (_bitmapSize.Height / 2),
-                _bitmapSize.Width,
-                _bitmapSize.Height);
+                (_fullBackgroundBitmap.Width / 2) - (Constants.BitmapSize.Width / 2),
+                (_fullBackgroundBitmap.Height / 2) - (Constants.BitmapSize.Height / 2),
+                Constants.BitmapSize.Width,
+                Constants.BitmapSize.Height);
 
             BackgroundBitmap = BitmapTools.CropBitmap(_fullBackgroundBitmap, _area);
             ExtractGridCells(Path.GetFileNameWithoutExtension(path));
@@ -174,8 +174,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         if (_fullBackgroundBitmap != null)
         {
             double preciseGridSize = _gridSize;
-            var distanceX = (int)Math.Round(preciseGridSize.Map(0, _bitmapSize.Width, 0, _area.Width));
-            var distanceY = (int)Math.Round(preciseGridSize.Map(0, _bitmapSize.Height, 0, _area.Height));
+            var distanceX = (int)Math.Round(preciseGridSize.Map(0, Constants.BitmapSize.Width, 0, _area.Width));
+            var distanceY = (int)Math.Round(preciseGridSize.Map(0, Constants.BitmapSize.Height, 0, _area.Height));
 
             switch (direction)
             {
@@ -203,8 +203,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         var newSize = new Size<double>(gridSize * GridCellsWidth, gridSize * GridCellsHeight);
         double factor = _fullBackgroundBitmap.Width / newSize.Width;
 
-        _area.Width = (int)Math.Round(_bitmapSize.Width * factor);
-        _area.Height = (int)Math.Round(_bitmapSize.Height * factor);
+        _area.Width = (int)Math.Round(Constants.BitmapSize.Width * factor);
+        _area.Height = (int)Math.Round(Constants.BitmapSize.Height * factor);
 
         // Move background grid to 0,0
         double backgroundGridSize = _fullBackgroundBitmap.Width / GridCellsWidth;
@@ -213,8 +213,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
         // Move background grid to overlap with normal grid
         var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(gridSize));
-        _area.X -= (int)Math.Round(gridOffset.X.Map(0, _bitmapSize.Width, 0, _area.Width));
-        _area.Y -= (int)Math.Round(gridOffset.Y.Map(0, _bitmapSize.Height, 0, _area.Height));
+        _area.X -= (int)Math.Round(gridOffset.X.Map(0, Constants.BitmapSize.Width, 0, _area.Width));
+        _area.Y -= (int)Math.Round(gridOffset.Y.Map(0, Constants.BitmapSize.Height, 0, _area.Height));
 
         CreateBackground();
     }
@@ -263,7 +263,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         var startIndex = fileName.IndexOf("(");
         if (startIndex != -1)
         {
-            var endIndex = fileName.Substring(startIndex).IndexOf(")");
+            var endIndex = fileName[startIndex..].IndexOf(")");
             if (endIndex != -1)
             {
                 var size = fileName.Substring(startIndex + 1, endIndex - 1);

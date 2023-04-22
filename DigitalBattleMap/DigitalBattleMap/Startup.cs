@@ -29,10 +29,8 @@ public static class Startup
             Directory.CreateDirectory(dataDirectoryPath);
             using (var resource = Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.{saveFileIconFileName}"))
             {
-                using (var file = new FileStream(Path.Combine(saveFileIconFilePath), FileMode.Create))
-                {
-                    resource?.CopyTo(file);
-                }
+                using var file = new FileStream(Path.Combine(saveFileIconFilePath), FileMode.Create);
+                resource?.CopyTo(file);
             }
 
             // Associate extension with icon

@@ -193,7 +193,7 @@ public class ConditionIcons
             case Condition.Unconcious:
                 return _unconcious;
             default:
-                return new Bitmap(100, 100);
+                return new(100, 100);
         }
     }
 }
