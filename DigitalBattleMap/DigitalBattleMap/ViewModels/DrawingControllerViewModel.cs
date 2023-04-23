@@ -49,7 +49,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         EraserButtonBitmapSource = BitmapTools.CreateEraserButton(false).ToBitmapImage();
         EditingMode = InkCanvasEditingMode.Ink;
         EraserShape = new EllipseStylusShape(PenSize, PenSize);
-        ShapeRadius = 10;
+        ShapeSize = 10;
         SquareShapeSelected = true;
         CancelShapeButtonVisibility = Visibility.Hidden;
         ApplyShapeButtonVisibility = Visibility.Hidden;
@@ -90,7 +90,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public Visibility UnlinkShapeButtonVisibility { get => Get<Visibility>(); set => Set(value); }
     public double PenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100), PenSizeChanged); }
     public bool IsSnapToGridEnabled { get => Get<bool>(); set => Set(value); }
-    public int ShapeRadius { get => Get<int>(); set => Set(value); }
+    public int ShapeSize { get => Get<int>(); set => Set(value); }
     public bool SquareShapeSelected { get => Get<bool>(); set => Set(value); }
     public bool CircleShapeSelected { get => Get<bool>(); set => Set(value); }
     public StrokeCollection Strokes { get => Get<StrokeCollection>(); set => Set(value); }
@@ -186,7 +186,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             var shape = new DrawingShape
             {
                 DrawingShapeType = saveShape.DrawingShapeType,
-                Radius = saveShape.Radius,
+                Size = saveShape.Size,
                 DrawingButton = saveShape.DrawingButton,
                 Stroke = Strokes[saveShape.StrokeIndex],
                 CanvasSize = _canvasSize
@@ -243,7 +243,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         var shape = new DrawingShape
         {
             DrawingShapeType = GetDrawingShapeType(),
-            Radius = ShapeRadius,
+            Size = ShapeSize,
             Stroke = ShapeStroke,
             DrawingButton = _selectedDrawingButton,
             CanvasSize = _canvasSize
@@ -262,7 +262,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         PenSize = SelectedShape.Stroke.DrawingAttributes.Width;
         SquareShapeSelected = SelectedShape.DrawingShapeType == DrawingShapeType.Square;
         CircleShapeSelected = SelectedShape.DrawingShapeType == DrawingShapeType.Circle;
-        ShapeRadius = SelectedShape.Radius;
+        ShapeSize = SelectedShape.Size;
         ChangeDrawingButton(SelectedShape.DrawingButton);
 
         SelectedShape.Dispose();
@@ -485,8 +485,9 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
 
         var startPoint = SnapPoint(new Point<double>(addedStroke.StylusPoints.First().X, addedStroke.StylusPoints.First().Y), gridOffset, halfGridSize);
-        var distanceToEdge = Math.Round((double)ShapeRadius / Constants.FeetPerGridCell);
+        var distanceToEdge = Math.Round((double)ShapeSize / Constants.FeetPerGridCell); // Get amount of grid cells
         distanceToEdge *= inkCanvasGridSize;
+        distanceToEdge /= 2; // divide by 2 to get radius
 
         Strokes.Remove(ShapeStroke);
         addedStroke.StylusPoints = CreateShape(startPoint, distanceToEdge);

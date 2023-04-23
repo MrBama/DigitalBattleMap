@@ -13,7 +13,7 @@ public class DrawingShape : ILinkableObject, IDisposable
     private ITokenLink _tokenLink;
 
     public DrawingShapeType DrawingShapeType { get; set; }
-    public int Radius { get; set; }
+    public int Size { get; set; }
     public Stroke Stroke { get; set; }
     public Brush Color { get => GetColor(); }
     public DrawingButton DrawingButton { get; set; }
@@ -90,13 +90,13 @@ public class DrawingShapeSave
     public DrawingShapeSave(DrawingShape drawingShape, int strokeIndex)
     {
         DrawingShapeType = drawingShape.DrawingShapeType;
-        Radius = drawingShape.Radius;
+        Size = drawingShape.Size;
         DrawingButton = drawingShape.DrawingButton;
         StrokeIndex = strokeIndex;
     }
 
     public DrawingShapeType DrawingShapeType { get; set; }
-    public int Radius { get; set; }
+    public int Size { get; set; }
     public DrawingButton DrawingButton { get; set; }
     public int StrokeIndex { get; set; }
 }
