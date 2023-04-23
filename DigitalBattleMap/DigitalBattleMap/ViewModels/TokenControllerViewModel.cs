@@ -8,8 +8,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
+using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 namespace DigitalBattleMap.ViewModels;
 
@@ -276,6 +278,19 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
         lock (_lock)
         {
             saveFile.TokenList = TokenList.ToList();
+            foreach ((var token, var index) in TokenList.WithIndex())
+            {
+                if (token.IsLinked())
+                {
+                    var objectLink = new ObjectLink
+                    {
+                        LinkableObjectType = typeof(TokenListItem),
+                        Index = index,
+                        TokenIndentifier = token.GetLinkIdentifier()
+                    };
+                    saveFile.ObjectLinks.Add(objectLink);
+                }
+            }
         }
     }
 
@@ -295,6 +310,20 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
             }
 
             CreateTokenBitmap();
+        }
+    }
+
+    public void OpenObjectLinks(List<ObjectLink> objectLinks)
+    {
+        lock (_lock)
+        {
+            foreach (var objectLink in objectLinks)
+            {
+                if (objectLink.LinkableObjectType == typeof(TokenListItem))
+                {
+                    LinkToToken(TokenList[objectLink.Index], objectLink.TokenIndentifier);
+                }
+            }
         }
     }
 
@@ -348,7 +377,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
                     default:
                         throw new ArgumentOutOfRangeException($"Unknown direction: {direction}");
                 }
-                
+
                 foreach (var linkedObject in SelectedToken.LinkedObjects)
                 {
                     linkedObject.UpdatePosition(offset);
@@ -419,13 +448,23 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
         var tokenLinkWindowViewModel = new TokenLinkWindowViewModel(TokenList);
         _windowService.ShowWindowDialog<TokenLinkWindow>(tokenLinkWindowViewModel);
 
-        if(tokenLinkWindowViewModel.Success)
+        if (tokenLinkWindowViewModel.Success)
         {
-            if(tokenLinkWindowViewModel.SelectedToken != linkableObject)
+            if (tokenLinkWindowViewModel.SelectedToken != linkableObject)
             {
                 linkableObject.Link(tokenLinkWindowViewModel.SelectedToken);
                 tokenLinkWindowViewModel.SelectedToken.LinkedObjects.Add(linkableObject);
-            }   
+            }
+        }
+    }
+
+    public void LinkToToken(ILinkableObject linkableObject, TokenIndentifier tokenIndentifier)
+    {
+        var tokenListItem = TokenList.SingleOrDefault(t => t.Token.Name == tokenIndentifier.Name && t.Id == tokenIndentifier.Id);
+        if(tokenListItem != null)
+        {
+            linkableObject.Link(tokenListItem);
+            tokenListItem.LinkedObjects.Add(linkableObject);
         }
     }
 

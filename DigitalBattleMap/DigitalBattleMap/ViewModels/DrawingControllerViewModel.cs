@@ -158,10 +158,21 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     {
         saveFile.Strokes = Strokes;
 
-        foreach (var shape in Shapes)
+        foreach ((var shape, var index) in Shapes.WithIndex())
         {
-            var index = Strokes.IndexOf(shape.Stroke);
-            saveFile.DrawingShapes.Add(new DrawingShapeSave(shape, index));
+            var strokeIndex = Strokes.IndexOf(shape.Stroke);
+            saveFile.DrawingShapes.Add(new DrawingShapeSave(shape, strokeIndex));
+
+            if(shape.IsLinked())
+            {
+                var objectLink = new ObjectLink
+                {
+                    LinkableObjectType = typeof(DrawingShape),
+                    Index = index,
+                    TokenIndentifier = shape.GetLinkIdentifier()
+                };
+                saveFile.ObjectLinks.Add(objectLink);
+            }
         }
     }
 
@@ -188,6 +199,17 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
         Strokes.StrokesChanged += OnStrokesChanged;
         NotifyDrawingStrokesUpdated();
+    }
+
+    public void OpenObjectLinks(List<ObjectLink> objectLinks)
+    {
+        foreach (var objectLink in objectLinks)
+        {
+            if (objectLink.LinkableObjectType == typeof(DrawingShape))
+            {
+                _tokenLinker.LinkToToken(Shapes[objectLink.Index], objectLink.TokenIndentifier);
+            }
+        }
     }
 
     public void ClearDrawings()

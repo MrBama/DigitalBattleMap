@@ -8,4 +8,5 @@ public interface ILinkableObject
     public void Unlink();
     public bool IsLinked();
     public void DisposeLink();
+    public TokenIndentifier GetLinkIdentifier();
 }

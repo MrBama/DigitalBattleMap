@@ -358,6 +358,9 @@ public class MainWindowViewModel : ViewModelBase
             TokenController.OpenSaveFile(saveFile);
             SelectedTabIndex = TabIndex.Tokens;
 
+            DrawingController.OpenObjectLinks(saveFile.ObjectLinks);
+            TokenController.OpenObjectLinks(saveFile.ObjectLinks);
+
             IsShowMapLocked = currentIsShowMapLocked;
         }
     }

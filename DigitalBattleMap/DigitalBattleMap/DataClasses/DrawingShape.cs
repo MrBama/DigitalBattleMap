@@ -53,6 +53,11 @@ public class DrawingShape : ILinkableObject, IDisposable
         return _tokenLink != null;
     }
 
+    public TokenIndentifier GetLinkIdentifier()
+    {
+        return _tokenLink.GetTokenIndentifier();
+    }
+
     public void DisposeLink()
     {
         _tokenLink = null;

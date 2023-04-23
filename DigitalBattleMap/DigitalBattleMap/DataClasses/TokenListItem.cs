@@ -98,6 +98,11 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         LinkedObjects.Remove(linkableObject);
     }
 
+    public TokenIndentifier GetTokenIndentifier()
+    {
+        return new TokenIndentifier(Token.Name, Id);
+    }
+
     public void Dispose()
     {
         foreach (var linkedObject in LinkedObjects)
@@ -134,6 +139,11 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     public bool IsLinked()
     {
         return _tokenLink != null;
+    }
+
+    public TokenIndentifier GetLinkIdentifier()
+    {
+        return _tokenLink.GetTokenIndentifier();
     }
 
     public void DisposeLink()

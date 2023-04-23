@@ -27,12 +27,14 @@ public class SaveFile
 
     public Rectangle BackgroundArea { get; set; }
 
-    public List<TokenListItem> TokenList { get; set; } = new List<TokenListItem>();
+    public List<TokenListItem> TokenList { get; set; } = new();
 
-    public List<DrawingShapeSave> DrawingShapes { get; set; } = new List<DrawingShapeSave>();
+    public List<DrawingShapeSave> DrawingShapes { get; set; } = new();
+
+    public List<ObjectLink> ObjectLinks { get; set; } = new();
 
     [JsonIgnore]
-    public StrokeCollection Strokes { get; set; } = new StrokeCollection();
+    public StrokeCollection Strokes { get; set; } = new();
 
     [JsonIgnore]
     public Bitmap FullBackground { get; set; }
@@ -95,7 +97,6 @@ public class SaveFile
         }
 
         return saveFile;
-
     }
 
     private class TempDirectory : IDisposable
