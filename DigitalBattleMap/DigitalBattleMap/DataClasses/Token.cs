@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using Newtonsoft.Json;
 using System;
@@ -60,7 +61,7 @@ public class Token : PropertyHandler
     }
 }
 
-public class TokenListItem : PropertyHandler
+public class TokenListItem : PropertyHandler, ITokenLink, IDisposable
 {
     private Bitmap _bitmap;
 
@@ -89,6 +90,8 @@ public class TokenListItem : PropertyHandler
     public int Initiative { get; set; }
     public TokenHealth Health { get; set; } = new TokenHealth();
 
+    [JsonIgnore]
+    public List<ILinkableObject> LinkedObjects { get; set; } = new();
     [JsonIgnore]
     public ICommand TokenSizeChangedCommand { get; set; }
     [JsonIgnore]
@@ -126,6 +129,19 @@ public class TokenListItem : PropertyHandler
         }
 
         NotifyPropertyChange(nameof(Conditions));
+    }
+
+    public void Unlink(ILinkableObject linkableObject)
+    {
+        LinkedObjects.Remove(linkableObject);
+    }
+
+    public void Dispose()
+    {
+        foreach (var linkedObject in LinkedObjects)
+        {
+            linkedObject.DisposeLink();
+        }
     }
 
     private void TokenSizeChanged(string size)

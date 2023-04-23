@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
@@ -21,12 +22,20 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     private DrawingButton _selectedDrawingButton = DrawingButton.Black;
     private bool _isShapeEditorActive;
     private Stroke _shapeStroke;
+    private ITokenLinker _tokenLinker;
 
-    public DrawingControllerViewModel() : this(50)
+    public DrawingControllerViewModel() : base(50)
     {
+        Initialize();
     }
 
-    public DrawingControllerViewModel(int gridSize) : base(gridSize)
+    public DrawingControllerViewModel(ITokenLinker tokenLinker, int gridSize) : base(gridSize)
+    {
+        _tokenLinker = tokenLinker;
+        Initialize();
+    }
+
+    private void Initialize()
     {
         InkCanvasDrawingAttributes = new DrawingAttributes();
         PenSize = 5;
@@ -44,6 +53,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         SquareShapeSelected = true;
         CancelShapeButtonVisibility = Visibility.Hidden;
         ApplyShapeButtonVisibility = Visibility.Hidden;
+        LinkShapeButtonVisibility = Visibility.Visible;
+        UnlinkShapeButtonVisibility = Visibility.Hidden;
         Strokes = new StrokeCollection();
         Strokes.StrokesChanged += OnStrokesChanged;
     }
@@ -57,6 +68,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         ApplyShapeCommand = new RelayCommand(p => ApplyShape());
         EditShapeCommand = new RelayCommand(p => EditShape());
         RemoveShapeCommand = new RelayCommand(p => RemoveShape());
+        LinkShapeToTokenCommand = new RelayCommand(p => LinkShapeToToken());
+        UnlinkShapeToTokenCommand = new RelayCommand(p => UnlinkShapeToToken());
     }
 
     public event EventHandler OnDrawingStrokesUpdated;
@@ -67,12 +80,14 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public BitmapSource BlueButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource EraserButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public DrawingAttributes InkCanvasDrawingAttributes { get => Get<DrawingAttributes>(); set => Set(value); }
-    public DrawingShape SelectedShape { get => Get<DrawingShape>(); set => Set(value, () => { ShowShapeSelection(); NotifyPropertyChange(nameof(IsShapeSelected)); }); }
+    public DrawingShape SelectedShape { get => Get<DrawingShape>(); set => Set(value, SelectedShapeChanged); }
     public InkCanvasEditingMode EditingMode { get => Get<InkCanvasEditingMode>(); set => Set(value); }
     public StylusShape EraserShape { get => Get<StylusShape>(); set => Set(value); }
     public Visibility DrawShapeButtonVisibility { get => Get<Visibility>(); set => Set(value); }
     public Visibility CancelShapeButtonVisibility { get => Get<Visibility>(); set => Set(value); }
     public Visibility ApplyShapeButtonVisibility { get => Get<Visibility>(); set => Set(value); }
+    public Visibility LinkShapeButtonVisibility { get => Get<Visibility>(); set => Set(value); }
+    public Visibility UnlinkShapeButtonVisibility { get => Get<Visibility>(); set => Set(value); }
     public double PenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100), PenSizeChanged); }
     public bool IsSnapToGridEnabled { get => Get<bool>(); set => Set(value); }
     public int ShapeRadius { get => Get<int>(); set => Set(value); }
@@ -90,6 +105,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public ICommand ApplyShapeCommand { get; set; }
     public ICommand EditShapeCommand { get; set; }
     public ICommand RemoveShapeCommand { get; set; }
+    public ICommand LinkShapeToTokenCommand { get; set; }
+    public ICommand UnlinkShapeToTokenCommand { get; set; }
 
     private Stroke ShapeStroke
     {
@@ -160,8 +177,12 @@ public class DrawingControllerViewModel : ControllerViewModelBase
                 DrawingShapeType = saveShape.DrawingShapeType,
                 Radius = saveShape.Radius,
                 DrawingButton = saveShape.DrawingButton,
-                Stroke = Strokes[saveShape.StrokeIndex]
+                Stroke = Strokes[saveShape.StrokeIndex],
+                CanvasSize = _canvasSize
             };
+            shape.OnUnlink += OnShapeUnlink;
+            shape.OnPositionChanged += OnShapePositionChanged;
+
             Shapes.Add(shape);
         }
 
@@ -172,6 +193,11 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public void ClearDrawings()
     {
         ActivateShapeEditor(false);
+
+        foreach (var shape in Shapes)
+        {
+            shape.Dispose();
+        }
         Shapes.Clear();
         Strokes.Clear();
         NotifyDrawingStrokesUpdated();
@@ -197,8 +223,11 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             DrawingShapeType = GetDrawingShapeType(),
             Radius = ShapeRadius,
             Stroke = ShapeStroke,
-            DrawingButton = _selectedDrawingButton
+            DrawingButton = _selectedDrawingButton,
+            CanvasSize = _canvasSize
         };
+        shape.OnUnlink += OnShapeUnlink;
+        shape.OnPositionChanged += OnShapePositionChanged;
 
         Shapes.Add(shape);
         ActivateShapeEditor(false);
@@ -214,6 +243,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         ShapeRadius = SelectedShape.Radius;
         ChangeDrawingButton(SelectedShape.DrawingButton);
 
+        SelectedShape.Dispose();
         Shapes.Remove(SelectedShape);
         ActivateShapeEditor(true);
     }
@@ -486,18 +516,57 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
     }
 
-    private void ShowShapeSelection()
+    private void SelectedShapeChanged()
     {
         if (SelectedShape != null)
         {
-            var color = SelectedShape.Stroke.DrawingAttributes.Color;
-            SelectedShape.Stroke.DrawingAttributes.Color = System.Windows.Media.Colors.Transparent;
-
-            Task.Run(() =>
-            {
-                Thread.Sleep(150);
-                Application.Current.Dispatcher.Invoke(() => { SelectedShape.Stroke.DrawingAttributes.Color = color; }, DispatcherPriority.Normal);
-            });
+            RefreshLinkShapeButtons();
+            ShowShapeSelection();
         }
+
+        NotifyPropertyChange(nameof(IsShapeSelected));
+    }
+
+    private void ShowShapeSelection()
+    {
+        var color = SelectedShape.Stroke.DrawingAttributes.Color;
+        SelectedShape.Stroke.DrawingAttributes.Color = System.Windows.Media.Colors.Transparent;
+
+        Task.Run(() =>
+        {
+            Thread.Sleep(150);
+            Application.Current.Dispatcher.Invoke(() => { SelectedShape.Stroke.DrawingAttributes.Color = color; }, DispatcherPriority.Normal);
+        });
+    }
+
+    private void LinkShapeToToken()
+    {
+        _tokenLinker.LinkToSelectedToken(SelectedShape);
+        RefreshLinkShapeButtons();
+    }
+
+    private void UnlinkShapeToToken()
+    {
+        SelectedShape.Unlink();
+        RefreshLinkShapeButtons();
+    }
+
+    private void RefreshLinkShapeButtons()
+    {
+        if (SelectedShape != null)
+        {
+            LinkShapeButtonVisibility = SelectedShape.IsLinked() ? Visibility.Hidden : Visibility.Visible;
+            UnlinkShapeButtonVisibility = SelectedShape.IsLinked() ? Visibility.Visible : Visibility.Hidden;
+        }
+    }
+
+    private void OnShapeUnlink(object? sender, EventArgs e)
+    {
+        RefreshLinkShapeButtons();
+    }
+
+    private void OnShapePositionChanged(object? sender, EventArgs e)
+    {
+        NotifyDrawingStrokesUpdated();
     }
 }

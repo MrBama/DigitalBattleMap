@@ -22,6 +22,7 @@
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="0.5*"/>
         </Grid.RowDefinitions>
 
@@ -136,7 +137,7 @@
             <Label Grid.Row="1" Grid.Column="2" Content="ft" Margin="0 10 0 0"/>
             <Button Grid.Row="2" Grid.ColumnSpan="4" Content="Draw shape" Margin="0 10 0 0" Visibility="{Binding DrawShapeButtonVisibility}" Command="{Binding DrawShapeCommand}"/>
             <Button Grid.Row="2" Grid.ColumnSpan="2" Content="Cancel" Margin="0 10 5 0" Visibility="{Binding CancelShapeButtonVisibility}" Command="{Binding CancelShapeCommand}"/>
-            <Button Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Content="Apply" Margin="5 10 0 0" Visibility="{Binding ApplyShapeButtonVisibility}" Command="{Binding ApplyShapeCommand}" IsEnabled="{Binding IsDrawingShapeDrawn}"/>
+            <Button Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Content="Apply" Margin="5 10 0 0" Visibility="{Binding ApplyShapeButtonVisibility}" Command="{Binding ApplyShapeCommand}" IsEnabled="{Binding IsShapeDrawn}"/>
         </Grid>
 
         <!--Edit and remove shape grid-->
@@ -148,6 +149,9 @@
             <Button Content="Edit shape" Command="{Binding EditShapeCommand}" Margin="0 0 5 0" IsEnabled="{Binding IsShapeSelected}"/>
             <Button Grid.Column="1" Content="Remove shape" Command="{Binding RemoveShapeCommand}" Margin="5 0 0 0" IsEnabled="{Binding IsShapeSelected}"/>
         </Grid>
-        <Button Grid.Row="6" Content="Clear" Command="{Binding ClearDrawingCommand}" Margin="0 10 0 0"/>
+
+        <Button Grid.Row="6" Content="Link shape to selected token" Command="{Binding LinkShapeToTokenCommand}" Margin="0 10 0 0" Visibility="{Binding LinkShapeButtonVisibility}" IsEnabled="{Binding IsShapeSelected}"/>
+        <Button Grid.Row="6" Content="Unlink shape" Command="{Binding UnlinkShapeToTokenCommand}" Margin="0 10 0 0" Visibility="{Binding UnlinkShapeButtonVisibility}" IsEnabled="{Binding IsShapeSelected}"/>
+        <Button Grid.Row="7" Content="Clear" Command="{Binding ClearDrawingCommand}" Margin="0 10 0 0"/>
     </Grid>
 </UserControl>
