@@ -22,7 +22,6 @@
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
             <RowDefinition Height="0.5*"/>
         </Grid.RowDefinitions>
 
@@ -102,6 +101,11 @@
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid>
+                        <Grid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="{Binding LinkToTokenButtonText}" Command="{Binding LinkToTokenCommand}"/>
+                            </ContextMenu>
+                        </Grid.ContextMenu>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="0.5*"/>
                             <ColumnDefinition Width="0.5*"/>
@@ -150,8 +154,6 @@
             <Button Grid.Column="1" Content="Remove shape" Command="{Binding RemoveShapeCommand}" Margin="5 0 0 0" IsEnabled="{Binding IsShapeSelected}"/>
         </Grid>
 
-        <Button Grid.Row="6" Content="Link shape to token" Command="{Binding LinkShapeToTokenCommand}" Margin="0 10 0 0" Visibility="{Binding LinkShapeButtonVisibility}" IsEnabled="{Binding IsShapeSelected}"/>
-        <Button Grid.Row="6" Content="Unlink shape" Command="{Binding UnlinkShapeToTokenCommand}" Margin="0 10 0 0" Visibility="{Binding UnlinkShapeButtonVisibility}" IsEnabled="{Binding IsShapeSelected}"/>
-        <Button Grid.Row="7" Content="Clear" Command="{Binding ClearDrawingCommand}" Margin="0 10 0 0"/>
+        <Button Grid.Row="6" Content="Clear" Command="{Binding ClearDrawingCommand}" Margin="0 10 0 0"/>
     </Grid>
 </UserControl>

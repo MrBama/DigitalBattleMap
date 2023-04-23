@@ -217,7 +217,8 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     {
         if(IsLinked())
         {
-            LinkToTokenButtonText = "Unlink";
+            var linkIdentifier = GetLinkIdentifier();
+            LinkToTokenButtonText = $"Unlink from {linkIdentifier.Name} {linkIdentifier.Id}";
         }
         else
         {

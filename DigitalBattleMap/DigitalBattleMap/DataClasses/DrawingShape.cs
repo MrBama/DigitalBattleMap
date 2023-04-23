@@ -3,14 +3,22 @@ using DigitalBattleMap.Utilities;
 using System;
 using System.Windows;
 using System.Windows.Ink;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace DigitalBattleMap.DataClasses;
 
-public class DrawingShape : ILinkableObject, IDisposable
+public class DrawingShape : PropertyHandler, ILinkableObject, IDisposable
 {
     private ITokenLink _tokenLink;
+    private ITokenLinker _tokenLinker;
+
+    public DrawingShape()
+    {
+        LinkToTokenButtonText = "Link to token";
+        LinkToTokenCommand = new RelayCommand(p => LinkToDifferentToken());
+    }
 
     public DrawingShapeType DrawingShapeType { get; set; }
     public int Size { get; set; }
@@ -18,9 +26,15 @@ public class DrawingShape : ILinkableObject, IDisposable
     public Brush Color { get => GetColor(); }
     public DrawingButton DrawingButton { get; set; }
     public Size<double> CanvasSize { get; set; } = new();
+    public string LinkToTokenButtonText { get => Get<string>(); set => Set(value); }
+    public ICommand LinkToTokenCommand { get; set; }
 
-    public event EventHandler OnUnlink;
     public event EventHandler OnPositionChanged;
+
+    public void SetTokenLinker(ITokenLinker tokenLinker)
+    {
+        _tokenLinker = tokenLinker;
+    }
 
     public void UpdatePosition(Point<int> offset)
     {
@@ -39,13 +53,14 @@ public class DrawingShape : ILinkableObject, IDisposable
     {
         _tokenLink?.Unlink(this);
         _tokenLink = tokenLink;
+        RefershLinkToTokenButtonText();
     }
 
     public void Unlink()
     {
         _tokenLink?.Unlink(this);
         _tokenLink = null;
-        OnUnlink?.Invoke(this, new EventArgs());
+        RefershLinkToTokenButtonText();
     }
 
     public bool IsLinked()
@@ -61,7 +76,7 @@ public class DrawingShape : ILinkableObject, IDisposable
     public void DisposeLink()
     {
         _tokenLink = null;
-        OnUnlink?.Invoke(this, new EventArgs());
+        RefershLinkToTokenButtonText();
     }
 
     public void Dispose()
@@ -78,6 +93,31 @@ public class DrawingShape : ILinkableObject, IDisposable
         }
 
         return brush;
+    }
+
+    private void RefershLinkToTokenButtonText()
+    {
+        if (IsLinked())
+        {
+            var linkIdentifier = GetLinkIdentifier();
+            LinkToTokenButtonText = $"Unlink from {linkIdentifier.Name} {linkIdentifier.Id}";
+        }
+        else
+        {
+            LinkToTokenButtonText = "Link to token";
+        }
+    }
+
+    private void LinkToDifferentToken()
+    {
+        if (!IsLinked())
+        {
+            _tokenLinker.LinkToToken(this);
+        }
+        else
+        {
+            Unlink();
+        }
     }
 }
 
