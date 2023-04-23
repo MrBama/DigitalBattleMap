@@ -125,6 +125,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
                     tokenListItem.OnZLevelChanged += ZLevelChanged;
                     tokenListItem.Id = GetUniqueId(token.Name);
                     tokenListItem.Position = CalculateStartPosition(index);
+                    tokenListItem.SetTokenLinker(this);
                     TokenList.Add(tokenListItem);
                 }
 
@@ -290,6 +291,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
                 tokenListItem.OnTokenChanged += TokenChanged;
                 tokenListItem.OnZLevelChanged += ZLevelChanged;
                 tokenListItem.Health.InitializeEditorHp();
+                tokenListItem.SetTokenLinker(this);
             }
 
             CreateTokenBitmap();
@@ -412,12 +414,18 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
         }
     }
 
-    public void LinkToSelectedToken(ILinkableObject linkableObject)
+    public void LinkToToken(ILinkableObject linkableObject)
     {
-        if(SelectedToken != null)
+        var tokenLinkWindowViewModel = new TokenLinkWindowViewModel(TokenList);
+        _windowService.ShowWindowDialog<TokenLinkWindow>(tokenLinkWindowViewModel);
+
+        if(tokenLinkWindowViewModel.Success)
         {
-            linkableObject.Link(SelectedToken);
-            SelectedToken.LinkedObjects.Add(linkableObject);
+            if(tokenLinkWindowViewModel.SelectedToken != linkableObject)
+            {
+                linkableObject.Link(tokenLinkWindowViewModel.SelectedToken);
+                tokenLinkWindowViewModel.SelectedToken.LinkedObjects.Add(linkableObject);
+            }   
         }
     }
 

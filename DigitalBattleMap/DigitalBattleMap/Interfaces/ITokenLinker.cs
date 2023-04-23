@@ -4,5 +4,5 @@ namespace DigitalBattleMap.Interfaces;
 
 public interface ITokenLinker
 {
-    public void LinkToSelectedToken(ILinkableObject linkableObject);
+    public void LinkToToken(ILinkableObject linkableObject);
 }

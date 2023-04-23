@@ -541,7 +541,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void LinkShapeToToken()
     {
-        _tokenLinker.LinkToSelectedToken(SelectedShape);
+        _tokenLinker.LinkToToken(SelectedShape);
         RefreshLinkShapeButtons();
     }
 
