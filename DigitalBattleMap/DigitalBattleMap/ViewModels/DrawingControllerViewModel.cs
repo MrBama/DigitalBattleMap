@@ -24,6 +24,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     private Stroke _shapeStroke;
     private ITokenLinker _tokenLinker;
     private bool _disableSelectionAnimation;
+    private DrawingShape _editShape;
 
     public DrawingControllerViewModel() : base(50)
     {
@@ -90,6 +91,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public bool CircleShapeSelected { get => Get<bool>(); set => Set(value); }
     public StrokeCollection Strokes { get => Get<StrokeCollection>(); set => Set(value); }
     public bool IsShapeSelected { get => SelectedShape != null; }
+    public bool IsShapeEditAndRemoveEnabled { get => IsShapeSelected && !_isShapeEditorActive; }
+    public bool IsShapeSelectionEnabled { get => !_isShapeEditorActive; }
     public bool IsShapeDrawn { get => ShapeStroke != null; }
     public BitmapSource InkCanvasBackgroundBitmapSource { get => BitmapTools.CreateEmptyBitmap().ToBitmapImage(); }
     public ObservableCollection<DrawingShape> Shapes { get; set; } = new ObservableCollection<DrawingShape>();
@@ -226,6 +229,26 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public void CancelShape()
     {
         ActivateShapeEditor(false);
+
+        if (_editShape != null)
+        {
+            PenSize = _editShape.Stroke.DrawingAttributes.Width;
+            SquareShapeSelected = _editShape.DrawingShapeType == DrawingShapeType.Square;
+            CircleShapeSelected = _editShape.DrawingShapeType == DrawingShapeType.Circle;
+            ShapeSize = _editShape.Size;
+            ChangeDrawingButton(_editShape.DrawingButton);
+
+            SelectedShape.DrawingShapeType = _editShape.DrawingShapeType;
+            SelectedShape.Size = _editShape.Size;
+            SelectedShape.Stroke = _editShape.Stroke;
+            SelectedShape.DrawingButton = _editShape.DrawingButton;
+            SelectedShape.CanvasSize = _editShape.CanvasSize;
+            Strokes.Add(_editShape.Stroke);
+
+            _editShape.Dispose();
+            _editShape = null;
+        }
+
         Strokes.Remove(ShapeStroke);
         ShapeStroke = null;
         NotifyDrawingStrokesUpdated();
@@ -233,37 +256,51 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     public void ApplyShape()
     {
-        var shape = new DrawingShape
-        {
-            DrawingShapeType = GetDrawingShapeType(),
-            Size = ShapeSize,
-            Stroke = ShapeStroke,
-            DrawingButton = _selectedDrawingButton,
-            CanvasSize = _canvasSize
-        };
-        shape.OnPositionChanged += OnShapePositionChanged;
-        shape.SetTokenLinker(_tokenLinker);
-
-        _disableSelectionAnimation = true;
-        SelectedShape = shape;
-        _disableSelectionAnimation = false;
-        Shapes.Add(shape);
         ActivateShapeEditor(false);
-        ShapeStroke = null;
 
+        if (_editShape != null)
+        {
+            SelectedShape.DrawingShapeType = GetDrawingShapeType();
+            SelectedShape.Size = ShapeSize;
+            SelectedShape.Stroke = ShapeStroke;
+            SelectedShape.DrawingButton = _selectedDrawingButton;
+
+            _editShape.Dispose();
+            _editShape = null;
+        }
+        else
+        {
+            var shape = new DrawingShape
+            {
+                DrawingShapeType = GetDrawingShapeType(),
+                Size = ShapeSize,
+                Stroke = ShapeStroke,
+                DrawingButton = _selectedDrawingButton,
+                CanvasSize = _canvasSize
+            };
+            shape.OnPositionChanged += OnShapePositionChanged;
+            shape.SetTokenLinker(_tokenLinker);
+
+            _disableSelectionAnimation = true;
+            SelectedShape = shape;
+            _disableSelectionAnimation = false;
+            Shapes.Add(shape);
+        }        
+        
+        ShapeStroke = null;
     }
 
     public void EditShape()
     {
+        _editShape = new DrawingShape(SelectedShape);
         ShapeStroke = SelectedShape.Stroke;
+
         PenSize = SelectedShape.Stroke.DrawingAttributes.Width;
         SquareShapeSelected = SelectedShape.DrawingShapeType == DrawingShapeType.Square;
         CircleShapeSelected = SelectedShape.DrawingShapeType == DrawingShapeType.Circle;
         ShapeSize = SelectedShape.Size;
         ChangeDrawingButton(SelectedShape.DrawingButton);
 
-        SelectedShape.Dispose();
-        Shapes.Remove(SelectedShape);
         ActivateShapeEditor(true);
     }
 
@@ -300,6 +337,9 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             CancelShapeButtonVisibility = Visibility.Hidden;
             ApplyShapeButtonVisibility = Visibility.Hidden;
         }
+
+        NotifyPropertyChange(nameof(IsShapeEditAndRemoveEnabled));
+        NotifyPropertyChange(nameof(IsShapeSelectionEnabled));
     }
 
     private void ChangeDrawingButton(DrawingButton drawingButton)
@@ -544,6 +584,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
 
         NotifyPropertyChange(nameof(IsShapeSelected));
+        NotifyPropertyChange(nameof(IsShapeEditAndRemoveEnabled));
     }
 
     private void ShowShapeSelection()

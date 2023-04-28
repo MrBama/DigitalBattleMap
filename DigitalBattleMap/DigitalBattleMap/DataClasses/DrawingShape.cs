@@ -20,9 +20,18 @@ public class DrawingShape : PropertyHandler, ILinkableObject, IDisposable
         LinkToTokenCommand = new RelayCommand(p => LinkToDifferentToken());
     }
 
-    public DrawingShapeType DrawingShapeType { get; set; }
-    public int Size { get; set; }
-    public Stroke Stroke { get; set; }
+    public DrawingShape(DrawingShape drawingShape)
+    {
+        DrawingShapeType = drawingShape.DrawingShapeType;
+        Size = drawingShape.Size;
+        Stroke = drawingShape.Stroke.Clone();
+        DrawingButton = drawingShape.DrawingButton;
+        CanvasSize = drawingShape.CanvasSize;
+    }
+
+    public DrawingShapeType DrawingShapeType { get => Get<DrawingShapeType>(); set => Set(value); }
+    public int Size { get => Get<int>(); set => Set(value); }
+    public Stroke Stroke { get => Get<Stroke>(); set => Set(value, () => NotifyPropertyChange(nameof(Color))); }
     public Brush Color { get => GetColor(); }
     public DrawingButton DrawingButton { get; set; }
     public Size<double> CanvasSize { get; set; } = new();

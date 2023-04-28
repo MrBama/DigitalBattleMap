@@ -301,12 +301,12 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
             ClearTokens();
             foreach (var tokenListItem in saveFile.TokenList)
             {
-                TokenList.Add(tokenListItem);
                 tokenListItem.Token.OnSizeChanged += TokenChanged;
                 tokenListItem.OnTokenChanged += TokenChanged;
                 tokenListItem.OnZLevelChanged += ZLevelChanged;
                 tokenListItem.Health.InitializeEditorHp();
                 tokenListItem.SetTokenLinker(this);
+                TokenList.Add(tokenListItem);
             }
 
             CreateTokenBitmap();
