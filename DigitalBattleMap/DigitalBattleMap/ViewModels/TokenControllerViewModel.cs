@@ -11,7 +11,6 @@ using System.Linq;
 using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace DigitalBattleMap.ViewModels;
 
@@ -378,7 +377,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
                         throw new ArgumentOutOfRangeException($"Unknown direction: {direction}");
                 }
 
-                foreach (var linkedObject in SelectedToken.LinkedObjects)
+                foreach (var linkedObject in tokenListItem.LinkedObjects)
                 {
                     linkedObject.UpdatePosition(offset);
                 }

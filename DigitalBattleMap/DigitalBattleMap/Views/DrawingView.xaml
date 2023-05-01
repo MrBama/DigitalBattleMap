@@ -107,9 +107,9 @@
                             </ContextMenu>
                         </Grid.ContextMenu>
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0.75*"/>
                             <ColumnDefinition Width="0.5*"/>
-                            <ColumnDefinition Width="0.5*"/>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="0.75*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Label Content="{Binding DrawingShapeType}"/>
