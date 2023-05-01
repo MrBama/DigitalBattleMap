@@ -267,7 +267,6 @@ public static class BitmapTools
         if (tokenId != null && tokenId != "")
         {
             using var graphics = Graphics.FromImage(bitmap);
-            var brush = new SolidBrush(Color.White);
             var textSize = Math.Max(tokenSize.Width / 6, 1);
 
             StringFormat stringFormat = new()
@@ -276,13 +275,29 @@ public static class BitmapTools
                 Alignment = StringAlignment.Center
             };
 
-            var textPosition = new Point<int>
+            var drawingPositionDouble = Point<float>.Create(drawingPosition);
+            var tokenSizeDouble = Size<float>.Create(tokenSize);
+
+            var textPosition = new Point<float>
             {
-                X = drawingPosition.X + tokenSize.Width / 2,
-                Y = drawingPosition.Y + tokenSize.Height / 2
+                X = drawingPositionDouble.X + tokenSizeDouble.Width / 2,
+                Y = drawingPositionDouble.Y + tokenSizeDouble.Height / 2
             };
 
-            graphics.DrawString(tokenId, new Font("", textSize, FontStyle.Bold), brush, textPosition.X, textPosition.Y, stringFormat);
+            // Text and background require a aligned offset
+            const float alignedTextSize = 100; //Set GridSize to 610
+            const float alignedEllipseOffset = 15;
+            const float alignedTextOffset = 6;
+
+            // Draw ellipse background
+            var ellipseOffset = (textSize * alignedEllipseOffset) / alignedTextSize;
+            var x = textPosition.X - (textSize / 2) - ellipseOffset;
+            var y = textPosition.Y - textSize / 2 - ellipseOffset;
+            graphics.FillEllipse(Brushes.White, x, y, textSize + (ellipseOffset * 2), textSize + (ellipseOffset * 2));
+
+            // Draw text
+            var textOffset = (textSize * alignedTextOffset) / alignedTextSize;
+            graphics.DrawString(tokenId, new Font("", textSize, FontStyle.Bold, GraphicsUnit.Pixel), Brushes.Black, textPosition.X, textPosition.Y + textOffset, stringFormat);
         }
     }
 
@@ -298,17 +313,17 @@ public static class BitmapTools
          */
 
         var xFactor = new double[] { 0.5, 0.0, 1.0, 0.5 };
-        var yFactor = new double[] { 1.0, 0.5, 0.5, 0.0,};
+        var yFactor = new double[] { 1.0, 0.5, 0.5, 0.0, };
         var conditionSize = new Size<double>(tokenSize.Width / 2.5, tokenSize.Height / 2.5);
 
         for (int i = 0; i < 4 && i < conditions.Count; i++)
         {
             var resizedConditionImage = ResizeBitmap(_conditionIcons.GetConditionIcon(conditions[i]), Size<int>.Create(conditionSize));
-            
+
             var drawingPosition = Point<double>.Create(tokenDrawingPosition);
             drawingPosition.X += (tokenSize.Width * xFactor[i]) - (conditionSize.Width * xFactor[i]);
             drawingPosition.Y += (tokenSize.Height * yFactor[i]) - (conditionSize.Height * yFactor[i]);
-            
+
             DrawImageOnBitmap(bitmap, resizedConditionImage, Point<int>.Create(drawingPosition));
         }
     }

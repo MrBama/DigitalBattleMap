@@ -85,10 +85,10 @@ public class MainWindowViewModel : ViewModelBase
         _gridBitmap = BitmapTools.CreateGrid(GridSize);
         BackgroundController = new BackgroundControllerViewModel(_windowService, GridSize);
         BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
-        DrawingController = new DrawingControllerViewModel(GridSize);
-        DrawingController.OnDrawingStrokesUpdated += DrawingStrokesUpdated;
         TokenController = new TokenControllerViewModel(_windowService, _settings, GridSize);
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
+        DrawingController = new DrawingControllerViewModel(TokenController, GridSize);
+        DrawingController.OnDrawingStrokesUpdated += DrawingStrokesUpdated;
 
         _connectionManager = new ConnectionManager(TokenController);
         _connectionManager.OnConnected += ConnectionManagerConnected;
@@ -357,6 +357,9 @@ public class MainWindowViewModel : ViewModelBase
             DrawingController.OpenSaveFile(saveFile);
             TokenController.OpenSaveFile(saveFile);
             SelectedTabIndex = TabIndex.Tokens;
+
+            DrawingController.OpenObjectLinks(saveFile.ObjectLinks);
+            TokenController.OpenObjectLinks(saveFile.ObjectLinks);
 
             IsShowMapLocked = currentIsShowMapLocked;
         }

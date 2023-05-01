@@ -8,12 +8,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
+using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 namespace DigitalBattleMap.ViewModels;
 
-public class TokenControllerViewModel : ControllerViewModelBase, ITokenController
+public class TokenControllerViewModel : ControllerViewModelBase, ITokenController, ITokenLinker
 {
     private IWindowService _windowService;
     private Bitmap _tokenBitmap;
@@ -66,7 +68,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
             NotifyPropertyChange(nameof(IsTokenDownButtonEnabled));
         });
     }
-    public bool IsTokenSelected { get; set; }
+    public bool IsTokenSelected { get => SelectedToken != null; }
     public bool IsTokenUpButtonEnabled { get => TokenList.IndexOf(SelectedToken) > 0; }
     public bool IsTokenDownButtonEnabled { get => TokenList.IndexOf(SelectedToken) < TokenList.Count - 1; }
     public ObservableCollection<TokenListItem> TokenList { get; set; } = new ObservableCollection<TokenListItem>();
@@ -125,6 +127,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
                     tokenListItem.OnZLevelChanged += ZLevelChanged;
                     tokenListItem.Id = GetUniqueId(token.Name);
                     tokenListItem.Position = CalculateStartPosition(index);
+                    tokenListItem.SetTokenLinker(this);
                     TokenList.Add(tokenListItem);
                 }
 
@@ -140,6 +143,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
         {
             if (SelectedToken != null)
             {
+                SelectedToken.Dispose();
                 TokenList.Remove(SelectedToken);
                 CreateTokenBitmap();
             }
@@ -150,6 +154,10 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
     {
         lock (_lock)
         {
+            foreach (var tokenListItem in TokenList)
+            {
+                tokenListItem.Dispose();
+            }
             TokenList.Clear();
             CreateTokenBitmap();
         }
@@ -205,12 +213,25 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
         {
             if (SelectedToken != null)
             {
-                var newPosition = new Point<int>
+                var newPosition = new Point<double>
                 {
-                    X = (int)point.X.Map(0, _canvasSize.Width, 0, Constants.BitmapSize.Width),
-                    Y = (int)point.Y.Map(0, _canvasSize.Height, 0, Constants.BitmapSize.Height)
+                    X = point.X.Map(0, _canvasSize.Width, 0, Constants.BitmapSize.Width),
+                    Y = point.Y.Map(0, _canvasSize.Height, 0, Constants.BitmapSize.Height)
                 };
-                SelectedToken.Position = newPosition;
+
+                var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(_gridSize));
+                var cellX = Math.Floor((SelectedToken.Position.X - gridOffset.X) / _gridSize);
+                var cellY = Math.Floor((SelectedToken.Position.Y - gridOffset.Y) / _gridSize);
+                var newCellX = Math.Floor((newPosition.X - gridOffset.X) / _gridSize);
+                var newCellY = Math.Floor((newPosition.Y - gridOffset.Y) / _gridSize);
+
+                var offset = new Point<double>((newCellX - cellX) * _gridSize, (newCellY - cellY) * _gridSize);
+                foreach (var linkedObject in SelectedToken.LinkedObjects)
+                {
+                    linkedObject.UpdatePosition(Point<int>.Create(offset));
+                }
+
+                SelectedToken.Position = Point<int>.Create(newPosition);
 
                 CreateTokenBitmap();
             }
@@ -257,6 +278,19 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
         lock (_lock)
         {
             saveFile.TokenList = TokenList.ToList();
+            foreach ((var token, var index) in TokenList.WithIndex())
+            {
+                if (token.IsLinked())
+                {
+                    var objectLink = new ObjectLink
+                    {
+                        LinkableObjectType = typeof(TokenListItem),
+                        Index = index,
+                        TokenIndentifier = token.GetLinkIdentifier()
+                    };
+                    saveFile.ObjectLinks.Add(objectLink);
+                }
+            }
         }
     }
 
@@ -267,14 +301,29 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
             ClearTokens();
             foreach (var tokenListItem in saveFile.TokenList)
             {
-                TokenList.Add(tokenListItem);
                 tokenListItem.Token.OnSizeChanged += TokenChanged;
                 tokenListItem.OnTokenChanged += TokenChanged;
                 tokenListItem.OnZLevelChanged += ZLevelChanged;
                 tokenListItem.Health.InitializeEditorHp();
+                tokenListItem.SetTokenLinker(this);
+                TokenList.Add(tokenListItem);
             }
 
             CreateTokenBitmap();
+        }
+    }
+
+    public void OpenObjectLinks(List<ObjectLink> objectLinks)
+    {
+        lock (_lock)
+        {
+            foreach (var objectLink in objectLinks)
+            {
+                if (objectLink.LinkableObjectType == typeof(TokenListItem))
+                {
+                    LinkToToken(TokenList[objectLink.Index], objectLink.TokenIndentifier);
+                }
+            }
         }
     }
 
@@ -294,39 +343,48 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
             TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => string.Equals(t.Token.Name, name, StringComparison.CurrentCultureIgnoreCase) && t.Token.PlayerControl);
             if (tokenListItem != null)
             {
+                var offset = new Point<int>();
                 switch (direction)
                 {
                     case Direction.North:
-                        tokenListItem.Position.Y -= _gridSize;
+                        offset.Y -= _gridSize;
                         break;
                     case Direction.NorthEast:
-                        tokenListItem.Position.X += _gridSize;
-                        tokenListItem.Position.Y -= _gridSize;
+                        offset.X += _gridSize;
+                        offset.Y -= _gridSize;
                         break;
                     case Direction.East:
-                        tokenListItem.Position.X += _gridSize;
+                        offset.X += _gridSize;
                         break;
                     case Direction.SouthEast:
-                        tokenListItem.Position.X += _gridSize;
-                        tokenListItem.Position.Y += _gridSize;
+                        offset.X += _gridSize;
+                        offset.Y += _gridSize;
                         break;
                     case Direction.South:
-                        tokenListItem.Position.Y += _gridSize;
+                        offset.Y += _gridSize;
                         break;
                     case Direction.SouthWest:
-                        tokenListItem.Position.X -= _gridSize;
-                        tokenListItem.Position.Y += _gridSize;
+                        offset.X -= _gridSize;
+                        offset.Y += _gridSize;
                         break;
                     case Direction.West:
-                        tokenListItem.Position.X -= _gridSize;
+                        offset.X -= _gridSize;
                         break;
                     case Direction.NorthWest:
-                        tokenListItem.Position.X -= _gridSize;
-                        tokenListItem.Position.Y -= _gridSize;
+                        offset.X -= _gridSize;
+                        offset.Y -= _gridSize;
                         break;
                     default:
                         throw new ArgumentOutOfRangeException($"Unknown direction: {direction}");
                 }
+
+                foreach (var linkedObject in SelectedToken.LinkedObjects)
+                {
+                    linkedObject.UpdatePosition(offset);
+                }
+
+                tokenListItem.Position.X += offset.X;
+                tokenListItem.Position.Y += offset.Y;
 
                 CreateTokenBitmap();
             }
@@ -385,6 +443,31 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
         }
     }
 
+    public void LinkToToken(ILinkableObject linkableObject)
+    {
+        var tokenLinkWindowViewModel = new TokenLinkWindowViewModel(TokenList);
+        _windowService.ShowWindowDialog<TokenLinkWindow>(tokenLinkWindowViewModel);
+
+        if (tokenLinkWindowViewModel.Success)
+        {
+            if (tokenLinkWindowViewModel.SelectedToken != linkableObject)
+            {
+                linkableObject.Link(tokenLinkWindowViewModel.SelectedToken);
+                tokenLinkWindowViewModel.SelectedToken.LinkedObjects.Add(linkableObject);
+            }
+        }
+    }
+
+    public void LinkToToken(ILinkableObject linkableObject, TokenIndentifier tokenIndentifier)
+    {
+        var tokenListItem = TokenList.SingleOrDefault(t => t.Token.Name == tokenIndentifier.Name && t.Id == tokenIndentifier.Id);
+        if(tokenListItem != null)
+        {
+            linkableObject.Link(tokenListItem);
+            tokenListItem.LinkedObjects.Add(linkableObject);
+        }
+    }
+
     private void NotifyTokenBitmapUpdated()
     {
         OnTokenBitmapUpdated?.Invoke(this, new EventArgs());
@@ -429,8 +512,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
         lock (_lock)
         {
             var bitmap = BitmapTools.CreateEmptyBitmap();
-            TokenSelectionBitmapSource = BitmapTools.CreateEmptyBitmap().ToBitmapImage();
-
+            
             if (TokenList.Count > 0)
             {
                 foreach (var tokenListItem in TokenList.OrderBy(t => t.ZLevel))
@@ -441,6 +523,10 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
                     }
                 }
                 UpdateTokenSelection();
+            }
+            else
+            {
+                TokenSelectionBitmapSource = BitmapTools.CreateEmptyBitmap().ToBitmapImage();
             }
 
             TokenBitmap = bitmap;

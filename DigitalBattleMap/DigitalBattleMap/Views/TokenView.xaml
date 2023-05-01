@@ -77,6 +77,7 @@
                                 </MenuItem>
                                 <MenuItem Header="Move to front" Command="{Binding MoveToFrontCommand}"/>
                                 <MenuItem Header="Move to back" Command="{Binding MoveToBackCommand}"/>
+                                <MenuItem Header="{Binding LinkToTokenButtonText}" Command="{Binding LinkToTokenCommand}"/>
                             </ContextMenu>
                         </Grid.ContextMenu>
                         <Grid.RowDefinitions>

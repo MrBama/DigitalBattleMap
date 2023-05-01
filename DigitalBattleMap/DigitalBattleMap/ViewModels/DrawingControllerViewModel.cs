@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
@@ -21,12 +22,22 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     private DrawingButton _selectedDrawingButton = DrawingButton.Black;
     private bool _isShapeEditorActive;
     private Stroke _shapeStroke;
+    private ITokenLinker _tokenLinker;
+    private bool _disableSelectionAnimation;
+    private DrawingShape _editShape;
 
-    public DrawingControllerViewModel() : this(50)
+    public DrawingControllerViewModel() : base(50)
     {
+        Initialize();
     }
 
-    public DrawingControllerViewModel(int gridSize) : base(gridSize)
+    public DrawingControllerViewModel(ITokenLinker tokenLinker, int gridSize) : base(gridSize)
+    {
+        _tokenLinker = tokenLinker;
+        Initialize();
+    }
+
+    private void Initialize()
     {
         InkCanvasDrawingAttributes = new DrawingAttributes();
         PenSize = 5;
@@ -40,7 +51,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         EraserButtonBitmapSource = BitmapTools.CreateEraserButton(false).ToBitmapImage();
         EditingMode = InkCanvasEditingMode.Ink;
         EraserShape = new EllipseStylusShape(PenSize, PenSize);
-        ShapeRadius = 10;
+        ShapeSize = 10;
         SquareShapeSelected = true;
         CancelShapeButtonVisibility = Visibility.Hidden;
         ApplyShapeButtonVisibility = Visibility.Hidden;
@@ -67,7 +78,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public BitmapSource BlueButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource EraserButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public DrawingAttributes InkCanvasDrawingAttributes { get => Get<DrawingAttributes>(); set => Set(value); }
-    public DrawingShape SelectedShape { get => Get<DrawingShape>(); set => Set(value, () => { ShowShapeSelection(); NotifyPropertyChange(nameof(IsShapeSelected)); }); }
+    public DrawingShape SelectedShape { get => Get<DrawingShape>(); set => Set(value, SelectedShapeChanged); }
     public InkCanvasEditingMode EditingMode { get => Get<InkCanvasEditingMode>(); set => Set(value); }
     public StylusShape EraserShape { get => Get<StylusShape>(); set => Set(value); }
     public Visibility DrawShapeButtonVisibility { get => Get<Visibility>(); set => Set(value); }
@@ -75,11 +86,13 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public Visibility ApplyShapeButtonVisibility { get => Get<Visibility>(); set => Set(value); }
     public double PenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100), PenSizeChanged); }
     public bool IsSnapToGridEnabled { get => Get<bool>(); set => Set(value); }
-    public int ShapeRadius { get => Get<int>(); set => Set(value); }
+    public int ShapeSize { get => Get<int>(); set => Set(value); }
     public bool SquareShapeSelected { get => Get<bool>(); set => Set(value); }
     public bool CircleShapeSelected { get => Get<bool>(); set => Set(value); }
     public StrokeCollection Strokes { get => Get<StrokeCollection>(); set => Set(value); }
     public bool IsShapeSelected { get => SelectedShape != null; }
+    public bool IsShapeEditAndRemoveEnabled { get => IsShapeSelected && !_isShapeEditorActive; }
+    public bool IsShapeSelectionEnabled { get => !_isShapeEditorActive; }
     public bool IsShapeDrawn { get => ShapeStroke != null; }
     public BitmapSource InkCanvasBackgroundBitmapSource { get => BitmapTools.CreateEmptyBitmap().ToBitmapImage(); }
     public ObservableCollection<DrawingShape> Shapes { get; set; } = new ObservableCollection<DrawingShape>();
@@ -141,10 +154,21 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     {
         saveFile.Strokes = Strokes;
 
-        foreach (var shape in Shapes)
+        foreach ((var shape, var index) in Shapes.WithIndex())
         {
-            var index = Strokes.IndexOf(shape.Stroke);
-            saveFile.DrawingShapes.Add(new DrawingShapeSave(shape, index));
+            var strokeIndex = Strokes.IndexOf(shape.Stroke);
+            saveFile.DrawingShapes.Add(new DrawingShapeSave(shape, strokeIndex));
+
+            if(shape.IsLinked())
+            {
+                var objectLink = new ObjectLink
+                {
+                    LinkableObjectType = typeof(DrawingShape),
+                    Index = index,
+                    TokenIndentifier = shape.GetLinkIdentifier()
+                };
+                saveFile.ObjectLinks.Add(objectLink);
+            }
         }
     }
 
@@ -158,10 +182,14 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             var shape = new DrawingShape
             {
                 DrawingShapeType = saveShape.DrawingShapeType,
-                Radius = saveShape.Radius,
+                Size = saveShape.Size,
                 DrawingButton = saveShape.DrawingButton,
-                Stroke = Strokes[saveShape.StrokeIndex]
+                Stroke = Strokes[saveShape.StrokeIndex],
+                CanvasSize = _canvasSize
             };
+            shape.OnPositionChanged += OnShapePositionChanged;
+            shape.SetTokenLinker(_tokenLinker);
+
             Shapes.Add(shape);
         }
 
@@ -169,9 +197,25 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         NotifyDrawingStrokesUpdated();
     }
 
+    public void OpenObjectLinks(List<ObjectLink> objectLinks)
+    {
+        foreach (var objectLink in objectLinks)
+        {
+            if (objectLink.LinkableObjectType == typeof(DrawingShape))
+            {
+                _tokenLinker.LinkToToken(Shapes[objectLink.Index], objectLink.TokenIndentifier);
+            }
+        }
+    }
+
     public void ClearDrawings()
     {
         ActivateShapeEditor(false);
+
+        foreach (var shape in Shapes)
+        {
+            shape.Dispose();
+        }
         Shapes.Clear();
         Strokes.Clear();
         NotifyDrawingStrokesUpdated();
@@ -185,6 +229,26 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public void CancelShape()
     {
         ActivateShapeEditor(false);
+
+        if (_editShape != null)
+        {
+            PenSize = _editShape.Stroke.DrawingAttributes.Width;
+            SquareShapeSelected = _editShape.DrawingShapeType == DrawingShapeType.Square;
+            CircleShapeSelected = _editShape.DrawingShapeType == DrawingShapeType.Circle;
+            ShapeSize = _editShape.Size;
+            ChangeDrawingButton(_editShape.DrawingButton);
+
+            SelectedShape.DrawingShapeType = _editShape.DrawingShapeType;
+            SelectedShape.Size = _editShape.Size;
+            SelectedShape.Stroke = _editShape.Stroke;
+            SelectedShape.DrawingButton = _editShape.DrawingButton;
+            SelectedShape.CanvasSize = _editShape.CanvasSize;
+            Strokes.Add(_editShape.Stroke);
+
+            _editShape.Dispose();
+            _editShape = null;
+        }
+
         Strokes.Remove(ShapeStroke);
         ShapeStroke = null;
         NotifyDrawingStrokesUpdated();
@@ -192,29 +256,51 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     public void ApplyShape()
     {
-        var shape = new DrawingShape
-        {
-            DrawingShapeType = GetDrawingShapeType(),
-            Radius = ShapeRadius,
-            Stroke = ShapeStroke,
-            DrawingButton = _selectedDrawingButton
-        };
-
-        Shapes.Add(shape);
         ActivateShapeEditor(false);
+
+        if (_editShape != null)
+        {
+            SelectedShape.DrawingShapeType = GetDrawingShapeType();
+            SelectedShape.Size = ShapeSize;
+            SelectedShape.Stroke = ShapeStroke;
+            SelectedShape.DrawingButton = _selectedDrawingButton;
+
+            _editShape.Dispose();
+            _editShape = null;
+        }
+        else
+        {
+            var shape = new DrawingShape
+            {
+                DrawingShapeType = GetDrawingShapeType(),
+                Size = ShapeSize,
+                Stroke = ShapeStroke,
+                DrawingButton = _selectedDrawingButton,
+                CanvasSize = _canvasSize
+            };
+            shape.OnPositionChanged += OnShapePositionChanged;
+            shape.SetTokenLinker(_tokenLinker);
+
+            _disableSelectionAnimation = true;
+            SelectedShape = shape;
+            _disableSelectionAnimation = false;
+            Shapes.Add(shape);
+        }        
+        
         ShapeStroke = null;
     }
 
     public void EditShape()
     {
+        _editShape = new DrawingShape(SelectedShape);
         ShapeStroke = SelectedShape.Stroke;
+
         PenSize = SelectedShape.Stroke.DrawingAttributes.Width;
         SquareShapeSelected = SelectedShape.DrawingShapeType == DrawingShapeType.Square;
         CircleShapeSelected = SelectedShape.DrawingShapeType == DrawingShapeType.Circle;
-        ShapeRadius = SelectedShape.Radius;
+        ShapeSize = SelectedShape.Size;
         ChangeDrawingButton(SelectedShape.DrawingButton);
 
-        Shapes.Remove(SelectedShape);
         ActivateShapeEditor(true);
     }
 
@@ -251,6 +337,9 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             CancelShapeButtonVisibility = Visibility.Hidden;
             ApplyShapeButtonVisibility = Visibility.Hidden;
         }
+
+        NotifyPropertyChange(nameof(IsShapeEditAndRemoveEnabled));
+        NotifyPropertyChange(nameof(IsShapeSelectionEnabled));
     }
 
     private void ChangeDrawingButton(DrawingButton drawingButton)
@@ -433,8 +522,9 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
 
         var startPoint = SnapPoint(new Point<double>(addedStroke.StylusPoints.First().X, addedStroke.StylusPoints.First().Y), gridOffset, halfGridSize);
-        var distanceToEdge = Math.Round((double)ShapeRadius / Constants.FeetPerGridCell);
+        var distanceToEdge = Math.Round((double)ShapeSize / Constants.FeetPerGridCell); // Get amount of grid cells
         distanceToEdge *= inkCanvasGridSize;
+        distanceToEdge /= 2; // divide by 2 to get radius
 
         Strokes.Remove(ShapeStroke);
         addedStroke.StylusPoints = CreateShape(startPoint, distanceToEdge);
@@ -486,9 +576,20 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
     }
 
-    private void ShowShapeSelection()
+    private void SelectedShapeChanged()
     {
         if (SelectedShape != null)
+        {
+            ShowShapeSelection();
+        }
+
+        NotifyPropertyChange(nameof(IsShapeSelected));
+        NotifyPropertyChange(nameof(IsShapeEditAndRemoveEnabled));
+    }
+
+    private void ShowShapeSelection()
+    {
+        if(!_disableSelectionAnimation)
         {
             var color = SelectedShape.Stroke.DrawingAttributes.Color;
             SelectedShape.Stroke.DrawingAttributes.Color = System.Windows.Media.Colors.Transparent;
@@ -499,5 +600,10 @@ public class DrawingControllerViewModel : ControllerViewModelBase
                 Application.Current.Dispatcher.Invoke(() => { SelectedShape.Stroke.DrawingAttributes.Color = color; }, DispatcherPriority.Normal);
             });
         }
+    }
+
+    private void OnShapePositionChanged(object? sender, EventArgs e)
+    {
+        NotifyDrawingStrokesUpdated();
     }
 }
