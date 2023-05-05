@@ -1,9 +1,8 @@
 ﻿@model NavigationComponentViewModel
 
 @using DigitalBattleMap.Common
-
-<div class="container text-center">
-    <div class="card">
+<div class="container text-center main-container">
+    <div class="card testd">
         <div class="card-header">
             Character Selection
             <div class="row">
@@ -45,37 +44,118 @@
                 <button class="btn btn-secondary btn-direction" direction="@Direction.SouthEast">
                     <i class="fa fa-arrow-up direction @Direction.SouthEast.ToString()"></i>
                 </button>
-                
             </div>
-            <div class="grid-container-conditions">
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Baned">Baned</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Blessed">Blessed</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Blinded">Blinded</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Charmed">Charmed</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Concentration">Concentration</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Deafened">Deafened</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Death">Death</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Exhausted">Exhausted</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Flying">Flying</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Frightened">Frightened</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Grappled">Grappled</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Hasted">Hasted</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Hex">Hex</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Highlighted">Highlighted</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Incapacitated">Incapacitated</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Invisible">Invisible</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Mark">Mark</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Paralyzed">Paralyzed</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Petrified">Petrified</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Poisoned">Poisoned</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Prone">Prone</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Restrained">Restrained</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Stabilized">Stabilized</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Stunned">Stunned</button>
-                <button class="btn btn-secondary btn-condition" condition="@Condition.Unconcious">Unconcious</button>
+
+            <div class="grid-container-collapsible">
+                <button class="btn btn-secondary btn-collapsible-conditions">Conditions</button>
+            </div>
+            <div class="collapsible-conditions-content">
+                <div class="grid-container-conditions">
+                    <button class="btn btn-secondary btn-condition" id="btnBaned" condition="@Condition.Baned">
+                        <img class="img-condition" src="~/ConditionIcons/Baned.png" />
+                        <span class="span-condition">Baned</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnBlessed" condition="@Condition.Blessed">
+                        <img class="img-condition" src="~/ConditionIcons/Blessed.png" />
+                        <span class="span-condition">Blessed</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnBlinded" condition="@Condition.Blinded">
+                        <img class="img-condition" src="~/ConditionIcons/Blinded.png" />
+                        <span class="span-condition">Blinded</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnCharmed" condition="@Condition.Charmed">
+                        <img class="img-condition" src="~/ConditionIcons/Charmed.png" />
+                        <span class="span-condition">Charmed</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnConcentration" condition="@Condition.Concentration">
+                        <img class="img-condition" src="~/ConditionIcons/Concentration.png" />
+                        <span class="span-condition">Concentration</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnDeafened" condition="@Condition.Deafened">
+                        <img class="img-condition" src="~/ConditionIcons/Deafened.png" />
+                        <span class="span-condition">Deafened</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnDeath" condition="@Condition.Death">
+                        <img class="img-condition" src="~/ConditionIcons/Death.png" />
+                        <span class="span-condition">Death</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnExhausted" condition="@Condition.Exhausted">
+                        <img class="img-condition" src="~/ConditionIcons/Exhausted.png" />
+                        <span class="span-condition">Exhausted</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnFlying" condition="@Condition.Flying">
+                        <img class="img-condition" src="~/ConditionIcons/Flying.png" />
+                        <span class="span-condition">Flying</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnFrightened" condition="@Condition.Frightened">
+                        <img class="img-condition" src="~/ConditionIcons/Frightened.png" />
+                        <span class="span-condition">Frightened</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnGrappled" condition="@Condition.Grappled">
+                        <img class="img-condition" src="~/ConditionIcons/Grappled.png" />
+                        <span class="span-condition">Grappled</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnHasted" condition="@Condition.Hasted">
+                        <img class="img-condition" src="~/ConditionIcons/Hasted.png" />
+                        <span class="span-condition">Hasted</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnHex" condition="@Condition.Hex">
+                        <img class="img-condition" src="~/ConditionIcons/Hex.png" />
+                        <span class="span-condition">Hex</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnHighlighted" condition="@Condition.Highlighted">
+                        <img class="img-condition" src="~/ConditionIcons/Highlighted.png" />
+                        <span class="span-condition">Highlighted</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnIncapacitated" condition="@Condition.Incapacitated">
+                        <img class="img-condition" src="~/ConditionIcons/Incapacitated.png" />
+                        <span class="span-condition">Incapacitated</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnInvisible" condition="@Condition.Invisible">
+                        <img class="img-condition" src="~/ConditionIcons/Invisible.png" />
+                        <span class="span-condition">Invisible</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnMark" condition="@Condition.Mark">
+                        <img class="img-condition" src="~/ConditionIcons/Mark.png" />
+                        <span class="span-condition">Mark</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnParalyzed" condition="@Condition.Paralyzed">
+                        <img class="img-condition" src="~/ConditionIcons/Paralyzed.png" />
+                        <span class="span-condition">Paralyzed</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnPetrified" condition="@Condition.Petrified">
+                        <img class="img-condition" src="~/ConditionIcons/Petrified.png" />
+                        <span class="span-condition">Petrified</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnPoisoned" condition="@Condition.Poisoned">
+                        <img class="img-condition" src="~/ConditionIcons/Poisoned.png" />
+                        <span class="span-condition">Poisoned</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnProne" condition="@Condition.Prone">
+                        <img class="img-condition" src="~/ConditionIcons/Prone.png" />
+                        <span class="span-condition">Prone</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnRestrained" condition="@Condition.Restrained">
+                        <img class="img-condition" src="~/ConditionIcons/Restrained.png" />
+                        <span class="span-condition">Restrained</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnStabilized" condition="@Condition.Stabilized">
+                        <img class="img-condition" src="~/ConditionIcons/Stabilized.png" />
+                        <span class="span-condition">Stabilized</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnStunned" condition="@Condition.Stunned">
+                        <img class="img-condition" src="~/ConditionIcons/Stunned.png" />
+                        <span class="span-condition">Stunned</span>
+                    </button>
+                    <button class="btn btn-secondary btn-condition" id="btnUnconcious" condition="@Condition.Unconcious">
+                        <img class="img-condition" src="~/ConditionIcons/Unconcious.png" />
+                        <span class="span-condition">Unconcious</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<script src="~/js/signalr/dist/browser/signalr.js"></script>
 <script src="~/js/components/navigation.js"/>

@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.Common.Dto;
 using DigitalBattleMapServer.Application;
 using DigitalBattleMapServer.Hubs;
 using DigitalBattleMapServer.Utility;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace DigitalBattleMapServer.Controllers;
 
+[Produces("application/json")]
 public class NavigationController : Controller
 {
     private readonly IHubContext<WebHub, IWebHub> _webHub;
@@ -30,6 +32,13 @@ public class NavigationController : Controller
     public IActionResult ToggleCondition(string character, Condition condition)
     {
         _webHub.Clients.All.ToggleCondition(character, condition);
+        return Ok();
+    }
+
+    [HttpPost]
+    public IActionResult SetConditions([FromBody] ConditionsDto conditionsDto)
+    {
+        _webHub.Clients.All.SetConditions(conditionsDto.Character, conditionsDto.Conditions);
         return Ok();
     }
 

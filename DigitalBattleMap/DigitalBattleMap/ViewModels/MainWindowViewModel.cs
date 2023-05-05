@@ -83,16 +83,15 @@ public class MainWindowViewModel : ViewModelBase
         _settings = Settings.Load();
         GridSize = _settings.DefaultGridSize;
         _gridBitmap = BitmapTools.CreateGrid(GridSize);
+        _connectionManager = new ConnectionManager();
+        _connectionManager.OnConnected += ConnectionManagerConnected;
+        _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
         BackgroundController = new BackgroundControllerViewModel(_windowService, GridSize);
         BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
-        TokenController = new TokenControllerViewModel(_windowService, _settings, GridSize);
+        TokenController = new TokenControllerViewModel(_windowService, _connectionManager, _settings, GridSize);
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
         DrawingController = new DrawingControllerViewModel(TokenController, GridSize);
         DrawingController.OnDrawingStrokesUpdated += DrawingStrokesUpdated;
-
-        _connectionManager = new ConnectionManager(TokenController);
-        _connectionManager.OnConnected += ConnectionManagerConnected;
-        _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
     }
 
     private void InitializeProperties()
