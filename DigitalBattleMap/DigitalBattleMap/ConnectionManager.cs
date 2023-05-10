@@ -1,21 +1,19 @@
 ﻿using DigitalBattleMap.Common;
-using DigitalBattleMap.Common.Dto;
 using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
-using DigitalBattleMap.Utilities;
 using Microsoft.AspNetCore.SignalR.Client;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace DigitalBattleMap;
 
-public class ConnectionManager : IWebHub, IWebHubClientEvents
+public class ConnectionManager : IWebHubClientEvents, IWebCommunication
 {
     private const string WebHubConnectionEndpoint = "/WebHub";
     private const string MapHubConnectionEndpoint = "/MapHub";
@@ -30,18 +28,16 @@ public class ConnectionManager : IWebHub, IWebHubClientEvents
     // Events
     public event EventHandler<EventArgs> OnConnected;
     public event EventHandler<EventArgs> OnDisconnect;
+    public event MoveTokenEventHandler OnMoveToken;
+    public event ToggleConditionEventHandler OnToggleCondition;
+    public event GetConditionsEventHandler OnGetConditions;
 
     private bool _isConnected;
     private Queue<MapUpdate> _mapUpdateQueue = new();
+    private ConcurrentQueue<IWebMessage> _messageQueue = new();
     private Thread _thread;
-    private object _lock = "";
-    private ITokenController _tokenController;
+    private static object _lock = new();
     private bool _playerControlAllowed;
-
-    public ConnectionManager(ITokenController tokenController)
-    {
-        _tokenController = tokenController;
-    }
 
     public void Connect(string address)
     {
@@ -75,6 +71,7 @@ public class ConnectionManager : IWebHub, IWebHubClientEvents
 
             _isConnected = true;
             _thread = new Thread(SendMessages);
+            _thread.Name = "hoi";
             _thread.Start();
             OnConnected?.Invoke(this, EventArgs.Empty);
         });
@@ -110,9 +107,9 @@ public class ConnectionManager : IWebHub, IWebHubClientEvents
 
     public Task MoveToken(string character, Direction direction)
     {
-        if(_playerControlAllowed)
+        if (_playerControlAllowed)
         {
-            _tokenController.MoveToken(character, direction);
+            OnMoveToken?.Invoke(this, new MoveTokenEventArgs { Name = character, Direction = direction });
         }
 
         return Task.CompletedTask;
@@ -122,9 +119,15 @@ public class ConnectionManager : IWebHub, IWebHubClientEvents
     {
         if (_playerControlAllowed)
         {
-            _tokenController.ToggleCondition(character, condition);
+            OnToggleCondition?.Invoke(this, new ToggleConditionEventArgs { Name = character, Condition = condition});
         }
 
+        return Task.CompletedTask;
+    }
+
+    public Task GetConditions(string character)
+    {
+        OnGetConditions?.Invoke(this, new GetConditionsEventArgs { Name = character });
         return Task.CompletedTask;
     }
 
@@ -149,15 +152,22 @@ public class ConnectionManager : IWebHub, IWebHubClientEvents
         if (!_isConnected)
             return;
 
-        HttpRequestMessage message = new(HttpMethod.Delete, "/Map/Delete");
-        message.Headers.Add("Layer", DrawLayer.All.ToString());
-        _httpClient.Send(message);
+        _messageQueue.Enqueue(new ClearMapMessage());
+    }
+
+    public void SendMessage(IWebMessage webMessage)
+    {
+        if (!_isConnected)
+            return;
+
+        _messageQueue.Enqueue(webMessage);
     }
 
     private void Configure()
     {
         _webHubConnection.On<string, Direction>(nameof(MoveToken), MoveToken);
         _webHubConnection.On<string, Condition>(nameof(ToggleCondition), ToggleCondition);
+        _webHubConnection.On<string>(nameof(GetConditions), GetConditions);
     }
 
     private void SendMessages()
@@ -173,18 +183,17 @@ public class ConnectionManager : IWebHub, IWebHubClientEvents
 
             if (newMapUpdate)
             {
-                var dto = new MapUpdateDto { Layer = mapUpdate!.Layer, Data = mapUpdate!.Bitmap.ToPng() };
-                string json = JsonSerializer.Serialize(dto);
-
-                StringContent content = new(json);
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                HttpRequestMessage message = new(HttpMethod.Post, "/Map/Set") { Content = content };
-
-                _httpClient.SendAsync(message).Wait();
+                _httpClient.SendAsync(mapUpdate!.CreateHttpRequestMessage()).Wait();
             }
 
-            Thread.Sleep(100);
+            if (_messageQueue.TryDequeue(out var webMessage))
+            {
+                _httpClient.SendAsync(webMessage.CreateHttpRequestMessage()).Wait();
+            }
+            else if (!newMapUpdate) // Only sleep when there is no mapUpdate or webMessage
+            {
+                Thread.Sleep(100);
+            }
         }
-
     }
 }

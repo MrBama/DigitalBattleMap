@@ -30,8 +30,10 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     }
 
     public delegate void ZLevelChangedEventHandler(object sender, ZLevelChangedEventArgs e);
+    public delegate void ConditionsChangedEventHandler(object sender, ConditionsChangedEventArgs e);
 
     public event EventHandler OnTokenChanged;
+    public event ConditionsChangedEventHandler OnConditionsChanged;
     public event ZLevelChangedEventHandler OnZLevelChanged;
 
     public Token Token { get; set; }
@@ -166,6 +168,8 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     {
         var condition = Enum.Parse<Condition>(conditionString);
         ToggleCondition(condition);
+
+        NotifyConditionsChanged();
         NotifyTokenChanged();
     }
 
@@ -174,6 +178,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         if (Conditions.Count > 0)
         {
             Conditions.Clear();
+            NotifyConditionsChanged();
             NotifyTokenChanged();
             NotifyPropertyChange(nameof(Conditions));
         }
@@ -182,6 +187,11 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     private void NotifyTokenChanged()
     {
         OnTokenChanged?.Invoke(this, new EventArgs());
+    }
+
+    private void NotifyConditionsChanged()
+    {
+        OnConditionsChanged?.Invoke(this, new ConditionsChangedEventArgs { Name = Token.Name, NewConditions = Conditions });
     }
 
     private void ToggleTokenVisibility()
@@ -203,7 +213,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
 
     private void LinkToDifferentToken()
     {
-        if(!IsLinked())
+        if (!IsLinked())
         {
             _tokenLinker.LinkToToken(this);
         }
@@ -215,7 +225,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
 
     private void RefershLinkToTokenButtonText()
     {
-        if(IsLinked())
+        if (IsLinked())
         {
             var linkIdentifier = GetLinkIdentifier();
             LinkToTokenButtonText = $"Unlink from {linkIdentifier.Name} {linkIdentifier.Id}";

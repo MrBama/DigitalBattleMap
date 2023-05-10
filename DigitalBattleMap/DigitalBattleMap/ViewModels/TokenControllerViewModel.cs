@@ -8,28 +8,34 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.ViewModels;
 
-public class TokenControllerViewModel : ControllerViewModelBase, ITokenController, ITokenLinker
+public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 {
     private IWindowService _windowService;
+    private IWebCommunication _webCommunication;
     private Bitmap _tokenBitmap;
     private List<Token> _monsterTokens = new();
     private Settings _settings;
-    private object _lock = "";
+    private static object _lock = new();
 
     public TokenControllerViewModel() : base(50)
     {
         Initialize();
     }
 
-    public TokenControllerViewModel(IWindowService windowService, Settings settings, int gridSize) : base(gridSize)
+    public TokenControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, Settings settings, int gridSize) : base(gridSize)
     {
         _windowService = windowService;
+        _webCommunication = webCommunication;
+        _webCommunication.OnMoveToken += MoveToken;
+        _webCommunication.OnToggleCondition += ToggleCondition;
+        _webCommunication.OnGetConditions += GetConditions;
         _settings = settings;
         Initialize();
     }
@@ -123,6 +129,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
                     };
                     tokenListItem.Token.OnSizeChanged += TokenChanged;
                     tokenListItem.OnTokenChanged += TokenChanged;
+                    tokenListItem.OnConditionsChanged += TokenConditionsChanged;
                     tokenListItem.OnZLevelChanged += ZLevelChanged;
                     tokenListItem.Id = GetUniqueId(token.Name);
                     tokenListItem.Position = CalculateStartPosition(index);
@@ -302,6 +309,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
             {
                 tokenListItem.Token.OnSizeChanged += TokenChanged;
                 tokenListItem.OnTokenChanged += TokenChanged;
+                tokenListItem.OnConditionsChanged += TokenConditionsChanged;
                 tokenListItem.OnZLevelChanged += ZLevelChanged;
                 tokenListItem.Health.InitializeEditorHp();
                 tokenListItem.SetTokenLinker(this);
@@ -332,74 +340,6 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
         {
             var customTokensWindowViewModel = new CustomTokensWindowViewModel(_windowService, _settings, _monsterTokens);
             _windowService.ShowWindowDialog<CustomTokensWindow>(customTokensWindowViewModel);
-        }
-    }
-
-    public void MoveToken(string name, Direction direction)
-    {
-        lock (_lock)
-        {
-            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => string.Equals(t.Token.Name, name, StringComparison.CurrentCultureIgnoreCase) && t.Token.PlayerControl);
-            if (tokenListItem != null)
-            {
-                var offset = new Point<int>();
-                switch (direction)
-                {
-                    case Direction.North:
-                        offset.Y -= _gridSize;
-                        break;
-                    case Direction.NorthEast:
-                        offset.X += _gridSize;
-                        offset.Y -= _gridSize;
-                        break;
-                    case Direction.East:
-                        offset.X += _gridSize;
-                        break;
-                    case Direction.SouthEast:
-                        offset.X += _gridSize;
-                        offset.Y += _gridSize;
-                        break;
-                    case Direction.South:
-                        offset.Y += _gridSize;
-                        break;
-                    case Direction.SouthWest:
-                        offset.X -= _gridSize;
-                        offset.Y += _gridSize;
-                        break;
-                    case Direction.West:
-                        offset.X -= _gridSize;
-                        break;
-                    case Direction.NorthWest:
-                        offset.X -= _gridSize;
-                        offset.Y -= _gridSize;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Unknown direction: {direction}");
-                }
-
-                foreach (var linkedObject in tokenListItem.LinkedObjects)
-                {
-                    linkedObject.UpdatePosition(offset);
-                }
-
-                tokenListItem.Position.X += offset.X;
-                tokenListItem.Position.Y += offset.Y;
-
-                CreateTokenBitmap();
-            }
-        }
-    }
-
-    public void ToggleCondition(string name, Condition condition)
-    {
-        lock (_lock)
-        {
-            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => string.Equals(t.Token.Name, name, StringComparison.CurrentCultureIgnoreCase) && t.Token.PlayerControl);
-            if (tokenListItem != null)
-            {
-                tokenListItem.ToggleCondition(condition);
-                CreateTokenBitmap();
-            }
         }
     }
 
@@ -460,10 +400,99 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
     public void LinkToToken(ILinkableObject linkableObject, TokenIndentifier tokenIndentifier)
     {
         var tokenListItem = TokenList.SingleOrDefault(t => t.Token.Name == tokenIndentifier.Name && t.Id == tokenIndentifier.Id);
-        if(tokenListItem != null)
+        if (tokenListItem != null)
         {
             linkableObject.Link(tokenListItem);
             tokenListItem.LinkedObjects.Add(linkableObject);
+        }
+    }
+
+    private void MoveToken(object sender, MoveTokenEventArgs e)
+    {
+        lock (_lock)
+        {
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => string.Equals(t.Token.Name, e.Name, StringComparison.CurrentCultureIgnoreCase) && t.Token.PlayerControl);
+            if (tokenListItem != null)
+            {
+                var offset = new Point<int>();
+                switch (e.Direction)
+                {
+                    case Direction.North:
+                        offset.Y -= _gridSize;
+                        break;
+                    case Direction.NorthEast:
+                        offset.X += _gridSize;
+                        offset.Y -= _gridSize;
+                        break;
+                    case Direction.East:
+                        offset.X += _gridSize;
+                        break;
+                    case Direction.SouthEast:
+                        offset.X += _gridSize;
+                        offset.Y += _gridSize;
+                        break;
+                    case Direction.South:
+                        offset.Y += _gridSize;
+                        break;
+                    case Direction.SouthWest:
+                        offset.X -= _gridSize;
+                        offset.Y += _gridSize;
+                        break;
+                    case Direction.West:
+                        offset.X -= _gridSize;
+                        break;
+                    case Direction.NorthWest:
+                        offset.X -= _gridSize;
+                        offset.Y -= _gridSize;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException($"Unknown direction: {e.Direction}");
+                }
+
+                // Block UI thread to update everything at the same time
+                var uiThread = new UIThreadResource();
+                uiThread.Claim();
+                var tasks = new List<Task>();
+
+                foreach (var linkedObject in tokenListItem.LinkedObjects)
+                {
+                    var task = Task.Run(() => linkedObject.UpdatePosition(offset));
+                    tasks.Add(task);
+                }
+
+                tokenListItem.Position.X += offset.X;
+                tokenListItem.Position.Y += offset.Y;
+
+                CreateTokenBitmap();
+                uiThread.Release();
+                Task.WaitAll(tasks.ToArray());
+            }
+        }
+    }
+
+    private void ToggleCondition(object sender, ToggleConditionEventArgs e)
+    {
+        lock (_lock)
+        {
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => string.Equals(t.Token.Name, e.Name, StringComparison.CurrentCultureIgnoreCase) && t.Token.PlayerControl);
+            if (tokenListItem != null)
+            {
+                tokenListItem.ToggleCondition(e.Condition);
+                _webCommunication.SendMessage(new ConditionsMessage { Character = e.Name, Conditions = tokenListItem.Conditions });
+                CreateTokenBitmap();
+            }
+        }
+    }
+
+    private void GetConditions(object sender, GetConditionsEventArgs e)
+    {
+        lock (_lock)
+        {
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => string.Equals(t.Token.Name, e.Name, StringComparison.CurrentCultureIgnoreCase) && t.Token.PlayerControl);
+            if (tokenListItem != null && tokenListItem.Conditions.Count > 0)
+            {
+                _webCommunication.SendMessage(new ConditionsMessage { Character = e.Name, Conditions = tokenListItem.Conditions });
+            }
         }
     }
 
@@ -511,7 +540,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
         lock (_lock)
         {
             var bitmap = BitmapTools.CreateEmptyBitmap();
-            
+
             if (TokenList.Count > 0)
             {
                 foreach (var tokenListItem in TokenList.OrderBy(t => t.ZLevel))
@@ -547,6 +576,15 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenControlle
     private void TokenChanged(object? sender, EventArgs e)
     {
         CreateTokenBitmap();
+    }
+
+    private void TokenConditionsChanged(object? sender, ConditionsChangedEventArgs e)
+    {
+        var tokenListItem = TokenList.Single(t => t.Token.Name == e.Name);
+        if (tokenListItem.Token.PlayerControl)
+        {
+            _webCommunication.SendMessage(new ConditionsMessage { Character = e.Name, Conditions = e.NewConditions });
+        }
     }
 
     private void UpdateTokenSelection()
