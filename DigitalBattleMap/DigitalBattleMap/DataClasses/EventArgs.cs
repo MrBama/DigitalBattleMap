@@ -27,3 +27,8 @@ public class ConditionsChangedEventArgs : EventArgs
     public string Name { get; set; } = "";
     public List<Condition> NewConditions { get; set; } = new();
 }
+
+public class GetConditionsEventArgs : EventArgs
+{
+    public string Name { get; set; } = "";
+}

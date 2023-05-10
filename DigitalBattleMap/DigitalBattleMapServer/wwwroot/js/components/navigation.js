@@ -89,14 +89,30 @@ $(document).ready(function () {
     })
 
     $(window).on("load", function () {
-        console.log("Load page");
+        let character = $("#character").val();
 
         if (!character)
             return;
+
+        $.ajax({
+            url: "Navigation/GetConditions",
+            type: "POST",
+            data: { 'character': character }
+        })
     });
 
     $("#character").change(function () {
-        console.log("Changed character");
+        let character = $("#character").val();
+
+        for (const button of conditionButtons) {
+            document.getElementById(button).style.backgroundColor = '';
+        }
+
+        $.ajax({
+            url: "Navigation/GetConditions",
+            type: "POST",
+            data: { 'character': character }
+        })
     })
 
     $(".btn-collapsible-conditions").click(function () {

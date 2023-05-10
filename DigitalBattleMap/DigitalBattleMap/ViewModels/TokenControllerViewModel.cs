@@ -35,6 +35,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         _webCommunication = webCommunication;
         _webCommunication.OnMoveToken += MoveToken;
         _webCommunication.OnToggleCondition += ToggleCondition;
+        _webCommunication.OnGetConditions += GetConditions;
         _settings = settings;
         Initialize();
     }
@@ -342,7 +343,71 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    public void MoveToken(object sender, MoveTokenEventArgs e)
+    public override void Zoom(double zoomFactor)
+    {
+        lock (_lock)
+        {
+            if (TokenList.Count > 0)
+            {
+                foreach (var tokenListItem in TokenList)
+                {
+                    double newX = tokenListItem.Position.X;
+                    double newY = tokenListItem.Position.Y;
+
+                    double halfWidth = Constants.BitmapSize.Width / 2;
+                    double halfHeight = Constants.BitmapSize.Height / 2;
+
+                    newX -= halfWidth;
+                    newX *= zoomFactor;
+                    newX += halfWidth;
+
+                    newY -= halfHeight;
+                    newY *= zoomFactor;
+                    newY += halfHeight;
+
+                    tokenListItem.Position.X = (int)Math.Round(newX);
+                    tokenListItem.Position.Y = (int)Math.Round(newY);
+                }
+
+                CreateTokenBitmap();
+            }
+        }
+    }
+
+    public void SortInitiative()
+    {
+        lock (_lock)
+        {
+            TokenList.OrderCurrentByDescending(t => t.Initiative);
+        }
+    }
+
+    public void LinkToToken(ILinkableObject linkableObject)
+    {
+        var tokenLinkWindowViewModel = new TokenLinkWindowViewModel(TokenList);
+        _windowService.ShowWindowDialog<TokenLinkWindow>(tokenLinkWindowViewModel);
+
+        if (tokenLinkWindowViewModel.Success)
+        {
+            if (tokenLinkWindowViewModel.SelectedToken != linkableObject)
+            {
+                linkableObject.Link(tokenLinkWindowViewModel.SelectedToken);
+                tokenLinkWindowViewModel.SelectedToken.LinkedObjects.Add(linkableObject);
+            }
+        }
+    }
+
+    public void LinkToToken(ILinkableObject linkableObject, TokenIndentifier tokenIndentifier)
+    {
+        var tokenListItem = TokenList.SingleOrDefault(t => t.Token.Name == tokenIndentifier.Name && t.Id == tokenIndentifier.Id);
+        if (tokenListItem != null)
+        {
+            linkableObject.Link(tokenListItem);
+            tokenListItem.LinkedObjects.Add(linkableObject);
+        }
+    }
+
+    private void MoveToken(object sender, MoveTokenEventArgs e)
     {
         lock (_lock)
         {
@@ -405,7 +470,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    public void ToggleCondition(object sender, ToggleConditionEventArgs e)
+    private void ToggleCondition(object sender, ToggleConditionEventArgs e)
     {
         lock (_lock)
         {
@@ -419,67 +484,15 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    public override void Zoom(double zoomFactor)
+    private void GetConditions(object sender, GetConditionsEventArgs e)
     {
         lock (_lock)
         {
-            if (TokenList.Count > 0)
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => string.Equals(t.Token.Name, e.Name, StringComparison.CurrentCultureIgnoreCase) && t.Token.PlayerControl);
+            if (tokenListItem != null && tokenListItem.Conditions.Count > 0)
             {
-                foreach (var tokenListItem in TokenList)
-                {
-                    double newX = tokenListItem.Position.X;
-                    double newY = tokenListItem.Position.Y;
-
-                    double halfWidth = Constants.BitmapSize.Width / 2;
-                    double halfHeight = Constants.BitmapSize.Height / 2;
-
-                    newX -= halfWidth;
-                    newX *= zoomFactor;
-                    newX += halfWidth;
-
-                    newY -= halfHeight;
-                    newY *= zoomFactor;
-                    newY += halfHeight;
-
-                    tokenListItem.Position.X = (int)Math.Round(newX);
-                    tokenListItem.Position.Y = (int)Math.Round(newY);
-                }
-
-                CreateTokenBitmap();
+                _webCommunication.SendMessage(new ConditionsMessage { Character = e.Name, Conditions = tokenListItem.Conditions });
             }
-        }
-    }
-
-    public void SortInitiative()
-    {
-        lock (_lock)
-        {
-            TokenList.OrderCurrentByDescending(t => t.Initiative);
-        }
-    }
-
-    public void LinkToToken(ILinkableObject linkableObject)
-    {
-        var tokenLinkWindowViewModel = new TokenLinkWindowViewModel(TokenList);
-        _windowService.ShowWindowDialog<TokenLinkWindow>(tokenLinkWindowViewModel);
-
-        if (tokenLinkWindowViewModel.Success)
-        {
-            if (tokenLinkWindowViewModel.SelectedToken != linkableObject)
-            {
-                linkableObject.Link(tokenLinkWindowViewModel.SelectedToken);
-                tokenLinkWindowViewModel.SelectedToken.LinkedObjects.Add(linkableObject);
-            }
-        }
-    }
-
-    public void LinkToToken(ILinkableObject linkableObject, TokenIndentifier tokenIndentifier)
-    {
-        var tokenListItem = TokenList.SingleOrDefault(t => t.Token.Name == tokenIndentifier.Name && t.Id == tokenIndentifier.Id);
-        if (tokenListItem != null)
-        {
-            linkableObject.Link(tokenListItem);
-            tokenListItem.LinkedObjects.Add(linkableObject);
         }
     }
 

@@ -42,6 +42,14 @@ public class NavigationController : Controller
         return Ok();
     }
 
+
+    [HttpPost]
+    public IActionResult GetConditions(string character)
+    {
+        _webHub.Clients.All.GetConditions(character);
+        return Ok();
+    }
+
     private Direction TranslateDirection(Orientation orientation, Direction direction)
     {
         int maxValue = Enum.GetValues(typeof(Direction)).Cast<int>().Max();

@@ -30,6 +30,7 @@ public class ConnectionManager : IWebHubClientEvents, IWebCommunication
     public event EventHandler<EventArgs> OnDisconnect;
     public event MoveTokenEventHandler OnMoveToken;
     public event ToggleConditionEventHandler OnToggleCondition;
+    public event GetConditionsEventHandler OnGetConditions;
 
     private bool _isConnected;
     private Queue<MapUpdate> _mapUpdateQueue = new();
@@ -124,6 +125,12 @@ public class ConnectionManager : IWebHubClientEvents, IWebCommunication
         return Task.CompletedTask;
     }
 
+    public Task GetConditions(string character)
+    {
+        OnGetConditions?.Invoke(this, new GetConditionsEventArgs { Name = character });
+        return Task.CompletedTask;
+    }
+
     public void SendMapUpdate(MapUpdate mapUpdate)
     {
         if (!_isConnected)
@@ -160,6 +167,7 @@ public class ConnectionManager : IWebHubClientEvents, IWebCommunication
     {
         _webHubConnection.On<string, Direction>(nameof(MoveToken), MoveToken);
         _webHubConnection.On<string, Condition>(nameof(ToggleCondition), ToggleCondition);
+        _webHubConnection.On<string>(nameof(GetConditions), GetConditions);
     }
 
     private void SendMessages()
