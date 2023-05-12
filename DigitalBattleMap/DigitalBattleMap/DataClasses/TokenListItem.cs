@@ -85,6 +85,10 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     {
         if (!Conditions.Contains(condition))
         {
+            if(condition == Condition.Death)
+            {
+                Conditions.Clear();
+            }
             Conditions.Add(condition);
         }
         else
@@ -162,6 +166,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     private void PlayerControlToggled()
     {
         Token.PlayerControl = !Token.PlayerControl;
+        NotifyConditionsChanged();
     }
 
     private void ConditionChanged(string conditionString)

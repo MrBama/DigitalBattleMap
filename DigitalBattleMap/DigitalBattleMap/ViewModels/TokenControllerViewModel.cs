@@ -313,6 +313,12 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 tokenListItem.OnZLevelChanged += ZLevelChanged;
                 tokenListItem.Health.InitializeEditorHp();
                 tokenListItem.SetTokenLinker(this);
+
+                if(tokenListItem.Token.PlayerControl)
+                {
+                    _webCommunication.SendMessage(new ConditionsMessage { Character = tokenListItem.Token.Name, Conditions = tokenListItem.Conditions });
+                }
+
                 TokenList.Add(tokenListItem);
             }
 
