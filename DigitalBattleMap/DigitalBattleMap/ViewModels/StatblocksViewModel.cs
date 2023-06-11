@@ -1,0 +1,77 @@
+﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Utilities;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Linq;
+using System.Security.Permissions;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Header;
+
+namespace DigitalBattleMap.ViewModels;
+
+public class StatblocksViewModel : ViewModelBase
+{
+    protected override void InitializeCommands()
+    {
+        ScrollChangedCommand = new RelayCommand(p => ScrollChanged((ScrollChangedEventArgs)p));
+    }
+
+    public ObservableCollection<Statblock> Statblocks { get; set; } = new();
+    public ICommand ScrollChangedCommand { get; set; }
+
+    public void AddToken(TokenListItem tokenListItem)
+    {
+        if(tokenListItem.Token.Source != null)
+        {
+            var existingStatblock = Statblocks.SingleOrDefault(s => s.Name == tokenListItem.Token.Name);
+            if(existingStatblock == null)
+            {
+                Statblocks.Add(new Statblock(tokenListItem.Token.Name, tokenListItem.Token.Source));
+            }
+        }
+    }
+
+    public void RemoveToken(TokenListItem tokenListItem)
+    {
+        if(tokenListItem.Token.Source != null)
+        { 
+            var existingStatblock = Statblocks.SingleOrDefault(s => s.Name == tokenListItem.Token.Name);
+            if (existingStatblock != null)
+            {
+                Statblocks.Remove(existingStatblock);
+            }
+        }
+    }
+
+    public void Clear()
+    {
+        Statblocks.Clear();
+    }
+
+    private void ScrollChanged(ScrollChangedEventArgs eventArgs)
+    {
+        var horizontalOffset = (int)eventArgs.HorizontalOffset;
+        var viewportWidth = (int)eventArgs.ViewportWidth;
+
+        for (int i = 0; i < Statblocks.Count; i++)
+        {
+            if (i < horizontalOffset || i > (horizontalOffset + viewportWidth - 1))
+            {
+                if (Statblocks[i].RenderVisibility != Visibility.Hidden)
+                {
+                    Statblocks[i].RenderVisibility = Visibility.Hidden;
+                }
+            }
+            else
+            {
+                if (Statblocks[i].RenderVisibility != Visibility.Visible)
+                {
+                    Statblocks[i].RenderVisibility = Visibility.Visible;
+                }
+            }
+        }
+    }
+}

@@ -34,6 +34,7 @@ public class MainWindowViewModel : ViewModelBase
     }
 
     public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
+    public int SelectedMapTabIndex { get => Get<int>(); set => Set(value); }
     public int GridSize { get => Get<int>(); set => Set(value); }
     public int InkCanvasZIndex { get => Get<int>(); set => Set(value); }
     public bool IsGridShown { get => Get<bool>(); set => Set(value, GridShownChanged); }
@@ -355,10 +356,12 @@ public class MainWindowViewModel : ViewModelBase
             IsGridShown = saveFile.IsGridShown;
             DrawingController.OpenSaveFile(saveFile);
             TokenController.OpenSaveFile(saveFile);
-            SelectedTabIndex = TabIndex.Tokens;
 
             DrawingController.OpenObjectLinks(saveFile.ObjectLinks);
             TokenController.OpenObjectLinks(saveFile.ObjectLinks);
+
+            SelectedTabIndex = TabIndex.Tokens;
+            SelectedMapTabIndex = 0;
 
             IsShowMapLocked = currentIsShowMapLocked;
         }

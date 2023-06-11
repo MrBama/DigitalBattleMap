@@ -35,7 +35,8 @@ public static class MonsterTokens
                 {
                     Name = tokenName,
                     Size = ConvertSize(monsterToken.Size),
-                    ImagePath = file
+                    ImagePath = file,
+                    Source = monsterToken.Source
                 };
 
                 tokens.Add(token);

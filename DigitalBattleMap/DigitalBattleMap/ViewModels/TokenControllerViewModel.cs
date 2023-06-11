@@ -60,6 +60,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
     public event EventHandler OnTokenBitmapUpdated;
 
+    public StatblocksViewModel StatblocksViewModel { get; set; } = new();
     public BitmapSource TokenBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource TokenSelectionBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public TokenListItem SelectedToken
@@ -135,6 +136,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                     tokenListItem.Position = CalculateStartPosition(index);
                     tokenListItem.SetTokenLinker(this);
                     TokenList.Add(tokenListItem);
+                    StatblocksViewModel.AddToken(tokenListItem);
                 }
 
                 SelectedToken = TokenList.Last();
@@ -150,6 +152,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             if (SelectedToken != null)
             {
                 SelectedToken.Dispose();
+                StatblocksViewModel.RemoveToken(SelectedToken);
                 TokenList.Remove(SelectedToken);
                 CreateTokenBitmap();
             }
@@ -165,6 +168,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 tokenListItem.Dispose();
             }
             TokenList.Clear();
+            StatblocksViewModel.Clear();
             CreateTokenBitmap();
         }
     }
@@ -320,6 +324,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 }
 
                 TokenList.Add(tokenListItem);
+                StatblocksViewModel.AddToken(tokenListItem);
             }
 
             CreateTokenBitmap();

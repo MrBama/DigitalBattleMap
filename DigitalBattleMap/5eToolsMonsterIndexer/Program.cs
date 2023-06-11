@@ -25,12 +25,15 @@ namespace MonsterIndexer
 
             // Gather different books
             var books = new List<Book>();
-            var monsterDictionary = new Dictionary<string, string>();
+            var monsterDictionary = new Dictionary<string, SizeAndSource>();
 
             foreach (var pair in parsedJson.Split(','))
             {
                 var values = pair.Split(':');
-                books.Add(new Book { Source = values[0], Json = values[1] });
+                if(!values[0].StartsWith("UA"))
+                {
+                    books.Add(new Book { Source = values[0], Json = values[1] });
+                }
             }
 
             // Gather monsters from bestiary
@@ -42,11 +45,11 @@ namespace MonsterIndexer
                 {
                     if (monster.Size.Count != 0)
                     {
-                        monsterDictionary[monster.Name] = monster.Size.First();
+                        monsterDictionary[monster.Name] = new SizeAndSource(monster.Size.First(), book.Source);
                     }
                     else
                     {
-                        monsterDictionary[monster.Name] = "M";
+                        monsterDictionary[monster.Name] = new SizeAndSource("M", book.Source);
                     }
                 }
             }
@@ -63,13 +66,16 @@ namespace MonsterIndexer
                     {
                         var source = Path.GetFileName(directory);
 
-                        data.Tokens.Add(new Token
+                        if (source == monsterDictionary[name].Source)
                         {
-                            Name = name,
-                            Size = monsterDictionary[name],
-                            Source = source,
-                            TokenUrl = $"https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/{source}/{Uri.EscapeDataString(name)}.png?raw=true"
-                        });
+                            data.Tokens.Add(new Token
+                            {
+                                Name = name,
+                                Size = monsterDictionary[name].Size,
+                                Source = monsterDictionary[name].Source,
+                                TokenUrl = $"https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/{source}/{Uri.EscapeDataString(name)}.png?raw=true"
+                            });
+                        }                        
                     }
                 }
             }
@@ -119,5 +125,17 @@ namespace MonsterIndexer
         {
             Sources = Tokens.DistinctBy(t => t.Source).Select(t => t.Source).ToList();
         }
+    }
+
+    public class SizeAndSource
+    {
+        public SizeAndSource(string size, string source)
+        {
+            Size = size;
+            Source = source;
+        }
+
+        public string Size { get; set; }
+        public string Source { get; set; }
     }
 }
