@@ -1,14 +1,10 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Utilities;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Linq;
-using System.Security.Permissions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Header;
 
 namespace DigitalBattleMap.ViewModels;
 

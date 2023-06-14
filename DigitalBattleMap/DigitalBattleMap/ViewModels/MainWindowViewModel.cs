@@ -3,7 +3,6 @@ using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Drawing;
 using System.Windows;

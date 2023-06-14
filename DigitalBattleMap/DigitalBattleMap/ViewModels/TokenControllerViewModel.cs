@@ -9,7 +9,6 @@ using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
@@ -410,7 +409,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
     public void LinkToToken(ILinkableObject linkableObject, TokenIndentifier tokenIndentifier)
     {
-        var tokenListItem = TokenList.SingleOrDefault(t => t.Token.Name == tokenIndentifier.Name && t.Id == tokenIndentifier.Id);
+        var tokenListItem = TokenList.SingleOrDefault(t => t.GetLinkIdentifier().Equals(tokenIndentifier));
         if (tokenListItem != null)
         {
             linkableObject.Link(tokenListItem);
@@ -422,7 +421,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => string.Equals(t.Token.Name, e.Name, StringComparison.CurrentCultureIgnoreCase) && t.Token.PlayerControl);
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetLinkIdentifier().Equals(e.TokenIndentifier) && t.Token.PlayerControl);
             if (tokenListItem != null)
             {
                 var offset = new Point<int>();
@@ -485,11 +484,11 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => string.Equals(t.Token.Name, e.Name, StringComparison.CurrentCultureIgnoreCase) && t.Token.PlayerControl);
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetLinkIdentifier().Equals(e.TokenIndentifier) && t.Token.PlayerControl);
             if (tokenListItem != null)
             {
                 tokenListItem.ToggleCondition(e.Condition);
-                _webCommunication.SendMessage(new ConditionsMessage { Character = e.Name, Conditions = tokenListItem.Conditions });
+                _webCommunication.SendMessage(new ConditionsMessage { Character = e.TokenIndentifier.Name, Conditions = tokenListItem.Conditions });
                 CreateTokenBitmap();
             }
         }
@@ -499,10 +498,10 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => string.Equals(t.Token.Name, e.Name, StringComparison.CurrentCultureIgnoreCase) && t.Token.PlayerControl);
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetLinkIdentifier().Equals(e.TokenIndentifier) && t.Token.PlayerControl);
             if (tokenListItem != null && tokenListItem.Conditions.Count > 0)
             {
-                _webCommunication.SendMessage(new ConditionsMessage { Character = e.Name, Conditions = tokenListItem.Conditions });
+                _webCommunication.SendMessage(new ConditionsMessage { Character = e.TokenIndentifier.Name, Conditions = tokenListItem.Conditions });
             }
         }
     }
@@ -591,10 +590,10 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
     private void TokenConditionsChanged(object? sender, ConditionsChangedEventArgs e)
     {
-        var tokenListItem = TokenList.Single(t => t.Token.Name == e.Name);
+        var tokenListItem = TokenList.Single(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier));
         if (tokenListItem.Token.PlayerControl)
         {
-            _webCommunication.SendMessage(new ConditionsMessage { Character = e.Name, Conditions = e.NewConditions });
+            _webCommunication.SendMessage(new ConditionsMessage { Character = e.TokenIndentifier.Name, Conditions = e.NewConditions });
         }
     }
 

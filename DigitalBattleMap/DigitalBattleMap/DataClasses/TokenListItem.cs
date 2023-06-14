@@ -85,7 +85,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     {
         if (!Conditions.Contains(condition))
         {
-            if(condition == Condition.Death)
+            if (condition == Condition.Death)
             {
                 Conditions.Clear();
             }
@@ -196,7 +196,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
 
     private void NotifyConditionsChanged()
     {
-        OnConditionsChanged?.Invoke(this, new ConditionsChangedEventArgs { Name = Token.Name, NewConditions = Conditions });
+        OnConditionsChanged?.Invoke(this, new ConditionsChangedEventArgs { TokenIndentifier = GetTokenIndentifier(), NewConditions = Conditions });
     }
 
     private void ToggleTokenVisibility()
