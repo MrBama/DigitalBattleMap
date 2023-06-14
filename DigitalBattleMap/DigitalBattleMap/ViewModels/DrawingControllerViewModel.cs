@@ -153,6 +153,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public override void AddToSaveFile(SaveFile saveFile)
     {
         saveFile.Strokes = Strokes;
+        saveFile.CanvasSize = _canvasSize;
 
         foreach ((var shape, var index) in Shapes.WithIndex())
         {
@@ -177,6 +178,15 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         ClearDrawings();
 
         Strokes = saveFile.Strokes;
+
+        if (!saveFile.CanvasSize.Equals(_canvasSize) && saveFile.CanvasSize.Width != 0)
+        {
+            var zoomFactor = _canvasSize.Width / saveFile.CanvasSize.Width;
+            var matrix = new System.Windows.Media.Matrix();
+            matrix.Scale(zoomFactor, zoomFactor);
+            Strokes.Transform(matrix, false);
+        }
+
         foreach (var saveShape in saveFile.DrawingShapes)
         {
             var shape = new DrawingShape
