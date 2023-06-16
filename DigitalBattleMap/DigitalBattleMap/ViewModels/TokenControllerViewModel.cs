@@ -148,8 +148,12 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         {
             if (SelectedToken != null)
             {
+                if (TokenList.Count(t => t.Token.Name == SelectedToken.Token.Name) == 1)
+                {
+                    StatblocksViewModel.RemoveToken(SelectedToken);
+                }
+                    
                 SelectedToken.Dispose();
-                StatblocksViewModel.RemoveToken(SelectedToken);
                 TokenList.Remove(SelectedToken);
                 CreateTokenBitmap();
             }
