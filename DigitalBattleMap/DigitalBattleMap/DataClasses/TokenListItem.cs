@@ -29,6 +29,16 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         LinkToTokenCommand = new RelayCommand(p => LinkToDifferentToken());
     }
 
+    public TokenListItem(Token token) : this()
+    {
+        Token = token;
+
+        if (token.Hp != null)
+        {
+            Health.InitializeEditorHp(token.Hp ?? default);
+        }
+    }
+
     public delegate void ZLevelChangedEventHandler(object sender, ZLevelChangedEventArgs e);
     public delegate void ConditionsChangedEventHandler(object sender, ConditionsChangedEventArgs e);
 

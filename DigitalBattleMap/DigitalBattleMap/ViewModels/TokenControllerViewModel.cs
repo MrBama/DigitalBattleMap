@@ -123,10 +123,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             {
                 foreach (var (token, index) in selectTokenWindowViewModel.AddedTokens.WithIndex())
                 {
-                    var tokenListItem = new TokenListItem
-                    {
-                        Token = token
-                    };
+                    var tokenListItem = new TokenListItem(token);
                     tokenListItem.Token.OnSizeChanged += TokenChanged;
                     tokenListItem.OnTokenChanged += TokenChanged;
                     tokenListItem.OnConditionsChanged += TokenConditionsChanged;
@@ -134,6 +131,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                     tokenListItem.Id = GetUniqueId(token.Name);
                     tokenListItem.Position = CalculateStartPosition(index);
                     tokenListItem.SetTokenLinker(this);
+
                     TokenList.Add(tokenListItem);
                     StatblocksViewModel.AddToken(tokenListItem);
                 }

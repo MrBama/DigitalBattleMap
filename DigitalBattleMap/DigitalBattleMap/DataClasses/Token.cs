@@ -12,6 +12,7 @@ public class Token : PropertyHandler
     public string ImagePath { get; set; } = "";
     public bool PlayerControl { get => Get<bool>(); set => Set(value); }
     public string? Source { get; set; }
+    public int? Hp { get; set; }
 
     public Token Copy()
     {
@@ -21,7 +22,8 @@ public class Token : PropertyHandler
             Size = Size,
             ImagePath = ImagePath,
             PlayerControl = PlayerControl,
-            Source = Source
+            Source = Source,
+            Hp = Hp
         };
     }
 

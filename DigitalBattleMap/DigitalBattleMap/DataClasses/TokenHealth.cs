@@ -84,6 +84,13 @@ public class TokenHealth : PropertyHandler
         SetHpColor();
     }
 
+    public void InitializeEditorHp(int hp)
+    {
+        Hp = hp.ToString();
+        MaxHp = hp.ToString();
+        InitializeEditorHp();
+    }
+
     private void SetMaxHp(string value)
     {
         if (value == "")
