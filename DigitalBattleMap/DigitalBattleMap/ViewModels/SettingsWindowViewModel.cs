@@ -86,7 +86,7 @@ public class SettingsWindowViewModel : ViewModelBase
 
     private void DownloadMonsterTokens()
     {
-        var downloadWindowViewModel = new DownloadWindowViewModel();
+        var downloadWindowViewModel = new DownloadWindowViewModel(_windowService);
         downloadWindowViewModel.StartDownload();
         _windowService.ShowWindowDialog<DownloadWindow>(downloadWindowViewModel);
         MonsterTokensDownloaded = true;

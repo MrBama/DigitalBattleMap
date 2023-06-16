@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.SignalR.Client;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -109,7 +108,7 @@ public class ConnectionManager : IWebHubClientEvents, IWebCommunication
     {
         if (_playerControlAllowed)
         {
-            OnMoveToken?.Invoke(this, new MoveTokenEventArgs { Name = character, Direction = direction });
+            OnMoveToken?.Invoke(this, new MoveTokenEventArgs { TokenIndentifier = new TokenIndentifier(character), Direction = direction });
         }
 
         return Task.CompletedTask;
@@ -119,7 +118,7 @@ public class ConnectionManager : IWebHubClientEvents, IWebCommunication
     {
         if (_playerControlAllowed)
         {
-            OnToggleCondition?.Invoke(this, new ToggleConditionEventArgs { Name = character, Condition = condition});
+            OnToggleCondition?.Invoke(this, new ToggleConditionEventArgs { TokenIndentifier = new TokenIndentifier(character), Condition = condition});
         }
 
         return Task.CompletedTask;
@@ -127,7 +126,7 @@ public class ConnectionManager : IWebHubClientEvents, IWebCommunication
 
     public Task GetConditions(string character)
     {
-        OnGetConditions?.Invoke(this, new GetConditionsEventArgs { Name = character });
+        OnGetConditions?.Invoke(this, new GetConditionsEventArgs { TokenIndentifier = new TokenIndentifier(character) });
         return Task.CompletedTask;
     }
 

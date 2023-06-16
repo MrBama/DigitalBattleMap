@@ -35,7 +35,9 @@ public static class MonsterTokens
                 {
                     Name = tokenName,
                     Size = ConvertSize(monsterToken.Size),
-                    ImagePath = file
+                    ImagePath = file,
+                    Source = monsterToken.Source,
+                    Hp = monsterToken.Hp != 0 ? monsterToken.Hp : null
                 };
 
                 tokens.Add(token);
@@ -73,6 +75,7 @@ public class MonsterToken
     public string Size { get; set; } = "";
     public string TokenUrl { get; set; } = "";
     public string Source { get; set; } = "";
+    public int Hp { get; set; }
 }
 
 public class MonsterTokenData

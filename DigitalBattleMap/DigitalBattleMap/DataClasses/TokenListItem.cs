@@ -29,6 +29,16 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         LinkToTokenCommand = new RelayCommand(p => LinkToDifferentToken());
     }
 
+    public TokenListItem(Token token) : this()
+    {
+        Token = token;
+
+        if (token.Hp != null)
+        {
+            Health.InitializeEditorHp(token.Hp ?? default);
+        }
+    }
+
     public delegate void ZLevelChangedEventHandler(object sender, ZLevelChangedEventArgs e);
     public delegate void ConditionsChangedEventHandler(object sender, ConditionsChangedEventArgs e);
 
@@ -85,7 +95,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     {
         if (!Conditions.Contains(condition))
         {
-            if(condition == Condition.Death)
+            if (condition == Condition.Death)
             {
                 Conditions.Clear();
             }
@@ -196,7 +206,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
 
     private void NotifyConditionsChanged()
     {
-        OnConditionsChanged?.Invoke(this, new ConditionsChangedEventArgs { Name = Token.Name, NewConditions = Conditions });
+        OnConditionsChanged?.Invoke(this, new ConditionsChangedEventArgs { TokenIndentifier = GetTokenIndentifier(), NewConditions = Conditions });
     }
 
     private void ToggleTokenVisibility()

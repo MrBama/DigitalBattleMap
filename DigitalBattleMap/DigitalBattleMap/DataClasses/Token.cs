@@ -11,6 +11,8 @@ public class Token : PropertyHandler
     public TokenSize Size { get => Get<TokenSize>(); set => Set(value, NotifySizeChanged); }
     public string ImagePath { get; set; } = "";
     public bool PlayerControl { get => Get<bool>(); set => Set(value); }
+    public string? Source { get; set; }
+    public int? Hp { get; set; }
 
     public Token Copy()
     {
@@ -19,7 +21,9 @@ public class Token : PropertyHandler
             Name = Name,
             Size = Size,
             ImagePath = ImagePath,
-            PlayerControl = PlayerControl
+            PlayerControl = PlayerControl,
+            Source = Source,
+            Hp = Hp
         };
     }
 

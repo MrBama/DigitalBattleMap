@@ -25,12 +25,15 @@ namespace MonsterIndexer
 
             // Gather different books
             var books = new List<Book>();
-            var monsterDictionary = new Dictionary<string, string>();
+            var monsterDictionary = new Dictionary<string, MonsterInfo>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var pair in parsedJson.Split(','))
             {
                 var values = pair.Split(':');
-                books.Add(new Book { Source = values[0], Json = values[1] });
+                if (!values[0].StartsWith("UA"))
+                {
+                    books.Add(new Book { Source = values[0], Json = values[1] });
+                }
             }
 
             // Gather monsters from bestiary
@@ -40,14 +43,16 @@ namespace MonsterIndexer
                 var monsterRoot = JsonConvert.DeserializeObject<MonsterData>(json);
                 foreach (var monster in monsterRoot!.Monster)
                 {
-                    if (monster.Size.Count != 0)
-                    {
-                        monsterDictionary[monster.Name] = monster.Size.First();
-                    }
-                    else
-                    {
-                        monsterDictionary[monster.Name] = "M";
-                    }
+                    monsterDictionary[monster.Name] = new MonsterInfo(monster, book.Source);
+                }
+            }
+
+            // Gather Hp from copies
+            foreach (var monsterInfo in monsterDictionary.Values)
+            {
+                if (monsterInfo.Hp == 0 && monsterInfo.CopyName != null)
+                {
+                    monsterInfo.Hp = monsterDictionary[monsterInfo.CopyName].Hp;
                 }
             }
 
@@ -63,13 +68,17 @@ namespace MonsterIndexer
                     {
                         var source = Path.GetFileName(directory);
 
-                        data.Tokens.Add(new Token
+                        if (source == monsterDictionary[name].Source)
                         {
-                            Name = name,
-                            Size = monsterDictionary[name],
-                            Source = source,
-                            TokenUrl = $"https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/{source}/{Uri.EscapeDataString(name)}.png?raw=true"
-                        });
+                            data.Tokens.Add(new Token
+                            {
+                                Name = name,
+                                Size = monsterDictionary[name].Size,
+                                Source = monsterDictionary[name].Source,
+                                Hp = monsterDictionary[name].Hp,
+                                TokenUrl = $"https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/{source}/{Uri.EscapeDataString(name)}.png?raw=true"
+                            });
+                        }
                     }
                 }
             }
@@ -95,6 +104,21 @@ namespace MonsterIndexer
         public string Name { get; set; } = "";
         public bool HasToken { get; set; }
         public List<string> Size { get; set; } = new List<string>();
+        public Hp Hp { get; set; } = new();
+        public Copy _copy { get; set; } = new();
+    }
+
+    public class Hp
+    {
+        public int Average { get; set; }
+        public string Formula { get; set; }
+        public string Special { get; set; }
+    }
+
+    public class Copy
+    {
+        public string Name { get; set; }
+        public string Source { get; set; }
     }
 
     public class Token
@@ -103,6 +127,7 @@ namespace MonsterIndexer
         public string Size { get; set; } = "";
         public string TokenUrl { get; set; } = "";
         public string Source { get; set; } = "";
+        public int Hp { get; set; }
     }
 
     public class TokenData
@@ -119,5 +144,39 @@ namespace MonsterIndexer
         {
             Sources = Tokens.DistinctBy(t => t.Source).Select(t => t.Source).ToList();
         }
+    }
+
+    public class MonsterInfo
+    {
+        public MonsterInfo(Monster monster, string source)
+        {
+            Source = source;
+            CopyName = monster._copy.Name;
+
+            if (monster.Size.Count != 0)
+            {
+                Size = monster.Size.First();
+            }
+            else
+            {
+                Size = "M";
+            }
+
+            Hp = monster.Hp.Average;
+            if (monster.Hp.Average == 0)
+            {
+                if (int.TryParse(monster.Hp.Special, out var parsedHp))
+                {
+                    Hp = parsedHp;
+                }
+            }
+        }
+
+        public string Size { get; set; }
+        public string Source { get; set; }
+        public int Hp { get; set; }
+
+        [JsonIgnore]
+        public string CopyName { get; set; }
     }
 }

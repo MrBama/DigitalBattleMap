@@ -25,6 +25,8 @@ public class SaveFile
 
     public int GridCellsHeight { get; set; }
 
+    public Size<double> CanvasSize { get; set; } = new();
+
     public Rectangle BackgroundArea { get; set; }
 
     public List<TokenListItem> TokenList { get; set; } = new();

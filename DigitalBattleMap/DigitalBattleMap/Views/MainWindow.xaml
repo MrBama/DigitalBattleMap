@@ -98,11 +98,17 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Border BorderThickness="3" BorderBrush="Black">
-                <Grid x:Name="MapCanvas">
-                    <Image Source="{Binding BackgroundController.BackgroundBitmapSource}"/>
-                    <Image x:Name="GridLayer" Source="{Binding GridBitmapSource}" Visibility="{Binding GridVisibility}"/>
-                    <uielements:InkCanvasControl Background="{Binding DrawingController.InkCanvasBackgroundBitmapSource}" 
+            <TabControl BorderThickness="0" SelectedIndex="{Binding SelectedMapTabIndex}">
+                <TabItem>
+                    <TabItem.Header>
+                        <TextBlock Text="Map" FontSize="20" FontWeight="Bold"/>
+                    </TabItem.Header>
+
+                    <Border x:Name="MapBorder" BorderThickness="3" BorderBrush="Black">
+                        <Grid x:Name="MapCanvas">
+                            <Image Source="{Binding BackgroundController.BackgroundBitmapSource}"/>
+                            <Image x:Name="GridLayer" Source="{Binding GridBitmapSource}" Visibility="{Binding GridVisibility}"/>
+                            <uielements:InkCanvasControl Background="{Binding DrawingController.InkCanvasBackgroundBitmapSource}" 
                                             DefaultDrawingAttributes="{Binding DrawingController.InkCanvasDrawingAttributes}" 
                                             Width="{Binding ElementName=GridLayer, Path=ActualWidth}" 
                                             Height="{Binding ElementName=GridLayer, Path=ActualHeight}"
@@ -111,24 +117,34 @@
                                             Strokes="{Binding DrawingController.Strokes, Mode=TwoWay}"
                                             Visibility="{Binding InkCanvasVisibility}"
                                             Panel.ZIndex="{Binding InkCanvasZIndex}">
-                    </uielements:InkCanvasControl>
-                    <Image Source="{Binding TokenController.TokenBitmapSource}" Visibility="{Binding TokenVisibility}"/>
-                    <Image Source="{Binding TokenController.TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
-                    <Canvas Visibility="{Binding MouseInputCanvasVisibility}" Background="Transparent" Cursor="Hand">
-                        <i:Interaction.Behaviors>
-                            <uielements:MouseBehavior MouseX="{Binding MouseInputX, Mode=OneWayToSource}" MouseY="{Binding MouseInputY, Mode=OneWayToSource}"/>
-                        </i:Interaction.Behaviors>
-                        <i:Interaction.Triggers>
-                            <i:EventTrigger EventName="MouseLeftButtonDown">
-                                <i:InvokeCommandAction Command="{Binding MouseInputCanvasDownCommand}" PassEventArgsToCommand="True" />
-                            </i:EventTrigger>
-                            <i:EventTrigger EventName="MouseLeftButtonUp">
-                                <i:InvokeCommandAction Command="{Binding MouseInputCanvasUpCommand}" PassEventArgsToCommand="True" />
-                            </i:EventTrigger>
-                        </i:Interaction.Triggers>
-                    </Canvas>
-                </Grid>
-            </Border>
+                            </uielements:InkCanvasControl>
+                            <Image Source="{Binding TokenController.TokenBitmapSource}" Visibility="{Binding TokenVisibility}"/>
+                            <Image Source="{Binding TokenController.TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
+                            <Canvas Visibility="{Binding MouseInputCanvasVisibility}" Background="Transparent" Cursor="Hand">
+                                <i:Interaction.Behaviors>
+                                    <uielements:MouseBehavior MouseX="{Binding MouseInputX, Mode=OneWayToSource}" MouseY="{Binding MouseInputY, Mode=OneWayToSource}"/>
+                                </i:Interaction.Behaviors>
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="MouseLeftButtonDown">
+                                        <i:InvokeCommandAction Command="{Binding MouseInputCanvasDownCommand}" PassEventArgsToCommand="True" />
+                                    </i:EventTrigger>
+                                    <i:EventTrigger EventName="MouseLeftButtonUp">
+                                        <i:InvokeCommandAction Command="{Binding MouseInputCanvasUpCommand}" PassEventArgsToCommand="True" />
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                            </Canvas>
+                        </Grid>
+                    </Border>
+                </TabItem>
+                <TabItem>
+                    <TabItem.Header>
+                        <TextBlock Text="Statblocks" FontSize="20" FontWeight="Bold"/>
+                    </TabItem.Header>
+                    <Border BorderThickness="3" BorderBrush="Black" Width="{Binding ElementName=MapBorder, Path=ActualWidth}" Height="{Binding ElementName=MapBorder, Path=ActualHeight}">
+                        <views:StatblocksView DataContext="{Binding TokenController.StatblocksViewModel}"/>
+                    </Border>
+                </TabItem>
+            </TabControl>
 
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
@@ -140,79 +156,78 @@
                 <!--Control grid-->
                 <Border Grid.Column="1" BorderThickness="1" BorderBrush="Gray" CornerRadius="10" Margin="0 10 0 0">
                     <Grid Margin="10 10 5 10">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!--Zoom buttons grid-->
+                        <Grid Margin="0 0 10 0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="0.5*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Button x:Name="ZoomInButton" Grid.Row="1" Grid.Column="2" Margin="0 0 0 5" Command="{Binding MapZoomInCommand}" CommandParameter="Up" Width="{Binding ElementName=ZoomInButton,Path=ActualHeight}">
+                                <Image Source="{Binding MapZoomInBitmapSource}"/>
+                            </Button>
+                            <Button x:Name="ZoomOutButton" Grid.Row="2" Grid.Column="2" Margin="0 5 0 0" Command="{Binding MapZoomOutCommand}" CommandParameter="Up" Width="{Binding ElementName=ZoomOutButton,Path=ActualHeight}">
+                                <Image Source="{Binding MapZoomOutBitmapSource}"/>
+                            </Button>
+                        </Grid>
+
+                        <Border Grid.Column="1" BorderThickness="0.5" BorderBrush="Gray"/>
+
+                        <!--Map arrows grid-->
+                        <Grid Grid.Column="2" Margin="5 0 5 0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="0.5*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button x:Name="MoveUpButton" Grid.Row="1" Grid.Column="2" Margin="5 0 5 5" Command="{Binding MoveMapArrowCommand}" CommandParameter="Up" Width="{Binding ElementName=MoveUpButton,Path=ActualHeight}">
+                                <Image Source="{Binding MapArrowUpBitmapSource}"/>
+                            </Button>
+                            <Button x:Name="MoveLeftButton" Grid.Row="2" Grid.Column="1" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Left" Width="{Binding ElementName=MoveLeftButton,Path=ActualHeight}">
+                                <Image Source="{Binding MapArrowLeftBitmapSource}"/>
+                            </Button>
+                            <Button x:Name="MoveDownButton" Grid.Row="2" Grid.Column="2" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Down" Width="{Binding ElementName=MoveDownButton,Path=ActualHeight}">
+                                <Image Source="{Binding MapArrowDownBitmapSource}"/>
+                            </Button>
+                            <Button x:Name="MoveRightButton" Grid.Row="2" Grid.Column="3" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Right" Width="{Binding ElementName=MoveRightButton,Path=ActualHeight}">
+                                <Image Source="{Binding MapArrowRightBitmapSource}"/>
+                            </Button>
+                        </Grid>
+
+                        <Border Grid.Column="3" BorderThickness="0.5" BorderBrush="Gray"/>
 
                         <!--Show map grid-->
-                        <Grid>
+                        <Grid Grid.Column="4" Margin="10 0 0 0">
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
                                 <RowDefinition Height="auto"/>
                                 <RowDefinition Height="auto"/>
                             </Grid.RowDefinitions>
 
-                            <Button Content="Show map" Command="{Binding ShowMapCommand}"/>
-                            <CheckBox HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0 0 2 0" IsChecked="{Binding IsShowMapLocked}">
+                            <Button Grid.Row="1" Content="Show map" Command="{Binding ShowMapCommand}" MinWidth="150"/>
+                            <CheckBox Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0 0 2 0" IsChecked="{Binding IsShowMapLocked}">
                                 <CheckBox.LayoutTransform>
                                     <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
                                 </CheckBox.LayoutTransform>
                             </CheckBox>
-                            <Button Grid.Row="1" Content="Clear all" Margin="0 10 0 0" Command="{Binding ClearAllCommand}"/>
-                        </Grid>
-
-                        <!--Control buttons grid-->
-                        <Grid Grid.Row="1" HorizontalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto"/>
-                                <ColumnDefinition Width="auto"/>
-                                <ColumnDefinition Width="auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <!--Zoom buttons grid-->
-                            <Grid Margin="0 10 10 0">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-
-                                <Button x:Name="ZoomInButton" Grid.Column="2" Margin="0 0 0 5" Command="{Binding MapZoomInCommand}" CommandParameter="Up" Width="{Binding ElementName=ZoomInButton,Path=ActualHeight}">
-                                    <Image Source="{Binding MapZoomInBitmapSource}"/>
-                                </Button>
-                                <Button x:Name="ZoomOutButton" Grid.Row="1" Grid.Column="2" Margin="0 5 0 0" Command="{Binding MapZoomOutCommand}" CommandParameter="Up" Width="{Binding ElementName=ZoomOutButton,Path=ActualHeight}">
-                                    <Image Source="{Binding MapZoomOutBitmapSource}"/>
-                                </Button>
-                            </Grid>
-
-                            <Border Grid.Column="1" BorderThickness="0.5" BorderBrush="Gray" Margin="0 10 0 0"/>
-
-                            <!--Map arrows grid-->
-                            <Grid Grid.Column="2" Margin="5 10 0 0">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="auto"/>
-                                    <ColumnDefinition Width="auto"/>
-                                    <ColumnDefinition Width="auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Button x:Name="MoveUpButton" Grid.Column="2" Margin="5 0 5 5" Command="{Binding MoveMapArrowCommand}" CommandParameter="Up" Width="{Binding ElementName=MoveUpButton,Path=ActualHeight}">
-                                    <Image Source="{Binding MapArrowUpBitmapSource}"/>
-                                </Button>
-                                <Button x:Name="MoveLeftButton" Grid.Row="1" Grid.Column="1" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Left" Width="{Binding ElementName=MoveLeftButton,Path=ActualHeight}">
-                                    <Image Source="{Binding MapArrowLeftBitmapSource}"/>
-                                </Button>
-                                <Button x:Name="MoveDownButton" Grid.Row="1" Grid.Column="2" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Down" Width="{Binding ElementName=MoveDownButton,Path=ActualHeight}">
-                                    <Image Source="{Binding MapArrowDownBitmapSource}"/>
-                                </Button>
-                                <Button x:Name="MoveRightButton" Grid.Row="1" Grid.Column="3" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Right" Width="{Binding ElementName=MoveRightButton,Path=ActualHeight}">
-                                    <Image Source="{Binding MapArrowRightBitmapSource}"/>
-                                </Button>
-                            </Grid>
+                            <Button Grid.Row="2" Content="Clear all" Margin="0 10 0 0" Command="{Binding ClearAllCommand}"/>
                         </Grid>
                     </Grid>
                 </Border>

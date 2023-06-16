@@ -1,0 +1,44 @@
+﻿<UserControl x:Class="DigitalBattleMap.Views.StatblocksView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements" 
+             xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels" xmlns:wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             Background="White"
+             FontSize="17">
+    <UserControl.DataContext>
+        <viewmodels:StatblocksViewModel/>
+    </UserControl.DataContext>
+    <UserControl.Resources>
+        <uielements:ListViewItemSizeConverter x:Key="ListViewItemSizeConverter"/>
+    </UserControl.Resources>
+    <Grid>
+        <ListView x:Name="StatblocksListView" ItemsSource="{Binding Statblocks}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" BorderThickness="0">
+            <i:Interaction.Triggers>
+                <uielements:RoutedEventTrigger RoutedEvent="ScrollViewer.ScrollChanged">
+                    <i:InvokeCommandAction Command="{Binding ScrollChangedCommand}" PassEventArgsToCommand="True" />
+                </uielements:RoutedEventTrigger>
+            </i:Interaction.Triggers>
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"></StackPanel>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Width="{Binding ElementName=StatblocksListView, Path=ActualWidth, Converter={StaticResource ListViewItemSizeConverter}, ConverterParameter=0.5}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Label Content="{Binding Name}"/>
+                        <wpf:WebView2 Grid.Row="1" Source="{Binding Link}" Visibility="{Binding RenderVisibility}"/>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</UserControl>

@@ -1,5 +1,7 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
+using DigitalBattleMap.Views;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,8 +17,20 @@ public class DownloadWindowViewModel : ViewModelBase
     private List<Thread> _threadPool = new();
     private bool _isTerminated = false;
     private object _lock = "";
+    private IWindowService _windowService;
 
     public DownloadWindowViewModel()
+    {
+        Initialize();
+    }
+
+    public DownloadWindowViewModel(IWindowService windowService)
+    {
+        _windowService = windowService;
+        Initialize();
+    }
+
+    private void Initialize()
     {
         ProgressBarMaximum = 100;
     }
@@ -24,6 +38,7 @@ public class DownloadWindowViewModel : ViewModelBase
     protected override void InitializeCommands()
     {
         CancelCommand = new RelayCommand(p => Cancel());
+        RedownloadCommand = new RelayCommand(p => Redownload());
     }
 
     public double ProgressBarValue { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(IsOkButtonEnabled))); }
@@ -31,6 +46,7 @@ public class DownloadWindowViewModel : ViewModelBase
     public double ProgressBarMaximum { get => Get<double>(); set => Set(value); }
 
     public ICommand CancelCommand { get; set; }
+    public ICommand RedownloadCommand { get; set; }
 
     public bool IsOkButtonEnabled
     {
@@ -82,7 +98,6 @@ public class DownloadWindowViewModel : ViewModelBase
                 return;
             }
 
-
             var imagePath = Path.Combine(Constants.MonsterTokensPath, $"{tokens[i].Name}.png");
             if (!File.Exists(imagePath))
             {
@@ -114,12 +129,32 @@ public class DownloadWindowViewModel : ViewModelBase
         }
     }
 
-    public void Cancel()
+    private void Cancel()
     {
         _isTerminated = true;
         foreach (var thread in _threadPool)
         {
             thread.Join();
+        }
+    }
+
+    private void Redownload()
+    {
+        var confirmationWindowViewModel = new ConfirmationWindowViewModel
+        {
+            Content = "Are you sure you want to\nredownload all tokens?"
+        };
+        _windowService.ShowWindowDialog<ConfirmationWindow>(confirmationWindowViewModel);
+
+        if (confirmationWindowViewModel.Confirmed)
+        {
+            Cancel();
+            Directory.Delete(Constants.MonsterTokensPath, true);
+            Directory.CreateDirectory(Constants.MonsterTokensPath);
+            _threadPool.Clear();
+            ProgressBarValue = 0;
+            _isTerminated = false;
+            StartDownload();
         }
     }
 }
