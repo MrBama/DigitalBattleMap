@@ -19,12 +19,12 @@ class ClearMapMessage : IWebMessage
 
 class ConditionsMessage : IWebMessage
 {
-    public string Character { get; set; } = "";
+    public TokenIndentifier TokenIndentifier { get; set; } = new();
     public List<Condition> Conditions { get; set; } = new();
 
     public HttpRequestMessage CreateHttpRequestMessage()
     {
-        var dto = new ConditionsDto { Character = Character, Conditions = Conditions };
+        var dto = new ConditionsDto { Character = TokenIndentifier.GetCombinedString(), Conditions = Conditions };
         string json = JsonSerializer.Serialize(dto);
 
         StringContent content = new(json);
