@@ -33,8 +33,9 @@ const connection = new signalR.HubConnectionBuilder()
 
 connection.on("SetConditions", function (character, conditions) {
     let selectedCharacter = $("#character").val();
+    let characterWithId = character + "_1";
 
-    if (character.localeCompare(selectedCharacter, undefined, { sensitivity: 'accent' }) === 0) {
+    if (character.localeCompare(selectedCharacter, undefined, { sensitivity: 'accent' }) === 0 || characterWithId.localeCompare(selectedCharacter, undefined, { sensitivity: 'accent' }) === 0) {
         for (const button of conditionButtons) {
             document.getElementById(button).style.backgroundColor = '';
         }
@@ -56,6 +57,27 @@ async function start() {
 start();
 
 $(document).ready(function () {
+    let currentOrientation = $(".btn-orientation").attr('orientation');
+
+    function UpdateOrientation() {
+        if (currentOrientation == "Up") {
+            currentOrientation = "Left";
+            return "fa-arrow-circle-left";
+        }
+        else if (currentOrientation == "Left") {
+            currentOrientation = "Down";
+            return "fa-arrow-circle-down";
+        }
+        else if (currentOrientation == "Down") {
+            currentOrientation = "Right";
+            return "fa-arrow-circle-right";
+        }
+        else {
+            currentOrientation = "Up";
+            return "fa-arrow-circle-up";
+        }
+    }
+
     $(".btn-direction").click(function() {
         let character = $("#character").val();
         let direction = $(this).attr('direction');
@@ -117,5 +139,17 @@ $(document).ready(function () {
 
     $(".btn-collapsible-conditions").click(function () {
         $('.collapsible-conditions-content').toggle();
+    })   
+
+    $(".btn-orientation").click(function () {
+        // Collapse conditions
+        $('.collapsible-conditions-content').hide();
+
+        document.getElementById("btnOrientation").className = "fa fa-2x " + UpdateOrientation();
+
+        $.ajax({
+            url: "Navigation/ChangeOrientation",
+            type: "POST"
+        })
     })
 });

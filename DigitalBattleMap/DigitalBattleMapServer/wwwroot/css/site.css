@@ -100,6 +100,10 @@ body {
   height: 100px;
 }
 
+.btn-orientation {
+  height: 100px;
+}
+
 .btn-condition {
   height: 50px;
 }

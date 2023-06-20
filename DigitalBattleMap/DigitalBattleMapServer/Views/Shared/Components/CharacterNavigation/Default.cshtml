@@ -27,8 +27,8 @@
                 <button class="btn btn-secondary btn-direction" direction="@Direction.West">
                     <i class="fa fa-arrow-up direction @Direction.West.ToString()"></i>
                 </button>
-                <button class="btn btn-secondary btn-direction">
-                    <i class="fa fa-times"></i>
+                <button class="btn btn-secondary btn-orientation" orientation=@Model.Orientation>
+                    <i class="fa fa-2x @OrientationHelper.GetAwesomeFontIconByOrientation(Model.Orientation)" id="btnOrientation"></i>
                 </button>
                 <button class="btn btn-secondary btn-direction" direction="@Direction.East">
                     <i class="fa fa-arrow-up direction @Direction.East.ToString()"></i>

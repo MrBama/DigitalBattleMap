@@ -24,8 +24,20 @@ public class NavigationController : Controller
     public IActionResult Move(string character, Direction direction)
     {
         _webHub.Clients.All.MoveToken(character, direction.GetOrientatedDirection(_settings.Get().Orientation));
+        return Ok();        
+    }
+
+    [HttpPost]
+    public IActionResult ChangeOrientation()
+    {
+        var settings = _settings.Get();
+        settings.Orientation++;
+        if((int)settings.Orientation > Enum.GetValues<Orientation>().Length - 1)
+        {
+            settings.Orientation = 0;
+        }
+        _settings.Set(settings);
         return Ok();
-        
     }
 
     [HttpPost]
