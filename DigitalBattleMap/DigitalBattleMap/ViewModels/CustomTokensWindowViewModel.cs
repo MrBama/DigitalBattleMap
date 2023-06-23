@@ -4,6 +4,7 @@ using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Windows.Input;
 
@@ -11,6 +12,8 @@ namespace DigitalBattleMap.ViewModels;
 
 public class CustomTokensWindowViewModel : ViewModelBase
 {
+    private static string _tokenFilePath = Path.Combine(Constants.TempDirectoryPath, "Token.json");
+    private static string _tokenImageFilePath = Path.Combine(Constants.TempDirectoryPath, "Image.png");
     private IWindowService _windowService;
     private Settings _settings;
     private List<Token> _monsterTokens;
@@ -46,6 +49,8 @@ public class CustomTokensWindowViewModel : ViewModelBase
         EditGroupCommand = new RelayCommand(p => EditGroup());
         AddGroupTokenCommand = new RelayCommand(p => AddGroupToken());
         RemoveGroupTokenCommand = new RelayCommand(p => RemoveGroupToken());
+        ExportCommand = new RelayCommand(p => Export());
+        ImportCommand = new RelayCommand(p => Import());
     }
 
     public ObservableCollection<Token> TokenList { get; set; } = new ObservableCollection<Token>();
@@ -65,6 +70,8 @@ public class CustomTokensWindowViewModel : ViewModelBase
     public ICommand EditGroupCommand { get; set; }
     public ICommand AddGroupTokenCommand { get; set; }
     public ICommand RemoveGroupTokenCommand { get; set; }
+    public ICommand ExportCommand { get; set; }
+    public ICommand ImportCommand { get; set; }
 
     private void SaveCustomTokens()
     {
@@ -203,6 +210,44 @@ public class CustomTokensWindowViewModel : ViewModelBase
             foreach (var tokenName in orderedGroupTokens)
             {
                 GroupTokensList.Add(tokenName);
+            }
+        }
+    }
+
+    private void Export()
+    {
+        if (_windowService.ShowSaveFileDialog(out string path, SelectedToken.Name, "(*.token)|*.token"))
+        {
+            using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
+
+            FileManager.SaveFile(SelectedToken, _tokenFilePath);
+            IO.File.Copy(SelectedToken.ImagePath, _tokenImageFilePath);
+
+            if (IO.File.Exists(path))
+            {
+                IO.File.Delete(path);
+            }
+            IO.ZipFile.CreateFromDirectory(Constants.TempDirectoryPath, path);
+        }
+    }
+
+    private void Import()
+    {
+        if (_windowService.ShowOpenFileDialog(out string path, "(*.token)|*.token"))
+        {
+            using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
+            IO.ZipFile.ExtractToDirectory(path, Constants.TempDirectoryPath);
+
+            if (FileManager.OpenFile(_tokenFilePath, out Token token))
+            {
+                if (TokenList.SingleOrDefault(t => t.Name == token.Name) == null)
+                {
+                    var imagePath = Path.Combine(Constants.CustomTokensPath, $"{token.Name}.png");
+                    IO.File.Copy(_tokenImageFilePath, imagePath);
+                    token.ImagePath = imagePath;
+                    TokenList.Add(token.Copy());
+                    SaveCustomTokens();
+                }
             }
         }
     }

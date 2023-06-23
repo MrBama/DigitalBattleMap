@@ -11,10 +11,9 @@ namespace DigitalBattleMap;
 
 public class SaveFile
 {
-    private static string _tempDirectoryPath = Path.Combine(Constants.SettingsPath, "Temp");
-    private static string _saveFilePath = Path.Combine(_tempDirectoryPath, "SaveFile.json");
-    private static string _drawingFilePath = Path.Combine(_tempDirectoryPath, "Drawing.dat");
-    private static string _fullBackgrondFilePath = Path.Combine(_tempDirectoryPath, "FullBackground.png");
+    private static string _saveFilePath = Path.Combine(Constants.TempDirectoryPath, "SaveFile.json");
+    private static string _drawingFilePath = Path.Combine(Constants.TempDirectoryPath, "Drawing.dat");
+    private static string _fullBackgrondFilePath = Path.Combine(Constants.TempDirectoryPath, "FullBackground.png");
 
     public int GridSize { get; set; }
 
@@ -42,7 +41,7 @@ public class SaveFile
 
     public void Save(string path)
     {
-        using var tempDirectory = new TempDirectory(_tempDirectoryPath);
+        using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
         FileManager.SaveFile(this, _saveFilePath);
 
         using (var fileStream = new FileStream(_drawingFilePath, FileMode.Create))
@@ -54,7 +53,7 @@ public class SaveFile
 
         for (int i = 0; i < TokenList.Count; i++)
         {
-            var tokenImagePath = Path.Combine(_tempDirectoryPath, $"Token{i}.png");
+            var tokenImagePath = Path.Combine(Constants.TempDirectoryPath, $"Token{i}.png");
             TokenList[i].GetBitmap().Save(tokenImagePath);
             TokenList[i].Token.ImagePath = "";
         }
@@ -65,13 +64,13 @@ public class SaveFile
             IO.File.Delete(pathWithExtension);
         }
 
-        IO.ZipFile.CreateFromDirectory(_tempDirectoryPath, pathWithExtension);
+        IO.ZipFile.CreateFromDirectory(Constants.TempDirectoryPath, pathWithExtension);
     }
 
     public static SaveFile Open(string path)
     {
-        using var tempDirectory = new TempDirectory(_tempDirectoryPath);
-        IO.ZipFile.ExtractToDirectory(path, _tempDirectoryPath);
+        using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
+        IO.ZipFile.ExtractToDirectory(path, Constants.TempDirectoryPath);
 
         if (!FileManager.OpenFile(_saveFilePath, out SaveFile saveFile))
         {
@@ -90,35 +89,11 @@ public class SaveFile
 
         for (int i = 0; i < saveFile.TokenList.Count; i++)
         {
-            var tokenImagePath = Path.Combine(_tempDirectoryPath, $"Token{i}.png");
+            var tokenImagePath = Path.Combine(Constants.TempDirectoryPath, $"Token{i}.png");
             saveFile.TokenList[i].Token.ImagePath = tokenImagePath;
             saveFile.TokenList[i].GetBitmap();
         }
 
         return saveFile;
-    }
-
-    private class TempDirectory : IDisposable
-    {
-        private string _path;
-
-        public TempDirectory(string path)
-        {
-            _path = path;
-            if (IO.Directory.Exists(_path))
-            {
-                IO.Directory.Delete(_path, true);
-            }
-
-            IO.Directory.CreateDirectory(_path);
-        }
-
-        public void Dispose()
-        {
-            if (IO.Directory.Exists(_path))
-            {
-                IO.Directory.Delete(_path, true);
-            }
-        }
     }
 }

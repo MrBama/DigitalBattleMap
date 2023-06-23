@@ -68,6 +68,11 @@ public class File : IFile
         using var tempBitmap = new Bitmap(path);
         return new(tempBitmap);
     }
+
+    public void Copy(string sourceFileName, string destFileName)
+    {
+        System.IO.File.Copy(sourceFileName, destFileName);
+    }
 }
 
 public class ZipFile : IZipFile

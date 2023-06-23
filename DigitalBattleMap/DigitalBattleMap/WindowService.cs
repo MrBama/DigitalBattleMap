@@ -47,11 +47,12 @@ public class WindowService : IWindowService
         }
     }
 
-    public bool ShowSaveFileDialog(out string path, string filter)
+    public bool ShowSaveFileDialog(out string path, string defaultFileName, string filter)
     {
         var dialog = new Microsoft.Win32.SaveFileDialog
         {
-            Filter = filter
+            Filter = filter,
+            FileName = defaultFileName
         };
 
         var result = dialog.ShowDialog();

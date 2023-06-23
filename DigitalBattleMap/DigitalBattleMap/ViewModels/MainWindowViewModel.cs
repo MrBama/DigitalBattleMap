@@ -327,7 +327,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private void SaveMap()
     {
-        if (_windowService.ShowSaveFileDialog(out string path, "(*.dbm)|*.dbm"))
+        if (_windowService.ShowSaveFileDialog(out string path, filter: "(*.dbm)|*.dbm"))
         {
             var saveFile = new SaveFile
             {

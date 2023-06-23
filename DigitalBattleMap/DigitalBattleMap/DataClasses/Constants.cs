@@ -10,4 +10,5 @@ public static class Constants
     public static readonly string MonsterTokensPath = Path.Combine(SettingsPath, "Tokens", "Monsters");
     public static readonly string CustomTokensPath = Path.Combine(SettingsPath, "Tokens", "Custom");
     public static readonly int FeetPerGridCell = 5;
+    public static readonly string TempDirectoryPath = Path.Combine(SettingsPath, "Temp");
 }

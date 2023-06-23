@@ -18,6 +18,7 @@ public interface IFile
     public string ReadAllText(string path);
     public void WriteAllText(string path, string? contents);
     public Bitmap LoadBitmap(string path);
+    public void Copy(string sourceFileName, string destFileName);
 }
 
 public interface IZipFile
