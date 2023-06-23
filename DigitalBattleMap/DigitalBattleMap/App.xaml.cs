@@ -14,6 +14,7 @@ public partial class App : Application
 
     public App()
     {
+        IO.Initialize(new Directory(), new File(), new ZipFile());
         DigitalBattleMap.Startup.CheckForInitialStartup();
         DispatcherUnhandledException += AppDispatcherUnhandledException;
     }

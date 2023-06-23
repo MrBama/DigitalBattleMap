@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using DigitalBattleMap.Utilities;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -25,7 +26,7 @@ public static class MonsterTokens
     {
         var tokens = new List<Token>();
         var rawData = GetRawData();
-        foreach (var file in Directory.GetFiles(Constants.MonsterTokensPath))
+        foreach (var file in IO.Directory.GetFiles(Constants.MonsterTokensPath))
         {
             var tokenName = Path.GetFileNameWithoutExtension(file);
             var monsterToken = rawData.Tokens.SingleOrDefault(t => t.Name == tokenName);

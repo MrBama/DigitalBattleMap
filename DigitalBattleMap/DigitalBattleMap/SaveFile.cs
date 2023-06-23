@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.IO.Compression;
 using System.Windows.Ink;
 
 namespace DigitalBattleMap;
@@ -61,22 +60,20 @@ public class SaveFile
         }
 
         var pathWithExtension = Path.ChangeExtension(path, ".dbm");
-        if (File.Exists(pathWithExtension))
+        if (IO.File.Exists(pathWithExtension))
         {
-            File.Delete(pathWithExtension);
+            IO.File.Delete(pathWithExtension);
         }
 
-        ZipFile.CreateFromDirectory(_tempDirectoryPath, pathWithExtension);
+        IO.ZipFile.CreateFromDirectory(_tempDirectoryPath, pathWithExtension);
     }
 
     public static SaveFile Open(string path)
     {
         using var tempDirectory = new TempDirectory(_tempDirectoryPath);
-        ZipFile.ExtractToDirectory(path, _tempDirectoryPath);
+        IO.ZipFile.ExtractToDirectory(path, _tempDirectoryPath);
 
-        SaveFile saveFile;
-
-        if (!FileManager.OpenFile(_saveFilePath, out saveFile))
+        if (!FileManager.OpenFile(_saveFilePath, out SaveFile saveFile))
         {
             saveFile = new SaveFile();
         }
@@ -86,9 +83,9 @@ public class SaveFile
             saveFile.Strokes = new StrokeCollection(fileStream);
         }
 
-        if (File.Exists(_fullBackgrondFilePath))
+        if (IO.File.Exists(_fullBackgrondFilePath))
         {
-            saveFile.FullBackground = BitmapTools.LoadBitmap(_fullBackgrondFilePath);
+            saveFile.FullBackground = IO.File.LoadBitmap(_fullBackgrondFilePath);
         }
 
         for (int i = 0; i < saveFile.TokenList.Count; i++)
@@ -108,19 +105,19 @@ public class SaveFile
         public TempDirectory(string path)
         {
             _path = path;
-            if (Directory.Exists(_path))
+            if (IO.Directory.Exists(_path))
             {
-                Directory.Delete(_path, true);
+                IO.Directory.Delete(_path, true);
             }
 
-            Directory.CreateDirectory(_path);
+            IO.Directory.CreateDirectory(_path);
         }
 
         public void Dispose()
         {
-            if (Directory.Exists(_path))
+            if (IO.Directory.Exists(_path))
             {
-                Directory.Delete(_path, true);
+                IO.Directory.Delete(_path, true);
             }
         }
     }

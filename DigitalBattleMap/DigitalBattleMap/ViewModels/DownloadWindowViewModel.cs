@@ -99,7 +99,7 @@ public class DownloadWindowViewModel : ViewModelBase
             }
 
             var imagePath = Path.Combine(Constants.MonsterTokensPath, $"{tokens[i].Name}.png");
-            if (!File.Exists(imagePath))
+            if (!IO.File.Exists(imagePath))
             {
                 try
                 {
@@ -149,8 +149,8 @@ public class DownloadWindowViewModel : ViewModelBase
         if (confirmationWindowViewModel.Confirmed)
         {
             Cancel();
-            Directory.Delete(Constants.MonsterTokensPath, true);
-            Directory.CreateDirectory(Constants.MonsterTokensPath);
+            IO.Directory.Delete(Constants.MonsterTokensPath, true);
+            IO.Directory.CreateDirectory(Constants.MonsterTokensPath);
             _threadPool.Clear();
             ProgressBarValue = 0;
             _isTerminated = false;

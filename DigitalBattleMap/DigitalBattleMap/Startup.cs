@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Utilities;
 using Microsoft.Win32;
 using System;
 using System.IO;
@@ -22,11 +23,11 @@ public static class Startup
             var saveFileIconFilePath = Path.Combine(dataDirectoryPath, saveFileIconFileName);
 
             // Create token directories
-            Directory.CreateDirectory(Constants.MonsterTokensPath);
-            Directory.CreateDirectory(Constants.CustomTokensPath);
+            IO.Directory.CreateDirectory(Constants.MonsterTokensPath);
+            IO.Directory.CreateDirectory(Constants.CustomTokensPath);
 
             // Extract SaveFileIcon.ico to disk
-            Directory.CreateDirectory(dataDirectoryPath);
+            IO.Directory.CreateDirectory(dataDirectoryPath);
             using (var resource = Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.{saveFileIconFileName}"))
             {
                 using var file = new FileStream(Path.Combine(saveFileIconFilePath), FileMode.Create);

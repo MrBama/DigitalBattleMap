@@ -11,11 +11,11 @@ public static class FileManager
         string text;
         try
         {
-            text = File.ReadAllText(path);
+            text = IO.File.ReadAllText(path);
         }
         catch
         {
-            data = default(T);
+            data = default;
             return false;
         }
 
@@ -26,11 +26,11 @@ public static class FileManager
     public static void SaveFile(object data, string path)
     {
         var directory = Path.GetDirectoryName(path);
-        if (!Directory.Exists(directory))
+        if (!IO.Directory.Exists(directory))
         {
-            Directory.CreateDirectory(directory);
+            IO.Directory.CreateDirectory(directory);
         }
 
-        File.WriteAllText(path, JsonConvert.SerializeObject(data, Formatting.Indented));
+        IO.File.WriteAllText(path, JsonConvert.SerializeObject(data, Formatting.Indented));
     }
 }

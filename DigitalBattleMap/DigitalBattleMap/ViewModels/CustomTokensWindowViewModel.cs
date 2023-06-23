@@ -4,7 +4,6 @@ using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Windows.Input;
 
@@ -96,7 +95,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
 
     private void RemoveToken()
     {
-        File.Delete(SelectedToken.ImagePath);
+        IO.File.Delete(SelectedToken.ImagePath);
         TokenList.Remove(SelectedToken);
         SaveCustomTokens();
     }

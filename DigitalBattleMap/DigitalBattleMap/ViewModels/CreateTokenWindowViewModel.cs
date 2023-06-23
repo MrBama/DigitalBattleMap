@@ -32,7 +32,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
     public CreateTokenWindowViewModel(IWindowService windowService, List<string> tokenNames, Token editToken)
     {
         _windowService = windowService;
-        _tokenBitmap = BitmapTools.LoadBitmap(editToken.ImagePath);
+        _tokenBitmap = IO.File.LoadBitmap(editToken.ImagePath);
         _originalTokenImagePath = editToken.ImagePath;
         _tokenImageSelected = true;
 
@@ -69,7 +69,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
     {
         if (_windowService.ShowOpenFileDialog(out var path))
         {
-            _tokenBitmap = BitmapTools.CreateTokenBitmap(BitmapTools.LoadBitmap(path));
+            _tokenBitmap = BitmapTools.CreateTokenBitmap(IO.File.LoadBitmap(path));
             _tokenImageSelected = true;
             NotifyPropertyChange(nameof(TokenBitmapSource));
             NotifyPropertyChange(nameof(IsOkButtonEnabled));
@@ -89,9 +89,9 @@ public class CreateTokenWindowViewModel : ViewModelBase
 
     private void OkButton()
     {
-        if (File.Exists(_originalTokenImagePath))
+        if (IO.File.Exists(_originalTokenImagePath))
         {
-            File.Delete(_originalTokenImagePath);
+            IO.File.Delete(_originalTokenImagePath);
         }
 
         var imagePath = Path.Combine(Constants.CustomTokensPath, $"{TokenName}.png");

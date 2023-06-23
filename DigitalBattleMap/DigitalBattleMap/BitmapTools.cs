@@ -15,12 +15,6 @@ public static class BitmapTools
 {
     private static readonly ConditionIcons _conditionIcons = new();
 
-    public static Bitmap LoadBitmap(string path)
-    {
-        using var tempBitmap = new Bitmap(path);
-        return new(tempBitmap);
-    }
-
     public static Bitmap CreateGrid(int gridSize)
     {
         var gridBitMap = CreateEmptyBitmap();

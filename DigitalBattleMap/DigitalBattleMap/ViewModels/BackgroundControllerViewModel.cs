@@ -83,7 +83,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     {
         if (_windowService.ShowOpenFileDialog(out string path))
         {
-            _fullBackgroundBitmap = BitmapTools.LoadBitmap(path);
+            _fullBackgroundBitmap = IO.File.LoadBitmap(path);
             _area = new Rectangle(
                 (_fullBackgroundBitmap.Width / 2) - (Constants.BitmapSize.Width / 2),
                 (_fullBackgroundBitmap.Height / 2) - (Constants.BitmapSize.Height / 2),

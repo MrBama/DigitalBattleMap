@@ -80,7 +80,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     {
         if (_bitmap == null)
         {
-            _bitmap = BitmapTools.LoadBitmap(Token.ImagePath);
+            _bitmap = IO.File.LoadBitmap(Token.ImagePath);
         }
 
         return _bitmap;
