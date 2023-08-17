@@ -94,7 +94,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public bool IsShapeEditAndRemoveEnabled { get => IsShapeSelected && !_isShapeEditorActive; }
     public bool IsShapeSelectionEnabled { get => !_isShapeEditorActive; }
     public bool IsShapeDrawn { get => ShapeStroke != null; }
-    public BitmapSource InkCanvasBackgroundBitmapSource { get => BitmapTools.CreateEmptyBitmap().ToBitmapImage(); }
+    public System.Windows.Media.Brush InkCanvasBackgroundBitmapSource { get => System.Windows.Media.Brushes.Transparent; }
     public ObservableCollection<DrawingShape> Shapes { get; set; } = new ObservableCollection<DrawingShape>();
     public ICommand SelectedDrawingButtonChangedCommand { get; set; }
     public ICommand ClearDrawingCommand { get; set; }

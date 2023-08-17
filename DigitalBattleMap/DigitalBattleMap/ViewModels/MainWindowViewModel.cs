@@ -29,6 +29,8 @@ public class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel()
     {
+        // This is required to render MainWindow in editor
+        IO.Initialize(new Directory(), new File(), new ZipFile());
         Initialize();
     }
 
