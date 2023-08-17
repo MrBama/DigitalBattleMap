@@ -71,6 +71,7 @@ public class MainWindowViewModel : ViewModelBase
     public ICommand SettingsCommand { get; set; }
     public ICommand MouseInputCanvasDownCommand { get; set; }
     public ICommand MouseInputCanvasUpCommand { get; set; }
+    public ICommand MouseInputCanvasMoveCommand { get; set; }
     public ICommand MoveMapArrowCommand { get; set; }
     public ICommand SaveMapCommand { get; set; }
     public ICommand OpenMapCommand { get; set; }
@@ -120,6 +121,7 @@ public class MainWindowViewModel : ViewModelBase
         SettingsCommand = new RelayCommand(p => OpenSettings());
         MouseInputCanvasDownCommand = new RelayCommand(p => MouseDown());
         MouseInputCanvasUpCommand = new RelayCommand(p => MouseUp());
+        MouseInputCanvasMoveCommand = new RelayCommand(p => MouseMove());
         MoveMapArrowCommand = new RelayCommand(p => MoveMap((string)p));
         SaveMapCommand = new RelayCommand(p => SaveMap());
         OpenMapCommand = new RelayCommand(p => OpenMap());
@@ -315,6 +317,16 @@ public class MainWindowViewModel : ViewModelBase
         {
             case TabIndex.Background:
                 BackgroundController.MouseUp(new Point<double>(MouseInputX, MouseInputY));
+                break;
+        }
+    }
+
+    public void MouseMove()
+    {
+        switch (SelectedTabIndex)
+        {
+            case TabIndex.Background:
+                BackgroundController.MouseMove(new Point<double>(MouseInputX, MouseInputY));
                 break;
         }
     }

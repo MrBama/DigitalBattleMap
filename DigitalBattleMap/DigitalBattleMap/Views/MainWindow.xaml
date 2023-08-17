@@ -131,7 +131,16 @@
                                     <i:EventTrigger EventName="MouseLeftButtonUp">
                                         <i:InvokeCommandAction Command="{Binding MouseInputCanvasUpCommand}" PassEventArgsToCommand="True" />
                                     </i:EventTrigger>
+                                    <i:EventTrigger EventName="MouseMove">
+                                        <i:InvokeCommandAction Command="{Binding MouseInputCanvasMoveCommand}" PassEventArgsToCommand="True" />
+                                    </i:EventTrigger>
                                 </i:Interaction.Triggers>
+                                <Rectangle 
+                                    Width="{Binding BackgroundController.RectangleWidth}" 
+                                    Height="{Binding BackgroundController.RectangleHeight}" 
+                                    Canvas.Left="{Binding BackgroundController.CanvasX}" 
+                                    Canvas.Top="{Binding BackgroundController.CanvasY}" 
+                                    Fill="Red" />
                             </Canvas>
                         </Grid>
                     </Border>
