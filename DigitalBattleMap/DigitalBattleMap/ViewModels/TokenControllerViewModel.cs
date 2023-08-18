@@ -257,25 +257,26 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    public override void Move(ArrowDirection direction)
+    public override void Move(ArrowDirection direction, int movementCount)
     {
         lock (_lock)
         {
+            var distance = _gridSize * movementCount;
             foreach (var tokenListItem in TokenList)
             {
                 switch (direction)
                 {
                     case ArrowDirection.Up:
-                        tokenListItem.Position.Y += _gridSize;
+                        tokenListItem.Position.Y += distance;
                         break;
                     case ArrowDirection.Down:
-                        tokenListItem.Position.Y -= _gridSize;
+                        tokenListItem.Position.Y -= distance;
                         break;
                     case ArrowDirection.Left:
-                        tokenListItem.Position.X += _gridSize;
+                        tokenListItem.Position.X += distance;
                         break;
                     case ArrowDirection.Right:
-                        tokenListItem.Position.X -= _gridSize;
+                        tokenListItem.Position.X -= distance;
                         break;
                 }
             }

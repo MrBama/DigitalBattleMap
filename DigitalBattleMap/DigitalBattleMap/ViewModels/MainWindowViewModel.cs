@@ -4,6 +4,7 @@ using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Input;
@@ -19,6 +20,7 @@ public class MainWindowViewModel : ViewModelBase
     private Settings _settings;
     private ConnectionManager _connectionManager;
     private Size<double> _canvasSize;
+    private ArrowDirection _moveArrowDirection;
 
     public MainWindowViewModel(IWindowService windowService)
     {
@@ -38,10 +40,12 @@ public class MainWindowViewModel : ViewModelBase
     public int SelectedMapTabIndex { get => Get<int>(); set => Set(value); }
     public int GridSize { get => Get<int>(); set => Set(value); }
     public int InkCanvasZIndex { get => Get<int>(); set => Set(value); }
+    public int MultiMoveCount { get => Get<int>(); set => Set(value); }
     public bool IsGridShown { get => Get<bool>(); set => Set(value, GridShownChanged); }
     public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, IsShowMapLockedChanged); }
     public bool ServerConnectionButtonEnabled { get => Get<bool>(); set => Set(value); }
     public bool IsConfigurationMenuExpanded { get => Get<bool>(); set => Set(value); }
+    public bool IsMultiMove { get => Get<bool>(); set => Set(value); }
     public string ServerConnectionButtonText { get => Get<string>(); set => Set(value); }
     public string ServerConnectionStatus { get => Get<string>(); set => Set(value); }
     public Visibility GridVisibility { get => Get<Visibility>(); set => Set(value); }
@@ -78,6 +82,8 @@ public class MainWindowViewModel : ViewModelBase
     public ICommand MapZoomInCommand { get; set; }
     public ICommand MapZoomOutCommand { get; set; }
     public ICommand HideConfigurationCommand { get; set; }
+    public ICommand KeyDownCommand { get; set; }
+    public ICommand KeyUpCommand { get; set; }
 
     public void Initialize()
     {
@@ -127,6 +133,8 @@ public class MainWindowViewModel : ViewModelBase
         MapZoomInCommand = new RelayCommand(p => Zoom(GridSize + 10));
         MapZoomOutCommand = new RelayCommand(p => Zoom(GridSize - 10));
         HideConfigurationCommand = new RelayCommand(p => { IsConfigurationMenuExpanded = false; });
+        KeyDownCommand = new RelayCommand(p => KeyDown((KeyEventArgs)p));
+        KeyUpCommand = new RelayCommand(p => KeyUp((KeyEventArgs)p));
     }
 
     private void OnBackgroundUpdated(object? sender, EventArgs e)
@@ -322,9 +330,17 @@ public class MainWindowViewModel : ViewModelBase
     private void MoveMap(string direction)
     {
         var arrowDirection = Enum.Parse<ArrowDirection>(direction);
-        BackgroundController.Move(arrowDirection);
-        DrawingController.Move(arrowDirection); 
-        TokenController.Move(arrowDirection);
+        if (!IsMultiMove)
+        {
+            BackgroundController.Move(arrowDirection, 1);
+            DrawingController.Move(arrowDirection, 1);
+            TokenController.Move(arrowDirection, 1);
+        }
+        else
+        {
+            _moveArrowDirection = arrowDirection;
+            MultiMoveCount++;
+        }
     }
 
     private void SaveMap()
@@ -370,13 +386,14 @@ public class MainWindowViewModel : ViewModelBase
 
     private void Zoom(double newGridSize)
     {
+        var gridSize = Math.Max(newGridSize, Constants.MinimalZoomGridSize);
         var currentIsShowMapLocked = IsShowMapLocked;
         IsShowMapLocked = false;
-        var zoomFactor = newGridSize / GridSize;
+        var zoomFactor = gridSize / GridSize;
 
         BackgroundController.Zoom(zoomFactor);
 
-        GridSize = (int)newGridSize;
+        GridSize = (int)gridSize;
         GridSizeChanged();
 
         DrawingController.Zoom(zoomFactor);
@@ -430,5 +447,25 @@ public class MainWindowViewModel : ViewModelBase
     {
         _connectionManager?.UpdatePlayerControlAllowed(IsShowMapLocked);
         UpdateMap(DrawLayer.All);
+    }
+
+    private void KeyDown(KeyEventArgs keyEventArgs)
+    {
+        if(keyEventArgs.Key == Key.LeftShift && !IsMultiMove)
+        {
+            IsMultiMove = true;
+            MultiMoveCount = 0;
+        }
+    }
+
+    private void KeyUp(KeyEventArgs keyEventArgs)
+    {
+        if (keyEventArgs.Key == Key.LeftShift && IsMultiMove)
+        {
+            IsMultiMove = false;
+            BackgroundController.Move(_moveArrowDirection, MultiMoveCount);
+            DrawingController.Move(_moveArrowDirection, MultiMoveCount);
+            TokenController.Move(_moveArrowDirection, MultiMoveCount);
+        }
     }
 }

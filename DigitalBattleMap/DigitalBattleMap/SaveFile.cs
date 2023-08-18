@@ -23,6 +23,8 @@ public class SaveFile
 
     public int GridCellsHeight { get; set; }
 
+    public int BackgroundFeetPerGridCell { get; set; }
+
     public Size<double> CanvasSize { get; set; } = new();
 
     public Rectangle BackgroundArea { get; set; }

@@ -18,6 +18,9 @@
     <Window.DataContext>
         <viewmodels:MainWindowViewModel/>
     </Window.DataContext>
+    <Window.Resources>
+        <uielements:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Window.Resources>
 
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closing">
@@ -25,6 +28,12 @@
         </i:EventTrigger>
         <i:EventTrigger EventName="ContentRendered">
             <i:InvokeCommandAction Command="{Binding InkCanvasSizeOnStartupCommand}" CommandParameter="{Binding ElementName=MapCanvas, Path=ActualWidth}"/>
+        </i:EventTrigger>
+        <i:EventTrigger EventName="KeyDown">
+            <i:InvokeCommandAction Command="{Binding KeyDownCommand}" PassEventArgsToCommand="True"/>
+        </i:EventTrigger>
+        <i:EventTrigger EventName="KeyUp">
+            <i:InvokeCommandAction Command="{Binding KeyUpCommand}" PassEventArgsToCommand="True"/>
         </i:EventTrigger>
     </i:Interaction.Triggers>
 
@@ -63,7 +72,7 @@
                         </Grid.ColumnDefinitions>
 
                         <Label Content="Grid size in pixels"/>
-                        <TextBox Grid.Column="1" Text="{Binding GridSize, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center">
+                        <TextBox Grid.Column="1" Text="{Binding GridSize, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center">
                             <TextBox.InputBindings>
                                 <KeyBinding Command="{Binding GridSizeEnterCommand}" Key="Enter" />
                             </TextBox.InputBindings>
@@ -197,6 +206,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
+                            <Label Grid.Row="1" Grid.Column="1" Content="{Binding MultiMoveCount}" Visibility="{Binding IsMultiMove, Converter={StaticResource BoolToVisibilityConverter}}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="30"/>
                             <Button x:Name="MoveUpButton" Grid.Row="1" Grid.Column="2" Margin="5 0 5 5" Command="{Binding MoveMapArrowCommand}" CommandParameter="Up" Width="{Binding ElementName=MoveUpButton,Path=ActualHeight}">
                                 <Image Source="{Binding MapArrowUpBitmapSource}"/>
                             </Button>
