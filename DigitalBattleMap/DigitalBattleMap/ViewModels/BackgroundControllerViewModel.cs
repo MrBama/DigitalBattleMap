@@ -41,6 +41,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         BackgroundZoomPercentage = 10;
         GridCellsWidth = 10;
         GridCellsHeight = 10;
+        FeetPerGridCell = Constants.FeetPerGridCell;
     }
 
     protected override void InitializeCommands()
@@ -57,6 +58,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public bool HasOpenedBackground { get => Get<bool>(); set => Set(value); }
     public int GridCellsWidth { get => Get<int>(); set => Set(value); }
     public int GridCellsHeight { get => Get<int>(); set => Set(value); }
+    public int FeetPerGridCell { get => Get<int>(); set => Set(value); }
     public double BackgroundZoomPercentage { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(BackgroundZoomPercentageLabel))); }
     public BitmapSource BackgroundBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public string BackgroundZoomPercentageLabel { get => $"{BackgroundZoomPercentage}%"; }
@@ -98,6 +100,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
             BackgroundBitmap = BitmapTools.CropBitmap(_fullBackgroundBitmap, _area);
             ExtractGridCells(Path.GetFileNameWithoutExtension(path));
+            FeetPerGridCell = Constants.FeetPerGridCell;
             HasOpenedBackground = true;
             NotifyBackgroundUpdated();
         }
@@ -109,6 +112,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         BackgroundBitmap = BitmapTools.CreateEmptyBitmap();
         GridCellsWidth = 10;
         GridCellsHeight = 10;
+        FeetPerGridCell = Constants.FeetPerGridCell;
         HasOpenedBackground = false;
         NotifyBackgroundUpdated();
     }
@@ -175,11 +179,11 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         _area.Height = (int)Math.Round(newHeight);
     }
 
-    public override void Move(ArrowDirection direction)
+    public override void Move(ArrowDirection direction, int movementCount)
     {
         if (_fullBackgroundBitmap != null)
         {
-            double preciseGridSize = _gridSize;
+            double preciseGridSize = _gridSize * movementCount;
             var distanceX = (int)Math.Round(preciseGridSize.Map(0, Constants.BitmapSize.Width, 0, _area.Width));
             var distanceY = (int)Math.Round(preciseGridSize.Map(0, Constants.BitmapSize.Height, 0, _area.Height));
 
@@ -205,12 +209,19 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     public void FitToGrid(int gridSize)
     {
-        // Resize background to match grid size
-        var newSize = new Size<double>(gridSize * GridCellsWidth, gridSize * GridCellsHeight);
-        double factor = _fullBackgroundBitmap.Width / newSize.Width;
+        // A background grid cell can have a gridsize of can be multiple gridcells
+        // E.g. background grid cell might equal 10 ft
+        var gridCellsPerBackgroundGridCell = Math.Round((double)FeetPerGridCell / Constants.FeetPerGridCell);
+        gridCellsPerBackgroundGridCell = Math.Max(gridCellsPerBackgroundGridCell, 1);
 
-        _area.Width = (int)Math.Round(Constants.BitmapSize.Width * factor);
-        _area.Height = (int)Math.Round(Constants.BitmapSize.Height * factor);
+        // Resize background to match grid size
+        var newSize = new Size<double>(gridSize * gridCellsPerBackgroundGridCell * GridCellsWidth, gridSize * gridCellsPerBackgroundGridCell * GridCellsHeight);
+        double factor = _fullBackgroundBitmap.Width / newSize.Width;
+        var newAreaSize = new Size<double>(Math.Round(Constants.BitmapSize.Width * factor), Math.Round(Constants.BitmapSize.Height * factor));
+        _area.X += (int)Math.Round((_area.Width - newAreaSize.Width) / 2);
+        _area.Y += (int)Math.Round((_area.Height - newAreaSize.Height) / 2);
+        _area.Width = (int)Math.Round(newAreaSize.Width);
+        _area.Height = (int)Math.Round(newAreaSize.Height);
 
         // Move background grid to 0,0
         double backgroundGridSize = _fullBackgroundBitmap.Width / GridCellsWidth;
@@ -231,6 +242,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         saveFile.BackgroundArea = _area;
         saveFile.GridCellsWidth = GridCellsWidth;
         saveFile.GridCellsHeight = GridCellsHeight;
+        saveFile.BackgroundFeetPerGridCell = FeetPerGridCell;
     }
 
     public override void OpenSaveFile(SaveFile saveFile)
@@ -239,6 +251,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
         GridCellsWidth = saveFile.GridCellsWidth;
         GridCellsHeight = saveFile.GridCellsHeight;
+        FeetPerGridCell = saveFile.BackgroundFeetPerGridCell;
 
         if (saveFile.FullBackground != null)
         {

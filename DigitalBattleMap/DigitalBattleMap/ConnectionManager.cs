@@ -70,7 +70,6 @@ public class ConnectionManager : IWebHubClientEvents, IWebCommunication
 
             _isConnected = true;
             _thread = new Thread(SendMessages);
-            _thread.Name = "hoi";
             _thread.Start();
             OnConnected?.Invoke(this, EventArgs.Empty);
         });

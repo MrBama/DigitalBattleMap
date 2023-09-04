@@ -123,10 +123,10 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         ChangeDrawingButton(drawingButton);
     }
 
-    public override void Move(ArrowDirection direction)
+    public override void Move(ArrowDirection direction, int movementCount)
     {
         var matrix = new System.Windows.Media.Matrix();
-        double gridSize = _gridSize;
+        double gridSize = _gridSize * movementCount;
         var distanceX = gridSize.Map(0, Constants.BitmapSize.Width, 0, _canvasSize.Width);
         var distanceY = gridSize.Map(0, Constants.BitmapSize.Height, 0, _canvasSize.Height);
 
