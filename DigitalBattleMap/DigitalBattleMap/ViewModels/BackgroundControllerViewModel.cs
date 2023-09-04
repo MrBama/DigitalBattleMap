@@ -17,6 +17,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     private Bitmap _fullBackgroundBitmap;
     private Rectangle _area;
     private IWindowService _windowService;
+    private IMouseCanvas _mouseCanvas;
     private Point<double> _mouseDownPosition;
     private bool _mouseDown;
 
@@ -25,9 +26,12 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         Initialize();
     }
 
-    public BackgroundControllerViewModel(IWindowService windowService, int gridSize) : base(gridSize)
+    public BackgroundControllerViewModel(IWindowService windowService, IMouseCanvas mouseCanvas, int gridSize) : base(gridSize)
     {
         _windowService = windowService;
+        _mouseCanvas = mouseCanvas;
+        _mouseCanvas.SubscribeMouseDown(TabIndex.Background, MouseDown);
+        _mouseCanvas.SubscribeMouseUp(TabIndex.Background, MouseUp);
         Initialize();
     }
 
@@ -109,85 +113,29 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         NotifyBackgroundUpdated();
     }
 
-    public void MouseDown(Point<double> point)
+    private void MouseDown(Point<double> point)
     {
         _mouseDownPosition = point;
         _mouseDown = true;
-        CanvasX = point.X;
-        CanvasY = point.Y;
     }
 
-    public double RectangleWidth { get => Get<double>(); set => Set(value); }
-    public double RectangleHeight { get => Get<double>(); set => Set(value); }
-    public double CanvasX { get => Get<double>(); set => Set(value); }
-    public double CanvasY { get => Get<double>(); set => Set(value); }
-
-
-    public void MouseMove(Point<double> point)
+    private void MouseUp(Point<double> point)
     {
-        if(_mouseDown)
+        if (_fullBackgroundBitmap != null && _mouseDown)
         {
-            //var point1 = new Point<double>(_mouseDownPosition.X.Map(0, _canvasSize.Width, 0, BackgroundBitmap.Width), _mouseDownPosition.Y.Map(0, _canvasSize.Height, 0, BackgroundBitmap.Height));
-            //var point2 = new Point<double>(point.X.Map(0, _canvasSize.Width, 0, BackgroundBitmap.Width), point.Y.Map(0, _canvasSize.Height, 0, BackgroundBitmap.Height));
+            var distanceX = _mouseDownPosition.X - point.X;
+            distanceX = distanceX.Map(0, _canvasSize.Width, 0, _area.Width);
+            _area.X += (int)distanceX;
 
-            
+            var distanceY = _mouseDownPosition.Y - point.Y;
+            distanceY = distanceY.Map(0, _canvasSize.Width, 0, _area.Width);
+            _area.Y += (int)distanceY;
 
-
-
-            var distanceX = point.X - _mouseDownPosition.X;
-            var distanceY = point.Y - _mouseDownPosition.Y;
-
-            RectangleWidth = distanceX;
-            RectangleHeight = distanceY;
-
-            if (point.X < _mouseDownPosition.X)
-            {
-                CanvasX = point.X;
-                RectangleWidth *= -1;
-            }
-
-            if (point.Y < _mouseDownPosition.Y)
-            {
-                CanvasY = point.Y;
-                RectangleHeight *= -1;
-            }
-            // Add clipping
-
-
-
-            //var bitmap = BitmapTools.CreateEmptyBitmap();
-            //using (Graphics graphics = Graphics.FromImage(bitmap))
-            //{
-            //    using (SolidBrush myBrush = new SolidBrush(System.Drawing.Color.Red))
-            //    {
-            //        graphics.FillRectangle(myBrush, new Rectangle((int)point1.X, (int)point1.Y, (int)distanceX, (int)distanceY));
-
-            //    }
-            //}
-            //BackgroundBitmap = bitmap;
-            //NotifyBackgroundUpdated();
-            //Thread.Sleep(10);
+            CreateBackground();
         }
     }
 
-    public void MouseUp(Point<double> point)
-    {
-        //if (_fullBackgroundBitmap != null && _mouseDown)
-        //{
-        //    var distanceX = _mouseDownPosition.X - point.X;
-        //    distanceX = distanceX.Map(0, _canvasSize.Width, 0, _area.Width);
-        //    _area.X += (int)distanceX;
-
-        //    var distanceY = _mouseDownPosition.Y - point.Y;
-        //    distanceY = distanceY.Map(0, _canvasSize.Width, 0, _area.Width);
-        //    _area.Y += (int)distanceY;
-
-        //    CreateBackground();
-        //}
-        _mouseDown = false;
-    }
-
-    public void ZoomIn(double zoomPercentage)
+    private void ZoomIn(double zoomPercentage)
     {
         if (_fullBackgroundBitmap != null)
         {

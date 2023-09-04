@@ -120,26 +120,27 @@
                             </uielements:InkCanvasControl>
                             <Image Source="{Binding TokenController.TokenBitmapSource}" Visibility="{Binding TokenVisibility}"/>
                             <Image Source="{Binding TokenController.TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
+                            <Image Source="{Binding FogOfWarBitmapSource}" Opacity="0.5"/>
                             <Canvas Visibility="{Binding MouseInputCanvasVisibility}" Background="Transparent" Cursor="Hand">
                                 <i:Interaction.Behaviors>
-                                    <uielements:MouseBehavior MouseX="{Binding MouseInputX, Mode=OneWayToSource}" MouseY="{Binding MouseInputY, Mode=OneWayToSource}"/>
+                                    <uielements:MouseBehavior MouseX="{Binding MouseCanvas.MouseX, Mode=OneWayToSource}" MouseY="{Binding MouseCanvas.MouseY, Mode=OneWayToSource}"/>
                                 </i:Interaction.Behaviors>
                                 <i:Interaction.Triggers>
                                     <i:EventTrigger EventName="MouseLeftButtonDown">
-                                        <i:InvokeCommandAction Command="{Binding MouseInputCanvasDownCommand}" PassEventArgsToCommand="True" />
+                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.MouseDownCommand}" />
                                     </i:EventTrigger>
                                     <i:EventTrigger EventName="MouseLeftButtonUp">
-                                        <i:InvokeCommandAction Command="{Binding MouseInputCanvasUpCommand}" PassEventArgsToCommand="True" />
+                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.MouseUpCommand}" />
                                     </i:EventTrigger>
                                     <i:EventTrigger EventName="MouseMove">
-                                        <i:InvokeCommandAction Command="{Binding MouseInputCanvasMoveCommand}" PassEventArgsToCommand="True" />
+                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.MouseMoveCommand}" IsEnabled="{Binding MouseCanvas.SelectionVisible}" />
                                     </i:EventTrigger>
                                 </i:Interaction.Triggers>
                                 <Rectangle 
-                                    Width="{Binding BackgroundController.RectangleWidth}" 
-                                    Height="{Binding BackgroundController.RectangleHeight}" 
-                                    Canvas.Left="{Binding BackgroundController.CanvasX}" 
-                                    Canvas.Top="{Binding BackgroundController.CanvasY}" 
+                                    Width="{Binding MouseCanvas.SelectionWidth}" 
+                                    Height="{Binding MouseCanvas.SelectionHeight}" 
+                                    Canvas.Left="{Binding MouseCanvas.SelectionX}" 
+                                    Canvas.Top="{Binding MouseCanvas.SelectionY}"
                                     Fill="Red" />
                             </Canvas>
                         </Grid>

@@ -46,3 +46,9 @@ public enum DrawingShapeType
     Square,
     Circle
 }
+
+public enum MouseCanvasMode
+{
+    Click,
+    Selection
+}

@@ -18,6 +18,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 {
     private IWindowService _windowService;
     private IWebCommunication _webCommunication;
+    private IMouseCanvas _mouseCanvas;
     private Bitmap _tokenBitmap;
     private List<Token> _monsterTokens = new();
     private Settings _settings;
@@ -28,13 +29,15 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         Initialize();
     }
 
-    public TokenControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, Settings settings, int gridSize) : base(gridSize)
+    public TokenControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, IMouseCanvas mouseCanvas, Settings settings, int gridSize) : base(gridSize)
     {
         _windowService = windowService;
         _webCommunication = webCommunication;
+        _mouseCanvas = mouseCanvas;
         _webCommunication.OnMoveToken += MoveToken;
         _webCommunication.OnToggleCondition += ToggleCondition;
         _webCommunication.OnGetConditions += GetConditions;
+        _mouseCanvas.SubscribeMouseDown(TabIndex.Tokens, MouseDown);
         _settings = settings;
         Initialize();
     }
@@ -218,7 +221,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    public void MouseDown(Point<double> point)
+    private void MouseDown(Point<double> point)
     {
         lock (_lock)
         {
