@@ -1,6 +1,7 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Utilities;
+using Microsoft.Web.WebView2.Core;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -230,6 +231,32 @@ public static class BitmapTools
         var startY = yModulo == 0 ? 0 : yModulo;
 
         return new(startX, startY);
+    }
+
+    public static Bitmap CreateFogOfWarBitmap(Rectangle area, List<Rectangle> removedAreas)
+    {
+        var bitmap = new Bitmap(area.Width, area.Height);
+
+        using (var graphics = Graphics.FromImage(bitmap))
+        {
+            var imageSize = new Rectangle(0, 0, area.Width, area.Height);
+            graphics.FillRectangle(Brushes.Black, imageSize);
+
+            if(removedAreas.Count > 0)
+            {
+                // Image is 0 based while area is not
+                var rectangles = new List<Rectangle>();
+                foreach (var rectangle in removedAreas)
+                {
+                    rectangles.Add(new Rectangle(rectangle.X - area.X, rectangle.Y - area.Y, rectangle.Width, rectangle.Height));
+                }
+
+                graphics.FillRectangles(Brushes.White, rectangles.ToArray());
+                bitmap.MakeTransparent(Color.White);
+            }        
+
+            return bitmap;
+        }
     }
 
     private static bool IsTokenVisible(Point<int> drawingPosition, int gridSize)

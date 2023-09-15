@@ -172,7 +172,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             case DrawLayer.All:
                 var gridAndTokenBitmapAll = CreateGridAndDrawingBitmap();
-                _mapWindowViewModel.BackgroundBitmapSource = BackgroundController.BackgroundBitmapSource;
+                _mapWindowViewModel.BackgroundBitmapSource = BackgroundController.GetBackGroundBitmapSource();
                 _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
                 _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
                 _connectionManager.SendMapUpdate(new MapUpdate{ Layer = DrawLayer.Background, Bitmap = new Bitmap(BackgroundController.GetBackgroundBitmap()) });
@@ -180,7 +180,7 @@ public class MainWindowViewModel : ViewModelBase
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
                 break;
             case DrawLayer.Background:
-                _mapWindowViewModel.BackgroundBitmapSource = BackgroundController.BackgroundBitmapSource;
+                _mapWindowViewModel.BackgroundBitmapSource = BackgroundController.GetBackGroundBitmapSource();
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(BackgroundController.GetBackgroundBitmap()) });
                 break;
             case DrawLayer.GridAndStrokes:
@@ -360,43 +360,21 @@ public class MainWindowViewModel : ViewModelBase
 
     private void Zoom(double newGridSize)
     {
-        // var gridSize = Math.Max(newGridSize, Constants.MinimalZoomGridSize);
-        // var currentIsShowMapLocked = IsShowMapLocked;
-        // IsShowMapLocked = false;
-        // var zoomFactor = gridSize / GridSize;
+        var gridSize = Math.Max(newGridSize, Constants.MinimalZoomGridSize);
+        var currentIsShowMapLocked = IsShowMapLocked;
+        IsShowMapLocked = false;
+        var zoomFactor = gridSize / GridSize;
 
-        //BackgroundController.Zoom(zoomFactor);
+        BackgroundController.Zoom(zoomFactor);
 
-        // GridSize = (int)gridSize;
-        // GridSizeChanged();
+        GridSize = (int)gridSize;
+        GridSizeChanged();
 
-        //DrawingController.Zoom(zoomFactor);
-        //TokenController.Zoom(zoomFactor);
+        DrawingController.Zoom(zoomFactor);
+        TokenController.Zoom(zoomFactor);
 
-        //IsShowMapLocked = currentIsShowMapLocked;
-
-        //var bitmap = new Bitmap(Constants.BitmapSize.Width, Constants.BitmapSize.Height);
-        //bitmap.MakeTransparent();
-        //using (Graphics graph = Graphics.FromImage(bitmap))
-        //{
-        //    var imageSize = new Rectangle(0, 0, Constants.BitmapSize.Width, Constants.BitmapSize.Height);
-        //    graph.FillRectangle(Brushes.Black, imageSize);
-
-        //    var rect = new Rectangle(50, 50, 100, 100);
-        //    var rect1 = new Rectangle(500, 500, 100, 100);
-        //    var rect2 = new Rectangle(2000, 500, 1000, 100);
-        //    var rects = new Rectangle[]{rect, rect1, rect2 };
-        //    //graph.FillRectangle(Brushes.White, rect);
-        //    graph.FillRectangles(Brushes.White, rects);
-        //}
-
-        ////bitmap.MakeTransparent(Color.White);
-        //bitmap.Save(@"C:\Git\DigitalBattleMap\DigitalBattleMap\test.bmp");
-
-        //FogOfWarBitmapSource = bitmap.ToBitmapImage();
-        MouseCanvas.SetMode(MouseCanvasMode.Selection);
+        IsShowMapLocked = currentIsShowMapLocked;
     }
-    public BitmapSource FogOfWarBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
 
     private void UpdateMap(DrawLayer layer)
     {

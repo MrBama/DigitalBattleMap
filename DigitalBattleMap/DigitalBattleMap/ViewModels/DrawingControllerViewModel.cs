@@ -20,7 +20,6 @@ namespace DigitalBattleMap.ViewModels;
 public class DrawingControllerViewModel : ControllerViewModelBase
 {
     private DrawingButton _selectedDrawingButton = DrawingButton.Black;
-    private bool _isShapeEditorActive;
     private Stroke _shapeStroke;
     private ITokenLinker _tokenLinker;
     private bool _disableSelectionAnimation;
@@ -53,8 +52,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         EraserShape = new EllipseStylusShape(PenSize, PenSize);
         ShapeSize = 10;
         SquareShapeSelected = true;
-        CancelShapeButtonVisibility = Visibility.Hidden;
-        ApplyShapeButtonVisibility = Visibility.Hidden;
         Strokes = new StrokeCollection();
         Strokes.StrokesChanged += OnStrokesChanged;
     }
@@ -81,19 +78,15 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public DrawingShape SelectedShape { get => Get<DrawingShape>(); set => Set(value, SelectedShapeChanged); }
     public InkCanvasEditingMode EditingMode { get => Get<InkCanvasEditingMode>(); set => Set(value); }
     public StylusShape EraserShape { get => Get<StylusShape>(); set => Set(value); }
-    public Visibility DrawShapeButtonVisibility { get => Get<Visibility>(); set => Set(value); }
-    public Visibility CancelShapeButtonVisibility { get => Get<Visibility>(); set => Set(value); }
-    public Visibility ApplyShapeButtonVisibility { get => Get<Visibility>(); set => Set(value); }
     public double PenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100), PenSizeChanged); }
     public bool IsSnapToGridEnabled { get => Get<bool>(); set => Set(value); }
     public int ShapeSize { get => Get<int>(); set => Set(value); }
     public bool SquareShapeSelected { get => Get<bool>(); set => Set(value); }
     public bool CircleShapeSelected { get => Get<bool>(); set => Set(value); }
     public StrokeCollection Strokes { get => Get<StrokeCollection>(); set => Set(value); }
-    public bool IsShapeSelected { get => SelectedShape != null; }
-    public bool IsShapeEditAndRemoveEnabled { get => IsShapeSelected && !_isShapeEditorActive; }
-    public bool IsShapeSelectionEnabled { get => !_isShapeEditorActive; }
+    public bool IsShapeEditAndRemoveEnabled { get => SelectedShape != null && !IsShapeEditorActive; }
     public bool IsShapeDrawn { get => ShapeStroke != null; }
+    public bool IsShapeEditorActive { get => Get<bool>(); set => Set(value); }
     public System.Windows.Media.Brush InkCanvasBackgroundBitmapSource { get => System.Windows.Media.Brushes.Transparent; }
     public ObservableCollection<DrawingShape> Shapes { get; set; } = new ObservableCollection<DrawingShape>();
     public ICommand SelectedDrawingButtonChangedCommand { get; set; }
@@ -333,23 +326,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void ActivateShapeEditor(bool activate)
     {
-        _isShapeEditorActive = activate;
-
-        if (_isShapeEditorActive)
-        {
-            DrawShapeButtonVisibility = Visibility.Hidden;
-            CancelShapeButtonVisibility = Visibility.Visible;
-            ApplyShapeButtonVisibility = Visibility.Visible;
-        }
-        else
-        {
-            DrawShapeButtonVisibility = Visibility.Visible;
-            CancelShapeButtonVisibility = Visibility.Hidden;
-            ApplyShapeButtonVisibility = Visibility.Hidden;
-        }
-
+        IsShapeEditorActive = activate;
         NotifyPropertyChange(nameof(IsShapeEditAndRemoveEnabled));
-        NotifyPropertyChange(nameof(IsShapeSelectionEnabled));
     }
 
     private void ChangeDrawingButton(DrawingButton drawingButton)
@@ -425,7 +403,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void OnStrokesChanged(object sender, StrokeCollectionChangedEventArgs e)
     {
-        if (_isShapeEditorActive)
+        if (IsShapeEditorActive)
         {
             if (e.Added.Count > 0)
             {
@@ -437,7 +415,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             SnapToGrid(e.Added);
         }
 
-        if (!_isShapeEditorActive)
+        if (!IsShapeEditorActive)
         {
             PreventErasingShape(e.Removed, e.Added);
         }
@@ -593,7 +571,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             ShowShapeSelection();
         }
 
-        NotifyPropertyChange(nameof(IsShapeSelected));
         NotifyPropertyChange(nameof(IsShapeEditAndRemoveEnabled));
     }
 

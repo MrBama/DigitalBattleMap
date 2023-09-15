@@ -3,9 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DigitalBattleMap.Views" 
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels"
+        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels" 
+        xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements"
         mc:Ignorable="d"
         Title="CustomTokensWindow" Height="500" Width="800"
         FontSize="17"
@@ -13,7 +13,10 @@
     <Window.DataContext>
         <viewmodels:CustomTokensWindowViewModel/>
     </Window.DataContext>
-    
+    <Window.Resources>
+        <uielements:NullToBoolConverter x:Key="NullConverter"/>
+    </Window.Resources>
+
     <!--Main grid-->
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -48,8 +51,8 @@
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
-                    <Button Grid.Row="1" Content="Remove" Margin="0 10 5 0" IsEnabled="{Binding IsTokenSelected}" Command="{Binding RemoveTokenCommand}"/>
-                    <Button Grid.Row="1" Grid.Column="1" Content="Edit" Margin="5 10 5 0" IsEnabled="{Binding IsTokenSelected}" Command="{Binding EditTokenCommand}"/>
+                    <Button Grid.Row="1" Content="Remove" Margin="0 10 5 0" IsEnabled="{Binding SelectedToken, Converter={StaticResource NullConverter}}" Command="{Binding RemoveTokenCommand}"/>
+                    <Button Grid.Row="1" Grid.Column="1" Content="Edit" Margin="5 10 5 0" IsEnabled="{Binding SelectedToken, Converter={StaticResource NullConverter}}" Command="{Binding EditTokenCommand}"/>
                     <Button Grid.Row="1" Grid.Column="2" Content="Add" Margin="5 10 0 0" Command="{Binding AddTokenCommand}"/>
 
                     <Grid Grid.Row="2" Grid.ColumnSpan="3" Margin="0 10 0 0">
@@ -58,7 +61,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Button Content="Import" Margin="0 0 5 0" Command="{Binding ImportCommand}"/>
-                        <Button Grid.Column="1" Content="Export" Margin="5 0 0 0" IsEnabled="{Binding IsTokenSelected}" Command="{Binding ExportCommand}"/>
+                        <Button Grid.Column="1" Content="Export" Margin="5 0 0 0" IsEnabled="{Binding SelectedToken, Converter={StaticResource NullConverter}}" Command="{Binding ExportCommand}"/>
                     </Grid>
                 </Grid>
             </TabItem>
@@ -108,8 +111,8 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Button Content="Remove" Margin="0 0 5 0" Command="{Binding RemoveGroupCommand}" IsEnabled="{Binding IsGroupSelected}"/>
-                        <Button Grid.Column="1" Content="Edit" Margin="5 0 5 0" Command="{Binding EditGroupCommand}" IsEnabled="{Binding IsGroupSelected}"/>
+                        <Button Content="Remove" Margin="0 0 5 0" Command="{Binding RemoveGroupCommand}" IsEnabled="{Binding SelectedGroup,Converter={StaticResource NullConverter}}"/>
+                        <Button Grid.Column="1" Content="Edit" Margin="5 0 5 0" Command="{Binding EditGroupCommand}" IsEnabled="{Binding SelectedGroup,Converter={StaticResource NullConverter}}"/>
                         <Button Grid.Column="2" Content="Add" Margin="5 0 0 0" Command="{Binding AddGroupCommand}"/>
                     </Grid>
                     
@@ -120,8 +123,8 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Button Content="Remove" Margin="0 0 5 0" Command="{Binding RemoveGroupTokenCommand}" IsEnabled="{Binding IsGroupTokenSelected}"/>
-                        <Button Grid.Column="2" Content="Add" Margin="5 0 0 0" Command="{Binding AddGroupTokenCommand}" IsEnabled="{Binding IsGroupSelected}"/>
+                        <Button Content="Remove" Margin="0 0 5 0" Command="{Binding RemoveGroupTokenCommand}" IsEnabled="{Binding SelectedGroupToken, Converter={StaticResource NullConverter}}"/>
+                        <Button Grid.Column="2" Content="Add" Margin="5 0 0 0" Command="{Binding AddGroupTokenCommand}" IsEnabled="{Binding SelectedGroup,Converter={StaticResource NullConverter}}"/>
                     </Grid>
                 </Grid>
             </TabItem>

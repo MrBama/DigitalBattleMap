@@ -129,7 +129,7 @@
                             </uielements:InkCanvasControl>
                             <Image Source="{Binding TokenController.TokenBitmapSource}" Visibility="{Binding TokenVisibility}"/>
                             <Image Source="{Binding TokenController.TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
-                            <Image Source="{Binding FogOfWarBitmapSource}" Opacity="0.5"/>
+                            <Image Source="{Binding BackgroundController.FogOfWarBitmapSource}" Opacity="0.5"/>
                             <Canvas Visibility="{Binding MouseInputCanvasVisibility}" Background="Transparent" Cursor="Hand">
                                 <i:Interaction.Behaviors>
                                     <uielements:MouseBehavior MouseX="{Binding MouseCanvas.MouseX, Mode=OneWayToSource}" MouseY="{Binding MouseCanvas.MouseY, Mode=OneWayToSource}"/>
@@ -142,7 +142,7 @@
                                         <i:InvokeCommandAction Command="{Binding MouseCanvas.MouseUpCommand}" />
                                     </i:EventTrigger>
                                     <i:EventTrigger EventName="MouseMove">
-                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.MouseMoveCommand}" IsEnabled="{Binding MouseCanvas.SelectionVisible}" />
+                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.MouseMoveCommand}" IsEnabled="{Binding MouseCanvas.IsSelectionAreaVisible}" />
                                     </i:EventTrigger>
                                 </i:Interaction.Triggers>
                                 <Rectangle 
@@ -150,7 +150,9 @@
                                     Height="{Binding MouseCanvas.SelectionHeight}" 
                                     Canvas.Left="{Binding MouseCanvas.SelectionX}" 
                                     Canvas.Top="{Binding MouseCanvas.SelectionY}"
-                                    Fill="Red" />
+                                    Visibility="{Binding MouseCanvas.IsSelectionAreaVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
+                                    Fill="#32B8D4F0"
+                                    Stroke="#0078D7"/>
                             </Canvas>
                         </Grid>
                     </Border>
@@ -216,7 +218,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Label Grid.Row="1" Grid.Column="1" Content="{Binding MultiMoveCount}" Visibility="{Binding IsMultiMove, Converter={StaticResource BoolToVisibilityConverter}}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="30"/>
+                            <Label Grid.Row="1" Grid.Column="1" Content="{Binding MultiMoveCount}" Visibility="{Binding IsMultiMove, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="30"/>
                             <Button x:Name="MoveUpButton" Grid.Row="1" Grid.Column="2" Margin="5 0 5 5" Command="{Binding MoveMapArrowCommand}" CommandParameter="Up" Width="{Binding ElementName=MoveUpButton,Path=ActualHeight}">
                                 <Image Source="{Binding MapArrowUpBitmapSource}"/>
                             </Button>

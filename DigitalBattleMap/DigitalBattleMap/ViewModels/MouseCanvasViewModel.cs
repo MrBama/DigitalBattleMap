@@ -3,6 +3,7 @@ using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Windows.Input;
 
 namespace DigitalBattleMap.ViewModels;
@@ -12,6 +13,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     private int _selectedTabIndex;
     private Dictionary<int, List<Action<Point<double>>>> _mouseDownEvents = new();
     private Dictionary<int, List<Action<Point<double>>>> _mouseUpEvents = new();
+    private Dictionary<int, List<Action<Rectangle>>> _areaSelectedEvents = new();
     private MouseCanvasMode _mode;
     private Point<double> _selectionStartPosition = new();
     private bool _selectionStarted = false;
@@ -29,7 +31,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     public double SelectionHeight { get => Get<double>(); set => Set(value); }
     public double SelectionX { get => Get<double>(); set => Set(value); }
     public double SelectionY { get => Get<double>(); set => Set(value); }
-    public bool SelectionVisible { get => Get<bool>(); set => Set(value); }
+    public bool IsSelectionAreaVisible { get => Get<bool>(); set => Set(value); }
 
     public ICommand MouseDownCommand { get; set; }
     public ICommand MouseUpCommand { get; set; }
@@ -45,11 +47,13 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         _mode = mode;
         if(_mode == MouseCanvasMode.Selection)
         {
-            SelectionVisible = true;
+            IsSelectionAreaVisible = true;
         }
         else
         {
-            SelectionVisible = false;
+            IsSelectionAreaVisible = false;
+            SelectionWidth = 0;
+            SelectionHeight = 0;
             _selectionStarted = false;
         }
     }
@@ -74,8 +78,21 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         _mouseUpEvents[tabIndex].Add(action);
     }
 
-    public void SubscribeAreaSelected(int tabIndex, Action<Point<double>> action)
+    public void SubscribeAreaSelected(int tabIndex, Action<Rectangle> action)
     {
+        if (!_areaSelectedEvents.ContainsKey(tabIndex))
+        {
+            _areaSelectedEvents[tabIndex] = new();
+        }
+
+        _areaSelectedEvents[tabIndex].Add(action);
+    }
+
+    public void ResetSelection()
+    {
+        SelectionWidth = 0;
+        SelectionHeight = 0;
+        _selectionStarted = false;
     }
 
     private void MouseDown()
@@ -151,9 +168,10 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
 
     private void MouseMoveSelection()
     {
-        var point = new Point<double>(MouseX, MouseY);
         if (_selectionStarted)
         {
+            var point = new Point<double>(MouseX, MouseY);
+
             var distanceX = point.X - _selectionStartPosition.X;
             var distanceY = point.Y - _selectionStartPosition.Y;
 
@@ -171,12 +189,19 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
                 SelectionY = point.Y;
                 SelectionHeight *= -1;
             }
-            // Add clipping
         }
     }
 
     private void MouseUpSelection()
     {
         _selectionStarted = false;
+        var area = new Rectangle((int)SelectionX, (int)SelectionY, (int)SelectionWidth, (int)SelectionHeight);
+        if (_areaSelectedEvents.ContainsKey(_selectedTabIndex))
+        {
+            foreach (var action in _areaSelectedEvents[_selectedTabIndex])
+            {
+                action(area);
+            }
+        }
     }
 }

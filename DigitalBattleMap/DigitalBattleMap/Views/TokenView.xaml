@@ -14,6 +14,7 @@
     <UserControl.Resources>
         <uielements:TokenSizeToBoolConverter x:Key="TokenSizeToBoolConverter"/>
         <uielements:ConditionToBoolConverter x:Key="ConditionToBoolConverter"/>
+        <uielements:NullToBoolConverter x:Key="NullConverter"/>
     </UserControl.Resources>
     
     <!--Tokens grid-->
@@ -144,7 +145,7 @@
                 <Image Source="{Binding MapArrowDownBitmapSource}"/>
             </Button>
             <Button x:Name="AddTokenButton" Grid.Row="1" Content="Add" Margin="0 10 5 0" Command="{Binding AddTokenCommand}"/>
-            <Button Grid.Row="1" Grid.Column="1" Content="Remove" Margin="5 10 0 0" Command="{Binding RemoveTokenCommand}" IsEnabled="{Binding IsTokenSelected}"/>
+            <Button Grid.Row="1" Grid.Column="1" Content="Remove" Margin="5 10 0 0" Command="{Binding RemoveTokenCommand}" IsEnabled="{Binding SelectedToken, Converter={StaticResource NullConverter}}"/>
         </Grid>
         <Button Grid.Row="3" Content="Sort initiative" Margin="0 10 0 0" Command="{Binding SortInitiativeCommand}"/>
         <Button Grid.Row="4" Content="Clear" Margin="0 10 0 0" Command="{Binding ClearTokensCommand}"/>
