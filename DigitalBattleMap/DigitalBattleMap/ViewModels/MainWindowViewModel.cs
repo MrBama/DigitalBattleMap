@@ -4,7 +4,6 @@ using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Input;
@@ -261,6 +260,7 @@ public class MainWindowViewModel : ViewModelBase
     public void SelectedTabChanged()
     {
         MouseCanvas.SetSelectedTabIndex(SelectedTabIndex);
+        BackgroundController.SetSelectedTabIndex(SelectedTabIndex);
         switch (SelectedTabIndex)
         {
             case TabIndex.Background:

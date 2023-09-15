@@ -3,11 +3,8 @@ using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
@@ -21,12 +18,12 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     private Bitmap _fullBackgroundBitmap;
     private BitmapSource _backgroundAndFogOfWarBitmapSource;
     private Rectangle _area;
-    private Rectangle _selectedFogOfWarArea;
+    private Polygon<double> _selectedFogOfWarArea;
     private IWindowService _windowService;
     private IMouseCanvas _mouseCanvas;
     private Point<double> _mouseDownPosition;
     private bool _mouseDown;
-    private List<Rectangle> _fogOfWarAreas = new();
+    private List<Polygon<double>> _fogOfWarAreas = new();
 
     public BackgroundControllerViewModel() : base(50)
     {
@@ -39,7 +36,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         _mouseCanvas = mouseCanvas;
         _mouseCanvas.SubscribeMouseDown(TabIndex.Background, MouseDown);
         _mouseCanvas.SubscribeMouseUp(TabIndex.Background, MouseUp);
-        _mouseCanvas.SubscribeAreaSelected(TabIndex.Background, FogOfWarAreaSelected);
+        _mouseCanvas.SubscribePolygonAreaSelected(TabIndex.Background, FogOfWarAreaSelected);
         Initialize();
     }
 
@@ -181,6 +178,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         BackgroundBitmap = BitmapTools.CreateEmptyBitmap();
         FogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
         BackgroundAndFogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
+        _fogOfWarAreas.Clear();
         GridCellsWidth = 10;
         GridCellsHeight = 10;
         FeetPerGridCell = Constants.FeetPerGridCell;
@@ -244,6 +242,14 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
             _area = saveFile.BackgroundArea;
             HasOpenedBackground = true;
             CreateBackground();
+        }
+    }
+
+    public void SetSelectedTabIndex(int tabIndex)
+    {
+        if(tabIndex != TabIndex.Background && IsRemovingFog)
+        {
+            CancelFogRemoval();
         }
     }
 
@@ -395,7 +401,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     private void RemoveFog()
     {
         IsRemovingFog = true;
-        _mouseCanvas.SetMode(MouseCanvasMode.Selection);
+        _mouseCanvas.SetMode(MouseCanvasMode.PolygonSelection);
     }
 
     private void ApplyFogRemoval()
@@ -420,9 +426,15 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         CreateBackground();
     }
 
-    private void FogOfWarAreaSelected(Rectangle selectedArea)
+    private void FogOfWarAreaSelected(Polygon<double> selectedArea)
     {
         IsFogOfWarAreaSelected = true;
-        _selectedFogOfWarArea = selectedArea.Map(_canvasSize.GetRectangle(), _area);
+
+        foreach (var point in selectedArea.Points)
+        {
+            point.X = point.X.Map(0, _canvasSize.Width, _area.X, _area.X + _area.Width);
+            point.Y = point.Y.Map(0, _canvasSize.Height, _area.Y, _area.Y + _area.Height);
+        }
+        _selectedFogOfWarArea = selectedArea;
     }
 }

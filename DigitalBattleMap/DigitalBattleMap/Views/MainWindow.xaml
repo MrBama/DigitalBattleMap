@@ -142,7 +142,7 @@
                                         <i:InvokeCommandAction Command="{Binding MouseCanvas.MouseUpCommand}" />
                                     </i:EventTrigger>
                                     <i:EventTrigger EventName="MouseMove">
-                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.MouseMoveCommand}" IsEnabled="{Binding MouseCanvas.IsSelectionAreaVisible}" />
+                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.MouseMoveCommand}" IsEnabled="{Binding MouseCanvas.IsRectangleSelectionStarted}" />
                                     </i:EventTrigger>
                                 </i:Interaction.Triggers>
                                 <Rectangle 
@@ -150,6 +150,11 @@
                                     Height="{Binding MouseCanvas.SelectionHeight}" 
                                     Canvas.Left="{Binding MouseCanvas.SelectionX}" 
                                     Canvas.Top="{Binding MouseCanvas.SelectionY}"
+                                    Visibility="{Binding MouseCanvas.IsSelectionAreaVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
+                                    Fill="#32B8D4F0"
+                                    Stroke="#0078D7"/>
+                                <Polygon
+                                    Points="{Binding MouseCanvas.PolygonSelectionPoints}"
                                     Visibility="{Binding MouseCanvas.IsSelectionAreaVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
                                     Fill="#32B8D4F0"
                                     Stroke="#0078D7"/>

@@ -4,6 +4,7 @@ using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Input;
 
 namespace DigitalBattleMap.ViewModels;
@@ -13,10 +14,15 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     private int _selectedTabIndex;
     private Dictionary<int, List<Action<Point<double>>>> _mouseDownEvents = new();
     private Dictionary<int, List<Action<Point<double>>>> _mouseUpEvents = new();
-    private Dictionary<int, List<Action<Rectangle>>> _areaSelectedEvents = new();
+    private Dictionary<int, List<Action<Rectangle>>> _rectangleAreaSelectedEvents = new();
+    private Dictionary<int, List<Action<Polygon<double>>>> _polygonAreaSelectedEvents = new();
     private MouseCanvasMode _mode;
     private Point<double> _selectionStartPosition = new();
-    private bool _selectionStarted = false;
+
+    public MouseCanvasViewModel()
+    {
+        PolygonSelectionPoints = new();
+    }
 
     protected override void InitializeCommands()
     {
@@ -32,6 +38,8 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     public double SelectionX { get => Get<double>(); set => Set(value); }
     public double SelectionY { get => Get<double>(); set => Set(value); }
     public bool IsSelectionAreaVisible { get => Get<bool>(); set => Set(value); }
+    public bool IsRectangleSelectionStarted { get => Get<bool>(); set => Set(value); }
+    public System.Windows.Media.PointCollection PolygonSelectionPoints { get => Get<System.Windows.Media.PointCollection>(); set => Set(value); }
 
     public ICommand MouseDownCommand { get; set; }
     public ICommand MouseUpCommand { get; set; }
@@ -45,16 +53,19 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     public void SetMode(MouseCanvasMode mode)
     {
         _mode = mode;
-        if(_mode == MouseCanvasMode.Selection)
+
+        switch (mode)
         {
-            IsSelectionAreaVisible = true;
-        }
-        else
-        {
-            IsSelectionAreaVisible = false;
-            SelectionWidth = 0;
-            SelectionHeight = 0;
-            _selectionStarted = false;
+            case MouseCanvasMode.Click:
+                ResetSelection();
+                break;
+            case MouseCanvasMode.RectangleSelection:
+                IsSelectionAreaVisible = true;
+                break;
+            case MouseCanvasMode.PolygonSelection:
+                IsSelectionAreaVisible = true;
+                IsRectangleSelectionStarted = false;
+                break;
         }
     }
 
@@ -78,21 +89,32 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         _mouseUpEvents[tabIndex].Add(action);
     }
 
-    public void SubscribeAreaSelected(int tabIndex, Action<Rectangle> action)
+    public void SubscribeRectangleAreaSelected(int tabIndex, Action<Rectangle> action)
     {
-        if (!_areaSelectedEvents.ContainsKey(tabIndex))
+        if (!_rectangleAreaSelectedEvents.ContainsKey(tabIndex))
         {
-            _areaSelectedEvents[tabIndex] = new();
+            _rectangleAreaSelectedEvents[tabIndex] = new();
         }
 
-        _areaSelectedEvents[tabIndex].Add(action);
+        _rectangleAreaSelectedEvents[tabIndex].Add(action);
+    }
+
+    public void SubscribePolygonAreaSelected(int tabIndex, Action<Polygon<double>> action)
+    {
+        if (!_polygonAreaSelectedEvents.ContainsKey(tabIndex))
+        {
+            _polygonAreaSelectedEvents[tabIndex] = new();
+        }
+
+        _polygonAreaSelectedEvents[tabIndex].Add(action);
     }
 
     public void ResetSelection()
     {
         SelectionWidth = 0;
         SelectionHeight = 0;
-        _selectionStarted = false;
+        IsRectangleSelectionStarted = false;
+        PolygonSelectionPoints = new();
     }
 
     private void MouseDown()
@@ -102,8 +124,10 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
             case MouseCanvasMode.Click:
                 MouseDownClick();
                 return;
-            case MouseCanvasMode.Selection:
-                MouseDownSelection();
+            case MouseCanvasMode.RectangleSelection:
+                MouseDownRectangleSelection();
+                return;
+            case MouseCanvasMode.PolygonSelection:
                 return;
         }
     }
@@ -115,8 +139,11 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
             case MouseCanvasMode.Click:
                 MouseUpClick();
                 return;
-            case MouseCanvasMode.Selection:
-                MouseUpSelection();
+            case MouseCanvasMode.RectangleSelection:
+                MouseUpRectangleSelection();
+                return;
+            case MouseCanvasMode.PolygonSelection:
+                MouseUpPolygonSelection();
                 return;
         }
     }
@@ -127,8 +154,10 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         {
             case MouseCanvasMode.Click:
                 return;
-            case MouseCanvasMode.Selection:
-                MouseMoveSelection();
+            case MouseCanvasMode.RectangleSelection:
+                MouseMoveRectangleSelection();
+                return;
+            case MouseCanvasMode.PolygonSelection:
                 return;
         }
     }
@@ -157,18 +186,18 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         }
     }
 
-    private void MouseDownSelection()
+    private void MouseDownRectangleSelection()
     {
         var point = new Point<double>(MouseX, MouseY);
         _selectionStartPosition = point;
-        _selectionStarted = true;
+        IsRectangleSelectionStarted = true;
         SelectionX = point.X;
         SelectionY = point.Y;
     }
 
-    private void MouseMoveSelection()
+    private void MouseMoveRectangleSelection()
     {
-        if (_selectionStarted)
+        if (IsRectangleSelectionStarted)
         {
             var point = new Point<double>(MouseX, MouseY);
 
@@ -192,15 +221,42 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         }
     }
 
-    private void MouseUpSelection()
+    private void MouseUpRectangleSelection()
     {
-        _selectionStarted = false;
+        IsRectangleSelectionStarted = false;
         var area = new Rectangle((int)SelectionX, (int)SelectionY, (int)SelectionWidth, (int)SelectionHeight);
-        if (_areaSelectedEvents.ContainsKey(_selectedTabIndex))
+
+        if (_rectangleAreaSelectedEvents.ContainsKey(_selectedTabIndex))
         {
-            foreach (var action in _areaSelectedEvents[_selectedTabIndex])
+            foreach (var action in _rectangleAreaSelectedEvents[_selectedTabIndex])
             {
                 action(area);
+            }
+        }
+    }
+
+    private void MouseUpPolygonSelection()
+    {
+        var point = new Point<double>(MouseX, MouseY);
+        var newPoints = new System.Windows.Media.PointCollection(PolygonSelectionPoints)
+        {
+            new System.Windows.Point(point.X, point.Y)
+        };
+        PolygonSelectionPoints = newPoints;
+
+        if(PolygonSelectionPoints.Count >= 3)
+        {
+            var polygon = new Polygon<double>
+            {
+                Points = PolygonSelectionPoints.Select(p => new Point<double>(p.X, p.Y)).ToList()
+            };
+
+            if (_polygonAreaSelectedEvents.ContainsKey(_selectedTabIndex))
+            {
+                foreach (var action in _polygonAreaSelectedEvents[_selectedTabIndex])
+                {
+                    action(polygon);
+                }
             }
         }
     }

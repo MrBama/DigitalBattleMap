@@ -50,5 +50,6 @@ public enum DrawingShapeType
 public enum MouseCanvasMode
 {
     Click,
-    Selection
+    RectangleSelection,
+    PolygonSelection
 }
