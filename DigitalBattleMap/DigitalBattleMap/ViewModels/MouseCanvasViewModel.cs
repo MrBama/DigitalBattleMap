@@ -14,8 +14,8 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     private int _selectedTabIndex;
     private Dictionary<int, List<Action<Point<double>>>> _mouseDownEvents = new();
     private Dictionary<int, List<Action<Point<double>>>> _mouseUpEvents = new();
-    private Dictionary<int, List<Action<Rectangle>>> _rectangleAreaSelectedEvents = new();
-    private Dictionary<int, List<Action<Polygon<double>>>> _polygonAreaSelectedEvents = new();
+    private Dictionary<int, List<Action<RectangleF>>> _rectangleAreaSelectedEvents = new();
+    private Dictionary<int, List<Action<Polygon>>> _polygonAreaSelectedEvents = new();
     private MouseCanvasMode _mode;
     private Point<double> _selectionStartPosition = new();
 
@@ -89,7 +89,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         _mouseUpEvents[tabIndex].Add(action);
     }
 
-    public void SubscribeRectangleAreaSelected(int tabIndex, Action<Rectangle> action)
+    public void SubscribeRectangleAreaSelected(int tabIndex, Action<RectangleF> action)
     {
         if (!_rectangleAreaSelectedEvents.ContainsKey(tabIndex))
         {
@@ -99,7 +99,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         _rectangleAreaSelectedEvents[tabIndex].Add(action);
     }
 
-    public void SubscribePolygonAreaSelected(int tabIndex, Action<Polygon<double>> action)
+    public void SubscribePolygonAreaSelected(int tabIndex, Action<Polygon> action)
     {
         if (!_polygonAreaSelectedEvents.ContainsKey(tabIndex))
         {
@@ -224,7 +224,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     private void MouseUpRectangleSelection()
     {
         IsRectangleSelectionStarted = false;
-        var area = new Rectangle((int)SelectionX, (int)SelectionY, (int)SelectionWidth, (int)SelectionHeight);
+        var area = new RectangleF((float)SelectionX, (float)SelectionY, (float)SelectionWidth, (float)SelectionHeight);
 
         if (_rectangleAreaSelectedEvents.ContainsKey(_selectedTabIndex))
         {
@@ -246,7 +246,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
 
         if(PolygonSelectionPoints.Count >= 3)
         {
-            var polygon = new Polygon<double>
+            var polygon = new Polygon
             {
                 Points = PolygonSelectionPoints.Select(p => new Point<double>(p.X, p.Y)).ToList()
             };

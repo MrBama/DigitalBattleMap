@@ -18,6 +18,8 @@ public class SaveFile
 
     public bool IsGridShown { get; set; }
 
+    public bool IsFogOfWarEnabled { get; set; }
+
     public int GridCellsWidth { get; set; }
 
     public int GridCellsHeight { get; set; }
@@ -33,6 +35,8 @@ public class SaveFile
     public List<DrawingShapeSave> DrawingShapes { get; set; } = new();
 
     public List<ObjectLink> ObjectLinks { get; set; } = new();
+
+    public List<FogOfWarArea> FogOfWarAreas { get; set; } = new();
 
     [JsonIgnore]
     public StrokeCollection Strokes { get; set; } = new();

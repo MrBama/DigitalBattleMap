@@ -3,18 +3,18 @@ using System.Collections.Generic;
 
 namespace DigitalBattleMap.DataClasses;
 
-public class Polygon<T> where T : IEquatable<T>
+public class Polygon
 {
     public Polygon()
     {
     }
 
-    public Polygon(Polygon<T> polygon)
+    public Polygon(Polygon polygon)
     {
-        Points = new List<Point<T>>(polygon.Points);
+        Points = new List<Point<double>>(polygon.Points);
     }
 
-    public List<Point<T>> Points { get; set; }
+    public List<Point<double>> Points { get; set; }
 
     public override int GetHashCode()
     {
@@ -23,7 +23,7 @@ public class Polygon<T> where T : IEquatable<T>
 
     public override bool Equals(object? obj)
     {
-        return obj is Polygon<T> other && other.Points.Equals(Points);
+        return obj is Polygon other && other.Points.Equals(Points);
     }
 }
 

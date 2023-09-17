@@ -116,6 +116,7 @@
                     <Border x:Name="MapBorder" BorderThickness="3" BorderBrush="Black">
                         <Grid x:Name="MapCanvas">
                             <Image Source="{Binding BackgroundController.BackgroundBitmapSource}"/>
+                            <Image Source="{Binding BackgroundController.FogOfWarBitmapSource}" Opacity="0.5"/>
                             <Image x:Name="GridLayer" Source="{Binding GridBitmapSource}" Visibility="{Binding GridVisibility}"/>
                             <uielements:InkCanvasControl Background="{Binding DrawingController.InkCanvasBackgroundBitmapSource}" 
                                             DefaultDrawingAttributes="{Binding DrawingController.InkCanvasDrawingAttributes}" 
@@ -129,7 +130,6 @@
                             </uielements:InkCanvasControl>
                             <Image Source="{Binding TokenController.TokenBitmapSource}" Visibility="{Binding TokenVisibility}"/>
                             <Image Source="{Binding TokenController.TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
-                            <Image Source="{Binding BackgroundController.FogOfWarBitmapSource}" Opacity="0.5"/>
                             <Canvas Visibility="{Binding MouseInputCanvasVisibility}" Background="Transparent" Cursor="Hand">
                                 <i:Interaction.Behaviors>
                                     <uielements:MouseBehavior MouseX="{Binding MouseCanvas.MouseX, Mode=OneWayToSource}" MouseY="{Binding MouseCanvas.MouseY, Mode=OneWayToSource}"/>

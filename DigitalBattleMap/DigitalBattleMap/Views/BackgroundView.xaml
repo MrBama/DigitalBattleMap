@@ -28,6 +28,7 @@
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -90,11 +91,23 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Label Content="Fog of war"/>
-            <CheckBox Grid.Column="1" VerticalAlignment="Center" Margin="10 0 0 0" IsChecked="{Binding IsFogOfWarEnabled}"/>
+            <CheckBox Grid.Column="1" VerticalAlignment="Center" Margin="10 0 0 0" IsChecked="{Binding IsFogOfWarEnabled}" IsEnabled="{Binding HasOpenedBackground}"/>
+        </Grid>
+
+        <!--Remove fog shape grid-->
+        <Grid Grid.Row="7" Margin="0 10 0 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Content="Removal shape"/>
+            <RadioButton Grid.Column="1" Content="Rectangle" VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="10 0 0 0" IsEnabled="{Binding IsFogOfWarEnabled}" IsChecked="{Binding FogRemovalRectangleShape}"/>
+            <RadioButton Grid.Column="2" Content="Polygon" VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="10 0 0 0" IsEnabled="{Binding IsFogOfWarEnabled}" IsChecked="{Binding FogRemovalPolygonShape}"/>
         </Grid>
 
         <!--Remove fog grid-->
-        <Grid Grid.Row="7" Margin="0 10 0 0" IsEnabled="{Binding IsFogOfWarEnabled}">
+        <Grid Grid.Row="8" Margin="0 10 0 0" IsEnabled="{Binding IsFogOfWarEnabled}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -103,7 +116,7 @@
             <Button Content="Cancel" Margin="0 0 5 0" Command="{Binding CancelFogRemovalCommand}" Visibility="{Binding IsRemovingFog, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
             <Button Grid.Column="1" Content="Apply" Margin="5 0 0 0" Command="{Binding ApplyFogRemovalCommand}" IsEnabled="{Binding IsFogOfWarAreaSelected}"  Visibility="{Binding IsRemovingFog, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
         </Grid>
-        <Button Grid.Row="8" Content="Clear fog" Margin="0 10 0 0" IsEnabled="{Binding IsFogOfWarEnabled}" Command="{Binding ClearFogCommand}"/>
-        <Button Grid.Row="9" Content="Clear" Command="{Binding ClearBackgroundCommand}" Margin="0 10 0 0" VerticalAlignment="Bottom"/>
+        <Button Grid.Row="9" Content="Clear fog" Margin="0 10 0 0" IsEnabled="{Binding IsFogOfWarEnabled}" Command="{Binding ClearFogCommand}"/>
+        <Button Grid.Row="10" Content="Clear" Command="{Binding ClearBackgroundCommand}" Margin="0 10 0 0" VerticalAlignment="Bottom"/>
     </Grid>
 </UserControl>

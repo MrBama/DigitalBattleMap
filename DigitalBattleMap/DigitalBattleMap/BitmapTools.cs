@@ -232,7 +232,7 @@ public static class BitmapTools
         return new(startX, startY);
     }
 
-    public static Bitmap CreateFogOfWarBitmap(Rectangle area, List<Polygon<double>> removedAreas)
+    public static Bitmap CreateFogOfWarBitmap(Rectangle area, List<FogOfWarArea> removedAreas)
     {
         var bitmap = new Bitmap(area.Width, area.Height);
 
@@ -244,11 +244,10 @@ public static class BitmapTools
             if(removedAreas.Count > 0)
             {
                 // Image is 0 based while area is not
-                var polygons = new List<Polygon<double>>();
-                foreach (var polygon in removedAreas)
+                foreach (var removedArea in removedAreas)
                 {
                     var points = new List<PointF>();
-                    foreach (var point in polygon.Points)
+                    foreach (var point in removedArea.Points)
                     {
                         points.Add(new PointF((float)point.X - area.X, (float)point.Y - area.Y));
                     }
