@@ -172,6 +172,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
             FeetPerGridCell = Constants.FeetPerGridCell;
             HasOpenedBackground = true;
             _fogOfWarAreas.Clear();
+            CancelFogRemoval();
             CreateBackground();
         }
     }
@@ -486,7 +487,6 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     {
         if (_mouseCanvas != null && IsRemovingFog)
         {
-            _mouseCanvas.ResetSelection();
             if (FogRemovalRectangleShape)
             {
                 _mouseCanvas.SetMode(MouseCanvasMode.RectangleSelection);

@@ -53,11 +53,11 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     public void SetMode(MouseCanvasMode mode)
     {
         _mode = mode;
+        ResetSelection();
 
         switch (mode)
         {
             case MouseCanvasMode.Click:
-                ResetSelection();
                 break;
             case MouseCanvasMode.RectangleSelection:
                 IsSelectionAreaVisible = true;
