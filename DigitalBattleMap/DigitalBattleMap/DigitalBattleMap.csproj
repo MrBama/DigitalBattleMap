@@ -40,7 +40,9 @@
     <None Remove="Resources\ConditionIcons\Stunned.png" />
     <None Remove="Resources\ConditionIcons\Unconcious.png" />
     <None Remove="Resources\MonsterTokens.json" />
+    <None Remove="Resources\RedoIcon.png" />
     <None Remove="Resources\SaveFileIcon.ico" />
+    <None Remove="Resources\UndoIcon.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -72,7 +74,9 @@
     <EmbeddedResource Include="Resources\ConditionIcons\Stunned.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Unconcious.png" />
     <EmbeddedResource Include="Resources\MonsterTokens.json" />
+    <EmbeddedResource Include="Resources\RedoIcon.png" />
     <EmbeddedResource Include="Resources\SaveFileIcon.ico" />
+    <EmbeddedResource Include="Resources\UndoIcon.png" />
   </ItemGroup>
 
   <ItemGroup>

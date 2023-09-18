@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
@@ -26,6 +27,8 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
     public TokenControllerViewModel() : base(50)
     {
+        // This is required to render MainWindow in editor
+        IO.Initialize(new Directory(), new File(), new ZipFile());
         Initialize();
     }
 
@@ -58,11 +61,14 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         TokenDownCommand = new RelayCommand(p => InitiativeDown());
         CustomTokensCommand = new RelayCommand(p => CustomTokens());
         SortInitiativeCommand = new RelayCommand(p => SortInitiative());
+        UndoTokenMoveCommand = new RelayCommand(p => Undo());
+        RedoTokenMoveCommand = new RelayCommand(p => Redo());
     }
 
     public event EventHandler OnTokenBitmapUpdated;
 
     public StatblocksViewModel StatblocksViewModel { get; set; } = new();
+    public CommandHistory<TokenOffset> TokenOffsetHistory { get; set; } = new(10);
     public BitmapSource TokenBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource TokenSelectionBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public TokenListItem SelectedToken
@@ -80,6 +86,8 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     public ObservableCollection<TokenListItem> TokenList { get; set; } = new ObservableCollection<TokenListItem>();
     public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToBitmapImage(); }
     public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
+    public BitmapSource UndoBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.UndoIcon.png")).ToBitmapImage(); }
+    public BitmapSource RedoBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.RedoIcon.png")).ToBitmapImage(); }
 
     public ICommand AddTokenCommand { get; set; }
     public ICommand RemoveTokenCommand { get; set; }
@@ -88,6 +96,8 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     public ICommand TokenDownCommand { get; set; }
     public ICommand CustomTokensCommand { get; set; }
     public ICommand SortInitiativeCommand { get; set; }
+    public ICommand UndoTokenMoveCommand { get; set; }
+    public ICommand RedoTokenMoveCommand { get; set; }
 
     private Bitmap TokenBitmap
     {
@@ -153,7 +163,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 {
                     StatblocksViewModel.RemoveToken(SelectedToken);
                 }
-                    
+
                 SelectedToken.Dispose();
                 TokenList.Remove(SelectedToken);
                 CreateTokenBitmap();
@@ -171,6 +181,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             }
             TokenList.Clear();
             StatblocksViewModel.Clear();
+            TokenOffsetHistory.Clear();
             CreateTokenBitmap();
         }
     }
@@ -237,14 +248,15 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 var newCellX = Math.Floor((newPosition.X - gridOffset.X) / _gridSize);
                 var newCellY = Math.Floor((newPosition.Y - gridOffset.Y) / _gridSize);
 
-                var offset = new Point<double>((newCellX - cellX) * _gridSize, (newCellY - cellY) * _gridSize);
+                var cellOffset = new Point<double>(newCellX - cellX, newCellY - cellY);
+                var offset = new Point<double>(cellOffset.X * _gridSize, cellOffset.Y * _gridSize);
                 foreach (var linkedObject in SelectedToken.LinkedObjects)
                 {
                     linkedObject.UpdatePosition(Point<int>.Create(offset));
                 }
 
                 SelectedToken.Position = Point<int>.Create(newPosition);
-
+                TokenOffsetHistory.Enqueue(new TokenOffset(SelectedToken.GetTokenIndentifier(), Point<int>.Create(cellOffset)));
                 CreateTokenBitmap();
             }
         }
@@ -321,7 +333,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 tokenListItem.Health.InitializeEditorHp();
                 tokenListItem.SetTokenLinker(this);
 
-                if(tokenListItem.Token.PlayerControl)
+                if (tokenListItem.Token.PlayerControl)
                 {
                     _webCommunication.SendMessage(new ConditionsMessage { TokenIndentifier = tokenListItem.GetTokenIndentifier(), Conditions = tokenListItem.Conditions });
                 }
@@ -477,6 +489,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 tokenListItem.Position.X += offset.X;
                 tokenListItem.Position.Y += offset.Y;
 
+                TokenOffsetHistory.Enqueue(new TokenOffset(tokenListItem.GetTokenIndentifier(), new Point<int>(offset.X / _gridSize, offset.Y / _gridSize)));
                 CreateTokenBitmap();
                 uiThread.Release();
                 Task.WaitAll(tasks.ToArray());
@@ -637,6 +650,48 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                     CreateTokenBitmap();
                 }
             }
+        }
+    }
+
+    private void Undo()
+    {
+        lock (_lock)
+        {
+            if (TokenOffsetHistory.TryDequeuePreviousCommand(out var tokenOffset))
+            {
+                var offset = new Point<int>(-tokenOffset.Offset.X, -tokenOffset.Offset.Y);
+                MoveTokenWithCellOffset(tokenOffset.TokenIndentifier, offset);
+            }
+        }
+    }
+
+    private void Redo()
+    {
+        lock (_lock)
+        {
+            if (TokenOffsetHistory.TryDequeueNextCommand(out var tokenOffset))
+            {
+                var offset = new Point<int>(tokenOffset.Offset);
+                MoveTokenWithCellOffset(tokenOffset.TokenIndentifier, offset);
+            }
+        }
+    }
+
+    private void MoveTokenWithCellOffset(TokenIndentifier tokenIndentifier, Point<int> cellOffset)
+    {
+        var tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(tokenIndentifier));
+        if (tokenListItem != null)
+        {
+            var offset = new Point<int>(cellOffset.X * _gridSize, cellOffset.Y * _gridSize);
+
+            foreach (var linkedObject in tokenListItem.LinkedObjects)
+            {
+                linkedObject.UpdatePosition(Point<int>.Create(offset));
+            }
+
+            tokenListItem.Position.X += offset.X;
+            tokenListItem.Position.Y += offset.Y;
+            CreateTokenBitmap();
         }
     }
 }

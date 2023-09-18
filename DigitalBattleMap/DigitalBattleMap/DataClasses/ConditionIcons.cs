@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.Utilities;
 using System.Drawing;
 using System.Reflection;
 
@@ -36,106 +37,31 @@ public class ConditionIcons
 
     public ConditionIcons()
     {
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Baned.png")))
-        {
-            _baned = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Blessed.png")))
-        {
-            _blessed = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Blinded.png")))
-        {
-            _blinded = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Charmed.png")))
-        {
-            _charmed = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Concentration.png")))
-        {
-            _concentration = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Deafened.png")))
-        {
-            _deafened = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Death.png")))
-        {
-            _death = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Exhausted.png")))
-        {
-            _exhausted = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Flying.png")))
-        {
-            _flying = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Frightened.png")))
-        {
-            _frightened = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Grappled.png")))
-        {
-            _grappled = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Hasted.png")))
-        {
-            _hasted = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Hex.png")))
-        {
-            _hex = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Highlighted.png")))
-        {
-            _highlighted = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Incapacitated.png")))
-        {
-            _incapacitated = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Invisible.png")))
-        {
-            _invisible = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Mark.png")))
-        {
-            _mark = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Paralyzed.png")))
-        {
-            _paralyzed = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Petrified.png")))
-        {
-            _petrified = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Poisoned.png")))
-        {
-            _poisoned = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Prone.png")))
-        {
-            _prone = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Restrained.png")))
-        {
-            _restrained = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Stabilized.png")))
-        {
-            _stabilized = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Stunned.png")))
-        {
-            _stunned = new Bitmap(bitmap);
-        }
-        using (var bitmap = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Unconcious.png")))
-        {
-            _unconcious = new Bitmap(bitmap);
-        }
+        _baned = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Baned.png"));
+        _blessed = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Blessed.png"));
+        _blinded = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Blinded.png"));
+        _charmed = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Charmed.png"));
+        _concentration = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Concentration.png"));
+        _deafened = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Deafened.png"));
+        _death = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Death.png"));
+        _exhausted = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Exhausted.png"));
+        _flying = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Flying.png"));
+        _frightened = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Frightened.png"));
+        _grappled = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Grappled.png"));
+        _hasted = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Hasted.png"));
+        _hex = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Hex.png"));
+        _highlighted = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Highlighted.png"));
+        _incapacitated = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Incapacitated.png"));
+        _invisible = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Invisible.png"));
+        _mark = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Mark.png"));
+        _paralyzed = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Paralyzed.png"));
+        _petrified = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Petrified.png"));
+        _poisoned = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Poisoned.png"));
+        _prone = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Prone.png"));
+        _restrained = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Restrained.png"));
+        _stabilized = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Stabilized.png"));
+        _stunned = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Stunned.png"));
+        _unconcious = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Unconcious.png"));
     }
 
     public Bitmap GetConditionIcon(Condition condition)

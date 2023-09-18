@@ -69,6 +69,12 @@ public class File : IFile
         return new(tempBitmap);
     }
 
+    public Bitmap LoadBitmap(Stream stream)
+    {
+        using var tempBitmap = new Bitmap(stream);
+        return new(tempBitmap);
+    }
+
     public void Copy(string sourceFileName, string destFileName)
     {
         System.IO.File.Copy(sourceFileName, destFileName);
