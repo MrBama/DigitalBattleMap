@@ -191,6 +191,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         HasOpenedBackground = false;
         IsFogOfWarEnabled = false;
         IsRemovingFog = false;
+        FogRemovalRectangleShape = true;
+        FogRemovalPolygonShape = false;
         NotifyBackgroundUpdated();
     }
 

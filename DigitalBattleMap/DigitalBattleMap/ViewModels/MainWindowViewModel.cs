@@ -19,7 +19,7 @@ public class MainWindowViewModel : ViewModelBase
     private Settings _settings;
     private ConnectionManager _connectionManager;
     private Size<double> _canvasSize;
-    private ArrowDirection _moveArrowDirection;
+    private Action _multiMoveAction;
 
     public MainWindowViewModel(IWindowService windowService)
     {
@@ -125,8 +125,8 @@ public class MainWindowViewModel : ViewModelBase
         SaveMapCommand = new RelayCommand(p => SaveMap());
         OpenMapCommand = new RelayCommand(p => OpenMap());
         ServerConnectionCommand = new RelayCommand(p => ServerConnectionButton());
-        MapZoomInCommand = new RelayCommand(p => Zoom(GridSize + 10));
-        MapZoomOutCommand = new RelayCommand(p => Zoom(GridSize - 10));
+        MapZoomInCommand = new RelayCommand(p => ZoomIn());
+        MapZoomOutCommand = new RelayCommand(p => ZoomOut());
         HideConfigurationCommand = new RelayCommand(p => { IsConfigurationMenuExpanded = false; });
         KeyDownCommand = new RelayCommand(p => KeyDown((KeyEventArgs)p));
         KeyUpCommand = new RelayCommand(p => KeyUp((KeyEventArgs)p));
@@ -174,7 +174,7 @@ public class MainWindowViewModel : ViewModelBase
                 _mapWindowViewModel.BackgroundBitmapSource = BackgroundController.GetBackGroundBitmapSource();
                 _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
                 _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
-                _connectionManager.SendMapUpdate(new MapUpdate{ Layer = DrawLayer.Background, Bitmap = new Bitmap(BackgroundController.GetBackgroundBitmap()) });
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(BackgroundController.GetBackgroundBitmap()) });
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmapAll) });
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
                 break;
@@ -312,8 +312,13 @@ public class MainWindowViewModel : ViewModelBase
         }
         else
         {
-            _moveArrowDirection = arrowDirection;
             MultiMoveCount++;
+            _multiMoveAction = () =>
+            {
+                BackgroundController.Move(arrowDirection, MultiMoveCount);
+                DrawingController.Move(arrowDirection, MultiMoveCount);
+                TokenController.Move(arrowDirection, MultiMoveCount);
+            };
         }
     }
 
@@ -355,6 +360,38 @@ public class MainWindowViewModel : ViewModelBase
             SelectedMapTabIndex = 0;
 
             IsShowMapLocked = currentIsShowMapLocked;
+        }
+    }
+
+    private void ZoomIn()
+    {
+        if (!IsMultiMove)
+        {
+            Zoom(GridSize + Constants.DefaultZoomSize);
+        }
+        else
+        {
+            MultiMoveCount++;
+            _multiMoveAction = () =>
+            {
+                Zoom(GridSize + (Constants.DefaultZoomSize * MultiMoveCount));
+            };
+        }
+    }
+
+    private void ZoomOut()
+    {
+        if (!IsMultiMove)
+        {
+            Zoom(GridSize + -Constants.DefaultZoomSize);
+        }
+        else
+        {
+            MultiMoveCount++;
+            _multiMoveAction = () =>
+            {
+                Zoom(GridSize + (-Constants.DefaultZoomSize * MultiMoveCount));
+            };
         }
     }
 
@@ -425,7 +462,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private void KeyDown(KeyEventArgs keyEventArgs)
     {
-        if(keyEventArgs.Key == Key.LeftShift && !IsMultiMove)
+        if (keyEventArgs.Key == Key.LeftShift && !IsMultiMove)
         {
             IsMultiMove = true;
             MultiMoveCount = 0;
@@ -437,9 +474,11 @@ public class MainWindowViewModel : ViewModelBase
         if (keyEventArgs.Key == Key.LeftShift && IsMultiMove)
         {
             IsMultiMove = false;
-            BackgroundController.Move(_moveArrowDirection, MultiMoveCount);
-            DrawingController.Move(_moveArrowDirection, MultiMoveCount);
-            TokenController.Move(_moveArrowDirection, MultiMoveCount);
+            if(_multiMoveAction != null)
+            {
+                _multiMoveAction();
+                _multiMoveAction = null;
+            }
         }
     }
 }
