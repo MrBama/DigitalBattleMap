@@ -232,6 +232,35 @@ public static class BitmapTools
         return new(startX, startY);
     }
 
+    public static Bitmap CreateFogOfWarBitmap(Rectangle area, List<FogOfWarArea> removedAreas)
+    {
+        var bitmap = new Bitmap(area.Width, area.Height);
+
+        using (var graphics = Graphics.FromImage(bitmap))
+        {
+            var imageSize = new Rectangle(0, 0, area.Width, area.Height);
+            graphics.FillRectangle(Brushes.Black, imageSize);
+
+            if(removedAreas.Count > 0)
+            {
+                // Image is 0 based while area is not
+                foreach (var removedArea in removedAreas)
+                {
+                    var points = new List<PointF>();
+                    foreach (var point in removedArea.Points)
+                    {
+                        points.Add(new PointF((float)point.X - area.X, (float)point.Y - area.Y));
+                    }
+                    graphics.FillPolygon(Brushes.White, points.ToArray());
+                }
+
+                bitmap.MakeTransparent(Color.White);
+            }        
+
+            return bitmap;
+        }
+    }
+
     private static bool IsTokenVisible(Point<int> drawingPosition, int gridSize)
     {
         var isVisible = true;

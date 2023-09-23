@@ -7,25 +7,21 @@ using System.Linq;
 using System.Windows.Media.Imaging;
 using System.Collections.ObjectModel;
 using DigitalBattleMap.DataClasses;
+using System.Windows.Media;
 
 namespace DigitalBattleMap.Utilities;
 
 public static class Extensions
 {
-    public static BitmapImage ToBitmapImage(this Bitmap bitmap)
+    public static BitmapSource ToBitmapImage(this Bitmap bitmap)
     {
-        using var memory = new MemoryStream();
-        bitmap.Save(memory, ImageFormat.Png);
-        memory.Position = 0;
+        // Do not use MemoryStream and BitmapImage because converting a bitmap to png (transparent background) is too slow
+        var bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
+        var bitmapSource = BitmapSource.Create(bitmapData.Width, bitmapData.Height, 96, 96, PixelFormats.Bgra32, null, bitmapData.Scan0, bitmapData.Stride * bitmapData.Height, bitmapData.Stride);
 
-        var bitmapImage = new BitmapImage();
-        bitmapImage.BeginInit();
-        bitmapImage.StreamSource = memory;
-        bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-        bitmapImage.EndInit();
-        bitmapImage.Freeze();
-
-        return bitmapImage;
+        bitmap.UnlockBits(bitmapData);
+        bitmapSource.Freeze(); // This is required when a dependency property (ImageSource) is create from a different thread. E.g. Token moves from the web server.
+        return bitmapSource;
     }
 
     public static void Log(this Exception exception)

@@ -3,7 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels" 
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
+        xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements"
         mc:Ignorable="d"
         Title="TokenLinkWindow" Height="550" Width="500"
         FontSize="17"
@@ -11,7 +13,10 @@
     <Window.DataContext>
         <viewmodels:TokenLinkWindowViewModel/>
     </Window.DataContext>
-    
+    <Window.Resources>
+        <uielements:NullToBoolConverter x:Key="NullConverter"/>
+    </Window.Resources>
+
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -33,7 +38,7 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <Button Grid.Row="2" Content="Select" Margin="0 10 0 0" Command="{Binding SelectCommand}" IsEnabled="{Binding IsTokenSelected}" IsDefault="True">
+        <Button Grid.Row="2" Content="Select" Margin="0 10 0 0" Command="{Binding SelectCommand}" IsEnabled="{Binding SelectedToken, Converter={StaticResource NullConverter}}" IsDefault="True">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="Click">
                     <i:CallMethodAction MethodName="Close" TargetObject="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}" />

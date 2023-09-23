@@ -21,8 +21,7 @@ public class TokenLinkWindowViewModel : ViewModelBase
     }
 
     public bool Success { get; set; }
-    public TokenListItem SelectedToken { get => Get<TokenListItem>(); set => Set(value, () => NotifyPropertyChange(nameof(IsTokenSelected))); }
-    public bool IsTokenSelected { get => SelectedToken != null; }
+    public TokenListItem SelectedToken { get => Get<TokenListItem>(); set => Set(value); }
     public ObservableCollection<TokenListItem> TokenList { get; set; } = new ObservableCollection<TokenListItem>();
     public ICommand SelectCommand { get; set; }
     

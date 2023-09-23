@@ -56,12 +56,9 @@ public class CustomTokensWindowViewModel : ViewModelBase
     public ObservableCollection<Token> TokenList { get; set; } = new ObservableCollection<Token>();
     public ObservableCollection<TokenGroup> GroupList { get; set; } = new ObservableCollection<TokenGroup>();
     public ObservableCollection<string> GroupTokensList { get; set; } = new ObservableCollection<string>();
-    public Token SelectedToken { get => Get<Token>(); set => Set(value, () => NotifyPropertyChange(nameof(IsTokenSelected))); }
-    public TokenGroup SelectedGroup { get => Get<TokenGroup>(); set => Set(value, SelectedGroupChanged); }
-    public string SelectedGroupToken { get => Get<string>(); set => Set(value, () => NotifyPropertyChange(nameof(IsGroupTokenSelected))); }
-    public bool IsTokenSelected { get => SelectedToken != null; }
-    public bool IsGroupSelected { get => SelectedGroup != null; }
-    public bool IsGroupTokenSelected { get => SelectedGroupToken != null; }
+    public Token SelectedToken { get => Get<Token>(); set => Set(value); }
+    public TokenGroup SelectedGroup { get => Get<TokenGroup>(); set => Set(value, RefreshGroupTokensListview); }
+    public string SelectedGroupToken { get => Get<string>(); set => Set(value); }
     public ICommand AddTokenCommand { get; set; }
     public ICommand RemoveTokenCommand { get; set; }
     public ICommand EditTokenCommand { get; set; }
@@ -167,12 +164,6 @@ public class CustomTokensWindowViewModel : ViewModelBase
             SelectedGroup = GroupList.Single(g => g.Name == stringInputWindowViewModel.Input);
             SaveTokenGroups();
         }
-    }
-
-    private void SelectedGroupChanged()
-    {
-        RefreshGroupTokensListview();
-        NotifyPropertyChange(nameof(IsGroupSelected));
     }
 
     private void AddGroupToken()

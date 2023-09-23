@@ -4,7 +4,6 @@ using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Input;
@@ -20,7 +19,7 @@ public class MainWindowViewModel : ViewModelBase
     private Settings _settings;
     private ConnectionManager _connectionManager;
     private Size<double> _canvasSize;
-    private ArrowDirection _moveArrowDirection;
+    private Action _multiMoveAction;
 
     public MainWindowViewModel(IWindowService windowService)
     {
@@ -54,6 +53,7 @@ public class MainWindowViewModel : ViewModelBase
     public Visibility TokenVisibility { get => Get<Visibility>(); set => Set(value); }
     public System.Windows.Media.Brush ServerConnectionStatusColor { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
 
+    public MouseCanvasViewModel MouseCanvas { get; set; }
     public BackgroundControllerViewModel BackgroundController { get; set; }
     public DrawingControllerViewModel DrawingController { get; set; }
     public TokenControllerViewModel TokenController { get; set; }
@@ -64,8 +64,6 @@ public class MainWindowViewModel : ViewModelBase
     public BitmapSource MapArrowRightBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Right).ToBitmapImage(); }
     public BitmapSource MapZoomInBitmapSource { get => BitmapTools.CreateZoomButton(true).ToBitmapImage(); }
     public BitmapSource MapZoomOutBitmapSource { get => BitmapTools.CreateZoomButton(false).ToBitmapImage(); }
-    public double MouseInputX { get; set; }
-    public double MouseInputY { get; set; }
 
     public ICommand GridSizeEnterCommand { get; set; }
     public ICommand ShowMapCommand { get; set; }
@@ -73,8 +71,6 @@ public class MainWindowViewModel : ViewModelBase
     public ICommand InkCanvasSizeOnStartupCommand { get; set; }
     public ICommand ClearAllCommand { get; set; }
     public ICommand SettingsCommand { get; set; }
-    public ICommand MouseInputCanvasDownCommand { get; set; }
-    public ICommand MouseInputCanvasUpCommand { get; set; }
     public ICommand MoveMapArrowCommand { get; set; }
     public ICommand SaveMapCommand { get; set; }
     public ICommand OpenMapCommand { get; set; }
@@ -94,9 +90,10 @@ public class MainWindowViewModel : ViewModelBase
         _connectionManager = new ConnectionManager();
         _connectionManager.OnConnected += ConnectionManagerConnected;
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
-        BackgroundController = new BackgroundControllerViewModel(_windowService, GridSize);
+        MouseCanvas = new();
+        BackgroundController = new BackgroundControllerViewModel(_windowService, MouseCanvas, GridSize);
         BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
-        TokenController = new TokenControllerViewModel(_windowService, _connectionManager, _settings, GridSize);
+        TokenController = new TokenControllerViewModel(_windowService, _connectionManager, MouseCanvas, _settings, GridSize);
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
         DrawingController = new DrawingControllerViewModel(TokenController, GridSize);
         DrawingController.OnDrawingStrokesUpdated += DrawingStrokesUpdated;
@@ -124,14 +121,12 @@ public class MainWindowViewModel : ViewModelBase
         InkCanvasSizeOnStartupCommand = new RelayCommand(p => InkCanvasSizeOnStartup((double)p));
         ClearAllCommand = new RelayCommand(p => ClearMap());
         SettingsCommand = new RelayCommand(p => OpenSettings());
-        MouseInputCanvasDownCommand = new RelayCommand(p => MouseDown());
-        MouseInputCanvasUpCommand = new RelayCommand(p => MouseUp());
         MoveMapArrowCommand = new RelayCommand(p => MoveMap((string)p));
         SaveMapCommand = new RelayCommand(p => SaveMap());
         OpenMapCommand = new RelayCommand(p => OpenMap());
         ServerConnectionCommand = new RelayCommand(p => ServerConnectionButton());
-        MapZoomInCommand = new RelayCommand(p => Zoom(GridSize + 10));
-        MapZoomOutCommand = new RelayCommand(p => Zoom(GridSize - 10));
+        MapZoomInCommand = new RelayCommand(p => ZoomIn());
+        MapZoomOutCommand = new RelayCommand(p => ZoomOut());
         HideConfigurationCommand = new RelayCommand(p => { IsConfigurationMenuExpanded = false; });
         KeyDownCommand = new RelayCommand(p => KeyDown((KeyEventArgs)p));
         KeyUpCommand = new RelayCommand(p => KeyUp((KeyEventArgs)p));
@@ -176,15 +171,15 @@ public class MainWindowViewModel : ViewModelBase
         {
             case DrawLayer.All:
                 var gridAndTokenBitmapAll = CreateGridAndDrawingBitmap();
-                _mapWindowViewModel.BackgroundBitmapSource = BackgroundController.BackgroundBitmapSource;
+                _mapWindowViewModel.BackgroundBitmapSource = BackgroundController.GetBackGroundBitmapSource();
                 _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
                 _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
-                _connectionManager.SendMapUpdate(new MapUpdate{ Layer = DrawLayer.Background, Bitmap = new Bitmap(BackgroundController.GetBackgroundBitmap()) });
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(BackgroundController.GetBackgroundBitmap()) });
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmapAll) });
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
                 break;
             case DrawLayer.Background:
-                _mapWindowViewModel.BackgroundBitmapSource = BackgroundController.BackgroundBitmapSource;
+                _mapWindowViewModel.BackgroundBitmapSource = BackgroundController.GetBackGroundBitmapSource();
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(BackgroundController.GetBackgroundBitmap()) });
                 break;
             case DrawLayer.GridAndStrokes:
@@ -264,6 +259,8 @@ public class MainWindowViewModel : ViewModelBase
 
     public void SelectedTabChanged()
     {
+        MouseCanvas.SetSelectedTabIndex(SelectedTabIndex);
+        BackgroundController.SetSelectedTabIndex(SelectedTabIndex);
         switch (SelectedTabIndex)
         {
             case TabIndex.Background:
@@ -304,29 +301,6 @@ public class MainWindowViewModel : ViewModelBase
         UpdateMap(DrawLayer.GridAndStrokes);
     }
 
-    public void MouseDown()
-    {
-        switch (SelectedTabIndex)
-        {
-            case TabIndex.Background:
-                BackgroundController.MouseDown(new Point<double>(MouseInputX, MouseInputY));
-                break;
-            case TabIndex.Tokens:
-                TokenController.MouseDown(new Point<double>(MouseInputX, MouseInputY));
-                break;
-        }
-    }
-
-    public void MouseUp()
-    {
-        switch (SelectedTabIndex)
-        {
-            case TabIndex.Background:
-                BackgroundController.MouseUp(new Point<double>(MouseInputX, MouseInputY));
-                break;
-        }
-    }
-
     private void MoveMap(string direction)
     {
         var arrowDirection = Enum.Parse<ArrowDirection>(direction);
@@ -338,8 +312,13 @@ public class MainWindowViewModel : ViewModelBase
         }
         else
         {
-            _moveArrowDirection = arrowDirection;
             MultiMoveCount++;
+            _multiMoveAction = () =>
+            {
+                BackgroundController.Move(arrowDirection, MultiMoveCount);
+                DrawingController.Move(arrowDirection, MultiMoveCount);
+                TokenController.Move(arrowDirection, MultiMoveCount);
+            };
         }
     }
 
@@ -381,6 +360,38 @@ public class MainWindowViewModel : ViewModelBase
             SelectedMapTabIndex = 0;
 
             IsShowMapLocked = currentIsShowMapLocked;
+        }
+    }
+
+    private void ZoomIn()
+    {
+        if (!IsMultiMove)
+        {
+            Zoom(GridSize + Constants.DefaultZoomSize);
+        }
+        else
+        {
+            MultiMoveCount++;
+            _multiMoveAction = () =>
+            {
+                Zoom(GridSize + (Constants.DefaultZoomSize * MultiMoveCount));
+            };
+        }
+    }
+
+    private void ZoomOut()
+    {
+        if (!IsMultiMove)
+        {
+            Zoom(GridSize + -Constants.DefaultZoomSize);
+        }
+        else
+        {
+            MultiMoveCount++;
+            _multiMoveAction = () =>
+            {
+                Zoom(GridSize + (-Constants.DefaultZoomSize * MultiMoveCount));
+            };
         }
     }
 
@@ -451,7 +462,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private void KeyDown(KeyEventArgs keyEventArgs)
     {
-        if(keyEventArgs.Key == Key.LeftShift && !IsMultiMove)
+        if (keyEventArgs.Key == Key.LeftShift && !IsMultiMove)
         {
             IsMultiMove = true;
             MultiMoveCount = 0;
@@ -463,9 +474,11 @@ public class MainWindowViewModel : ViewModelBase
         if (keyEventArgs.Key == Key.LeftShift && IsMultiMove)
         {
             IsMultiMove = false;
-            BackgroundController.Move(_moveArrowDirection, MultiMoveCount);
-            DrawingController.Move(_moveArrowDirection, MultiMoveCount);
-            TokenController.Move(_moveArrowDirection, MultiMoveCount);
+            if(_multiMoveAction != null)
+            {
+                _multiMoveAction();
+                _multiMoveAction = null;
+            }
         }
     }
 }

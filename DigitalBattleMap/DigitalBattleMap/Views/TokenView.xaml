@@ -14,6 +14,7 @@
     <UserControl.Resources>
         <uielements:TokenSizeToBoolConverter x:Key="TokenSizeToBoolConverter"/>
         <uielements:ConditionToBoolConverter x:Key="ConditionToBoolConverter"/>
+        <uielements:NullToBoolConverter x:Key="NullConverter"/>
     </UserControl.Resources>
     
     <!--Tokens grid-->
@@ -128,6 +129,8 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
+        
+        <!--Up, down, undo and redo grid-->
         <Grid Grid.Row="2" Margin="0 10 0 0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
@@ -136,16 +139,25 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Button Margin="0 0 5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding IsTokenUpButtonEnabled}" Command="{Binding TokenUpCommand}">
                 <Image Source="{Binding MapArrowUpBitmapSource}"/>
             </Button>
-            <Button Grid.Column="1" Margin="5 0 0 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding IsTokenDownButtonEnabled}" Command="{Binding TokenDownCommand}">
+            <Button Grid.Column="1" Margin="5 0 5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding IsTokenDownButtonEnabled}" Command="{Binding TokenDownCommand}">
                 <Image Source="{Binding MapArrowDownBitmapSource}"/>
             </Button>
-            <Button x:Name="AddTokenButton" Grid.Row="1" Content="Add" Margin="0 10 5 0" Command="{Binding AddTokenCommand}"/>
-            <Button Grid.Row="1" Grid.Column="1" Content="Remove" Margin="5 10 0 0" Command="{Binding RemoveTokenCommand}" IsEnabled="{Binding IsTokenSelected}"/>
+            <Button Grid.Column="2" Margin="5 0 0 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" Command="{Binding UndoTokenMoveCommand}" IsEnabled="{Binding TokenOffsetHistory.IsPreviousCommandAvailable}">
+                <Image Source="{Binding UndoBitmapSource}"/>
+            </Button>
+            <Button Grid.Column="3" Margin="5 0 5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" Command="{Binding RedoTokenMoveCommand}" IsEnabled="{Binding TokenOffsetHistory.IsNextCommandAvailable}">
+                <Image Source="{Binding RedoBitmapSource}"/>
+            </Button>
+            <Button x:Name="AddTokenButton" Grid.Row="1" Grid.ColumnSpan="2" Content="Add" Margin="0 10 5 0" Command="{Binding AddTokenCommand}"/>
+            <Button Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Content="Remove" Margin="5 10 0 0" Command="{Binding RemoveTokenCommand}" IsEnabled="{Binding SelectedToken, Converter={StaticResource NullConverter}}"/>
         </Grid>
+        
         <Button Grid.Row="3" Content="Sort initiative" Margin="0 10 0 0" Command="{Binding SortInitiativeCommand}"/>
         <Button Grid.Row="4" Content="Clear" Margin="0 10 0 0" Command="{Binding ClearTokensCommand}"/>
     </Grid>

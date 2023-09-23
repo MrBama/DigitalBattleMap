@@ -2,6 +2,7 @@
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Windows.Input;
@@ -12,30 +13,46 @@ namespace DigitalBattleMap.ViewModels;
 public class BackgroundControllerViewModel : ControllerViewModelBase
 {
     private Bitmap _backgroundBitmap;
+    private Bitmap _fogOfWarBitMap;
+    private Bitmap _backgroundAndFogOfWarBitmap;
     private Bitmap _fullBackgroundBitmap;
+    private BitmapSource _backgroundAndFogOfWarBitmapSource;
     private Rectangle _area;
+    private FogOfWarArea _selectedFogOfWarArea;
     private IWindowService _windowService;
+    private IMouseCanvas _mouseCanvas;
     private Point<double> _mouseDownPosition;
     private bool _mouseDown;
+    private List<FogOfWarArea> _fogOfWarAreas = new();
 
     public BackgroundControllerViewModel() : base(50)
     {
         Initialize();
     }
 
-    public BackgroundControllerViewModel(IWindowService windowService, int gridSize) : base(gridSize)
+    public BackgroundControllerViewModel(IWindowService windowService, IMouseCanvas mouseCanvas, int gridSize) : base(gridSize)
     {
         _windowService = windowService;
+        _mouseCanvas = mouseCanvas;
+        _mouseCanvas.SubscribeMouseDown(TabIndex.Background, MouseDown);
+        _mouseCanvas.SubscribeMouseUp(TabIndex.Background, MouseUp);
+        _mouseCanvas.SubscribeRectangleAreaSelected(TabIndex.Background, FogOfWarRectangleAreaSelected);
+        _mouseCanvas.SubscribePolygonAreaSelected(TabIndex.Background, FogOfWarPolygonAreaSelected);
         Initialize();
     }
 
     private void Initialize()
     {
+        _area = new Rectangle(0, 0, Constants.BitmapSize.Width, Constants.BitmapSize.Height);
+
         BackgroundBitmap = BitmapTools.CreateEmptyBitmap();
+        FogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
+        BackgroundAndFogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
         BackgroundZoomPercentage = 10;
         GridCellsWidth = 10;
         GridCellsHeight = 10;
         FeetPerGridCell = Constants.FeetPerGridCell;
+        FogRemovalRectangleShape = true;
     }
 
     protected override void InitializeCommands()
@@ -44,17 +61,27 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         ClearBackgroundCommand = new RelayCommand(p => ClearBackground());
         BackgroundZoomInCommand = new RelayCommand(p => ZoomIn(BackgroundZoomPercentage));
         BackgroundZoomOutCommand = new RelayCommand(p => ZoomOut(BackgroundZoomPercentage));
-        FitBackgroundToGridCommand = new RelayCommand(p => FitToGrid(_gridSize));
+        FitBackgroundToGridCommand = new RelayCommand(p => FitToGrid());
+        RemoveFogCommand = new RelayCommand(p => RemoveFog());
+        ApplyFogRemovalCommand = new RelayCommand(p => ApplyFogRemoval());
+        CancelFogRemovalCommand = new RelayCommand(p => CancelFogRemoval());
+        ClearFogCommand = new RelayCommand(p => ClearFog());
     }
 
     public event EventHandler OnBackgroundUpdated;
 
     public bool HasOpenedBackground { get => Get<bool>(); set => Set(value); }
+    public bool IsFogOfWarEnabled { get => Get<bool>(); set => Set(value, IsFogOfWarEnabledChanged); }
+    public bool IsRemovingFog { get => Get<bool>(); set => Set(value); }
+    public bool IsFogOfWarAreaSelected { get => Get<bool>(); set => Set(value); }
+    public bool FogRemovalRectangleShape { get => Get<bool>(); set => Set(value, FogRemovalShapeChanged); }
+    public bool FogRemovalPolygonShape { get => Get<bool>(); set => Set(value); }
     public int GridCellsWidth { get => Get<int>(); set => Set(value); }
     public int GridCellsHeight { get => Get<int>(); set => Set(value); }
     public int FeetPerGridCell { get => Get<int>(); set => Set(value); }
     public double BackgroundZoomPercentage { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(BackgroundZoomPercentageLabel))); }
     public BitmapSource BackgroundBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
+    public BitmapSource FogOfWarBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public string BackgroundZoomPercentageLabel { get => $"{BackgroundZoomPercentage}%"; }
 
     public ICommand OpenBackgroundCommand { get; set; }
@@ -62,6 +89,10 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public ICommand BackgroundZoomInCommand { get; set; }
     public ICommand BackgroundZoomOutCommand { get; set; }
     public ICommand FitBackgroundToGridCommand { get; set; }
+    public ICommand RemoveFogCommand { get; set; }
+    public ICommand CancelFogRemovalCommand { get; set; }
+    public ICommand ApplyFogRemovalCommand { get; set; }
+    public ICommand ClearFogCommand { get; set; }
 
     private Bitmap BackgroundBitmap
     {
@@ -76,9 +107,54 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         }
     }
 
+    private Bitmap FogOfWarBitmap
+    {
+        get => _fogOfWarBitMap;
+        set
+        {
+            if (value != _fogOfWarBitMap)
+            {
+                _fogOfWarBitMap = value;
+                FogOfWarBitmapSource = value.ToBitmapImage();
+            }
+        }
+    }
+
+    private Bitmap BackgroundAndFogOfWarBitmap
+    {
+        get => _backgroundAndFogOfWarBitmap;
+        set
+        {
+            if (value != _backgroundAndFogOfWarBitmap)
+            {
+                _backgroundAndFogOfWarBitmap = value;
+                _backgroundAndFogOfWarBitmapSource = value.ToBitmapImage();
+            }
+        }
+    }
+
     public Bitmap GetBackgroundBitmap()
     {
-        return BackgroundBitmap;
+        if (IsFogOfWarEnabled)
+        {
+            return BackgroundAndFogOfWarBitmap;
+        }
+        else
+        {
+            return BackgroundBitmap;
+        }
+    }
+
+    public BitmapSource GetBackGroundBitmapSource()
+    {
+        if (IsFogOfWarEnabled)
+        {
+            return _backgroundAndFogOfWarBitmapSource;
+        }
+        else
+        {
+            return BackgroundBitmapSource;
+        }
     }
 
     public void OpenBackground()
@@ -92,67 +168,32 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
                 Constants.BitmapSize.Width,
                 Constants.BitmapSize.Height);
 
-            BackgroundBitmap = BitmapTools.CropBitmap(_fullBackgroundBitmap, _area);
             ExtractGridCells(Path.GetFileNameWithoutExtension(path));
             FeetPerGridCell = Constants.FeetPerGridCell;
             HasOpenedBackground = true;
-            NotifyBackgroundUpdated();
+            _fogOfWarAreas.Clear();
+            CancelFogRemoval();
+            CreateBackground();
         }
     }
 
     public void ClearBackground()
     {
         _fullBackgroundBitmap = null;
+        _area = new Rectangle(0, 0, Constants.BitmapSize.Width, Constants.BitmapSize.Height);
         BackgroundBitmap = BitmapTools.CreateEmptyBitmap();
+        FogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
+        BackgroundAndFogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
+        _fogOfWarAreas.Clear();
         GridCellsWidth = 10;
         GridCellsHeight = 10;
         FeetPerGridCell = Constants.FeetPerGridCell;
         HasOpenedBackground = false;
+        IsFogOfWarEnabled = false;
+        IsRemovingFog = false;
+        FogRemovalRectangleShape = true;
+        FogRemovalPolygonShape = false;
         NotifyBackgroundUpdated();
-    }
-
-    public void MouseDown(Point<double> point)
-    {
-        _mouseDownPosition = point;
-        _mouseDown = true;
-    }
-
-    public void MouseUp(Point<double> point)
-    {
-        if (_fullBackgroundBitmap != null && _mouseDown)
-        {
-            var distanceX = _mouseDownPosition.X - point.X;
-            distanceX = distanceX.Map(0, _canvasSize.Width, 0, _area.Width);
-            _area.X += (int)distanceX;
-
-            var distanceY = _mouseDownPosition.Y - point.Y;
-            distanceY = distanceY.Map(0, _canvasSize.Width, 0, _area.Width);
-            _area.Y += (int)distanceY;
-
-            CreateBackground();
-        }
-        _mouseDown = false;
-    }
-
-    public void ZoomIn(double zoomPercentage)
-    {
-        if (_fullBackgroundBitmap != null)
-        {
-            var zoomFactor = (100 + zoomPercentage) / 100;
-            ZoomWithZoomFactor(zoomFactor);
-            CreateBackground();
-        }
-    }
-
-    public void ZoomOut(double zoomPercentage)
-    {
-        if (_fullBackgroundBitmap != null)
-        {
-            var zoomFactor = (100 + zoomPercentage) / 100;
-            zoomFactor = 1 / zoomFactor;
-            ZoomWithZoomFactor(zoomFactor);
-            CreateBackground();
-        }
     }
 
     public override void Zoom(double zoomFactor)
@@ -162,16 +203,6 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
             ZoomWithZoomFactor(zoomFactor);
             CreateBackground();
         }
-    }
-
-    private void ZoomWithZoomFactor(double zoomFactor)
-    {
-        var newWidth = _area.Width / zoomFactor;
-        var newHeight = _area.Height/ zoomFactor;
-        _area.X += (int)Math.Round((_area.Width - newWidth) / 2);
-        _area.Y += (int)Math.Round((_area.Height - newHeight) / 2);
-        _area.Width = (int)Math.Round(newWidth);
-        _area.Height = (int)Math.Round(newHeight);
     }
 
     public override void Move(ArrowDirection direction, int movementCount)
@@ -202,7 +233,99 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         }
     }
 
-    public void FitToGrid(int gridSize)
+    public override void AddToSaveFile(SaveFile saveFile)
+    {
+        saveFile.FullBackground = _fullBackgroundBitmap;
+        saveFile.BackgroundArea = _area;
+        saveFile.GridCellsWidth = GridCellsWidth;
+        saveFile.GridCellsHeight = GridCellsHeight;
+        saveFile.BackgroundFeetPerGridCell = FeetPerGridCell;
+        saveFile.IsFogOfWarEnabled = IsFogOfWarEnabled;
+        saveFile.FogOfWarAreas = _fogOfWarAreas;
+    }
+
+    public override void OpenSaveFile(SaveFile saveFile)
+    {
+        ClearBackground();
+
+        GridCellsWidth = saveFile.GridCellsWidth;
+        GridCellsHeight = saveFile.GridCellsHeight;
+        FeetPerGridCell = saveFile.BackgroundFeetPerGridCell;
+        IsFogOfWarEnabled = saveFile.IsFogOfWarEnabled;
+        _fogOfWarAreas = saveFile.FogOfWarAreas;
+
+        if (saveFile.FullBackground != null)
+        {
+            _fullBackgroundBitmap = saveFile.FullBackground;
+            _area = saveFile.BackgroundArea;
+            HasOpenedBackground = true;
+        }
+
+        CreateBackground();
+    }
+
+    public void SetSelectedTabIndex(int tabIndex)
+    {
+        if (tabIndex != TabIndex.Background && IsRemovingFog)
+        {
+            CancelFogRemoval();
+        }
+    }
+
+    private void MouseDown(Point<double> point)
+    {
+        _mouseDownPosition = point;
+        _mouseDown = true;
+    }
+
+    private void MouseUp(Point<double> point)
+    {
+        if (_fullBackgroundBitmap != null && _mouseDown)
+        {
+            var distanceX = _mouseDownPosition.X - point.X;
+            distanceX = distanceX.Map(0, _canvasSize.Width, 0, _area.Width);
+            _area.X += (int)distanceX;
+
+            var distanceY = _mouseDownPosition.Y - point.Y;
+            distanceY = distanceY.Map(0, _canvasSize.Width, 0, _area.Width);
+            _area.Y += (int)distanceY;
+
+            CreateBackground();
+        }
+    }
+
+    private void ZoomIn(double zoomPercentage)
+    {
+        if (_fullBackgroundBitmap != null)
+        {
+            var zoomFactor = (100 + zoomPercentage) / 100;
+            ZoomWithZoomFactor(zoomFactor);
+            CreateBackground();
+        }
+    }
+
+    private void ZoomOut(double zoomPercentage)
+    {
+        if (_fullBackgroundBitmap != null)
+        {
+            var zoomFactor = (100 + zoomPercentage) / 100;
+            zoomFactor = 1 / zoomFactor;
+            ZoomWithZoomFactor(zoomFactor);
+            CreateBackground();
+        }
+    }
+
+    private void ZoomWithZoomFactor(double zoomFactor)
+    {
+        var newWidth = _area.Width / zoomFactor;
+        var newHeight = _area.Height / zoomFactor;
+        _area.X += (int)Math.Round((_area.Width - newWidth) / 2);
+        _area.Y += (int)Math.Round((_area.Height - newHeight) / 2);
+        _area.Width = (int)Math.Round(newWidth);
+        _area.Height = (int)Math.Round(newHeight);
+    }
+
+    private void FitToGrid()
     {
         // A background grid cell can have a gridsize of can be multiple gridcells
         // E.g. background grid cell might equal 10 ft
@@ -210,7 +333,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         gridCellsPerBackgroundGridCell = Math.Max(gridCellsPerBackgroundGridCell, 1);
 
         // Resize background to match grid size
-        var newSize = new Size<double>(gridSize * gridCellsPerBackgroundGridCell * GridCellsWidth, gridSize * gridCellsPerBackgroundGridCell * GridCellsHeight);
+        var newSize = new Size<double>(_gridSize * gridCellsPerBackgroundGridCell * GridCellsWidth, _gridSize * gridCellsPerBackgroundGridCell * GridCellsHeight);
         double factor = _fullBackgroundBitmap.Width / newSize.Width;
         var newAreaSize = new Size<double>(Math.Round(Constants.BitmapSize.Width * factor), Math.Round(Constants.BitmapSize.Height * factor));
         _area.X += (int)Math.Round((_area.Width - newAreaSize.Width) / 2);
@@ -224,37 +347,11 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         _area.Y += (int)Math.Round(backgroundGridSize - (_area.Y % backgroundGridSize));
 
         // Move background grid to overlap with normal grid
-        var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(gridSize));
+        var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(_gridSize));
         _area.X -= (int)Math.Round(gridOffset.X.Map(0, Constants.BitmapSize.Width, 0, _area.Width));
         _area.Y -= (int)Math.Round(gridOffset.Y.Map(0, Constants.BitmapSize.Height, 0, _area.Height));
 
         CreateBackground();
-    }
-
-    public override void AddToSaveFile(SaveFile saveFile)
-    {
-        saveFile.FullBackground = _fullBackgroundBitmap;
-        saveFile.BackgroundArea = _area;
-        saveFile.GridCellsWidth = GridCellsWidth;
-        saveFile.GridCellsHeight = GridCellsHeight;
-        saveFile.BackgroundFeetPerGridCell = FeetPerGridCell;
-    }
-
-    public override void OpenSaveFile(SaveFile saveFile)
-    {
-        ClearBackground();
-
-        GridCellsWidth = saveFile.GridCellsWidth;
-        GridCellsHeight = saveFile.GridCellsHeight;
-        FeetPerGridCell = saveFile.BackgroundFeetPerGridCell;
-
-        if (saveFile.FullBackground != null)
-        {
-            _fullBackgroundBitmap = saveFile.FullBackground;
-            _area = saveFile.BackgroundArea;
-            HasOpenedBackground = true;
-            CreateBackground();
-        }
     }
 
     private void NotifyBackgroundUpdated()
@@ -264,8 +361,19 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     private void CreateBackground()
     {
-        var croppedBitmap = BitmapTools.CropBitmap(_fullBackgroundBitmap, _area);
-        BackgroundBitmap = BitmapTools.ResizeBitmap(croppedBitmap);
+        if (_fullBackgroundBitmap != null)
+        {
+            var croppedBitmap = BitmapTools.CropBitmap(_fullBackgroundBitmap, _area);
+            BackgroundBitmap = BitmapTools.ResizeBitmap(croppedBitmap);
+        }
+
+        if (IsFogOfWarEnabled)
+        {
+            var fogOfWarBitMap = BitmapTools.CreateFogOfWarBitmap(_area, _fogOfWarAreas);
+            FogOfWarBitmap = BitmapTools.ResizeBitmap(fogOfWarBitMap);
+            BackgroundAndFogOfWarBitmap = BitmapTools.MergeBitmaps(new List<Bitmap> { BackgroundBitmap, FogOfWarBitmap });
+        }
+
         NotifyBackgroundUpdated();
     }
 
@@ -295,6 +403,99 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
                         GridCellsHeight = 10;
                     }
                 }
+            }
+        }
+    }
+
+    private void IsFogOfWarEnabledChanged()
+    {
+        if (!IsFogOfWarEnabled)
+        {
+            FogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
+            CancelFogRemoval();
+        }
+        CreateBackground();
+    }
+
+    private void RemoveFog()
+    {
+        IsRemovingFog = true;
+        if (FogRemovalRectangleShape)
+        {
+            _mouseCanvas.SetMode(MouseCanvasMode.RectangleSelection);
+        }
+        else
+        {
+            _mouseCanvas.SetMode(MouseCanvasMode.PolygonSelection);
+        }
+    }
+
+    private void ApplyFogRemoval()
+    {
+        _fogOfWarAreas.Add(_selectedFogOfWarArea);
+        IsFogOfWarAreaSelected = false;
+        _mouseCanvas.ResetSelection();
+        CreateBackground();
+    }
+
+    private void CancelFogRemoval()
+    {
+        IsRemovingFog = false;
+        IsFogOfWarAreaSelected = false;
+        _mouseCanvas.SetMode(MouseCanvasMode.Click);
+    }
+
+    private void ClearFog()
+    {
+        _fogOfWarAreas.Clear();
+        CancelFogRemoval();
+        CreateBackground();
+    }
+
+    private void FogOfWarRectangleAreaSelected(RectangleF rectangle)
+    {
+        IsFogOfWarAreaSelected = true;
+
+        var x = ((double)rectangle.X).Map(0, _canvasSize.Width, _area.X, _area.X + _area.Width);
+        var y = ((double)rectangle.Y).Map(0, _canvasSize.Height, _area.Y, _area.Y + _area.Height);
+        var width = ((double)rectangle.Width).Map(0, _canvasSize.Width, 0, _area.Width);
+        var height = ((double)rectangle.Height).Map(0, _canvasSize.Height, 0, _area.Height);
+
+        var fogOfWarArea = new FogOfWarArea();
+        fogOfWarArea.Points.Add(new Point<double>(x, y));
+        fogOfWarArea.Points.Add(new Point<double>(x + width, y));
+        fogOfWarArea.Points.Add(new Point<double>(x + width, y + height));
+        fogOfWarArea.Points.Add(new Point<double>(x, y + height));
+
+        _selectedFogOfWarArea = fogOfWarArea;
+    }
+
+    private void FogOfWarPolygonAreaSelected(Polygon polygon)
+    {
+        IsFogOfWarAreaSelected = true;
+
+        var fogOfWarArea = new FogOfWarArea();
+        foreach (var point in polygon.Points)
+        {
+            var mappedPoint = new Point<double>(
+                point.X.Map(0, _canvasSize.Width, _area.X, _area.X + _area.Width),
+                point.Y.Map(0, _canvasSize.Height, _area.Y, _area.Y + _area.Height));
+            fogOfWarArea.Points.Add(mappedPoint);
+        }
+        _selectedFogOfWarArea = fogOfWarArea;
+    }
+
+    private void FogRemovalShapeChanged()
+    {
+        if (_mouseCanvas != null && IsRemovingFog)
+        {
+            if (FogRemovalRectangleShape)
+            {
+                _mouseCanvas.SetMode(MouseCanvasMode.RectangleSelection);
+            }
+            else
+            {
+                _mouseCanvas.SetMode(MouseCanvasMode.PolygonSelection);
             }
         }
     }

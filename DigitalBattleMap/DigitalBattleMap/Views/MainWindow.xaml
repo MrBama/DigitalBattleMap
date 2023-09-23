@@ -116,6 +116,7 @@
                     <Border x:Name="MapBorder" BorderThickness="3" BorderBrush="Black">
                         <Grid x:Name="MapCanvas">
                             <Image Source="{Binding BackgroundController.BackgroundBitmapSource}"/>
+                            <Image Source="{Binding BackgroundController.FogOfWarBitmapSource}" Opacity="0.5"/>
                             <Image x:Name="GridLayer" Source="{Binding GridBitmapSource}" Visibility="{Binding GridVisibility}"/>
                             <uielements:InkCanvasControl Background="{Binding DrawingController.InkCanvasBackgroundBitmapSource}" 
                                             DefaultDrawingAttributes="{Binding DrawingController.InkCanvasDrawingAttributes}" 
@@ -131,16 +132,32 @@
                             <Image Source="{Binding TokenController.TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
                             <Canvas Visibility="{Binding MouseInputCanvasVisibility}" Background="Transparent" Cursor="Hand">
                                 <i:Interaction.Behaviors>
-                                    <uielements:MouseBehavior MouseX="{Binding MouseInputX, Mode=OneWayToSource}" MouseY="{Binding MouseInputY, Mode=OneWayToSource}"/>
+                                    <uielements:MouseBehavior MouseX="{Binding MouseCanvas.MouseX, Mode=OneWayToSource}" MouseY="{Binding MouseCanvas.MouseY, Mode=OneWayToSource}"/>
                                 </i:Interaction.Behaviors>
                                 <i:Interaction.Triggers>
                                     <i:EventTrigger EventName="MouseLeftButtonDown">
-                                        <i:InvokeCommandAction Command="{Binding MouseInputCanvasDownCommand}" PassEventArgsToCommand="True" />
+                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.MouseDownCommand}" />
                                     </i:EventTrigger>
                                     <i:EventTrigger EventName="MouseLeftButtonUp">
-                                        <i:InvokeCommandAction Command="{Binding MouseInputCanvasUpCommand}" PassEventArgsToCommand="True" />
+                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.MouseUpCommand}" />
+                                    </i:EventTrigger>
+                                    <i:EventTrigger EventName="MouseMove">
+                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.MouseMoveCommand}" IsEnabled="{Binding MouseCanvas.IsRectangleSelectionStarted}" />
                                     </i:EventTrigger>
                                 </i:Interaction.Triggers>
+                                <Rectangle 
+                                    Width="{Binding MouseCanvas.SelectionWidth}" 
+                                    Height="{Binding MouseCanvas.SelectionHeight}" 
+                                    Canvas.Left="{Binding MouseCanvas.SelectionX}" 
+                                    Canvas.Top="{Binding MouseCanvas.SelectionY}"
+                                    Visibility="{Binding MouseCanvas.IsSelectionAreaVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
+                                    Fill="#32B8D4F0"
+                                    Stroke="#0078D7"/>
+                                <Polygon
+                                    Points="{Binding MouseCanvas.PolygonSelectionPoints}"
+                                    Visibility="{Binding MouseCanvas.IsSelectionAreaVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
+                                    Fill="#32B8D4F0"
+                                    Stroke="#0078D7"/>
                             </Canvas>
                         </Grid>
                     </Border>
@@ -206,7 +223,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Label Grid.Row="1" Grid.Column="1" Content="{Binding MultiMoveCount}" Visibility="{Binding IsMultiMove, Converter={StaticResource BoolToVisibilityConverter}}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="30"/>
+                            <Label Grid.Row="1" Grid.Column="1" Content="{Binding MultiMoveCount}" Visibility="{Binding IsMultiMove, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="30"/>
                             <Button x:Name="MoveUpButton" Grid.Row="1" Grid.Column="2" Margin="5 0 5 5" Command="{Binding MoveMapArrowCommand}" CommandParameter="Up" Width="{Binding ElementName=MoveUpButton,Path=ActualHeight}">
                                 <Image Source="{Binding MapArrowUpBitmapSource}"/>
                             </Button>
