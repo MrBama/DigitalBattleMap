@@ -14,6 +14,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
 {
     private static string _tokenFilePath = Path.Combine(Constants.TempDirectoryPath, "Token.json");
     private static string _tokenImageFilePath = Path.Combine(Constants.TempDirectoryPath, "Image.png");
+    private static string _statBlockMarkdownFilePath = Path.Combine(Constants.TempDirectoryPath, "StatBlock.md");
     private IWindowService _windowService;
     private Settings _settings;
     private List<Token> _monsterTokens;
@@ -223,6 +224,11 @@ public class CustomTokensWindowViewModel : ViewModelBase
             FileManager.SaveFile(SelectedToken, _tokenFilePath);
             IO.File.Copy(SelectedToken.ImagePath, _tokenImageFilePath);
 
+            if(SelectedToken.TryGetStatBlockMarkdown(out _))
+            {
+                IO.File.Copy(SelectedToken.StatBlockMarkdownPath, _statBlockMarkdownFilePath);
+            }
+
             if (IO.File.Exists(path))
             {
                 IO.File.Delete(path);
@@ -245,6 +251,14 @@ public class CustomTokensWindowViewModel : ViewModelBase
                     var imagePath = Path.Combine(Constants.CustomTokensPath, $"{token.Name}.png");
                     IO.File.Copy(_tokenImageFilePath, imagePath);
                     token.ImagePath = imagePath;
+
+                    if(token.Source == Constants.MarkdownSource)
+                    {
+                        var statBlockMarkdownPath = Path.Combine(Constants.CustomTokensPath, $"{token.Name}.md");
+                        IO.File.Copy(_statBlockMarkdownFilePath, statBlockMarkdownPath);
+                        token.StatBlockMarkdownPath = statBlockMarkdownPath;
+                    }
+
                     TokenList.Add(token.Copy());
                     SaveCustomTokens();
                 }
