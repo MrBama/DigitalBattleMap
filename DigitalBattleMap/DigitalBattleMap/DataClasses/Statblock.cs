@@ -1,4 +1,6 @@
-﻿using DigitalBattleMap.Utilities;
+﻿using DigitalBattleMap.UIElements;
+using DigitalBattleMap.Utilities;
+using Markdig;
 using System;
 using System.Windows;
 
@@ -6,13 +8,26 @@ namespace DigitalBattleMap.DataClasses;
 
 public class Statblock : PropertyHandler
 {
-    public Statblock(string name, string source)
+    public static Statblock WithSource(string name, string source)
+    {
+        var uri = new Uri($"https://5e.tools/bestiary.html#{Uri.EscapeDataString(name)}_{source}");
+        return new Statblock(name, new WebViewPage(uri));
+    }
+
+    public static Statblock WithMarkdown(string name, string markdown)
+    {
+        var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+        var html = Markdown.ToHtml(markdown, pipeline);
+        return new Statblock(name, new WebViewPage(html));
+    }
+
+    private Statblock(string name, WebViewPage webViewPage)
     {
         Name = name;
-        Link = $"https://5e.tools/bestiary.html#{Uri.EscapeDataString(Name)}_{source}";
+        WebViewPage = webViewPage;
     }
 
     public string Name { get; set; }
-    public string Link { get; set; }
+    public WebViewPage WebViewPage { get; set; }
     public Visibility RenderVisibility { get => Get<Visibility>(); set => Set(value); }
 }

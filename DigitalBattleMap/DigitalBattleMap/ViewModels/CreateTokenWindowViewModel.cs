@@ -1,6 +1,7 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
+using DigitalBattleMap.Views;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -16,6 +17,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
     private Bitmap _tokenBitmap = new(256, 256);
     private bool _tokenImageSelected = false;
     private string _originalTokenImagePath = "";
+    private string _originalMarkdownPath = "";
 
     public CreateTokenWindowViewModel()
     {
@@ -31,16 +33,30 @@ public class CreateTokenWindowViewModel : ViewModelBase
 
     public CreateTokenWindowViewModel(IWindowService windowService, List<string> tokenNames, Token editToken)
     {
+        InitializeProperties();
+
         _windowService = windowService;
         _tokenBitmap = IO.File.LoadBitmap(editToken.ImagePath);
         _originalTokenImagePath = editToken.ImagePath;
+        _originalMarkdownPath = editToken.StatBlockMarkdownPath;
         _tokenImageSelected = true;
 
         ExistingTokenNames = tokenNames;
         TokenName = editToken.Name;
         SelectedTokenSize = editToken.Size;
         PlayerControl = editToken.PlayerControl;
-        InitializeProperties();
+        Hp = editToken.Hp;
+
+        if(editToken.TryGetStatBlockMarkdown(out var markdown))
+        {
+            IsStatblockCreated = true;
+            StatblockMarkdown = markdown;
+        }
+
+        if(Hp != null || IsStatblockCreated)
+        {
+            ToggleOptional();
+        }
 
         NotifyPropertyChange(nameof(TokenBitmapSource));
         NotifyPropertyChange(nameof(IsOkButtonEnabled));
@@ -50,20 +66,33 @@ public class CreateTokenWindowViewModel : ViewModelBase
     {
         SelectImageCommand = new RelayCommand(p => SelectImage());
         OkCommand = new RelayCommand(p => OkButton());
+        ToggleOptionalCommand = new RelayCommand(p => ToggleOptional());
+        CreateStatblockCommand = new RelayCommand(p => CreateStatblock());
+        RemoveStatblockCommand = new RelayCommand(p => RemoveStatblock());
+        EditStatblockCommand = new RelayCommand(p => EditStatblock());
     }
 
     public TokenSize SelectedTokenSize { get => Get<TokenSize>(); set => Set(value); }
     public string TokenName { get => Get<string>(); set => Set(value, TokenNameChanged); }
     public System.Windows.Media.Brush NameBorderBrush { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
     public string ToolTip { get => Get<string>(); set => Set(value); }
+    public string OptionalButtonText { get => Get<string>(); set => Set(value); }
+    public string StatblockMarkdown { get; set; }
     public bool IsOkButtonEnabled { get => AllInformationAvailable(); }
     public bool PlayerControl { get => Get<bool>(); set => Set(value); }
+    public bool IsOptionalShown { get => Get<bool>(); set => Set(value); }
+    public bool IsStatblockCreated { get => Get<bool>(); set => Set(value); }
+    public int? Hp { get => Get<int?>(); set => Set(value); }
     public BitmapSource TokenBitmapSource { get => _tokenBitmap.ToBitmapImage(); }
     public List<string> ExistingTokenNames { get; set; } = new List<string>();
     public Token Token { get; set; }
 
     public ICommand SelectImageCommand { get; set; }
     public ICommand OkCommand { get; set; }
+    public ICommand ToggleOptionalCommand { get; set; }
+    public ICommand CreateStatblockCommand { get; set; }
+    public ICommand RemoveStatblockCommand { get; set; }
+    public ICommand EditStatblockCommand { get; set; }
 
     private void SelectImage()
     {
@@ -80,6 +109,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
     {
         SelectedTokenSize = TokenSize.Medium;
         NameBorderBrush = System.Windows.Media.Brushes.Transparent;
+        OptionalButtonText = "Show optional";
     }
 
     private bool AllInformationAvailable()
@@ -94,6 +124,11 @@ public class CreateTokenWindowViewModel : ViewModelBase
             IO.File.Delete(_originalTokenImagePath);
         }
 
+        if(IO.File.Exists(_originalMarkdownPath))
+        {
+            IO.File.Delete(_originalMarkdownPath);
+        }
+
         var imagePath = Path.Combine(Constants.CustomTokensPath, $"{TokenName}.png");
         _tokenBitmap.Save(imagePath);
 
@@ -102,8 +137,17 @@ public class CreateTokenWindowViewModel : ViewModelBase
             Name = TokenName,
             ImagePath = imagePath,
             Size = SelectedTokenSize,
-            PlayerControl = PlayerControl
+            PlayerControl = PlayerControl,
+            Hp = Hp
         };
+
+        if (IsStatblockCreated)
+        {
+            var markdownPath = Path.Combine(Constants.CustomTokensPath, $"{TokenName}.md");
+            IO.File.WriteAllText(markdownPath, StatblockMarkdown);
+            token.Source = Constants.MarkdownSource;
+            token.StatBlockMarkdownPath = markdownPath;
+        }
 
         Token = token;            
     }
@@ -122,5 +166,55 @@ public class CreateTokenWindowViewModel : ViewModelBase
         }
 
         NotifyPropertyChange(nameof(IsOkButtonEnabled));
+    }
+
+    private void ToggleOptional()
+    {
+        if (IsOptionalShown)
+        {
+            OptionalButtonText = "Show optional";
+        }
+        else
+        {
+            OptionalButtonText = "Hide optional";
+        }
+
+        IsOptionalShown = !IsOptionalShown;
+    }
+
+    private void CreateStatblock()
+    {
+        var createStatblockWindowViewModel = new CreateStatblockWindowViewModel();
+        _windowService.ShowWindowDialog<CreateStatblockWindow>(createStatblockWindowViewModel);
+        if(createStatblockWindowViewModel.Success)
+        {
+            IsStatblockCreated = true;
+            StatblockMarkdown = createStatblockWindowViewModel.MarkdownText;
+        }
+        else
+        {
+            IsStatblockCreated = false;
+        }
+    }
+
+    private void RemoveStatblock()
+    {
+        IsStatblockCreated = false;
+        StatblockMarkdown = null;
+    }
+
+    private void EditStatblock()
+    {
+        var createStatblockWindowViewModel = new CreateStatblockWindowViewModel(StatblockMarkdown);
+        _windowService.ShowWindowDialog<CreateStatblockWindow>(createStatblockWindowViewModel);
+        if (createStatblockWindowViewModel.Success)
+        {
+            StatblockMarkdown = createStatblockWindowViewModel.MarkdownText;
+        }
+        else
+        {
+            IsStatblockCreated = false;
+            StatblockMarkdown = null;
+        }
     }
 }

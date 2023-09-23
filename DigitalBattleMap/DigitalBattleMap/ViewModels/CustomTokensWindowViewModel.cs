@@ -99,7 +99,16 @@ public class CustomTokensWindowViewModel : ViewModelBase
 
     private void RemoveToken()
     {
-        IO.File.Delete(SelectedToken.ImagePath);
+        if (IO.File.Exists(SelectedToken.ImagePath))
+        {
+            IO.File.Delete(SelectedToken.ImagePath);
+        }
+
+        if (IO.File.Exists(SelectedToken.StatBlockMarkdownPath))
+        {
+            IO.File.Delete(SelectedToken.StatBlockMarkdownPath);
+        }
+
         TokenList.Remove(SelectedToken);
         SaveCustomTokens();
     }

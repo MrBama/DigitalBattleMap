@@ -53,3 +53,9 @@ public enum MouseCanvasMode
     RectangleSelection,
     PolygonSelection
 }
+
+public enum WebViewPageType
+{
+    Uri,
+    Html
+}

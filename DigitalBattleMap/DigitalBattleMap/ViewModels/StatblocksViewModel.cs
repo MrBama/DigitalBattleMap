@@ -25,7 +25,14 @@ public class StatblocksViewModel : ViewModelBase
             var existingStatblock = Statblocks.SingleOrDefault(s => s.Name == tokenListItem.Token.Name);
             if(existingStatblock == null)
             {
-                Statblocks.Add(new Statblock(tokenListItem.Token.Name, tokenListItem.Token.Source));
+                if(tokenListItem.Token.TryGetStatBlockMarkdown(out var markdown))
+                {
+                    Statblocks.Add(Statblock.WithMarkdown(tokenListItem.Token.Name, markdown));
+                }
+                else
+                {
+                    Statblocks.Add(Statblock.WithSource(tokenListItem.Token.Name, tokenListItem.Token.Source));
+                }
             }
         }
     }
