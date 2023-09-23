@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.Interfaces;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 
 namespace DigitalBattleMap;
@@ -42,7 +43,28 @@ public class WindowService : IWindowService
         }
         else
         {
-            path = "";
+            path = default;
+            return false;
+        }
+    }
+
+    public bool ShowOpenFilesDialog(out List<string> paths, string filter)
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = filter,
+            Multiselect = true
+        };
+
+        var result = dialog.ShowDialog();
+        if (result.HasValue && result.Value)
+        {
+            paths = dialog.FileNames.ToList();
+            return true;
+        }
+        else
+        {
+            paths = default;
             return false;
         }
     }
@@ -63,7 +85,7 @@ public class WindowService : IWindowService
         }
         else
         {
-            path = "";
+            path = default;
             return false;
         }
     }

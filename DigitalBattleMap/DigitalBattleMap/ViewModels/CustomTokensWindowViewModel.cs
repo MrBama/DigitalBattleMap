@@ -239,28 +239,31 @@ public class CustomTokensWindowViewModel : ViewModelBase
 
     private void Import()
     {
-        if (_windowService.ShowOpenFileDialog(out string path, "(*.token)|*.token"))
+        if (_windowService.ShowOpenFilesDialog(out List<string> paths, "(*.token)|*.token"))
         {
-            using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
-            IO.ZipFile.ExtractToDirectory(path, Constants.TempDirectoryPath);
-
-            if (FileManager.OpenFile(_tokenFilePath, out Token token))
+            foreach (var path in paths)
             {
-                if (TokenList.SingleOrDefault(t => t.Name == token.Name) == null)
+                using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
+                IO.ZipFile.ExtractToDirectory(path, Constants.TempDirectoryPath);
+
+                if (FileManager.OpenFile(_tokenFilePath, out Token token))
                 {
-                    var imagePath = Path.Combine(Constants.CustomTokensPath, $"{token.Name}.png");
-                    IO.File.Copy(_tokenImageFilePath, imagePath);
-                    token.ImagePath = imagePath;
-
-                    if(token.Source == Constants.MarkdownSource)
+                    if (TokenList.SingleOrDefault(t => t.Name == token.Name) == null)
                     {
-                        var statBlockMarkdownPath = Path.Combine(Constants.CustomTokensPath, $"{token.Name}.md");
-                        IO.File.Copy(_statBlockMarkdownFilePath, statBlockMarkdownPath);
-                        token.StatBlockMarkdownPath = statBlockMarkdownPath;
-                    }
+                        var imagePath = Path.Combine(Constants.CustomTokensPath, $"{token.Name}.png");
+                        IO.File.Copy(_tokenImageFilePath, imagePath);
+                        token.ImagePath = imagePath;
 
-                    TokenList.Add(token.Copy());
-                    SaveCustomTokens();
+                        if (token.Source == Constants.MarkdownSource)
+                        {
+                            var statBlockMarkdownPath = Path.Combine(Constants.CustomTokensPath, $"{token.Name}.md");
+                            IO.File.Copy(_statBlockMarkdownFilePath, statBlockMarkdownPath);
+                            token.StatBlockMarkdownPath = statBlockMarkdownPath;
+                        }
+
+                        TokenList.Add(token.Copy());
+                        SaveCustomTokens();
+                    }
                 }
             }
         }
