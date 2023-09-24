@@ -1,21 +1,17 @@
 ﻿using DigitalBattleMap.Utilities;
 using System;
-using System.IO;
 
 namespace DigitalBattleMap.DataClasses;
 
 public class Token : PropertyHandler
 {
-    private string _statblockMarkdown;
-
     public event EventHandler OnSizeChanged;
 
     public string Name { get; set; } = "";
     public TokenSize Size { get => Get<TokenSize>(); set => Set(value, NotifySizeChanged); }
     public string ImagePath { get; set; } = "";
-    public string StatBlockMarkdownPath { get; set; } = "";
     public bool PlayerControl { get => Get<bool>(); set => Set(value); }
-    public string? Source { get; set; }
+    public Statblock? Statblock { get; set; }
     public int? Hp { get; set; }
 
     public Token Copy()
@@ -25,9 +21,8 @@ public class Token : PropertyHandler
             Name = Name,
             Size = Size,
             ImagePath = ImagePath,
-            StatBlockMarkdownPath = StatBlockMarkdownPath,
             PlayerControl = PlayerControl,
-            Source = Source,
+            Statblock = Statblock?.Copy(),
             Hp = Hp
         };
     }
@@ -50,33 +45,6 @@ public class Token : PropertyHandler
                 return 4;
             default:
                 return 1;
-        }
-    }
-
-    public bool TryGetStatBlockMarkdown(out string markdown)
-    {
-        markdown = default;
-
-        if (Source == Constants.MarkdownSource)
-        {
-            if (_statblockMarkdown == null)
-            {
-                if (IO.File.Exists(StatBlockMarkdownPath))
-                {
-                    _statblockMarkdown = IO.File.ReadAllText(StatBlockMarkdownPath);
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
-            markdown = _statblockMarkdown;
-            return true;
-        }
-        else
-        {
-            return false;
         }
     }
 

@@ -37,7 +37,7 @@ public static class MonsterTokens
                     Name = tokenName,
                     Size = ConvertSize(monsterToken.Size),
                     ImagePath = file,
-                    Source = monsterToken.Source,
+                    Statblock = new SourceStatblock(tokenName, monsterToken.Source),
                     Hp = monsterToken.Hp != 0 ? monsterToken.Hp : null
                 };
 

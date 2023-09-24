@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.IO;
 using Formatting = Newtonsoft.Json.Formatting;
 
@@ -23,6 +25,23 @@ public static class FileManager
         return true;
     }
 
+    public static bool OpenFile<T, T2>(string path, CustomJsonConverter<T2> jsonConverter, out T data)
+    {
+        string text;
+        try
+        {
+            text = IO.File.ReadAllText(path);
+        }
+        catch
+        {
+            data = default;
+            return false;
+        }
+
+        data = JsonConvert.DeserializeObject<T>(text, jsonConverter);
+        return true;
+    }
+
     public static void SaveFile(object data, string path)
     {
         var directory = Path.GetDirectoryName(path);
@@ -32,5 +51,31 @@ public static class FileManager
         }
 
         IO.File.WriteAllText(path, JsonConvert.SerializeObject(data, Formatting.Indented));
+    }
+
+    public abstract class CustomJsonConverter<T> : JsonConverter<T>
+    {
+    }
+
+    public class DerivedClassJsonConverter<T> : CustomJsonConverter<T>
+    {
+        public override T? ReadJson(JsonReader reader, Type objectType, T? existingValue, bool hasExistingValue, JsonSerializer serializer)
+        {
+            if(reader.TokenType != JsonToken.Null)
+            {
+                var jObject = JObject.Load(reader);
+                var type = jObject["Type"]!.ToObject<Type>();
+                var jsonString = jObject.ToString();
+
+                return (T)JsonConvert.DeserializeObject(jsonString, type)!;
+            }
+
+            return default;
+        }
+
+        public override void WriteJson(JsonWriter writer, T? value, JsonSerializer serializer)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

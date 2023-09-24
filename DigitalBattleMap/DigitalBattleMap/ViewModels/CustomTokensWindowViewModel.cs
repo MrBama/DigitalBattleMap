@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
+using static DigitalBattleMap.Utilities.FileManager;
 
 namespace DigitalBattleMap.ViewModels;
 
@@ -14,7 +15,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
 {
     private static string _tokenFilePath = Path.Combine(Constants.TempDirectoryPath, "Token.json");
     private static string _tokenImageFilePath = Path.Combine(Constants.TempDirectoryPath, "Image.png");
-    private static string _statBlockMarkdownFilePath = Path.Combine(Constants.TempDirectoryPath, "StatBlock.md");
+    private static string _statblockFilePath = Path.Combine(Constants.TempDirectoryPath, "Markdown.md");
     private IWindowService _windowService;
     private Settings _settings;
     private List<Token> _monsterTokens;
@@ -85,9 +86,9 @@ public class CustomTokensWindowViewModel : ViewModelBase
 
     private void AddToken()
     {
-        var tokenNames = _monsterTokens.Select(t => t.Name).ToList();
-        tokenNames.AddRange(_settings.CustomTokens.Select(t => t.Name));
-        var createTokenWindowViewModel = new CreateTokenWindowViewModel(_windowService, tokenNames);
+        var tokens = new List<Token>(_monsterTokens);
+        tokens.AddRange(new List<Token>(_settings.CustomTokens));
+        var createTokenWindowViewModel = new CreateTokenWindowViewModel(_windowService, tokens);
         _windowService.ShowWindowDialog<CreateTokenWindow>(createTokenWindowViewModel);
 
         if (createTokenWindowViewModel.Token != null)
@@ -105,9 +106,9 @@ public class CustomTokensWindowViewModel : ViewModelBase
             IO.File.Delete(SelectedToken.ImagePath);
         }
 
-        if (IO.File.Exists(SelectedToken.StatBlockMarkdownPath))
+        if (SelectedToken.Statblock is MarkdownStatblock markdownStatblock)
         {
-            IO.File.Delete(SelectedToken.StatBlockMarkdownPath);
+            IO.File.Delete(markdownStatblock.MarkdownPath);
         }
 
         TokenList.Remove(SelectedToken);
@@ -116,11 +117,11 @@ public class CustomTokensWindowViewModel : ViewModelBase
 
     private void EditToken()
     {
-        var tokenNames = _monsterTokens.Select(t => t.Name).ToList();
-        tokenNames.AddRange(_settings.CustomTokens.Select(t => t.Name));
-        tokenNames.Remove(SelectedToken.Name);
+        var tokens = new List<Token>(_monsterTokens);
+        tokens.AddRange(new List<Token>(_settings.CustomTokens));
+        tokens.Remove(tokens.Single(t => t.Name == SelectedToken.Name));
 
-        var createTokenWindowViewModel = new CreateTokenWindowViewModel(_windowService, tokenNames, SelectedToken);
+        var createTokenWindowViewModel = new CreateTokenWindowViewModel(_windowService, tokens, SelectedToken);
         _windowService.ShowWindowDialog<CreateTokenWindow>(createTokenWindowViewModel);
 
         if (createTokenWindowViewModel.Token != null)
@@ -224,9 +225,9 @@ public class CustomTokensWindowViewModel : ViewModelBase
             FileManager.SaveFile(SelectedToken, _tokenFilePath);
             IO.File.Copy(SelectedToken.ImagePath, _tokenImageFilePath);
 
-            if(SelectedToken.TryGetStatBlockMarkdown(out _))
+            if (SelectedToken.Statblock is MarkdownStatblock markdownStatblock)
             {
-                IO.File.Copy(SelectedToken.StatBlockMarkdownPath, _statBlockMarkdownFilePath);
+                IO.File.Copy(markdownStatblock.MarkdownPath, _statblockFilePath);
             }
 
             if (IO.File.Exists(path))
@@ -246,7 +247,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
                 using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
                 IO.ZipFile.ExtractToDirectory(path, Constants.TempDirectoryPath);
 
-                if (FileManager.OpenFile(_tokenFilePath, out Token token))
+                if (FileManager.OpenFile(_tokenFilePath, new DerivedClassJsonConverter<Statblock>(), out Token token))
                 {
                     if (TokenList.SingleOrDefault(t => t.Name == token.Name) == null)
                     {
@@ -254,11 +255,11 @@ public class CustomTokensWindowViewModel : ViewModelBase
                         IO.File.Copy(_tokenImageFilePath, imagePath);
                         token.ImagePath = imagePath;
 
-                        if (token.Source == Constants.MarkdownSource)
+                        if (token.Statblock is MarkdownStatblock markdownStatblock)
                         {
-                            var statBlockMarkdownPath = Path.Combine(Constants.CustomTokensPath, $"{token.Name}.md");
-                            IO.File.Copy(_statBlockMarkdownFilePath, statBlockMarkdownPath);
-                            token.StatBlockMarkdownPath = statBlockMarkdownPath;
+                            var statblockMarkdownPath = Path.Combine(Constants.CustomTokensPath, $"{token.Name}.md");
+                            IO.File.Copy(_statblockFilePath, statblockMarkdownPath);
+                            markdownStatblock.MarkdownPath = statblockMarkdownPath;
                         }
 
                         TokenList.Add(token.Copy());

@@ -1,6 +1,7 @@
 ﻿using DigitalBattleMap.Utilities;
 using System.Collections.Generic;
 using System.IO;
+using static DigitalBattleMap.Utilities.FileManager;
 
 namespace DigitalBattleMap.DataClasses;
 
@@ -17,7 +18,7 @@ public class Settings
 
     public static Settings Load()
     {
-        if (!FileManager.OpenFile(_settingsPath, out Settings storage))
+        if (!FileManager.OpenFile(_settingsPath, new DerivedClassJsonConverter<Statblock>(), out Settings storage))
         {
             return new();
         }

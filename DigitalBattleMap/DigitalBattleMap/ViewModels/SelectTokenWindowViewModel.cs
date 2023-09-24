@@ -37,6 +37,18 @@ public class SelectTokenWindowViewModel : ViewModelBase
         SelectedGroup = GroupList.FirstOrDefault();
     }
 
+    public SelectTokenWindowViewModel(List<Token> tokens)
+    {
+        InitializeProperties();
+
+        _tokens = tokens.OrderBy(t => t.Name).ToList();
+
+        foreach (var token in _tokens)
+        {
+            TokenList.Add(token);
+        }
+    }
+
     protected override void InitializeCommands()
     {
         AddCommand = new RelayCommand(p => AddButton());
@@ -47,6 +59,7 @@ public class SelectTokenWindowViewModel : ViewModelBase
     public TokenGroup SelectedGroup { get => Get<TokenGroup>(); set => Set(value, () => NotifyPropertyChange(nameof(IsTokenSelected))); }
     public int NumberOfTokens { get => Get<int>(); set => Set(value); }
     public int SelectedTabIndex { get => Get<int>(); set => Set(value, () => NotifyPropertyChange(nameof(IsTokenSelected))); }
+    public bool SearchTokenNameOnly { get => Get<bool>(); set => Set(value); }
     public TokenSize SelectedTokenSize { get => Get<TokenSize>(); set => Set(value); }
     public ObservableCollection<Token> TokenList { get; set; } = new ObservableCollection<Token>();
     public ObservableCollection<TokenGroup> GroupList { get; set; } = new ObservableCollection<TokenGroup>();
@@ -108,7 +121,7 @@ public class SelectTokenWindowViewModel : ViewModelBase
             foreach (var tokenName in SelectedGroup.TokenNames)
             {
                 var token = _tokens.SingleOrDefault(t => t.Name == tokenName);
-                if(token != null)
+                if (token != null)
                 {
                     AddedTokens.Add(token.Copy());
                 }

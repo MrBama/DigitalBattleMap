@@ -17,43 +17,50 @@ public class CreateTokenWindowViewModel : ViewModelBase
     private Bitmap _tokenBitmap = new(256, 256);
     private bool _tokenImageSelected = false;
     private string _originalTokenImagePath = "";
-    private string _originalMarkdownPath = "";
+    private string _originalMarkdownStatblockPath;
+    private Statblock _statblock;
+    private List<Token> _tokens;
 
     public CreateTokenWindowViewModel()
     {
         InitializeProperties();
     }
 
-    public CreateTokenWindowViewModel(IWindowService windowService, List<string> tokenNames)
+    public CreateTokenWindowViewModel(IWindowService windowService, List<Token> tokens)
     {
         _windowService = windowService;
-        ExistingTokenNames = tokenNames;
+        _tokens = tokens;
+        ExistingTokenNames = tokens.Select(t => t.Name).ToList();
         InitializeProperties();
     }
 
-    public CreateTokenWindowViewModel(IWindowService windowService, List<string> tokenNames, Token editToken)
+    public CreateTokenWindowViewModel(IWindowService windowService, List<Token> tokens, Token editToken)
     {
         InitializeProperties();
 
         _windowService = windowService;
         _tokenBitmap = IO.File.LoadBitmap(editToken.ImagePath);
         _originalTokenImagePath = editToken.ImagePath;
-        _originalMarkdownPath = editToken.StatBlockMarkdownPath;
         _tokenImageSelected = true;
+        _statblock = editToken.Statblock?.Copy();
+        _tokens = tokens;
 
-        ExistingTokenNames = tokenNames;
+        ExistingTokenNames = tokens.Select(t => t.Name).ToList();
         TokenName = editToken.Name;
         SelectedTokenSize = editToken.Size;
         PlayerControl = editToken.PlayerControl;
         Hp = editToken.Hp;
 
-        if(editToken.TryGetStatBlockMarkdown(out var markdown))
+        if (_statblock != null)
         {
+            if(_statblock is MarkdownStatblock markdownStatblock)
+            {
+                _originalMarkdownStatblockPath = markdownStatblock.MarkdownPath;
+            }
             IsStatblockCreated = true;
-            StatblockMarkdown = markdown;
         }
 
-        if(Hp != null || IsStatblockCreated)
+        if (Hp != null || IsStatblockCreated)
         {
             ToggleOptional();
         }
@@ -70,6 +77,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
         CreateStatblockCommand = new RelayCommand(p => CreateStatblock());
         RemoveStatblockCommand = new RelayCommand(p => RemoveStatblock());
         EditStatblockCommand = new RelayCommand(p => EditStatblock());
+        CopyStatblockCommand = new RelayCommand(p => CopyStatblock());
     }
 
     public TokenSize SelectedTokenSize { get => Get<TokenSize>(); set => Set(value); }
@@ -77,11 +85,11 @@ public class CreateTokenWindowViewModel : ViewModelBase
     public System.Windows.Media.Brush NameBorderBrush { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
     public string ToolTip { get => Get<string>(); set => Set(value); }
     public string OptionalButtonText { get => Get<string>(); set => Set(value); }
-    public string StatblockMarkdown { get; set; }
     public bool IsOkButtonEnabled { get => AllInformationAvailable(); }
     public bool PlayerControl { get => Get<bool>(); set => Set(value); }
     public bool IsOptionalShown { get => Get<bool>(); set => Set(value); }
-    public bool IsStatblockCreated { get => Get<bool>(); set => Set(value); }
+    public bool IsStatblockCreated { get => Get<bool>(); set => Set(value, () => NotifyPropertyChange(nameof(IsStatblockEditable))); }
+    public bool IsStatblockEditable { get => _statblock is MarkdownStatblock; }
     public int? Hp { get => Get<int?>(); set => Set(value); }
     public BitmapSource TokenBitmapSource { get => _tokenBitmap.ToBitmapImage(); }
     public List<string> ExistingTokenNames { get; set; } = new List<string>();
@@ -93,6 +101,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
     public ICommand CreateStatblockCommand { get; set; }
     public ICommand RemoveStatblockCommand { get; set; }
     public ICommand EditStatblockCommand { get; set; }
+    public ICommand CopyStatblockCommand { get; set; }
 
     private void SelectImage()
     {
@@ -124,13 +133,14 @@ public class CreateTokenWindowViewModel : ViewModelBase
             IO.File.Delete(_originalTokenImagePath);
         }
 
-        if(IO.File.Exists(_originalMarkdownPath))
+        if (IO.File.Exists(_originalMarkdownStatblockPath))
         {
-            IO.File.Delete(_originalMarkdownPath);
+            IO.File.Delete(_originalMarkdownStatblockPath);
         }
 
         var imagePath = Path.Combine(Constants.CustomTokensPath, $"{TokenName}.png");
         _tokenBitmap.Save(imagePath);
+        _statblock?.Persist(TokenName);
 
         var token = new Token
         {
@@ -138,18 +148,11 @@ public class CreateTokenWindowViewModel : ViewModelBase
             ImagePath = imagePath,
             Size = SelectedTokenSize,
             PlayerControl = PlayerControl,
-            Hp = Hp
+            Hp = Hp,
+            Statblock = _statblock
         };
 
-        if (IsStatblockCreated)
-        {
-            var markdownPath = Path.Combine(Constants.CustomTokensPath, $"{TokenName}.md");
-            IO.File.WriteAllText(markdownPath, StatblockMarkdown);
-            token.Source = Constants.MarkdownSource;
-            token.StatBlockMarkdownPath = markdownPath;
-        }
-
-        Token = token;            
+        Token = token;
     }
 
     private void TokenNameChanged()
@@ -186,10 +189,10 @@ public class CreateTokenWindowViewModel : ViewModelBase
     {
         var createStatblockWindowViewModel = new CreateStatblockWindowViewModel();
         _windowService.ShowWindowDialog<CreateStatblockWindow>(createStatblockWindowViewModel);
-        if(createStatblockWindowViewModel.Success)
+        if (createStatblockWindowViewModel.Success)
         {
+            _statblock = new MarkdownStatblock(createStatblockWindowViewModel.MarkdownText);
             IsStatblockCreated = true;
-            StatblockMarkdown = createStatblockWindowViewModel.MarkdownText;
         }
         else
         {
@@ -199,22 +202,35 @@ public class CreateTokenWindowViewModel : ViewModelBase
 
     private void RemoveStatblock()
     {
+        _statblock = null;
         IsStatblockCreated = false;
-        StatblockMarkdown = null;
     }
 
     private void EditStatblock()
     {
-        var createStatblockWindowViewModel = new CreateStatblockWindowViewModel(StatblockMarkdown);
+        var markdownStatblock = _statblock as MarkdownStatblock;
+
+        var createStatblockWindowViewModel = new CreateStatblockWindowViewModel(markdownStatblock!.GetMarkdown());
         _windowService.ShowWindowDialog<CreateStatblockWindow>(createStatblockWindowViewModel);
         if (createStatblockWindowViewModel.Success)
         {
-            StatblockMarkdown = createStatblockWindowViewModel.MarkdownText;
+            _statblock = new MarkdownStatblock(createStatblockWindowViewModel.MarkdownText);
         }
-        else
+    }
+
+    private void CopyStatblock()
+    {
+        var selectTokenWindowViewModel = new SelectTokenWindowViewModel(_tokens)
         {
-            IsStatblockCreated = false;
-            StatblockMarkdown = null;
+            SearchTokenNameOnly = true
+        };
+        _windowService.ShowWindowDialog<SelectTokenWindow>(selectTokenWindowViewModel);
+
+        if (selectTokenWindowViewModel.AddedTokens.Count == 1)
+        {
+            var token = selectTokenWindowViewModel.AddedTokens.First();
+            _statblock = token.Statblock?.Copy();
+            IsStatblockCreated = true;
         }
     }
 }
