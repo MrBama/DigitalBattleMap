@@ -47,7 +47,7 @@ public static class Extensions
         return source.Select((item, index) => (item, index));
     }
 
-    public static void OrderCurrentBy<TSource, TKey>(this ObservableCollection<TSource> source, Func<TSource, TKey> keySelector)
+    public static void OrderCurrentBy<TSource, TKey>(this IList<TSource> source, Func<TSource, TKey> keySelector)
     {
         var orderedCollection = new ObservableCollection<TSource>(source.OrderBy(keySelector));
         source.Clear();
@@ -57,7 +57,7 @@ public static class Extensions
         }
     }
 
-    public static void OrderCurrentByDescending<TSource, TKey>(this ObservableCollection<TSource> source, Func<TSource, TKey> keySelector)
+    public static void OrderCurrentByDescending<TSource, TKey>(this IList<TSource> source, Func<TSource, TKey> keySelector)
     {
         var orderedCollection = new ObservableCollection<TSource>(source.OrderByDescending(keySelector));
         source.Clear();

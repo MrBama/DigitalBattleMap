@@ -1,5 +1,4 @@
-﻿using DigitalBattleMap.UIElements;
-using System;
+﻿using System;
 
 namespace DigitalBattleMap.DataClasses;
 

@@ -1,6 +1,5 @@
 ﻿using DigitalBattleMap.DataClasses;
 using Microsoft.Web.WebView2.Wpf;
-using System;
 using System.Windows;
 
 namespace DigitalBattleMap.UIElements;

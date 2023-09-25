@@ -1,8 +1,6 @@
 ﻿using DigitalBattleMap.DataClasses;
-using DigitalBattleMap.UIElements;
 using DigitalBattleMap.Utilities;
 using Markdig;
-using Microsoft.Web.WebView2.Core;
 using System.Windows.Input;
 
 namespace DigitalBattleMap.ViewModels;
