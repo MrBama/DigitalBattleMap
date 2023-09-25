@@ -43,7 +43,7 @@ public enum DrawingButton
 
 public enum DrawingShapeType
 {
-    Square,
+    Rectangle,
     Circle
 }
 
