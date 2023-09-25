@@ -23,14 +23,15 @@ public class DrawingShape : PropertyHandler, ILinkableObject, IDisposable
     public DrawingShape(DrawingShape drawingShape)
     {
         DrawingShapeType = drawingShape.DrawingShapeType;
-        Size = drawingShape.Size;
+        Size = new Point<int>(drawingShape.Size);
         Stroke = drawingShape.Stroke.Clone();
         DrawingButton = drawingShape.DrawingButton;
         CanvasSize = drawingShape.CanvasSize;
     }
 
     public DrawingShapeType DrawingShapeType { get => Get<DrawingShapeType>(); set => Set(value); }
-    public int Size { get => Get<int>(); set => Set(value); }
+    public Point<int> Size { get => Get<Point<int>>(); set => Set(value, UpdateSizeString); }
+    public string SizeString { get => Get<string>(); set => Set(value); }
     public Stroke Stroke { get => Get<Stroke>(); set => Set(value, () => NotifyPropertyChange(nameof(Color))); }
     public Brush Color { get => GetColor(); }
     public DrawingButton DrawingButton { get; set; }
@@ -128,6 +129,18 @@ public class DrawingShape : PropertyHandler, ILinkableObject, IDisposable
             Unlink();
         }
     }
+
+    private void UpdateSizeString()
+    {
+        if(DrawingShapeType == DrawingShapeType.Rectangle)
+        {
+            SizeString = $"{Size.X} x {Size.Y} ft";
+        }
+        else
+        {
+            SizeString = $"{Size.X} ft";
+        }
+    }
 }
 
 public class DrawingShapeSave
@@ -145,7 +158,7 @@ public class DrawingShapeSave
     }
 
     public DrawingShapeType DrawingShapeType { get; set; }
-    public int Size { get; set; }
+    public Point<int> Size { get; set; }
     public DrawingButton DrawingButton { get; set; }
     public int StrokeIndex { get; set; }
 }

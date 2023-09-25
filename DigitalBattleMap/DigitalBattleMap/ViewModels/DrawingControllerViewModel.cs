@@ -50,8 +50,9 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         EraserButtonBitmapSource = BitmapTools.CreateEraserButton(false).ToBitmapImage();
         EditingMode = InkCanvasEditingMode.Ink;
         EraserShape = new EllipseStylusShape(PenSize, PenSize);
-        ShapeSize = 10;
-        SquareShapeSelected = true;
+        ShapeSizeX = 10;
+        ShapeSizeY = 10;
+        RectangleShapeSelected = true;
         Strokes = new StrokeCollection();
         Strokes.StrokesChanged += OnStrokesChanged;
     }
@@ -80,8 +81,9 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public StylusShape EraserShape { get => Get<StylusShape>(); set => Set(value); }
     public double PenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100), PenSizeChanged); }
     public bool IsSnapToGridEnabled { get => Get<bool>(); set => Set(value); }
-    public int ShapeSize { get => Get<int>(); set => Set(value); }
-    public bool SquareShapeSelected { get => Get<bool>(); set => Set(value); }
+    public int ShapeSizeX { get => Get<int>(); set => Set(value); }
+    public int ShapeSizeY { get => Get<int>(); set => Set(value); }
+    public bool RectangleShapeSelected { get => Get<bool>(); set => Set(value); }
     public bool CircleShapeSelected { get => Get<bool>(); set => Set(value); }
     public StrokeCollection Strokes { get => Get<StrokeCollection>(); set => Set(value); }
     public bool IsShapeEditAndRemoveEnabled { get => SelectedShape != null && !IsShapeEditorActive; }
@@ -172,6 +174,12 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
         Strokes = saveFile.Strokes;
 
+        foreach (var stroke in Strokes)
+        {
+            stroke.DrawingAttributes.Width = Math.Round(stroke.DrawingAttributes.Width);
+            stroke.DrawingAttributes.Height = Math.Round(stroke.DrawingAttributes.Height);
+        }
+
         if (!saveFile.CanvasSize.Equals(_canvasSize) && saveFile.CanvasSize.Width != 0)
         {
             var zoomFactor = _canvasSize.Width / saveFile.CanvasSize.Width;
@@ -221,6 +229,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
         Shapes.Clear();
         Strokes.Clear();
+        ShapeStroke = null;
+        _editShape = null;
         NotifyDrawingStrokesUpdated();
     }
 
@@ -236,9 +246,10 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         if (_editShape != null)
         {
             PenSize = _editShape.Stroke.DrawingAttributes.Width;
-            SquareShapeSelected = _editShape.DrawingShapeType == DrawingShapeType.Square;
+            RectangleShapeSelected = _editShape.DrawingShapeType == DrawingShapeType.Rectangle;
             CircleShapeSelected = _editShape.DrawingShapeType == DrawingShapeType.Circle;
-            ShapeSize = _editShape.Size;
+            ShapeSizeX = _editShape.Size.X;
+            ShapeSizeY = _editShape.Size.Y;
             ChangeDrawingButton(_editShape.DrawingButton);
 
             SelectedShape.DrawingShapeType = _editShape.DrawingShapeType;
@@ -260,11 +271,12 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public void ApplyShape()
     {
         ActivateShapeEditor(false);
+        ShapeSizeY = GetDrawingShapeType() == DrawingShapeType.Rectangle ? ShapeSizeY : ShapeSizeX;
 
         if (_editShape != null)
         {
             SelectedShape.DrawingShapeType = GetDrawingShapeType();
-            SelectedShape.Size = ShapeSize;
+            SelectedShape.Size = new Point<int>(ShapeSizeX, ShapeSizeY);
             SelectedShape.Stroke = ShapeStroke;
             SelectedShape.DrawingButton = _selectedDrawingButton;
 
@@ -276,7 +288,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             var shape = new DrawingShape
             {
                 DrawingShapeType = GetDrawingShapeType(),
-                Size = ShapeSize,
+                Size = new Point<int>(ShapeSizeX, ShapeSizeY),
                 Stroke = ShapeStroke,
                 DrawingButton = _selectedDrawingButton,
                 CanvasSize = _canvasSize
@@ -299,9 +311,10 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         ShapeStroke = SelectedShape.Stroke;
 
         PenSize = SelectedShape.Stroke.DrawingAttributes.Width;
-        SquareShapeSelected = SelectedShape.DrawingShapeType == DrawingShapeType.Square;
+        RectangleShapeSelected = SelectedShape.DrawingShapeType == DrawingShapeType.Rectangle;
         CircleShapeSelected = SelectedShape.DrawingShapeType == DrawingShapeType.Circle;
-        ShapeSize = SelectedShape.Size;
+        ShapeSizeX = SelectedShape.Size.X;
+        ShapeSizeY = SelectedShape.Size.Y;
         ChangeDrawingButton(SelectedShape.DrawingButton);
 
         ActivateShapeEditor(true);
@@ -510,37 +523,41 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
 
         var startPoint = SnapPoint(new Point<double>(addedStroke.StylusPoints.First().X, addedStroke.StylusPoints.First().Y), gridOffset, halfGridSize);
-        var distanceToEdge = Math.Round((double)ShapeSize / Constants.FeetPerGridCell); // Get amount of grid cells
-        distanceToEdge *= inkCanvasGridSize;
-        distanceToEdge /= 2; // divide by 2 to get radius
+        var distanceToEdgeX = Math.Round((double)ShapeSizeX / Constants.FeetPerGridCell); // Get amount of grid cells
+        distanceToEdgeX *= inkCanvasGridSize;
+        distanceToEdgeX /= 2; // divide by 2 to get radius
+        var distanceToEdgeY = Math.Round((double)ShapeSizeY / Constants.FeetPerGridCell); // Get amount of grid cells
+        distanceToEdgeY *= inkCanvasGridSize;
+        distanceToEdgeY /= 2; // divide by 2 to get radius
 
         Strokes.Remove(ShapeStroke);
-        addedStroke.StylusPoints = CreateShape(startPoint, distanceToEdge);
+        addedStroke.StylusPoints = CreateShape(startPoint, new Point<double>(distanceToEdgeX, distanceToEdgeY));
         ShapeStroke = addedStroke;
     }
 
-    private StylusPointCollection CreateShape(Point<double> startPoint, double distanceToEdge)
+    private StylusPointCollection CreateShape(Point<double> startPoint, Point<double> distanceToEdge)
     {
         var points = new StylusPointCollection();
 
-        if (SquareShapeSelected)
+        if (RectangleShapeSelected)
         {
-            points.Add(new StylusPoint(startPoint.X - distanceToEdge, startPoint.Y - distanceToEdge));
-            points.Add(new StylusPoint(startPoint.X + distanceToEdge, startPoint.Y - distanceToEdge));
-            points.Add(new StylusPoint(startPoint.X + distanceToEdge, startPoint.Y + distanceToEdge));
-            points.Add(new StylusPoint(startPoint.X - distanceToEdge, startPoint.Y + distanceToEdge));
-            points.Add(new StylusPoint(startPoint.X - distanceToEdge, startPoint.Y - distanceToEdge));
+            points.Add(new StylusPoint(startPoint.X - distanceToEdge.X, startPoint.Y - distanceToEdge.Y));
+            points.Add(new StylusPoint(startPoint.X + distanceToEdge.X, startPoint.Y - distanceToEdge.Y));
+            points.Add(new StylusPoint(startPoint.X + distanceToEdge.X, startPoint.Y + distanceToEdge.Y));
+            points.Add(new StylusPoint(startPoint.X - distanceToEdge.X, startPoint.Y + distanceToEdge.Y));
+            points.Add(new StylusPoint(startPoint.X - distanceToEdge.X, startPoint.Y - distanceToEdge.Y));
         }
         else
         {
+            // Circle only uses x size
             double stepsize = 0.05;
             for (double i = 0; i <= 2 * Math.PI; i += stepsize)
             {
-                var x = startPoint.X + distanceToEdge * Math.Cos(i);
-                var y = startPoint.Y + distanceToEdge * Math.Sin(i);
+                var x = startPoint.X + distanceToEdge.X * Math.Cos(i);
+                var y = startPoint.Y + distanceToEdge.X * Math.Sin(i);
                 points.Add(new StylusPoint(x, y));
             }
-            points.Add(new StylusPoint(startPoint.X + distanceToEdge, startPoint.Y));
+            points.Add(new StylusPoint(startPoint.X + distanceToEdge.X, startPoint.Y));
         }
 
         return points;
@@ -548,7 +565,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private DrawingShapeType GetDrawingShapeType()
     {
-        return SquareShapeSelected ? DrawingShapeType.Square : DrawingShapeType.Circle;
+        return RectangleShapeSelected ? DrawingShapeType.Rectangle : DrawingShapeType.Circle;
     }
 
     private void PreventErasingShape(StrokeCollection removed, StrokeCollection added)
