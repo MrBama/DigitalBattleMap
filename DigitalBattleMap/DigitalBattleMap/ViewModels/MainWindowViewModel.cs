@@ -3,6 +3,7 @@ using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
+using Markdig.Helpers;
 using System;
 using System.Drawing;
 using System.Windows;
@@ -69,6 +70,7 @@ public class MainWindowViewModel : ViewModelBase
     public ICommand ShowMapCommand { get; set; }
     public ICommand WindowClosingCommand { get; set; }
     public ICommand InkCanvasSizeOnStartupCommand { get; set; }
+    public ICommand InkCanvasSizeChangedCommand { get; set; }
     public ICommand ClearAllCommand { get; set; }
     public ICommand SettingsCommand { get; set; }
     public ICommand MoveMapArrowCommand { get; set; }
@@ -118,7 +120,8 @@ public class MainWindowViewModel : ViewModelBase
         GridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
         ShowMapCommand = new RelayCommand(p => ShowMap());
         WindowClosingCommand = new RelayCommand(p => WindowClosing());
-        InkCanvasSizeOnStartupCommand = new RelayCommand(p => InkCanvasSizeOnStartup((double)p));
+        InkCanvasSizeOnStartupCommand = new RelayCommand(p => SetInkCanvasSize((double)p));
+        InkCanvasSizeChangedCommand = new RelayCommand(p => InkCanvasSizeChanged((SizeChangedEventArgs)p));
         ClearAllCommand = new RelayCommand(p => ClearMap());
         SettingsCommand = new RelayCommand(p => OpenSettings());
         MoveMapArrowCommand = new RelayCommand(p => MoveMap((string)p));
@@ -206,7 +209,7 @@ public class MainWindowViewModel : ViewModelBase
         _windowService.CloseAllWindows();
     }
 
-    private void InkCanvasSizeOnStartup(double width)
+    private void SetInkCanvasSize(double width)
     {
         // It's enough to only use the width, since everything is done in a 16:9 ratio
         _canvasSize = new Size<double>
@@ -218,6 +221,11 @@ public class MainWindowViewModel : ViewModelBase
         BackgroundController.SetCanvasSize(_canvasSize);
         DrawingController.SetCanvasSize(_canvasSize);
         TokenController.SetCanvasSize(_canvasSize);
+    }
+
+    private void InkCanvasSizeChanged(SizeChangedEventArgs eventArgs)
+    {
+        SetInkCanvasSize(eventArgs.NewSize.Width);
     }
 
     private void ClearMap()
