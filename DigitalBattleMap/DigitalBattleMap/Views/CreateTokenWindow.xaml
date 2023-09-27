@@ -42,8 +42,8 @@
 
         <Image Grid.ColumnSpan="2" Source="{Binding TokenBitmapSource}" MaxHeight="240"/>
         <Button Grid.Row="1" Grid.ColumnSpan="2" Content="Select image" Command="{Binding SelectImageCommand}" Margin="0 10 0 0"/>
-        <Label Grid.Row="2" Content="Name" Margin="0 20 0 0" BorderBrush="{Binding NameBorderBrush}" BorderThickness="1" ToolTip="{Binding ToolTip}"/>
-        <TextBox x:Name="NameTextBox" Grid.Row="2" Grid.Column="1" Margin="10 20 0 0" VerticalContentAlignment="Center" Text="{Binding TokenName, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding ToolTip}"/>
+        <Label Grid.Row="2" Content="Name" Margin="0 20 0 0" BorderBrush="{Binding NameBorderBrush}" BorderThickness="1" ToolTip="{Binding NameToolTip}"/>
+        <TextBox x:Name="NameTextBox" Grid.Row="2" Grid.Column="1" Margin="10 20 0 0" VerticalContentAlignment="Center" Text="{Binding TokenName, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding NameToolTip}"/>
         <Label Grid.Row="3" Content="Size" Margin="0 10 0 0"/>
         <ComboBox Grid.Row="3" Grid.Column="1" Margin="10 10 0 0" SelectedItem="{Binding SelectedTokenSize}" VerticalContentAlignment="Center">
             <dataclasses:TokenSize>Tiny</dataclasses:TokenSize>
@@ -69,15 +69,20 @@
 
         <!--Statblock grid-->
         <Label Grid.Row="7" Content="Statblock" Margin="0 10 0 0" Visibility="{Binding IsOptionalShown, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}"/>
-        <Grid Grid.Row="7" Grid.Column="1" Margin="10 10 0 0" Visibility="{Binding IsOptionalShown, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}">
+        <Grid Grid.Row="7" Grid.Column="1" Margin="10 0 0 0" Visibility="{Binding IsOptionalShown, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Button Content="Create" Margin="0 0 5 0" Command="{Binding CreateStatblockCommand}" Visibility="{Binding IsStatblockCreated, Converter={StaticResource InversedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
-            <Button Grid.Column="1" Margin="5 0 0 0" Content="Copy" Command="{Binding CopyStatblockCommand}" Visibility="{Binding IsStatblockCreated, Converter={StaticResource InversedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
-            <Button Content="Remove" Margin="0 0 5 0" Command="{Binding RemoveStatblockCommand}" Visibility="{Binding IsStatblockCreated, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
-            <Button Grid.Column="1" Margin="5 0 0 0" Content="Edit" Command="{Binding EditStatblockCommand}" IsEnabled="{Binding IsStatblockEditable}" Visibility="{Binding IsStatblockCreated, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
+            <Label Grid.ColumnSpan="2" Margin="0 10 0 0" Padding="0 5 5 5" Content="{Binding StatblockCopyName}" Visibility="{Binding ShowStatblockCopyName, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}"/>
+            <Button Grid.Row="1" Content="Create" Margin="0 10 5 0" Command="{Binding CreateStatblockCommand}" Visibility="{Binding IsStatblockCreated, Converter={StaticResource InversedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
+            <Button Grid.Row="1" Grid.Column="1" Margin="5 10 0 0" Content="Copy" Command="{Binding CopyStatblockCommand}" Visibility="{Binding IsStatblockCreated, Converter={StaticResource InversedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
+            <Button Grid.Row="1" Content="Remove" Margin="0 10 5 0" Command="{Binding RemoveStatblockCommand}" Visibility="{Binding IsStatblockCreated, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
+            <Button Grid.Row="1" Grid.Column="1" Margin="5 10 0 0" Content="Edit" Command="{Binding EditStatblockCommand}" Visibility="{Binding IsStatblockEditable, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
         </Grid>
 
         <Button Grid.Row="8" Grid.ColumnSpan="2" Content="Ok" Margin="0 10 0 0" IsEnabled="{Binding IsOkButtonEnabled}" Command="{Binding OkCommand}">

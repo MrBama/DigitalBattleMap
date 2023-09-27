@@ -84,13 +84,15 @@ public class CreateTokenWindowViewModel : ViewModelBase
     public TokenSize SelectedTokenSize { get => Get<TokenSize>(); set => Set(value); }
     public string TokenName { get => Get<string>(); set => Set(value, TokenNameChanged); }
     public System.Windows.Media.Brush NameBorderBrush { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
-    public string ToolTip { get => Get<string>(); set => Set(value); }
+    public string NameToolTip { get => Get<string>(); set => Set(value); }
+    public string StatblockCopyName { get => Get<string>(); set => Set(value); }
     public string OptionalButtonText { get => Get<string>(); set => Set(value); }
     public bool IsOkButtonEnabled { get => AllInformationAvailable(); }
     public bool PlayerControl { get => Get<bool>(); set => Set(value); }
     public bool IsOptionalShown { get => Get<bool>(); set => Set(value); }
-    public bool IsStatblockCreated { get => Get<bool>(); set => Set(value, () => NotifyPropertyChange(nameof(IsStatblockEditable))); }
-    public bool IsStatblockEditable { get => _statblock is MarkdownStatblock; }
+    public bool IsStatblockCreated { get => Get<bool>(); set => Set(value, UpdateIsStatBlockEditable); }
+    public bool IsStatblockEditable { get => Get<bool>(); set => Set(value); }
+    public bool ShowStatblockCopyName { get => Get<bool>(); set => Set(value); }
     public int? Hp { get => Get<int?>(); set => Set(value); }
     public BitmapSource TokenBitmapSource { get => _tokenBitmap.ToBitmapImage(); }
     public List<string> ExistingTokenNames { get; set; } = new List<string>();
@@ -161,12 +163,12 @@ public class CreateTokenWindowViewModel : ViewModelBase
         if (ExistingTokenNames.SingleOrDefault(t => t.ToLower() == TokenName.ToLower()) == null)
         {
             NameBorderBrush = System.Windows.Media.Brushes.Transparent;
-            ToolTip = null;
+            NameToolTip = null;
         }
         else
         {
             NameBorderBrush = System.Windows.Media.Brushes.Red;
-            ToolTip = "A token with this name already exists";
+            NameToolTip = "A token with this name already exists";
         }
 
         NotifyPropertyChange(nameof(IsOkButtonEnabled));
@@ -233,5 +235,19 @@ public class CreateTokenWindowViewModel : ViewModelBase
             _statblock = token.Statblock?.Copy();
             IsStatblockCreated = true;
         }
+    }
+
+    private void UpdateIsStatBlockEditable()
+    {
+        IsStatblockEditable = _statblock != null;
+        StatblockCopyName = null;
+        ShowStatblockCopyName = false;
+
+        if (_statblock is SourceStatblock sourceStatblock)
+        {
+            IsStatblockEditable = false;
+            ShowStatblockCopyName = true;
+            StatblockCopyName = sourceStatblock.SourceName;
+        }        
     }
 }
