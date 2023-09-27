@@ -1163,6 +1163,489 @@
       "Hp": 138
     },
     {
+      "Name": "Aerosaur",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Aerosaur.png?raw=true",
+      "Source": "BGG",
+      "Hp": 155
+    },
+    {
+      "Name": "Bag Jelly",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Bag%20Jelly.png?raw=true",
+      "Source": "BGG",
+      "Hp": 42
+    },
+    {
+      "Name": "Barrowghast",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Barrowghast.png?raw=true",
+      "Source": "BGG",
+      "Hp": 138
+    },
+    {
+      "Name": "Cairnwight",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Cairnwight.png?raw=true",
+      "Source": "BGG",
+      "Hp": 138
+    },
+    {
+      "Name": "Cinder Hulk",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Cinder%20Hulk.png?raw=true",
+      "Source": "BGG",
+      "Hp": 84
+    },
+    {
+      "Name": "Cloud Giant Destiny Gambler",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Cloud%20Giant%20Destiny%20Gambler.png?raw=true",
+      "Source": "BGG",
+      "Hp": 337
+    },
+    {
+      "Name": "Cloud Giant of Evil Air",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Cloud%20Giant%20of%20Evil%20Air.png?raw=true",
+      "Source": "BGG",
+      "Hp": 200
+    },
+    {
+      "Name": "Cradle of the Cloud Scion",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Cradle%20of%20the%20Cloud%20Scion.png?raw=true",
+      "Source": "BGG",
+      "Hp": 624
+    },
+    {
+      "Name": "Cradle of the Fire Scion",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Cradle%20of%20the%20Fire%20Scion.png?raw=true",
+      "Source": "BGG",
+      "Hp": 555
+    },
+    {
+      "Name": "Cradle of the Frost Scion",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Cradle%20of%20the%20Frost%20Scion.png?raw=true",
+      "Source": "BGG",
+      "Hp": 499
+    },
+    {
+      "Name": "Cradle of the Hill Scion",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Cradle%20of%20the%20Hill%20Scion.png?raw=true",
+      "Source": "BGG",
+      "Hp": 402
+    },
+    {
+      "Name": "Cradle of the Stone Scion",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Cradle%20of%20the%20Stone%20Scion.png?raw=true",
+      "Source": "BGG",
+      "Hp": 455
+    },
+    {
+      "Name": "Cradle of the Storm Scion",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Cradle%20of%20the%20Storm%20Scion.png?raw=true",
+      "Source": "BGG",
+      "Hp": 682
+    },
+    {
+      "Name": "Death Giant Reaper",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Death%20Giant%20Reaper.png?raw=true",
+      "Source": "BGG",
+      "Hp": 172
+    },
+    {
+      "Name": "Death Giant Shrouded One",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Death%20Giant%20Shrouded%20One.png?raw=true",
+      "Source": "BGG",
+      "Hp": 195
+    },
+    {
+      "Name": "Dust Hulk",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Dust%20Hulk.png?raw=true",
+      "Source": "BGG",
+      "Hp": 68
+    },
+    {
+      "Name": "Echo of Demogorgon",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Echo%20of%20Demogorgon.png?raw=true",
+      "Source": "BGG",
+      "Hp": 85
+    },
+    {
+      "Name": "Ettin Ceremorph",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Ettin%20Ceremorph.png?raw=true",
+      "Source": "BGG",
+      "Hp": 104
+    },
+    {
+      "Name": "Fensir Devourer",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Fensir%20Devourer.png?raw=true",
+      "Source": "BGG",
+      "Hp": 138
+    },
+    {
+      "Name": "Fensir Skirmisher",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Fensir%20Skirmisher.png?raw=true",
+      "Source": "BGG",
+      "Hp": 94
+    },
+    {
+      "Name": "Firbolg Primeval Warden",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Firbolg%20Primeval%20Warden.png?raw=true",
+      "Source": "BGG",
+      "Hp": 65
+    },
+    {
+      "Name": "Firbolg Wanderer",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Firbolg%20Wanderer.png?raw=true",
+      "Source": "BGG",
+      "Hp": 90
+    },
+    {
+      "Name": "Fire Giant Forgecaller",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Fire%20Giant%20Forgecaller.png?raw=true",
+      "Source": "BGG",
+      "Hp": 312
+    },
+    {
+      "Name": "Fire Giant of Evil Fire",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Fire%20Giant%20of%20Evil%20Fire.png?raw=true",
+      "Source": "BGG",
+      "Hp": 150
+    },
+    {
+      "Name": "Fire Hellion",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Fire%20Hellion.png?raw=true",
+      "Source": "BGG",
+      "Hp": 175
+    },
+    {
+      "Name": "Firegaunt",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Firegaunt.png?raw=true",
+      "Source": "BGG",
+      "Hp": 175
+    },
+    {
+      "Name": "Flesh Colossus",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Flesh%20Colossus.png?raw=true",
+      "Source": "BGG",
+      "Hp": 280
+    },
+    {
+      "Name": "Fomorian Deep Crawler",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Fomorian%20Deep%20Crawler.png?raw=true",
+      "Source": "BGG",
+      "Hp": 184
+    },
+    {
+      "Name": "Fomorian Noble",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Fomorian%20Noble.png?raw=true",
+      "Source": "BGG",
+      "Hp": 253
+    },
+    {
+      "Name": "Fomorian Warlock of the Dark",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Fomorian%20Warlock%20of%20the%20Dark.png?raw=true",
+      "Source": "BGG",
+      "Hp": 207
+    },
+    {
+      "Name": "Frost Giant Ice Shaper",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Frost%20Giant%20Ice%20Shaper.png?raw=true",
+      "Source": "BGG",
+      "Hp": 310
+    },
+    {
+      "Name": "Frost Giant of Evil Water",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Frost%20Giant%20of%20Evil%20Water.png?raw=true",
+      "Source": "BGG",
+      "Hp": 172
+    },
+    {
+      "Name": "Frostmourn",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Frostmourn.png?raw=true",
+      "Source": "BGG",
+      "Hp": 195
+    },
+    {
+      "Name": "Fury of Kostchtchie",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Fury%20of%20Kostchtchie.png?raw=true",
+      "Source": "BGG",
+      "Hp": 216
+    },
+    {
+      "Name": "Gargantua",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Gargantua.png?raw=true",
+      "Source": "BGG",
+      "Hp": 388
+    },
+    {
+      "Name": "Giant Goose",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Giant%20Goose.png?raw=true",
+      "Source": "BGG",
+      "Hp": 60
+    },
+    {
+      "Name": "Giant Lynx",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Giant%20Lynx.png?raw=true",
+      "Source": "BGG",
+      "Hp": 22
+    },
+    {
+      "Name": "Giant Ox",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Giant%20Ox.png?raw=true",
+      "Source": "BGG",
+      "Hp": 105
+    },
+    {
+      "Name": "Giant Ram",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Giant%20Ram.png?raw=true",
+      "Source": "BGG",
+      "Hp": 28
+    },
+    {
+      "Name": "Giant Tick",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Giant%20Tick.png?raw=true",
+      "Source": "BGG",
+      "Hp": 52
+    },
+    {
+      "Name": "Gigant",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Gigant.png?raw=true",
+      "Source": "BGG",
+      "Hp": 325
+    },
+    {
+      "Name": "Goliath Giant-Kin",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Goliath%20Giant-Kin.png?raw=true",
+      "Source": "BGG",
+      "Hp": 67
+    },
+    {
+      "Name": "Grinning Cat",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Grinning%20Cat.png?raw=true",
+      "Source": "BGG",
+      "Hp": 45
+    },
+    {
+      "Name": "Hill Giant Avalancher",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Hill%20Giant%20Avalancher.png?raw=true",
+      "Source": "BGG",
+      "Hp": 220
+    },
+    {
+      "Name": "Lightning Hulk",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Lightning%20Hulk.png?raw=true",
+      "Source": "BGG",
+      "Hp": 102
+    },
+    {
+      "Name": "Maw of Yeenoghu",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Maw%20of%20Yeenoghu.png?raw=true",
+      "Source": "BGG",
+      "Hp": 161
+    },
+    {
+      "Name": "Mist Hulk",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Mist%20Hulk.png?raw=true",
+      "Source": "BGG",
+      "Hp": 94
+    },
+    {
+      "Name": "Mud Hulk",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Mud%20Hulk.png?raw=true",
+      "Source": "BGG",
+      "Hp": 68
+    },
+    {
+      "Name": "Regisaur",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Regisaur.png?raw=true",
+      "Source": "BGG",
+      "Hp": 181
+    },
+    {
+      "Name": "Rime Hulk",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Rime%20Hulk.png?raw=true",
+      "Source": "BGG",
+      "Hp": 85
+    },
+    {
+      "Name": "Runic Colossus",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Runic%20Colossus.png?raw=true",
+      "Source": "BGG",
+      "Hp": 315
+    },
+    {
+      "Name": "Scion of Grolantor",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Scion%20of%20Grolantor.png?raw=true",
+      "Source": "BGG",
+      "Hp": 402
+    },
+    {
+      "Name": "Scion of Memnor",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Scion%20of%20Memnor.png?raw=true",
+      "Source": "BGG",
+      "Hp": 656
+    },
+    {
+      "Name": "Scion of Skoraeus",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Scion%20of%20Skoraeus.png?raw=true",
+      "Source": "BGG",
+      "Hp": 444
+    },
+    {
+      "Name": "Scion of Stronmaus",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Scion%20of%20Stronmaus.png?raw=true",
+      "Source": "BGG",
+      "Hp": 656
+    },
+    {
+      "Name": "Scion of Surtur",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Scion%20of%20Surtur.png?raw=true",
+      "Source": "BGG",
+      "Hp": 546
+    },
+    {
+      "Name": "Scion of Thrym",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Scion%20of%20Thrym.png?raw=true",
+      "Source": "BGG",
+      "Hp": 499
+    },
+    {
+      "Name": "Spectral Cloud",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Spectral%20Cloud.png?raw=true",
+      "Source": "BGG",
+      "Hp": 189
+    },
+    {
+      "Name": "Spotted Lion",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Spotted%20Lion.png?raw=true",
+      "Source": "BGG",
+      "Hp": 66
+    },
+    {
+      "Name": "Stalker of Baphomet",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Stalker%20of%20Baphomet.png?raw=true",
+      "Source": "BGG",
+      "Hp": 200
+    },
+    {
+      "Name": "Stone Giant of Evil Earth",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Stone%20Giant%20of%20Evil%20Earth.png?raw=true",
+      "Source": "BGG",
+      "Hp": 137
+    },
+    {
+      "Name": "Stone Giant Rockspeaker",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Stone%20Giant%20Rockspeaker.png?raw=true",
+      "Source": "BGG",
+      "Hp": 276
+    },
+    {
+      "Name": "Storm Crab",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Storm%20Crab.png?raw=true",
+      "Source": "BGG",
+      "Hp": 155
+    },
+    {
+      "Name": "Storm Giant Tempest Caller",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Storm%20Giant%20Tempest%20Caller.png?raw=true",
+      "Source": "BGG",
+      "Hp": 310
+    },
+    {
+      "Name": "Storm Herald",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Storm%20Herald.png?raw=true",
+      "Source": "BGG",
+      "Hp": 287
+    },
+    {
+      "Name": "Tempest Spirit",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Tempest%20Spirit.png?raw=true",
+      "Source": "BGG",
+      "Hp": 195
+    },
+    {
+      "Name": "Titanothere",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Titanothere.png?raw=true",
+      "Source": "BGG",
+      "Hp": 136
+    },
+    {
+      "Name": "Troll Amalgam",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Troll%20Amalgam.png?raw=true",
+      "Source": "BGG",
+      "Hp": 217
+    },
+    {
+      "Name": "Troll Mutate",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/BGG/Troll%20Mutate.png?raw=true",
+      "Source": "BGG",
+      "Hp": 95
+    },
+    {
       "Name": "Animated Broom",
       "Size": "S",
       "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/CM/Animated%20Broom.png?raw=true",
@@ -2241,9 +2724,9 @@
       "Hp": 93
     },
     {
-      "Name": "Foghomer",
+      "Name": "Foghome",
       "Size": "M",
-      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/CRCotN/Foghomer.png?raw=true",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/CRCotN/Foghome.png?raw=true",
       "Source": "CRCotN",
       "Hp": 27
     },
@@ -5230,6 +5713,62 @@
       "Hp": 71
     },
     {
+      "Name": "Acidic Mist Apparition",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/GotSF/Acidic%20Mist%20Apparition.png?raw=true",
+      "Source": "GotSF",
+      "Hp": 90
+    },
+    {
+      "Name": "Doric",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/HAT-TG/Doric.png?raw=true",
+      "Source": "HAT-TG",
+      "Hp": 104
+    },
+    {
+      "Name": "Edgin Darvis",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/HAT-TG/Edgin%20Darvis.png?raw=true",
+      "Source": "HAT-TG",
+      "Hp": 110
+    },
+    {
+      "Name": "Forge Fitzwilliam",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/HAT-TG/Forge%20Fitzwilliam.png?raw=true",
+      "Source": "HAT-TG",
+      "Hp": 110
+    },
+    {
+      "Name": "Holga Kilgore",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/HAT-TG/Holga%20Kilgore.png?raw=true",
+      "Source": "HAT-TG",
+      "Hp": 120
+    },
+    {
+      "Name": "Simon Aumar",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/HAT-TG/Simon%20Aumar.png?raw=true",
+      "Source": "HAT-TG",
+      "Hp": 99
+    },
+    {
+      "Name": "Sofina",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/HAT-TG/Sofina.png?raw=true",
+      "Source": "HAT-TG",
+      "Hp": 161
+    },
+    {
+      "Name": "Xenk Yendar",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/HAT-TG/Xenk%20Yendar.png?raw=true",
+      "Source": "HAT-TG",
+      "Hp": 157
+    },
+    {
       "Name": "Thessalhydra",
       "Size": "H",
       "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/HftT/Thessalhydra.png?raw=true",
@@ -7113,13 +7652,6 @@
       "Hp": 60
     },
     {
-      "Name": "Ash Zombie",
-      "Size": "M",
-      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/LMoP/Ash%20Zombie.png?raw=true",
-      "Source": "LMoP",
-      "Hp": 22
-    },
-    {
       "Name": "Evil Mage",
       "Size": "M",
       "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/LMoP/Evil%20Mage.png?raw=true",
@@ -7127,44 +7659,9 @@
       "Hp": 22
     },
     {
-      "Name": "Gundren Rockseeker",
-      "Size": "M",
-      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/LMoP/Gundren%20Rockseeker.png?raw=true",
-      "Source": "LMoP",
-      "Hp": 4
-    },
-    {
-      "Name": "Mormesk the Wraith",
-      "Size": "M",
-      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/LMoP/Mormesk%20the%20Wraith.png?raw=true",
-      "Source": "LMoP",
-      "Hp": 45
-    },
-    {
       "Name": "Nezznar the Black Spider",
       "Size": "M",
       "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/LMoP/Nezznar%20the%20Black%20Spider.png?raw=true",
-      "Source": "LMoP",
-      "Hp": 27
-    },
-    {
-      "Name": "Nundro Rockseeker",
-      "Size": "M",
-      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/LMoP/Nundro%20Rockseeker.png?raw=true",
-      "Source": "LMoP",
-      "Hp": 4
-    },
-    {
-      "Name": "Redbrand Ruffian",
-      "Size": "M",
-      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/LMoP/Redbrand%20Ruffian.png?raw=true",
-      "Source": "LMoP",
-      "Hp": 16
-    },
-    {
-      "Name": "Sildar Hallwinter",
-      "Size": "M",
-      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/LMoP/Sildar%20Hallwinter.png?raw=true",
       "Source": "LMoP",
       "Hp": 27
     },
@@ -7848,6 +8345,41 @@
       "Hp": 143
     },
     {
+      "Name": "Blaze",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/MCV3MC/Blaze.png?raw=true",
+      "Source": "MCV3MC",
+      "Hp": 75
+    },
+    {
+      "Name": "Creeper",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/MCV3MC/Creeper.png?raw=true",
+      "Source": "MCV3MC",
+      "Hp": 19
+    },
+    {
+      "Name": "Ender Dragon",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/MCV3MC/Ender%20Dragon.png?raw=true",
+      "Source": "MCV3MC",
+      "Hp": 350
+    },
+    {
+      "Name": "Enderman",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/MCV3MC/Enderman.png?raw=true",
+      "Source": "MCV3MC",
+      "Hp": 78
+    },
+    {
+      "Name": "Wolf of the Overworld",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/MCV3MC/Wolf%20of%20the%20Overworld.png?raw=true",
+      "Source": "MCV3MC",
+      "Hp": 11
+    },
+    {
       "Name": "Assassin Bug",
       "Size": "M",
       "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/MFF/Assassin%20Bug.png?raw=true",
@@ -8014,6 +8546,48 @@
       "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/MGELFT/Yeti%20Tyke.png?raw=true",
       "Source": "MGELFT",
       "Hp": 9
+    },
+    {
+      "Name": "Coral",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/MisMV1/Coral.png?raw=true",
+      "Source": "MisMV1",
+      "Hp": 135
+    },
+    {
+      "Name": "Dandylion",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/MisMV1/Dandylion.png?raw=true",
+      "Source": "MisMV1",
+      "Hp": 90
+    },
+    {
+      "Name": "Rain",
+      "Size": "S",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/MisMV1/Rain.png?raw=true",
+      "Source": "MisMV1",
+      "Hp": 60
+    },
+    {
+      "Name": "Scrapper",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/MisMV1/Scrapper.png?raw=true",
+      "Source": "MisMV1",
+      "Hp": 126
+    },
+    {
+      "Name": "Seth the Shapeshifting Dragon",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/MisMV1/Seth%20the%20Shapeshifting%20Dragon.png?raw=true",
+      "Source": "MisMV1",
+      "Hp": 153
+    },
+    {
+      "Name": "Sheldon the Blueberry Dragon",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/MisMV1/Sheldon%20the%20Blueberry%20Dragon.png?raw=true",
+      "Source": "MisMV1",
+      "Hp": 142
     },
     {
       "Name": "Aarakocra",
@@ -13088,7 +13662,7 @@
       "Size": "M",
       "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/OotA/Mev%20Flintknapper.png?raw=true",
       "Source": "OotA",
-      "Hp": 27
+      "Hp": 58
     },
     {
       "Name": "Narrak",
@@ -13488,6 +14062,321 @@
       "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/OoW/Undead%20Cockatrice.png?raw=true",
       "Source": "OoW",
       "Hp": 27
+    },
+    {
+      "Name": "Aberrant Zealot",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Aberrant%20Zealot.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 93
+    },
+    {
+      "Name": "Ash Zombie",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Ash%20Zombie.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 22
+    },
+    {
+      "Name": "Chishinix' Head",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Chishinix%27%20Head.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 54
+    },
+    {
+      "Name": "Chishinix",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Chishinix.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 156
+    },
+    {
+      "Name": "Cloaker Mutate",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Cloaker%20Mutate.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 143
+    },
+    {
+      "Name": "Encephalon Cluster",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Encephalon%20Cluster.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 110
+    },
+    {
+      "Name": "Encephalon Gemmule",
+      "Size": "T",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Encephalon%20Gemmule.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 54
+    },
+    {
+      "Name": "Feral Ashenwight",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Feral%20Ashenwight.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 65
+    },
+    {
+      "Name": "Fiendish Auger",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Fiendish%20Auger.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 85
+    },
+    {
+      "Name": "Flesh Meld",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Flesh%20Meld.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 95
+    },
+    {
+      "Name": "Goblin Psi Brawler",
+      "Size": "S",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Goblin%20Psi%20Brawler.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 31
+    },
+    {
+      "Name": "Goblin Psi Commander",
+      "Size": "S",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Goblin%20Psi%20Commander.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 58
+    },
+    {
+      "Name": "Grandlejaw",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Grandlejaw.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 0
+    },
+    {
+      "Name": "Grell Psychic",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Grell%20Psychic.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 66
+    },
+    {
+      "Name": "Gundren Rockseeker",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Gundren%20Rockseeker.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 4
+    },
+    {
+      "Name": "Gwyn Oresong",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Gwyn%20Oresong.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 9
+    },
+    {
+      "Name": "Hashutu",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Hashutu.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 156
+    },
+    {
+      "Name": "Hjoldak Hollowhelm",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Hjoldak%20Hollowhelm.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 78
+    },
+    {
+      "Name": "Honna",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Honna.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 0
+    },
+    {
+      "Name": "Humanoid Mutate",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Humanoid%20Mutate.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 65
+    },
+    {
+      "Name": "Infected Elder Brain",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Infected%20Elder%20Brain.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 189
+    },
+    {
+      "Name": "Intellect Snare",
+      "Size": "S",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Intellect%20Snare.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 99
+    },
+    {
+      "Name": "Kellikilli",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Kellikilli.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 58
+    },
+    {
+      "Name": "Lowarnizel",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Lowarnizel.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 168
+    },
+    {
+      "Name": "Malinia",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Malinia.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 65
+    },
+    {
+      "Name": "Mind Flayer Prophet",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Mind%20Flayer%20Prophet.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 97
+    },
+    {
+      "Name": "Mormesk the Wraith",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Mormesk%20the%20Wraith.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 0
+    },
+    {
+      "Name": "Nezznar the Spider",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Nezznar%20the%20Spider.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 27
+    },
+    {
+      "Name": "Nundro Rockseeker",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Nundro%20Rockseeker.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 4
+    },
+    {
+      "Name": "Nythalyn Henlifel",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Nythalyn%20Henlifel.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 71
+    },
+    {
+      "Name": "Oculorb",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Oculorb.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 127
+    },
+    {
+      "Name": "Ontharyx",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Ontharyx.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 65
+    },
+    {
+      "Name": "Oshundo the Alhoon",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Oshundo%20the%20Alhoon.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 150
+    },
+    {
+      "Name": "Psionic Ashenwight",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Psionic%20Ashenwight.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 78
+    },
+    {
+      "Name": "Qunbraxel",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Qunbraxel.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 112
+    },
+    {
+      "Name": "Redbrand Ruffian",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Redbrand%20Ruffian.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 16
+    },
+    {
+      "Name": "Refraction of Ilvaash",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Refraction%20of%20Ilvaash.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 199
+    },
+    {
+      "Name": "Rivibiddel",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Rivibiddel.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 16
+    },
+    {
+      "Name": "Ruxithid the Chosen",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Ruxithid%20the%20Chosen.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 88
+    },
+    {
+      "Name": "Shalfi Lewin",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Shalfi%20Lewin.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 93
+    },
+    {
+      "Name": "Sildar Hallwinter",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Sildar%20Hallwinter.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 27
+    },
+    {
+      "Name": "Varakkta",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Varakkta.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 91
+    },
+    {
+      "Name": "Voalsh",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Voalsh.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 156
+    },
+    {
+      "Name": "Yanthdel Henlifel",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Yanthdel%20Henlifel.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 71
+    },
+    {
+      "Name": "Zeond",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PaBTSO/Zeond.png?raw=true",
+      "Source": "PaBTSO",
+      "Hp": 7
     },
     {
       "Name": "Animated Object (Huge)",
@@ -14099,6 +14988,27 @@
       "Hp": 75
     },
     {
+      "Name": "Lyra",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSD/Lyra.png?raw=true",
+      "Source": "PSD",
+      "Hp": 200
+    },
+    {
+      "Name": "Serra Angel",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSD/Serra%20Angel.png?raw=true",
+      "Source": "PSD",
+      "Hp": 136
+    },
+    {
+      "Name": "Shalai",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSD/Shalai.png?raw=true",
+      "Source": "PSD",
+      "Hp": 243
+    },
+    {
       "Name": "Steel Leaf Kavu",
       "Size": "L",
       "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSD/Steel%20Leaf%20Kavu.png?raw=true",
@@ -14111,6 +15021,20 @@
       "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSD/Zombie%20Horse.png?raw=true",
       "Source": "PSD",
       "Hp": 22
+    },
+    {
+      "Name": "Avacyn",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSI/Avacyn.png?raw=true",
+      "Source": "PSI",
+      "Hp": 243
+    },
+    {
+      "Name": "Bruna",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSI/Bruna.png?raw=true",
+      "Source": "PSI",
+      "Hp": 200
     },
     {
       "Name": "Creepy Doll",
@@ -14155,6 +15079,13 @@
       "Hp": 45
     },
     {
+      "Name": "Gisela",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSI/Gisela.png?raw=true",
+      "Source": "PSI",
+      "Hp": 200
+    },
+    {
       "Name": "Host of Herons Angel",
       "Size": "M",
       "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSI/Host%20of%20Herons%20Angel.png?raw=true",
@@ -14169,11 +15100,32 @@
       "Hp": 31
     },
     {
+      "Name": "Necro-Alchemist",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSI/Necro-Alchemist.png?raw=true",
+      "Source": "PSI",
+      "Hp": 40
+    },
+    {
+      "Name": "Sigarda",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSI/Sigarda.png?raw=true",
+      "Source": "PSI",
+      "Hp": 200
+    },
+    {
       "Name": "Skaab",
       "Size": "M",
       "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSI/Skaab.png?raw=true",
       "Source": "PSI",
       "Hp": 93
+    },
+    {
+      "Name": "Strefan Maurer",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSI/Strefan%20Maurer.png?raw=true",
+      "Source": "PSI",
+      "Hp": 144
     },
     {
       "Name": "Vampire Neonate",
@@ -14281,6 +15233,13 @@
       "Hp": 0
     },
     {
+      "Name": "Lifecraft Elephant",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSK/Lifecraft%20Elephant.png?raw=true",
+      "Source": "PSK",
+      "Hp": 76
+    },
+    {
       "Name": "Servo",
       "Size": "T",
       "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSK/Servo.png?raw=true",
@@ -14293,6 +15252,13 @@
       "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSK/Sky%20Leviathan.png?raw=true",
       "Source": "PSK",
       "Hp": 247
+    },
+    {
+      "Name": "Sky Whale",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSK/Sky%20Whale.png?raw=true",
+      "Source": "PSK",
+      "Hp": 85
     },
     {
       "Name": "Thopter (Bat)",
@@ -14377,6 +15343,13 @@
       "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSX/Air%20Totem%20Elemental.png?raw=true",
       "Source": "PSX",
       "Hp": 90
+    },
+    {
+      "Name": "Altisaur",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSX/Altisaur.png?raw=true",
+      "Source": "PSX",
+      "Hp": 121
     },
     {
       "Name": "Armasaur",
@@ -14680,9 +15653,9 @@
       "Hp": 136
     },
     {
-      "Name": "Archon Of Redemption",
+      "Name": "Archon of Redemption",
       "Size": "L",
-      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSZ/Archon%20Of%20Redemption.png?raw=true",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/PSZ/Archon%20of%20Redemption.png?raw=true",
       "Source": "PSZ",
       "Hp": 136
     },
@@ -15217,6 +16190,13 @@
       "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/RtG/Rotter.png?raw=true",
       "Source": "RtG",
       "Hp": 75
+    },
+    {
+      "Name": "Adult Sapphire Dragon",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/SADS/Adult%20Sapphire%20Dragon.png?raw=true",
+      "Source": "SADS",
+      "Hp": 207
     },
     {
       "Name": "Archaic",
@@ -16484,6 +17464,314 @@
       "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TCE/Wildfire%20Spirit.png?raw=true",
       "Source": "TCE",
       "Hp": 0
+    },
+    {
+      "Name": "Adranach",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Adranach.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 170
+    },
+    {
+      "Name": "Ashari Firetamer",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Ashari%20Firetamer.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 92
+    },
+    {
+      "Name": "Ashari Skydancer",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Ashari%20Skydancer.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 63
+    },
+    {
+      "Name": "Ashari Stoneguard",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Ashari%20Stoneguard.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 152
+    },
+    {
+      "Name": "Ashari Waverider",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Ashari%20Waverider.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 77
+    },
+    {
+      "Name": "Centaur Skeleton",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Centaur%20Skeleton.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 45
+    },
+    {
+      "Name": "Champion of Ravens",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Champion%20of%20Ravens.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 150
+    },
+    {
+      "Name": "Cinderslag Elemental",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Cinderslag%20Elemental.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 102
+    },
+    {
+      "Name": "Clasp Cutthroat",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Clasp%20Cutthroat.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 44
+    },
+    {
+      "Name": "Clasp Enforcer",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Clasp%20Enforcer.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 102
+    },
+    {
+      "Name": "Cobalt Golem",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Cobalt%20Golem.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 300
+    },
+    {
+      "Name": "Cold Snap Spirit",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Cold%20Snap%20Spirit.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 78
+    },
+    {
+      "Name": "Cyclops Stormcaller",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Cyclops%20Stormcaller.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 114
+    },
+    {
+      "Name": "Demonfeed Spider",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Demonfeed%20Spider.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 75
+    },
+    {
+      "Name": "Demonfeed Spiderling",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Demonfeed%20Spiderling.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 16
+    },
+    {
+      "Name": "Doty X",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Doty%20X.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 78
+    },
+    {
+      "Name": "Ember Roc",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Ember%20Roc.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 232
+    },
+    {
+      "Name": "Flaming Skeleton",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Flaming%20Skeleton.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 19
+    },
+    {
+      "Name": "Forge Guardian",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Forge%20Guardian.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 420
+    },
+    {
+      "Name": "Goat-Knight Steed",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Goat-Knight%20Steed.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 19
+    },
+    {
+      "Name": "Grog Strongjaw",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Grog%20Strongjaw.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 290
+    },
+    {
+      "Name": "Jourrael, the Caedogeist",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Jourrael%2C%20the%20Caedogeist.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 152
+    },
+    {
+      "Name": "Keyleth, Voice of the Tempest",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Keyleth%2C%20Voice%20of%20the%20Tempest.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 150
+    },
+    {
+      "Name": "Kraghammer Goat-Knight",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Kraghammer%20Goat-Knight.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 52
+    },
+    {
+      "Name": "Mage Hunter Golem",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Mage%20Hunter%20Golem.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 243
+    },
+    {
+      "Name": "Magma Landshark",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Magma%20Landshark.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 150
+    },
+    {
+      "Name": "Master Adranach",
+      "Size": "G",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Master%20Adranach.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 290
+    },
+    {
+      "Name": "Percival de Rolo",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Percival%20de%20Rolo.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 190
+    },
+    {
+      "Name": "Pike Trickfoot",
+      "Size": "S",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Pike%20Trickfoot.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 170
+    },
+    {
+      "Name": "Platinum Golem",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Platinum%20Golem.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 189
+    },
+    {
+      "Name": "Ravager Slaughter Lord",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Ravager%20Slaughter%20Lord.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 157
+    },
+    {
+      "Name": "Ravager Stabby-Stabber",
+      "Size": "S",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Ravager%20Stabby-Stabber.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 36
+    },
+    {
+      "Name": "Remnant Chosen",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Remnant%20Chosen.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 117
+    },
+    {
+      "Name": "Remnant Cultist",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Remnant%20Cultist.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 60
+    },
+    {
+      "Name": "Rivermaw Brawler",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Rivermaw%20Brawler.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 65
+    },
+    {
+      "Name": "Rivermaw Stormborn",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Rivermaw%20Stormborn.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 102
+    },
+    {
+      "Name": "Scanlan Shorthalt",
+      "Size": "S",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Scanlan%20Shorthalt.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 190
+    },
+    {
+      "Name": "Taryon Darrington",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Taryon%20Darrington.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 127
+    },
+    {
+      "Name": "Trinket",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Trinket.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 61
+    },
+    {
+      "Name": "Vex'ahlia",
+      "Size": "M",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Vex%27ahlia.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 130
+    },
+    {
+      "Name": "Vos'skyriss Serpentfolk Ghost",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Vos%27skyriss%20Serpentfolk%20Ghost.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 55
+    },
+    {
+      "Name": "Vos'skyriss Serpentfolk",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Vos%27skyriss%20Serpentfolk.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 60
+    },
+    {
+      "Name": "Wraithroot Tree",
+      "Size": "H",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Wraithroot%20Tree.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 270
+    },
+    {
+      "Name": "Young Magma Landshark",
+      "Size": "L",
+      "TokenUrl": "https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/TDCSR/Young%20Magma%20Landshark.png?raw=true",
+      "Source": "TDCSR",
+      "Hp": 105
     },
     {
       "Name": "Amphisbaena",
@@ -20982,6 +22270,7 @@
     "AWM",
     "BAM",
     "BGDIA",
+    "BGG",
     "CM",
     "CoS",
     "CRCotN",
@@ -20997,6 +22286,8 @@
     "FTD",
     "GGR",
     "GoS",
+    "GotSF",
+    "HAT-TG",
     "HftT",
     "HoL",
     "HotDQ",
@@ -21012,8 +22303,10 @@
     "MaBJoV",
     "MCV1SC",
     "MCV2DC",
+    "MCV3MC",
     "MFF",
     "MGELFT",
+    "MisMV1",
     "MM",
     "MOT",
     "MPMM",
@@ -21026,6 +22319,7 @@
     "NRH-TCMC",
     "OotA",
     "OoW",
+    "PaBTSO",
     "PHB",
     "PotA",
     "PSA",
@@ -21037,11 +22331,13 @@
     "RMBRE",
     "RoT",
     "RtG",
+    "SADS",
     "SCC",
     "SDW",
     "SKT",
     "SLW",
     "TCE",
+    "TDCSR",
     "TftYP",
     "ToA",
     "TTP",
