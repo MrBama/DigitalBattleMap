@@ -12,10 +12,9 @@ namespace MonsterIndexer
          * 
          * 1. Download 5eTools github repository https://github.com/5etools-mirror-1/5etools-mirror-1.github.io
          * 2. Extract repository and go to \img
-         * 3. Remove all files and directory that don't need to be indexed
-         * 4. Change _path to \img path
-         * 5. Run this application
-         * 6. A "MonsterTokens.json" file will be created in \img
+         * 3. Change _path to \img path
+         * 4. Run this application
+         * 5. A "MonsterTokens.json" file will be created in \img
          */
         static void Main()
         {
