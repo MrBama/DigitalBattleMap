@@ -416,7 +416,7 @@ public static class BitmapTools
             var drawingAttributs = strokes[strokeIndex].DrawingAttributes;
             var mediaColor = drawingAttributs.Color;
             var brush = new SolidBrush(Color.FromArgb(mediaColor.A, mediaColor.R, mediaColor.G, mediaColor.B));
-            var penSize = (int)drawingAttributs.Width; // We always use the same width and height
+            var penSize = (float)drawingAttributs.Width; // We always use the same width and height
 
             for (int pointIndex = 0; pointIndex < strokes[strokeIndex].StylusPoints.Count; pointIndex++)
             {
@@ -443,7 +443,7 @@ public static class BitmapTools
         }
     }
 
-    private static void SmoothLine(List<PointF> points, int penSize)
+    private static void SmoothLine(List<PointF> points, float penSize)
     {
         bool smoothRequired = true;
 

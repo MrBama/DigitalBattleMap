@@ -3,16 +3,16 @@ using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
-using Markdig.Helpers;
 using System;
 using System.Drawing;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.ViewModels;
 
-public class MainWindowViewModel : ViewModelBase
+public class MainWindowViewModel : ViewModelBase, ICanvasSize
 {
     private Bitmap _gridBitmap;
     private IWindowService _windowService;
@@ -35,6 +35,8 @@ public class MainWindowViewModel : ViewModelBase
         IO.Initialize(new Directory(), new File(), new ZipFile());
         Initialize();
     }
+
+    public event Interfaces.CanvasSizeChangedEventHandler OnCanvasSizeChanged;
 
     public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
     public int SelectedMapTabIndex { get => Get<int>(); set => Set(value); }
@@ -66,6 +68,9 @@ public class MainWindowViewModel : ViewModelBase
     public BitmapSource MapZoomInBitmapSource { get => BitmapTools.CreateZoomButton(true).ToBitmapImage(); }
     public BitmapSource MapZoomOutBitmapSource { get => BitmapTools.CreateZoomButton(false).ToBitmapImage(); }
 
+    double ICanvasSize.Width => _canvasSize.Width;
+    double ICanvasSize.Height => _canvasSize.Height;
+
     public ICommand GridSizeEnterCommand { get; set; }
     public ICommand ShowMapCommand { get; set; }
     public ICommand WindowClosingCommand { get; set; }
@@ -93,11 +98,11 @@ public class MainWindowViewModel : ViewModelBase
         _connectionManager.OnConnected += ConnectionManagerConnected;
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
         MouseCanvas = new();
-        BackgroundController = new BackgroundControllerViewModel(_windowService, MouseCanvas, GridSize);
+        BackgroundController = new BackgroundControllerViewModel(_windowService, this, MouseCanvas, GridSize);
         BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
-        TokenController = new TokenControllerViewModel(_windowService, _connectionManager, MouseCanvas, _settings, GridSize);
+        TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, MouseCanvas, _settings, GridSize);
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
-        DrawingController = new DrawingControllerViewModel(TokenController, GridSize);
+        DrawingController = new DrawingControllerViewModel(this, TokenController, GridSize);
         DrawingController.OnDrawingStrokesUpdated += DrawingStrokesUpdated;
     }
 
@@ -211,6 +216,11 @@ public class MainWindowViewModel : ViewModelBase
 
     private void SetInkCanvasSize(double width)
     {
+        var sizeChangedEventArgs = new CanvasSizeChangedEventArgs
+        {
+            OldSize = _canvasSize
+        };
+
         // It's enough to only use the width, since everything is done in a 16:9 ratio
         _canvasSize = new Size<double>
         {
@@ -218,9 +228,8 @@ public class MainWindowViewModel : ViewModelBase
             Height = width / 16 * 9
         };
 
-        BackgroundController.SetCanvasSize(_canvasSize);
-        DrawingController.SetCanvasSize(_canvasSize);
-        TokenController.SetCanvasSize(_canvasSize);
+        sizeChangedEventArgs.NewSize = _canvasSize;
+        OnCanvasSizeChanged?.Invoke(this, sizeChangedEventArgs);
     }
 
     private void InkCanvasSizeChanged(SizeChangedEventArgs eventArgs)
@@ -307,6 +316,11 @@ public class MainWindowViewModel : ViewModelBase
             GridVisibility = Visibility.Hidden;
         }
         UpdateMap(DrawLayer.GridAndStrokes);
+    }
+
+    public Size<double> GetSize()
+    {
+        return _canvasSize;
     }
 
     private void MoveMap(string direction)

@@ -1,24 +1,25 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Interfaces;
 
 namespace DigitalBattleMap.ViewModels;
 public abstract class ControllerViewModelBase : ViewModelBase
 {
-    protected Size<double> _canvasSize;
+    protected ICanvasSize _canvasSize;
     protected int _gridSize;
 
-    public ControllerViewModelBase(int gridSize)
+    public ControllerViewModelBase()
+    {
+    }
+
+    public ControllerViewModelBase(ICanvasSize canvasSize, int gridSize)
     {
         _gridSize = gridSize;
+        _canvasSize = canvasSize;
     }
 
     public virtual void UpdateGridSize(int gridSize)
     {
         _gridSize = gridSize;
-    }
-
-    public virtual void SetCanvasSize(Size<double> canvasSize)
-    {
-        _canvasSize = canvasSize;
     }
 
     public abstract void AddToSaveFile(SaveFile saveFile);
