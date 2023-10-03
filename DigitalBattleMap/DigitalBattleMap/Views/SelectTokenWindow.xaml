@@ -20,6 +20,12 @@
         <uielements:BoolToVisibilityConverter x:Key="InversedBoolToVisibilityConverter" IsInverted="True"/>
     </Window.Resources>
 
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="PreviewKeyDown">
+            <i:InvokeCommandAction Command="{Binding KeyDownCommand}" PassEventArgsToCommand="True"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+
     <!--Main grid-->
     <Grid Margin="10">
         <Grid.RowDefinitions>

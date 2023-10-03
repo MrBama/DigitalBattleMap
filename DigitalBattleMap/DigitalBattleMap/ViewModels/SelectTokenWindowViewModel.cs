@@ -52,6 +52,7 @@ public class SelectTokenWindowViewModel : ViewModelBase
     protected override void InitializeCommands()
     {
         AddCommand = new RelayCommand(p => AddButton());
+        KeyDownCommand = new RelayCommand(p => KeyDown((KeyEventArgs)p));
     }
 
     public string SearchText { get => Get<string>(); set => Set(value, SearchTextChanged); }
@@ -67,6 +68,7 @@ public class SelectTokenWindowViewModel : ViewModelBase
     public List<Token> AddedTokens { get; set; } = new List<Token>();
 
     public ICommand AddCommand { get; set; }
+    public ICommand KeyDownCommand { get; set; }
 
     private void InitializeProperties()
     {
@@ -153,6 +155,50 @@ public class SelectTokenWindowViewModel : ViewModelBase
         else
         {
             return SelectedGroup != null;
+        }
+    }
+
+    private void KeyDown(KeyEventArgs keyEventArgs)
+    {
+        if (SelectedTabIndex == 0)
+        {
+            if (keyEventArgs.Key == Key.Down)
+            {
+                var index = TokenList.IndexOf(SelectedToken);
+                if (index != -1 && index < TokenList.Count - 1)
+                {
+                    SelectedToken = TokenList[index + 1];
+                }
+            }
+
+            if (keyEventArgs.Key == Key.Up)
+            {
+                var index = TokenList.IndexOf(SelectedToken);
+                if (index != -1 && index > 0)
+                {
+                    SelectedToken = TokenList[index - 1];
+                }
+            }
+        }
+        else
+        {
+            if (keyEventArgs.Key == Key.Down)
+            {
+                var index = GroupList.IndexOf(SelectedGroup);
+                if (index != -1 && index < GroupList.Count - 1)
+                {
+                    SelectedGroup = GroupList[index + 1];
+                }
+            }
+
+            if (keyEventArgs.Key == Key.Up)
+            {
+                var index = GroupList.IndexOf(SelectedGroup);
+                if (index != -1 && index > 0)
+                {
+                    SelectedGroup = GroupList[index - 1];
+                }
+            }
         }
     }
 }
