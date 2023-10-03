@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Windows.Controls;
 using System.Windows;
+using System;
+using System.Collections.Generic;
 
 namespace DigitalBattleMap.UIElements;
 
@@ -23,6 +25,21 @@ public class MultiSelectionBehavior : Behavior<ListView>
 
     private void ListViewSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        SelectedItems = AssociatedObject.SelectedItems;
+        if(AssociatedObject.SelectedItem != null)
+        {
+            Type listType = typeof(List<>);
+            Type genericListType = listType.MakeGenericType(AssociatedObject.SelectedItem.GetType());
+            var resultList = Activator.CreateInstance(genericListType) as IList;
+            
+            foreach (var item in AssociatedObject.SelectedItems)
+            {
+                resultList!.Add(item);
+            }
+            SelectedItems = resultList;
+        }
+        else
+        {
+            SelectedItems = null;
+        }
     }
 }

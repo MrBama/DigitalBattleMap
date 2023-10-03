@@ -70,7 +70,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
     public ObservableCollection<TokenGroup> GroupList { get; set; } = new();
     public ObservableCollection<string> GroupTokensList { get; set; } = new();
     public Token SelectedToken { get => Get<Token>(); set => Set(value); }
-    public IList SelectedTokens { get; set; }
+    public List<Token> SelectedTokens { get; set; }
     public TokenGroup SelectedGroup { get => Get<TokenGroup>(); set => Set(value, RefreshGroupTokensListview); }
     public string SelectedGroupToken { get => Get<string>(); set => Set(value); }
     public string SearchText { get => Get<string>(); set => Set(value, FilterTokenList); }
@@ -231,8 +231,6 @@ public class CustomTokensWindowViewModel : ViewModelBase
         }
     }
 
-    public double MouseX { get; set; }
-
     private void Export()
     {
         if (_windowService.ShowSaveFileDialog(out string path, SelectedToken.Name, "(*.token)|*.token"))
@@ -243,7 +241,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
             }
             else
             {
-                foreach (var token in SelectedTokens.Cast<Token>())
+                foreach (var token in SelectedTokens)
                 {
                     Export(Path.Combine(Path.GetDirectoryName(path), $"{token.Name}.token"), token);
                 }
