@@ -7,7 +7,7 @@
         xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements" 
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
-        Title="CreateStatblockWindow" Height="1000" Width="1400"
+        Title="CreateStatblockWindow" Height="800" Width="1300"
         FontSize="17"
         WindowStartupLocation="CenterScreen"
         FocusManager.FocusedElement="{Binding ElementName=MarkdownTextBox}">
