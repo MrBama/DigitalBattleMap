@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Windows.Ink;
+using static DigitalBattleMap.Utilities.FileManager;
 
 namespace DigitalBattleMap;
 
@@ -61,6 +62,13 @@ public class SaveFile
             var tokenImagePath = Path.Combine(Constants.TempDirectoryPath, $"Token{i}.png");
             TokenList[i].GetBitmap().Save(tokenImagePath);
             TokenList[i].Token.ImagePath = "";
+
+            if (TokenList[i].Token.Statblock is MarkdownStatblock markdownStatblock)
+            {
+                var markdownPath = Path.Combine(Constants.TempDirectoryPath, $"Markdown{i}.md");
+                IO.File.WriteAllText(markdownPath, markdownStatblock.GetMarkdown());
+                markdownStatblock.MarkdownPath = "";
+            }
         }
 
         var pathWithExtension = Path.ChangeExtension(path, ".dbm");
@@ -77,7 +85,7 @@ public class SaveFile
         using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
         IO.ZipFile.ExtractToDirectory(path, Constants.TempDirectoryPath);
 
-        if (!FileManager.OpenFile(_saveFilePath, out SaveFile saveFile))
+        if (!FileManager.OpenFile(_saveFilePath, new DerivedClassJsonConverter<Statblock>(), out SaveFile saveFile))
         {
             saveFile = new SaveFile();
         }
@@ -97,6 +105,13 @@ public class SaveFile
             var tokenImagePath = Path.Combine(Constants.TempDirectoryPath, $"Token{i}.png");
             saveFile.TokenList[i].Token.ImagePath = tokenImagePath;
             saveFile.TokenList[i].GetBitmap();
+
+            if (saveFile.TokenList[i].Token.Statblock is MarkdownStatblock markdownStatblock)
+            {
+                var markdownPath = Path.Combine(Constants.TempDirectoryPath, $"Markdown{i}.md");
+                markdownStatblock.MarkdownPath = markdownPath;
+                markdownStatblock.GetMarkdown();
+            }
         }
 
         return saveFile;

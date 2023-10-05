@@ -25,12 +25,12 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     private bool _mouseDown;
     private List<FogOfWarArea> _fogOfWarAreas = new();
 
-    public BackgroundControllerViewModel() : base(50)
+    public BackgroundControllerViewModel()
     {
         Initialize();
     }
 
-    public BackgroundControllerViewModel(IWindowService windowService, IMouseCanvas mouseCanvas, int gridSize) : base(gridSize)
+    public BackgroundControllerViewModel(IWindowService windowService, ICanvasSize canvasSize, IMouseCanvas mouseCanvas, int gridSize) : base(canvasSize, gridSize)
     {
         _windowService = windowService;
         _mouseCanvas = mouseCanvas;

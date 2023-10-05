@@ -25,14 +25,14 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     private Settings _settings;
     private static object _lock = new();
 
-    public TokenControllerViewModel() : base(50)
+    public TokenControllerViewModel()
     {
         // This is required to render MainWindow in editor
         IO.Initialize(new Directory(), new File(), new ZipFile());
         Initialize();
     }
 
-    public TokenControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, IMouseCanvas mouseCanvas, Settings settings, int gridSize) : base(gridSize)
+    public TokenControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, ICanvasSize canvasSize, IMouseCanvas mouseCanvas, Settings settings, int gridSize) : base(canvasSize, gridSize)
     {
         _windowService = windowService;
         _webCommunication = webCommunication;
@@ -259,14 +259,6 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 TokenOffsetHistory.Enqueue(new TokenOffset(SelectedToken.GetTokenIndentifier(), Point<int>.Create(cellOffset)));
                 CreateTokenBitmap();
             }
-        }
-    }
-
-    public override void SetCanvasSize(Size<double> canvasSize)
-    {
-        lock (_lock)
-        {
-            _canvasSize = canvasSize;
         }
     }
 

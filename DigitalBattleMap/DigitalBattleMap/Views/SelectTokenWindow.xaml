@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:DigitalBattleMap.Views" 
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
         xmlns:dataclasses="clr-namespace:DigitalBattleMap.DataClasses"
-        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels"
+        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels" 
+        xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements"
         mc:Ignorable="d"
         Title="SelectTokenWindow" Height="550" Width="500"
         FontSize="17"
@@ -15,7 +16,16 @@
     <Window.DataContext>
         <viewmodels:SelectTokenWindowViewModel/>
     </Window.DataContext>
-    
+    <Window.Resources>
+        <uielements:BoolToVisibilityConverter x:Key="InversedBoolToVisibilityConverter" IsInverted="True"/>
+    </Window.Resources>
+
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="PreviewKeyDown">
+            <i:InvokeCommandAction Command="{Binding KeyDownCommand}" PassEventArgsToCommand="True"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+
     <!--Main grid-->
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -56,7 +66,7 @@
                         </ListView.ItemTemplate>
                     </ListView>
 
-                    <Grid Grid.Row="1" Margin="0 10 0 0">
+                    <Grid Grid.Row="1" Margin="0 10 0 0" Visibility="{Binding SearchTokenNameOnly, Converter={StaticResource InversedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
@@ -80,7 +90,7 @@
                     </Grid>
                 </Grid>
             </TabItem>
-            <TabItem>
+            <TabItem Visibility="{Binding SearchTokenNameOnly, Converter={StaticResource InversedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}">
                 <TabItem.Header>
                     <TextBlock Text="Groups"/>
                 </TabItem.Header>

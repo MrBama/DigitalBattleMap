@@ -7,7 +7,8 @@
              xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements"
              mc:Ignorable="d" 
              d:DesignHeight="1080" d:DesignWidth="480"
-             Background="White">
+             Background="White"
+             FontSize="17">
     <UserControl.DataContext>
         <viewmodels:BackgroundControllerViewModel/>
     </UserControl.DataContext>

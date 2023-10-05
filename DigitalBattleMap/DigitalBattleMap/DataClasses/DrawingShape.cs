@@ -35,7 +35,7 @@ public class DrawingShape : PropertyHandler, ILinkableObject, IDisposable
     public Stroke Stroke { get => Get<Stroke>(); set => Set(value, () => NotifyPropertyChange(nameof(Color))); }
     public Brush Color { get => GetColor(); }
     public DrawingButton DrawingButton { get; set; }
-    public Size<double> CanvasSize { get; set; } = new();
+    public ICanvasSize CanvasSize { get; set; }
     public string LinkToTokenButtonText { get => Get<string>(); set => Set(value); }
     public ICommand LinkToTokenCommand { get; set; }
 

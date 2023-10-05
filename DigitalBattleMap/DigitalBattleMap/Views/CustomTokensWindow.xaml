@@ -5,9 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels" 
-        xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements"
+        xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements" 
+        xmlns:dataclasses="clr-namespace:DigitalBattleMap.DataClasses"
         mc:Ignorable="d"
-        Title="CustomTokensWindow" Height="500" Width="800"
+        Title="CustomTokensWindow" Height="600" Width="800"
         FontSize="17"
         WindowStartupLocation="CenterScreen">
     <Window.DataContext>
@@ -32,6 +33,7 @@
                 <!--Tokens grid-->
                 <Grid>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
@@ -42,7 +44,19 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <ListView Grid.ColumnSpan="3" ItemsSource="{Binding TokenList}" HorizontalAlignment="Stretch" SelectedItem="{Binding SelectedToken}">
+                    <!--Search grid-->
+                    <Grid Grid.ColumnSpan="3" Margin="0 10 0 0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Search"/>
+                        <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
+                    </Grid>
+                    <ListView Grid.Row="1" Grid.ColumnSpan="3" Margin="0 10 0 0" ItemsSource="{Binding TokenList}" HorizontalAlignment="Stretch" SelectedItem="{Binding SelectedToken}">
+                        <i:Interaction.Behaviors>
+                            <uielements:MultiSelectionBehavior SelectedItems="{Binding SelectedTokens, Mode=OneWayToSource}" />
+                        </i:Interaction.Behaviors>
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Grid>
@@ -51,11 +65,11 @@
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
-                    <Button Grid.Row="1" Content="Remove" Margin="0 10 5 0" IsEnabled="{Binding SelectedToken, Converter={StaticResource NullConverter}}" Command="{Binding RemoveTokenCommand}"/>
-                    <Button Grid.Row="1" Grid.Column="1" Content="Edit" Margin="5 10 5 0" IsEnabled="{Binding SelectedToken, Converter={StaticResource NullConverter}}" Command="{Binding EditTokenCommand}"/>
-                    <Button Grid.Row="1" Grid.Column="2" Content="Add" Margin="5 10 0 0" Command="{Binding AddTokenCommand}"/>
+                    <Button Grid.Row="2" Content="Remove" Margin="0 10 5 0" IsEnabled="{Binding SelectedToken, Converter={StaticResource NullConverter}}" Command="{Binding RemoveTokenCommand}"/>
+                    <Button Grid.Row="2" Grid.Column="1" Content="Edit" Margin="5 10 5 0" IsEnabled="{Binding SelectedToken, Converter={StaticResource NullConverter}}" Command="{Binding EditTokenCommand}"/>
+                    <Button Grid.Row="2" Grid.Column="2" Content="Add" Margin="5 10 0 0" Command="{Binding AddTokenCommand}"/>
 
-                    <Grid Grid.Row="2" Grid.ColumnSpan="3" Margin="0 10 0 0">
+                    <Grid Grid.Row="3" Grid.ColumnSpan="3" Margin="0 10 0 0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>

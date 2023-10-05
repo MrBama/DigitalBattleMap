@@ -31,3 +31,9 @@ public class GetConditionsEventArgs : EventArgs
 {
     public TokenIndentifier TokenIndentifier { get; set; } = new();
 }
+
+public class CanvasSizeChangedEventArgs : EventArgs
+{
+    public Size<double> OldSize { get; set; } = new();
+    public Size<double> NewSize { get; set; } = new();
+}

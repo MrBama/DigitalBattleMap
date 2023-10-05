@@ -25,14 +25,15 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     private bool _disableSelectionAnimation;
     private DrawingShape _editShape;
 
-    public DrawingControllerViewModel() : base(50)
+    public DrawingControllerViewModel()
     {
         Initialize();
     }
 
-    public DrawingControllerViewModel(ITokenLinker tokenLinker, int gridSize) : base(gridSize)
+    public DrawingControllerViewModel(ICanvasSize canvasSize, ITokenLinker tokenLinker, int gridSize) : base(canvasSize, gridSize)
     {
         _tokenLinker = tokenLinker;
+        _canvasSize.OnCanvasSizeChanged += OnCanvasSizeChanged;
         Initialize();
     }
 
@@ -148,14 +149,14 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public override void AddToSaveFile(SaveFile saveFile)
     {
         saveFile.Strokes = Strokes;
-        saveFile.CanvasSize = _canvasSize;
+        saveFile.CanvasSize = _canvasSize.GetSize();
 
         foreach ((var shape, var index) in Shapes.WithIndex())
         {
             var strokeIndex = Strokes.IndexOf(shape.Stroke);
             saveFile.DrawingShapes.Add(new DrawingShapeSave(shape, strokeIndex));
 
-            if(shape.IsLinked())
+            if (shape.IsLinked())
             {
                 var objectLink = new ObjectLink
                 {
@@ -206,6 +207,25 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
         Strokes.StrokesChanged += OnStrokesChanged;
         NotifyDrawingStrokesUpdated();
+    }
+
+    private void OnCanvasSizeChanged(object? sender, CanvasSizeChangedEventArgs eventArgs)
+    {
+        if (eventArgs.OldSize != null && !eventArgs.OldSize.Equals(eventArgs.NewSize))
+        {
+            var zoomFactor = eventArgs.NewSize.Width / eventArgs.OldSize.Width;
+            var matrix = new System.Windows.Media.Matrix();
+            matrix.Scale(zoomFactor, zoomFactor);
+            Strokes.Transform(matrix, false);
+
+            foreach (var stroke in Strokes)
+            {
+                stroke.DrawingAttributes.Width *= zoomFactor;
+                stroke.DrawingAttributes.Height *= zoomFactor;
+            }
+
+            NotifyDrawingStrokesUpdated();
+        }
     }
 
     public void OpenObjectLinks(List<ObjectLink> objectLinks)
@@ -300,8 +320,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             SelectedShape = shape;
             _disableSelectionAnimation = false;
             Shapes.Add(shape);
-        }        
-        
+        }
+
         ShapeStroke = null;
     }
 
@@ -593,7 +613,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void ShowShapeSelection()
     {
-        if(!_disableSelectionAnimation)
+        if (!_disableSelectionAnimation)
         {
             var color = SelectedShape.Stroke.DrawingAttributes.Color;
             SelectedShape.Stroke.DrawingAttributes.Color = System.Windows.Media.Colors.Transparent;

@@ -20,19 +20,19 @@ public class StatblocksViewModel : ViewModelBase
 
     public void AddToken(TokenListItem tokenListItem)
     {
-        if(tokenListItem.Token.Source != null)
+        if(tokenListItem.Token.Statblock != null)
         {
             var existingStatblock = Statblocks.SingleOrDefault(s => s.Name == tokenListItem.Token.Name);
             if(existingStatblock == null)
             {
-                Statblocks.Add(new Statblock(tokenListItem.Token.Name, tokenListItem.Token.Source));
+                Statblocks.Add(tokenListItem.Token.Statblock);
             }
         }
     }
 
     public void RemoveToken(TokenListItem tokenListItem)
     {
-        if(tokenListItem.Token.Source != null)
+        if(tokenListItem.Token.Statblock != null)
         { 
             var existingStatblock = Statblocks.SingleOrDefault(s => s.Name == tokenListItem.Token.Name);
             if (existingStatblock != null)

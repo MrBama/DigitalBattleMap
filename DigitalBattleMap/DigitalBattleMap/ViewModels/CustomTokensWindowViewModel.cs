@@ -2,11 +2,13 @@
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
+using static DigitalBattleMap.Utilities.FileManager;
 
 namespace DigitalBattleMap.ViewModels;
 
@@ -14,29 +16,40 @@ public class CustomTokensWindowViewModel : ViewModelBase
 {
     private static string _tokenFilePath = Path.Combine(Constants.TempDirectoryPath, "Token.json");
     private static string _tokenImageFilePath = Path.Combine(Constants.TempDirectoryPath, "Image.png");
+    private static string _statblockFilePath = Path.Combine(Constants.TempDirectoryPath, "Markdown.md");
     private IWindowService _windowService;
     private Settings _settings;
     private List<Token> _monsterTokens;
+    private List<Token> _tokenList = new();
 
     public CustomTokensWindowViewModel()
     {
+        Initialize();
     }
 
     public CustomTokensWindowViewModel(IWindowService windowService, Settings settings, List<Token> monsterTokens)
     {
+        Initialize();
+
         _windowService = windowService;
         _settings = settings;
         _monsterTokens = monsterTokens;
 
         foreach (var token in _settings.CustomTokens.OrderBy(t => t.Name))
         {
-            TokenList.Add(token);
+            _tokenList.Add(token);
         }
+        FilterTokenList();
 
         foreach (var group in _settings.TokenGroups.OrderBy(t => t.Name))
         {
             GroupList.Add(group);
         }
+    }
+
+    private void Initialize()
+    {
+        SearchText = "";
     }
 
     protected override void InitializeCommands()
@@ -53,12 +66,14 @@ public class CustomTokensWindowViewModel : ViewModelBase
         ImportCommand = new RelayCommand(p => Import());
     }
 
-    public ObservableCollection<Token> TokenList { get; set; } = new ObservableCollection<Token>();
-    public ObservableCollection<TokenGroup> GroupList { get; set; } = new ObservableCollection<TokenGroup>();
-    public ObservableCollection<string> GroupTokensList { get; set; } = new ObservableCollection<string>();
+    public ObservableCollection<Token> TokenList { get; set; } = new();
+    public ObservableCollection<TokenGroup> GroupList { get; set; } = new();
+    public ObservableCollection<string> GroupTokensList { get; set; } = new();
     public Token SelectedToken { get => Get<Token>(); set => Set(value); }
+    public List<Token> SelectedTokens { get; set; }
     public TokenGroup SelectedGroup { get => Get<TokenGroup>(); set => Set(value, RefreshGroupTokensListview); }
     public string SelectedGroupToken { get => Get<string>(); set => Set(value); }
+    public string SearchText { get => Get<string>(); set => Set(value, FilterTokenList); }
     public ICommand AddTokenCommand { get; set; }
     public ICommand RemoveTokenCommand { get; set; }
     public ICommand EditTokenCommand { get; set; }
@@ -72,8 +87,10 @@ public class CustomTokensWindowViewModel : ViewModelBase
 
     private void SaveCustomTokens()
     {
-        _settings.CustomTokens = TokenList.ToList();
+        _settings.CustomTokens = _tokenList.ToList();
         _settings.Save();
+        SearchText = "";
+        FilterTokenList();
     }
 
     private void SaveTokenGroups()
@@ -84,14 +101,14 @@ public class CustomTokensWindowViewModel : ViewModelBase
 
     private void AddToken()
     {
-        var tokenNames = _monsterTokens.Select(t => t.Name).ToList();
-        tokenNames.AddRange(_settings.CustomTokens.Select(t => t.Name));
-        var createTokenWindowViewModel = new CreateTokenWindowViewModel(_windowService, tokenNames);
+        var tokens = new List<Token>(_monsterTokens);
+        tokens.AddRange(new List<Token>(_settings.CustomTokens));
+        var createTokenWindowViewModel = new CreateTokenWindowViewModel(_windowService, tokens);
         _windowService.ShowWindowDialog<CreateTokenWindow>(createTokenWindowViewModel);
 
         if (createTokenWindowViewModel.Token != null)
         {
-            TokenList.Add(createTokenWindowViewModel.Token);
+            _tokenList.Add(createTokenWindowViewModel.Token);
             OrderTokenList();
             SaveCustomTokens();
         }
@@ -99,24 +116,33 @@ public class CustomTokensWindowViewModel : ViewModelBase
 
     private void RemoveToken()
     {
-        IO.File.Delete(SelectedToken.ImagePath);
-        TokenList.Remove(SelectedToken);
+        if (IO.File.Exists(SelectedToken.ImagePath))
+        {
+            IO.File.Delete(SelectedToken.ImagePath);
+        }
+
+        if (SelectedToken.Statblock is MarkdownStatblock markdownStatblock)
+        {
+            IO.File.Delete(markdownStatblock.MarkdownPath);
+        }
+
+        _tokenList.Remove(SelectedToken);
         SaveCustomTokens();
     }
 
     private void EditToken()
     {
-        var tokenNames = _monsterTokens.Select(t => t.Name).ToList();
-        tokenNames.AddRange(_settings.CustomTokens.Select(t => t.Name));
-        tokenNames.Remove(SelectedToken.Name);
+        var tokens = new List<Token>(_monsterTokens);
+        tokens.AddRange(new List<Token>(_settings.CustomTokens));
+        tokens.Remove(tokens.Single(t => t.Name == SelectedToken.Name));
 
-        var createTokenWindowViewModel = new CreateTokenWindowViewModel(_windowService, tokenNames, SelectedToken);
+        var createTokenWindowViewModel = new CreateTokenWindowViewModel(_windowService, tokens, SelectedToken);
         _windowService.ShowWindowDialog<CreateTokenWindow>(createTokenWindowViewModel);
 
         if (createTokenWindowViewModel.Token != null)
         {
-            TokenList.Remove(SelectedToken);
-            TokenList.Add(createTokenWindowViewModel.Token);
+            _tokenList.Remove(SelectedToken);
+            _tokenList.Add(createTokenWindowViewModel.Token);
             OrderTokenList();
             SelectedToken = createTokenWindowViewModel.Token;
             SaveCustomTokens();
@@ -125,7 +151,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
 
     private void OrderTokenList()
     {
-        TokenList.OrderCurrentBy(t => t.Name);
+        _tokenList.OrderCurrentBy(t => t.Name);
     }
 
     private void OrderGroupList()
@@ -209,36 +235,84 @@ public class CustomTokensWindowViewModel : ViewModelBase
     {
         if (_windowService.ShowSaveFileDialog(out string path, SelectedToken.Name, "(*.token)|*.token"))
         {
-            using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
-
-            FileManager.SaveFile(SelectedToken, _tokenFilePath);
-            IO.File.Copy(SelectedToken.ImagePath, _tokenImageFilePath);
-
-            if (IO.File.Exists(path))
+            if (SelectedTokens.Count == 1)
             {
-                IO.File.Delete(path);
+                Export(path, SelectedToken);
             }
-            IO.ZipFile.CreateFromDirectory(Constants.TempDirectoryPath, path);
+            else
+            {
+                foreach (var token in SelectedTokens)
+                {
+                    Export(Path.Combine(Path.GetDirectoryName(path), $"{token.Name}.token"), token);
+                }
+            }
         }
+    }
+
+    private void Export(string path, Token token)
+    {
+        using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
+
+        FileManager.SaveFile(token, _tokenFilePath);
+        IO.File.Copy(token.ImagePath, _tokenImageFilePath);
+
+        if (token.Statblock is MarkdownStatblock markdownStatblock)
+        {
+            IO.File.Copy(markdownStatblock.MarkdownPath, _statblockFilePath);
+        }
+
+        if (IO.File.Exists(path))
+        {
+            IO.File.Delete(path);
+        }
+        IO.ZipFile.CreateFromDirectory(Constants.TempDirectoryPath, path);
     }
 
     private void Import()
     {
-        if (_windowService.ShowOpenFileDialog(out string path, "(*.token)|*.token"))
+        if (_windowService.ShowOpenFilesDialog(out List<string> paths, "(*.token)|*.token"))
         {
-            using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
-            IO.ZipFile.ExtractToDirectory(path, Constants.TempDirectoryPath);
-
-            if (FileManager.OpenFile(_tokenFilePath, out Token token))
+            foreach (var path in paths)
             {
-                if (TokenList.SingleOrDefault(t => t.Name == token.Name) == null)
+                Import(path);
+            }
+        }
+    }
+
+    private void Import(string path)
+    {
+        using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
+        IO.ZipFile.ExtractToDirectory(path, Constants.TempDirectoryPath);
+
+        if (FileManager.OpenFile(_tokenFilePath, new DerivedClassJsonConverter<Statblock>(), out Token token))
+        {
+            if (_tokenList.SingleOrDefault(t => t.Name == token.Name) == null)
+            {
+                var imagePath = Path.Combine(Constants.CustomTokensPath, $"{token.Name}.png");
+                IO.File.Copy(_tokenImageFilePath, imagePath);
+                token.ImagePath = imagePath;
+
+                if (token.Statblock is MarkdownStatblock markdownStatblock)
                 {
-                    var imagePath = Path.Combine(Constants.CustomTokensPath, $"{token.Name}.png");
-                    IO.File.Copy(_tokenImageFilePath, imagePath);
-                    token.ImagePath = imagePath;
-                    TokenList.Add(token.Copy());
-                    SaveCustomTokens();
+                    var statblockMarkdownPath = Path.Combine(Constants.CustomTokensPath, $"{token.Name}.md");
+                    IO.File.Copy(_statblockFilePath, statblockMarkdownPath);
+                    markdownStatblock.MarkdownPath = statblockMarkdownPath;
                 }
+
+                _tokenList.Add(token.Copy());
+                SaveCustomTokens();
+            }
+        }
+    }
+
+    private void FilterTokenList()
+    {
+        TokenList.Clear();
+        foreach (var token in _tokenList.OrderBy(t => t.Name))
+        {
+            if (token.Name.ToLower().Contains(SearchText.ToLower()))
+            {
+                TokenList.Add(token);
             }
         }
     }
