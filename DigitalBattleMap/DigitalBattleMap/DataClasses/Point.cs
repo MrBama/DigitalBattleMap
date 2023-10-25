@@ -2,7 +2,7 @@
 
 namespace DigitalBattleMap.DataClasses;
 
-public class Point<T> where T : IEquatable<T>
+public class Point<T> : IEquatable<Point<T>> where T : IEquatable<T>
 {
     public Point()
     {
@@ -37,14 +37,19 @@ public class Point<T> where T : IEquatable<T>
 
     public T Y { get; set; }
 
-    public override int GetHashCode()
+    public bool Equals(Point<T>? other)
     {
-        return base.GetHashCode();
+        return other != null && other.X.Equals(X) && other.Y.Equals(Y);
     }
 
     public override bool Equals(object? obj)
     {
-        return obj is Point<T> other && other.X.Equals(X) && other.Y.Equals(Y);
+        return obj is Point<T> other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
     }
 
     public override string ToString()

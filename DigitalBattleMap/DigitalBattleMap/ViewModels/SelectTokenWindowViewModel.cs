@@ -47,6 +47,8 @@ public class SelectTokenWindowViewModel : ViewModelBase
         {
             TokenList.Add(token);
         }
+
+        SelectedToken = TokenList.FirstOrDefault();
     }
 
     protected override void InitializeCommands()
@@ -113,7 +115,7 @@ public class SelectTokenWindowViewModel : ViewModelBase
         {
             for (int i = 0; i < NumberOfTokens; i++)
             {
-                var copy = SelectedToken.Copy();
+                var copy = SelectedToken.Clone<Token>();
                 copy.Size = SelectedTokenSize;
                 AddedTokens.Add(copy);
             }
@@ -125,7 +127,7 @@ public class SelectTokenWindowViewModel : ViewModelBase
                 var token = _tokens.SingleOrDefault(t => t.Name == tokenName);
                 if (token != null)
                 {
-                    AddedTokens.Add(token.Copy());
+                    AddedTokens.Add(token.Clone<Token>());
                 }
             }
         }

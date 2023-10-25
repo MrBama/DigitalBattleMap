@@ -1,4 +1,5 @@
-﻿using DigitalBattleMap.Utilities;
+﻿using DigitalBattleMap.Interfaces;
+using DigitalBattleMap.Utilities;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
@@ -7,8 +8,10 @@ using System.Reflection;
 
 namespace DigitalBattleMap.DataClasses;
 
-public static class MonsterTokens
+public class MonsterTokens : IMonsterTokens
 {
+    private List<Token> _tokens = new();
+
     public static MonsterTokenData GetRawData()
     {
         var json = "";
@@ -22,9 +25,9 @@ public static class MonsterTokens
         return data ?? new MonsterTokenData();
     }
 
-    public static List<Token> GetTokens()
+    public void ReloadTokens()
     {
-        var tokens = new List<Token>();
+        _tokens.Clear();
         var rawData = GetRawData();
         foreach (var file in IO.Directory.GetFiles(Constants.MonsterTokensPath))
         {
@@ -41,11 +44,14 @@ public static class MonsterTokens
                     Hp = monsterToken.Hp != 0 ? monsterToken.Hp : null
                 };
 
-                tokens.Add(token);
+                _tokens.Add(token);
             }
         }
+    }
 
-        return tokens;
+    public List<Token> GetTokens()
+    {
+        return _tokens;
     }
 
     private static TokenSize ConvertSize(string size)

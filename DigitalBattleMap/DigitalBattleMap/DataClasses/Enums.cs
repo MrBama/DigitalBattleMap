@@ -2,10 +2,11 @@
 
 public static class TabIndex
 {
-    public const int Background = 0;
-    public const int Grid = 1;
-    public const int Drawing = 2;
-    public const int Tokens = 3;
+    public const int Campaign = 0;
+    public const int Background = 1;
+    public const int Grid = 2;
+    public const int Drawing = 3;
+    public const int Tokens = 4;
 }
 
 public enum ArrowDirection

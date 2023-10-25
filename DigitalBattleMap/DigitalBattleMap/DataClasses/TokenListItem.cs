@@ -14,6 +14,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     private Bitmap _bitmap;
     private ITokenLink _tokenLink;
     private ITokenLinker _tokenLinker;
+    private IPlayerJoiner _playerJoiner;
 
     public TokenListItem()
     {
@@ -27,11 +28,14 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         MoveToFrontCommand = new RelayCommand(p => MoveToFront());
         MoveToBackCommand = new RelayCommand(p => MoveToBack());
         LinkToTokenCommand = new RelayCommand(p => LinkToDifferentToken());
+        AddToPlayerCommand = new RelayCommand(p => AddToPlayer());
     }
 
-    public TokenListItem(Token token) : this()
+    public TokenListItem(Token token, ITokenLinker tokenLinker, IPlayerJoiner playerJoiner) : this()
     {
         Token = token;
+        _tokenLinker = tokenLinker;
+        _playerJoiner = playerJoiner;
 
         if (token.Hp != null)
         {
@@ -74,7 +78,9 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     [JsonIgnore]
     public ICommand MoveToBackCommand { get; set; }
     [JsonIgnore]
-    public ICommand LinkToTokenCommand { get; set; }
+    public ICommand LinkToTokenCommand { get; set; }    
+    [JsonIgnore]
+    public ICommand AddToPlayerCommand { get; set; }
 
     public Bitmap GetBitmap()
     {
@@ -86,9 +92,10 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         return _bitmap;
     }
 
-    public void SetTokenLinker(ITokenLinker tokenLinker)
+    public void SetInterfaces(ITokenLinker tokenLinker, IPlayerJoiner playerJoiner)
     {
         _tokenLinker = tokenLinker;
+        _playerJoiner = playerJoiner;
     }
 
     public void ToggleCondition(Condition condition)
@@ -249,5 +256,10 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         {
             LinkToTokenButtonText = "Link to token";
         }
+    }
+
+    private void AddToPlayer()
+    {
+        _playerJoiner.AddTokenToPlayer(GetTokenIndentifier());
     }
 }

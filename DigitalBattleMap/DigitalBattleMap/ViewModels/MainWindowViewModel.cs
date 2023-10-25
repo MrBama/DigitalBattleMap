@@ -6,7 +6,6 @@ using DigitalBattleMap.Views;
 using System;
 using System.Drawing;
 using System.Windows;
-using System.Windows.Automation;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
@@ -21,6 +20,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     private ConnectionManager _connectionManager;
     private Size<double> _canvasSize;
     private Action _multiMoveAction;
+    private MonsterTokens _monsterTokens = new();
 
     public MainWindowViewModel(IWindowService windowService)
     {
@@ -33,10 +33,12 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     {
         // This is required to render MainWindow in editor
         IO.Initialize(new Directory(), new File(), new ZipFile());
-        Initialize();
+        InitializeProperties();
+        GridSize = 65;
+        _gridBitmap = BitmapTools.CreateGrid(GridSize);
     }
 
-    public event Interfaces.CanvasSizeChangedEventHandler OnCanvasSizeChanged;
+    public event CanvasSizeChangedEventHandler OnCanvasSizeChanged;
 
     public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
     public int SelectedMapTabIndex { get => Get<int>(); set => Set(value); }
@@ -57,6 +59,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     public System.Windows.Media.Brush ServerConnectionStatusColor { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
 
     public MouseCanvasViewModel MouseCanvas { get; set; }
+    public CampaignControllerViewModel CampaignController { get; set; }
     public BackgroundControllerViewModel BackgroundController { get; set; }
     public DrawingControllerViewModel DrawingController { get; set; }
     public TokenControllerViewModel TokenController { get; set; }
@@ -92,15 +95,17 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     {
         InitializeProperties();
         _settings = Settings.Load();
+        _monsterTokens.ReloadTokens();
         GridSize = _settings.DefaultGridSize;
         _gridBitmap = BitmapTools.CreateGrid(GridSize);
         _connectionManager = new ConnectionManager();
         _connectionManager.OnConnected += ConnectionManagerConnected;
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
         MouseCanvas = new();
+        CampaignController = new CampaignControllerViewModel(_windowService, _monsterTokens, _settings);
         BackgroundController = new BackgroundControllerViewModel(_windowService, this, MouseCanvas, GridSize);
         BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
-        TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, MouseCanvas, _settings, GridSize);
+        TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, MouseCanvas, _monsterTokens, CampaignController, _settings, GridSize);
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
         DrawingController = new DrawingControllerViewModel(this, TokenController, GridSize);
         DrawingController.OnDrawingStrokesUpdated += DrawingStrokesUpdated;
@@ -270,7 +275,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
 
         if (settingsWindowViewModel.MonsterTokensDownloaded)
         {
-            TokenController.ReloadMonsterTokens();
+            _monsterTokens.ReloadTokens();
         }
     }
 
@@ -496,7 +501,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         if (keyEventArgs.Key == Key.LeftShift && IsMultiMove)
         {
             IsMultiMove = false;
-            if(_multiMoveAction != null)
+            if (_multiMoveAction != null)
             {
                 _multiMoveAction();
                 _multiMoveAction = null;

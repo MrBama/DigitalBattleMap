@@ -19,7 +19,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
     private static string _statblockFilePath = Path.Combine(Constants.TempDirectoryPath, "Markdown.md");
     private IWindowService _windowService;
     private Settings _settings;
-    private List<Token> _monsterTokens;
+    private IMonsterTokens _monsterTokens;
     private List<Token> _tokenList = new();
 
     public CustomTokensWindowViewModel()
@@ -27,7 +27,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
         Initialize();
     }
 
-    public CustomTokensWindowViewModel(IWindowService windowService, Settings settings, List<Token> monsterTokens)
+    public CustomTokensWindowViewModel(IWindowService windowService, IMonsterTokens monsterTokens, Settings settings)
     {
         Initialize();
 
@@ -101,8 +101,8 @@ public class CustomTokensWindowViewModel : ViewModelBase
 
     private void AddToken()
     {
-        var tokens = new List<Token>(_monsterTokens);
-        tokens.AddRange(new List<Token>(_settings.CustomTokens));
+        var tokens = new List<Token>(_monsterTokens.GetTokens().Clone());
+        tokens.AddRange(_settings.CustomTokens.Clone());
         var createTokenWindowViewModel = new CreateTokenWindowViewModel(_windowService, tokens);
         _windowService.ShowWindowDialog<CreateTokenWindow>(createTokenWindowViewModel);
 
@@ -132,8 +132,8 @@ public class CustomTokensWindowViewModel : ViewModelBase
 
     private void EditToken()
     {
-        var tokens = new List<Token>(_monsterTokens);
-        tokens.AddRange(new List<Token>(_settings.CustomTokens));
+        var tokens = new List<Token>(_monsterTokens.GetTokens().Clone());
+        tokens.AddRange(_settings.CustomTokens.Clone());
         tokens.Remove(tokens.Single(t => t.Name == SelectedToken.Name));
 
         var createTokenWindowViewModel = new CreateTokenWindowViewModel(_windowService, tokens, SelectedToken);
@@ -161,7 +161,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
 
     private void AddGroup()
     {
-        var stringInputWindowViewModel = new StringInputWindowViewModel("Group name", (p) => p != "");
+        var stringInputWindowViewModel = new StringInputWindowViewModel("Group name", new ValidateStringInputDelegate(ValidateGroupName));
         _windowService.ShowWindowDialog<StringInputWindow>(stringInputWindowViewModel);
 
         if (stringInputWindowViewModel.Success)
@@ -180,7 +180,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
 
     private void EditGroup()
     {
-        var stringInputWindowViewModel = new StringInputWindowViewModel("Group name", SelectedGroup.Name, (p) => p != "");
+        var stringInputWindowViewModel = new StringInputWindowViewModel("Group name", SelectedGroup.Name, new ValidateStringInputDelegate(ValidateGroupName));
         _windowService.ShowWindowDialog<StringInputWindow>(stringInputWindowViewModel);
 
         if (stringInputWindowViewModel.Success)
@@ -192,10 +192,22 @@ public class CustomTokensWindowViewModel : ViewModelBase
         }
     }
 
+    private bool ValidateGroupName(string name, out string errroMessage)
+    {
+        errroMessage = "";
+        if (name == null || name == "")
+        {
+            errroMessage = "Name cannot be empty";
+            return false;
+        }
+
+        return true;
+    }
+
     private void AddGroupToken()
     {
-        var tokens = new List<Token>(_monsterTokens);
-        tokens.AddRange(_settings.CustomTokens);
+        var tokens = new List<Token>(_monsterTokens.GetTokens().Clone());
+        tokens.AddRange(_settings.CustomTokens.Clone());
 
         var selectTokenWindowViewModel = new SelectTokenWindowViewModel(tokens, _settings.TokenGroups);
         _windowService.ShowWindowDialog<SelectTokenWindow>(selectTokenWindowViewModel);
@@ -299,7 +311,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
                     markdownStatblock.MarkdownPath = statblockMarkdownPath;
                 }
 
-                _tokenList.Add(token.Copy());
+                _tokenList.Add(token.Clone<Token>());
                 SaveCustomTokens();
             }
         }

@@ -80,6 +80,7 @@
                                 </MenuItem>
                                 <MenuItem Header="Move to front" Command="{Binding MoveToFrontCommand}"/>
                                 <MenuItem Header="Move to back" Command="{Binding MoveToBackCommand}"/>
+                                <MenuItem Header="Add to player" Command="{Binding AddToPlayerCommand}"/>
                                 <MenuItem Header="{Binding LinkToTokenButtonText}" Command="{Binding LinkToTokenCommand}"/>
                             </ContextMenu>
                         </Grid.ContextMenu>

@@ -2,7 +2,7 @@
 
 namespace DigitalBattleMap.DataClasses;
 
-public class Size<T> where T : IEquatable<T>
+public class Size<T> : IEquatable<Size<T>> where T : IEquatable<T>
 {
     public Size()
     {
@@ -38,14 +38,19 @@ public class Size<T> where T : IEquatable<T>
 
     public T Height { get; set; }
 
-    public override int GetHashCode()
+    public bool Equals(Size<T>? other)
     {
-        return base.GetHashCode();
+        return other != null && other.Width.Equals(Width) && other.Height.Equals(Height);
     }
 
     public override bool Equals(object? obj)
     {
-        return obj is Size<T> other && other.Width.Equals(Width) && other.Height.Equals(Height);
+        return obj is Size<T> other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
     }
 
     public override string ToString()

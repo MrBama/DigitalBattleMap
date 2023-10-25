@@ -1,31 +1,16 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+﻿using DigitalBattleMap.Utilities;
+using System.Collections.Generic;
 
 namespace DigitalBattleMap.DataClasses;
 
-public class TokenGroup : INotifyPropertyChanged
+public class TokenGroup : PropertyHandler
 {
-    private string _name = "";
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    public string Name 
-    { 
-        get => _name; 
-        set
-        {
-            if (value != _name)
-            {
-                _name = value;
-                NotifyPropertyChange();
-            }
-        }
-    }
-    public List<string> TokenNames { get; set; } = new List<string>();
-
-    protected void NotifyPropertyChange([CallerMemberName] string propertyName = "")
+    public TokenGroup()
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        Name = "";
     }
+
+    public string Name { get => Get<string>(); set => Set(value); }
+
+    public List<string> TokenNames { get; set; } = new List<string>();
 }

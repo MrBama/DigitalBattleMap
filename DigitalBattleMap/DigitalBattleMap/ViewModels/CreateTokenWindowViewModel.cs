@@ -2,12 +2,14 @@
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Xml.Linq;
 
 namespace DigitalBattleMap.ViewModels;
 
@@ -42,7 +44,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
         _tokenBitmap = IO.File.LoadBitmap(editToken.ImagePath);
         _originalTokenImagePath = editToken.ImagePath;
         _tokenImageSelected = true;
-        _statblock = editToken.Statblock?.Copy();
+        _statblock = editToken.Statblock?.Clone<Statblock>();
         _tokens = tokens;
 
         ExistingTokenNames = tokens.Select(t => t.Name).ToList();
@@ -126,7 +128,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
 
     private bool AllInformationAvailable()
     {
-        return TokenName != null && TokenName != "" && _tokenImageSelected && ExistingTokenNames.SingleOrDefault(t => t.ToLower() == TokenName.ToLower()) == null;
+        return TokenName != null && TokenName != "" && _tokenImageSelected && ExistingTokenNames.SingleOrDefault(t => string.Equals(t, TokenName, StringComparison.CurrentCultureIgnoreCase)) == null;
     }
 
     private void OkButton()
@@ -160,7 +162,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
 
     private void TokenNameChanged()
     {
-        if (ExistingTokenNames.SingleOrDefault(t => t.ToLower() == TokenName.ToLower()) == null)
+        if (ExistingTokenNames.SingleOrDefault(t => string.Equals(t, TokenName, StringComparison.CurrentCultureIgnoreCase)) == null)
         {
             NameBorderBrush = System.Windows.Media.Brushes.Transparent;
             NameToolTip = null;
@@ -232,7 +234,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
         if (selectTokenWindowViewModel.AddedTokens.Count == 1)
         {
             var token = selectTokenWindowViewModel.AddedTokens.First();
-            _statblock = token.Statblock?.Copy();
+            _statblock = token.Statblock?.Clone<Statblock>();
             IsStatblockCreated = true;
         }
     }

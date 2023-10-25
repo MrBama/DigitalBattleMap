@@ -7,7 +7,7 @@ using System.Windows;
 
 namespace DigitalBattleMap.DataClasses;
 
-public abstract class Statblock : PropertyHandler
+public abstract class Statblock : PropertyHandler, ICloneable
 {
     protected Statblock(string name)
     {
@@ -23,7 +23,7 @@ public abstract class Statblock : PropertyHandler
     public Visibility RenderVisibility { get => Get<Visibility>(); set => Set(value); }
 
     public abstract void Persist(string name);
-    public abstract Statblock Copy();
+    public abstract object Clone();
     protected abstract WebViewPage GetWebViewPage();
 }
 
@@ -45,11 +45,12 @@ public class SourceStatblock : Statblock
         Name = name;
     }
 
-    public override Statblock Copy()
+    public override object Clone()
     {
-        var statblock = new SourceStatblock(SourceName, SourceBook);
-        statblock.Name = Name;
-        return statblock;
+        return new SourceStatblock(SourceName, SourceBook)
+        {
+            Name = Name
+        };
     }
 
     protected override WebViewPage GetWebViewPage()
@@ -95,7 +96,7 @@ public class MarkdownStatblock : Statblock
         IO.File.WriteAllText(MarkdownPath, markdown);
     }
 
-    public override Statblock Copy()
+    public override object Clone()
     {
         return new MarkdownStatblock(Name, MarkdownPath);
     }
