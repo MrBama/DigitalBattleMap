@@ -19,15 +19,9 @@ public class CharacterNavigation : ViewComponent
     {
         Settings settings = _settingsState.Get();
 
-        // TODO: Write tag helper for IEnumerable<T> to List<SelectListItem>
-        List<SelectListItem> selectListItems = new();
-        if (!string.IsNullOrWhiteSpace(settings?.Characters))
-            selectListItems.AddRange(settings.Characters.Split(',').Select(value => new SelectListItem(value, value)));
-
         NavigationComponentViewModel componentViewModel = new()
         {
-            Orientation = settings?.Orientation ?? Orientation.Down,
-            Characters = selectListItems
+            Orientation = settings?.Orientation ?? Orientation.Down
         };
 
         return Task.FromResult<IViewComponentResult>(View(componentViewModel));

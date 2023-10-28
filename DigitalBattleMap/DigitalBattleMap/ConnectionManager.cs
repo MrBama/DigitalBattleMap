@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace DigitalBattleMap;
 
-public class ConnectionManager : IWebHubClientEvents, IWebCommunication
+public class ConnectionManager : IWebCommunication
 {
     private const string WebHubConnectionEndpoint = "/WebHub";
     private const string MapHubConnectionEndpoint = "/MapHub";
@@ -30,6 +30,7 @@ public class ConnectionManager : IWebHubClientEvents, IWebCommunication
     public event MoveTokenEventHandler OnMoveToken;
     public event ToggleConditionEventHandler OnToggleCondition;
     public event GetConditionsEventHandler OnGetConditions;
+    public event GetTokensEventHandler OnGetTokens;
 
     private bool _isConnected;
     private Queue<MapUpdate> _mapUpdateQueue = new();
@@ -129,6 +130,12 @@ public class ConnectionManager : IWebHubClientEvents, IWebCommunication
         return Task.CompletedTask;
     }
 
+    public Task GetTokens(string player)
+    {
+        OnGetTokens?.Invoke(this, new GetTokensEventArgs { Player = player });
+        return Task.CompletedTask;
+    }
+
     public void SendMapUpdate(MapUpdate mapUpdate)
     {
         if (!_isConnected)
@@ -166,6 +173,7 @@ public class ConnectionManager : IWebHubClientEvents, IWebCommunication
         _webHubConnection.On<string, Direction>(nameof(MoveToken), MoveToken);
         _webHubConnection.On<string, Condition>(nameof(ToggleCondition), ToggleCondition);
         _webHubConnection.On<string>(nameof(GetConditions), GetConditions);
+        _webHubConnection.On<string>(nameof(GetTokens), GetTokens);
     }
 
     private void SendMessages()

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Numerics;
 using System.Windows.Input;
 
 namespace DigitalBattleMap.ViewModels;
@@ -13,20 +14,25 @@ namespace DigitalBattleMap.ViewModels;
 public class CampaignControllerViewModel : ViewModelBase, IPlayerJoiner
 {
     private IWindowService _windowService;
+    private IWebCommunication _webCommunication;
     private IMonsterTokens _monsterTokens;
     private Settings _settings;
+    private bool _isCurrentCampaignUpdatedFromUI = true;
 
     public CampaignControllerViewModel()
     {
     }
 
-    public CampaignControllerViewModel(IWindowService windowService, IMonsterTokens monsterTokens, Settings settings)
+    public CampaignControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, IMonsterTokens monsterTokens, Settings settings)
     {
         _windowService = windowService;
+        _webCommunication = webCommunication;
         _monsterTokens = monsterTokens;
         _settings = settings;
+        _webCommunication.OnConnected += OnWebCommunicationConnected;
+        _webCommunication.OnGetTokens += OnGetTokens;
         Campaigns = new(settings.Campaigns.Clone().OrderBy(c => c.Name));
-        CurrentCampaign = Campaigns.SingleOrDefault(c => string.Equals(c.Name, settings.CurrentCampaingName, StringComparison.CurrentCultureIgnoreCase));
+        SetCurrentCampaign(Campaigns.SingleOrDefault(c => string.Equals(c.Name, settings.CurrentCampaignName, StringComparison.CurrentCultureIgnoreCase)));
     }
 
     protected override void InitializeCommands()
@@ -61,13 +67,15 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayerJoiner
 
     public void AddTokenToPlayer(TokenIndentifier tokenIndentifier)
     {
-        if(CurrentCampaign != null)
+        if (CurrentCampaign != null)
         {
             var listSelectionWindowViewModel = new ListSelectionWindowViewModel<Player>(CurrentCampaign.Players);
             _windowService.ShowWindowDialog<ListSelectionWindow>(listSelectionWindowViewModel);
-            if(listSelectionWindowViewModel.Success)
+            if (listSelectionWindowViewModel.Success)
             {
-                listSelectionWindowViewModel.SelectedItem.TokenIdentifiers.Add(tokenIndentifier);
+                var player = listSelectionWindowViewModel.SelectedItem;
+                player.TokenIdentifiers.Add(tokenIndentifier);
+                _webCommunication.SendMessage(new TokensMessage { Player = player.Name, Tokens = player.TokenIdentifiers.ToStringList() });
                 CampaignListChanged();
             }
         }
@@ -78,7 +86,8 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayerJoiner
         if (SelectedCampaign == CurrentCampaign && Campaigns.Count > 1)
         {
             Campaigns.Remove(SelectedCampaign);
-            CurrentCampaign = Campaigns.First();
+            SetCurrentCampaign(Campaigns.First());
+            _webCommunication.SendMessage(new CampaignMessage());
         }
         else
         {
@@ -100,7 +109,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayerJoiner
             var selectedCampaign = SelectedCampaign;
             Campaigns.OrderCurrentBy(c => c.Name);
             SelectedCampaign = selectedCampaign;
-            CurrentCampaign = currentCampaign;
+            SetCurrentCampaign(currentCampaign);
         }
         CampaignListChanged();
     }
@@ -117,11 +126,12 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayerJoiner
             Campaigns.Add(campaign);
             Campaigns.OrderCurrentBy(c => c.Name);
             SelectedCampaign = campaign;
-            CurrentCampaign = currentCampaign;
+            SetCurrentCampaign(currentCampaign);
 
             if (CurrentCampaign == null)
             {
-                CurrentCampaign = Campaigns.First();
+                SetCurrentCampaign(Campaigns.First());
+                _webCommunication.SendMessage(new CampaignMessage { Players = new List<Player>(Campaigns.First().Players.Clone()) });
             }
         }
         CampaignListChanged();
@@ -129,7 +139,9 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayerJoiner
 
     private void RemovePlayer()
     {
+        _webCommunication.SendMessage(new TokensMessage { Player = SelectedPlayer.Name });
         SelectedCampaign.Players.Remove(SelectedPlayer);
+
         CampaignListChanged();
     }
 
@@ -140,10 +152,14 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayerJoiner
 
         if (stringInputWindowViewModel.Success)
         {
+            _webCommunication.SendMessage(new TokensMessage { Player = SelectedPlayer.Name });
+
             SelectedPlayer.Name = stringInputWindowViewModel.Input;
             var selectedPlayer = SelectedPlayer;
             SelectedCampaign.Players.OrderCurrentBy(p => p.Name);
             SelectedPlayer = selectedPlayer;
+
+            _webCommunication.SendMessage(new TokensMessage { Player = SelectedPlayer.Name, Tokens = SelectedPlayer.TokenIdentifiers.ToStringList() });
         }
         CampaignListChanged();
     }
@@ -159,6 +175,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayerJoiner
             SelectedCampaign.Players.Add(player);
             SelectedCampaign.Players.OrderCurrentBy(p => p.Name);
             SelectedPlayer = player;
+            _webCommunication.SendMessage(new TokensMessage { Player = player.Name, Tokens = player.TokenIdentifiers.ToStringList() });
         }
         CampaignListChanged();
     }
@@ -223,6 +240,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayerJoiner
     private void RemoveToken()
     {
         SelectedPlayer.TokenIdentifiers.Remove(SelectedToken);
+        _webCommunication.SendMessage(new TokensMessage { Player = SelectedPlayer.Name, Tokens = SelectedPlayer.TokenIdentifiers.ToStringList() });
         CampaignListChanged();
     }
 
@@ -243,6 +261,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayerJoiner
             var tokenIdentifier = new TokenIndentifier(token.Name);
             SelectedPlayer.TokenIdentifiers.Add(tokenIdentifier);
             SelectedToken = tokenIdentifier;
+            _webCommunication.SendMessage(new TokensMessage { Player = SelectedPlayer.Name, Tokens = SelectedPlayer.TokenIdentifiers.ToStringList() });
         }
 
         CampaignListChanged();
@@ -251,25 +270,60 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayerJoiner
     private void SaveCampaigns()
     {
         _settings.Campaigns = new(Campaigns.Clone());
-        _settings.CurrentCampaingName = CurrentCampaign?.Name;
+        _settings.CurrentCampaignName = CurrentCampaign?.Name;
         _settings.Save();
         CampaignListChanged();
     }
 
     private void CampaignListChanged()
     {
-        CampaignListUpdated = !Campaigns.EqualsList(_settings.Campaigns) || !(string.Equals(CurrentCampaign?.Name, _settings.CurrentCampaingName, StringComparison.CurrentCultureIgnoreCase));
+        CampaignListUpdated = !Campaigns.EqualsList(_settings.Campaigns) || !(string.Equals(CurrentCampaign?.Name, _settings.CurrentCampaignName, StringComparison.CurrentCultureIgnoreCase));
     }
 
     private void CurrentCampaignChanged()
     {
-        CampaignListChanged();
+        if (_isCurrentCampaignUpdatedFromUI)
+        {
+            if (CurrentCampaign != null)
+            {
+                _webCommunication.SendMessage(new CampaignMessage { Players = new List<Player>(CurrentCampaign.Players.Clone()) });
+            }
+            CampaignListChanged();
+        }
+    }
+
+    private void SetCurrentCampaign(Campaign campaign)
+    {
+        _isCurrentCampaignUpdatedFromUI = false;
+        CurrentCampaign = campaign;
+        _isCurrentCampaignUpdatedFromUI = true;
+    }
+
+    private void OnWebCommunicationConnected(object? sender, EventArgs e)
+    {
+        if (CurrentCampaign != null)
+        {
+            _webCommunication.SendMessage(new CampaignMessage { Players = new List<Player>(CurrentCampaign.Players.Clone()) });
+        }
+    }
+
+    private void OnGetTokens(object sender, GetTokensEventArgs e)
+    {
+        if (CurrentCampaign != null)
+        {
+            foreach (var player in CurrentCampaign.Players)
+            {
+                if(string.Equals(e.Player, player.Name, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    _webCommunication.SendMessage(new TokensMessage { Player = e.Player, Tokens = player.TokenIdentifiers.ToStringList() });
+                }
+            }
+        }
     }
 
     // AddToSaveFile (use SaveFile name exclusive?)
     // OpenSaveFile
-    // Clear
-    // Push names to webserver after changes current campaign
-    // Push names to player when editing token listbox
     // Remove PlayerControl
+    // What happens when there is no cookie
+    // Combine grid tab with background tab
 }

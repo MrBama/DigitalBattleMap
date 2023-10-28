@@ -102,7 +102,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         _connectionManager.OnConnected += ConnectionManagerConnected;
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
         MouseCanvas = new();
-        CampaignController = new CampaignControllerViewModel(_windowService, _monsterTokens, _settings);
+        CampaignController = new CampaignControllerViewModel(_windowService, _connectionManager, _monsterTokens, _settings);
         BackgroundController = new BackgroundControllerViewModel(_windowService, this, MouseCanvas, GridSize);
         BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
         TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, MouseCanvas, _monsterTokens, CampaignController, _settings, GridSize);

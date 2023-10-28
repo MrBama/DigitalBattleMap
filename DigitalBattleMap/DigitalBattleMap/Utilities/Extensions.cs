@@ -88,4 +88,9 @@ public static class Extensions
     {
         return lhs.All(rhs.Contains) && lhs.Count() == rhs.Count();
     }
+
+    public static List<string> ToStringList(this IList<TokenIndentifier> tokenIndentifiers)
+    {
+        return tokenIndentifiers.Select(t => t.GetCombinedString()).ToList();
+    }    
 }

@@ -13,7 +13,7 @@ public class Settings
     public int DefaultGridSize { get; set; } = 65;
     public bool IsSoftwareInstalled { get; set; }
     public string ServerAddress { get; set; } = "http://localhost:8000";
-    public string CurrentCampaingName { get; set; } = "";
+    public string CurrentCampaignName { get; set; } = "";
     public List<Token> CustomTokens { get; set; } = new();
     public List<TokenGroup> TokenGroups { get; set; } = new();
     public List<Campaign> Campaigns { get; set; } = new();
