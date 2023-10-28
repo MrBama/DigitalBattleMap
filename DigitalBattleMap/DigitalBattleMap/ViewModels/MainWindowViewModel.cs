@@ -358,6 +358,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
                 GridSize = GridSize,
                 IsGridShown = IsGridShown
             };
+            CampaignController.AddToSaveFile(saveFile);
             BackgroundController.AddToSaveFile(saveFile);
             DrawingController.AddToSaveFile(saveFile);
             TokenController.AddToSaveFile(saveFile);
@@ -373,6 +374,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
             IsShowMapLocked = false;
 
             var saveFile = SaveFile.Open(path);
+            CampaignController.OpenSaveFile(saveFile);
             BackgroundController.OpenSaveFile(saveFile);
             GridSize = saveFile.GridSize;
             GridSizeChanged();

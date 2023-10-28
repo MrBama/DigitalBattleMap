@@ -81,6 +81,31 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayerJoiner
         }
     }
 
+    public void AddToSaveFile(SaveFile saveFile)
+    {
+        if(CurrentCampaign != null)
+        {
+            saveFile.Campaign = CurrentCampaign.Clone<Campaign>();
+        }
+    }
+
+    public void OpenSaveFile(SaveFile saveFile)
+    {
+        if(saveFile.Campaign.Name != CurrentCampaign?.Name && Campaigns.SingleOrDefault(c => c.Name == saveFile.Campaign.Name) == null)
+        {
+            Campaigns.Add(saveFile.Campaign.Clone<Campaign>());
+            var campaign = Campaigns.Single(c => c.Name == saveFile.Campaign.Name);
+            SetCurrentCampaign(campaign);
+            _webCommunication.SendMessage(new CampaignMessage { Players = new List<Player>(CurrentCampaign!.Players.Clone()) });
+        }
+        else if(saveFile.Campaign.Name != CurrentCampaign?.Name)
+        {
+            var campaign = Campaigns.Single(c => c.Name == saveFile.Campaign.Name);
+            SetCurrentCampaign(campaign);
+            _webCommunication.SendMessage(new CampaignMessage { Players = new List<Player>(CurrentCampaign!.Players.Clone()) });
+        }
+    }
+
     private void RemoveCampaign()
     {
         if (SelectedCampaign == CurrentCampaign && Campaigns.Count > 1)
@@ -321,9 +346,6 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayerJoiner
         }
     }
 
-    // AddToSaveFile (use SaveFile name exclusive?)
-    // OpenSaveFile
     // Remove PlayerControl
-    // What happens when there is no cookie
     // Combine grid tab with background tab
 }

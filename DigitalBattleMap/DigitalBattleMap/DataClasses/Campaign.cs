@@ -7,6 +7,10 @@ namespace DigitalBattleMap.DataClasses;
 
 public class Campaign : IEquatable<Campaign>, ICloneable
 {
+    public Campaign()
+    {
+    }
+
     public Campaign(string name)
     {
         Name = name;
