@@ -50,7 +50,6 @@ public class CreateTokenWindowViewModel : ViewModelBase
         ExistingTokenNames = tokens.Select(t => t.Name).ToList();
         TokenName = editToken.Name;
         SelectedTokenSize = editToken.Size;
-        PlayerControl = editToken.PlayerControl;
         Hp = editToken.Hp;
 
         if (_statblock != null)
@@ -90,7 +89,6 @@ public class CreateTokenWindowViewModel : ViewModelBase
     public string StatblockCopyName { get => Get<string>(); set => Set(value); }
     public string OptionalButtonText { get => Get<string>(); set => Set(value); }
     public bool IsOkButtonEnabled { get => AllInformationAvailable(); }
-    public bool PlayerControl { get => Get<bool>(); set => Set(value); }
     public bool IsOptionalShown { get => Get<bool>(); set => Set(value); }
     public bool IsStatblockCreated { get => Get<bool>(); set => Set(value, UpdateIsStatBlockEditable); }
     public bool IsStatblockEditable { get => Get<bool>(); set => Set(value); }
@@ -152,7 +150,6 @@ public class CreateTokenWindowViewModel : ViewModelBase
             Name = TokenName,
             ImagePath = imagePath,
             Size = SelectedTokenSize,
-            PlayerControl = PlayerControl,
             Hp = Hp,
             Statblock = _statblock
         };

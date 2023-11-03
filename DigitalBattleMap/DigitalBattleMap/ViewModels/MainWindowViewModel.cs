@@ -165,6 +165,11 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         _mapWindowViewModel = new MapWindowViewModel();
         _windowService.ShowWindow<MapWindow>(_mapWindowViewModel);
         _mapWindowViewModel.ChangeWindowPosition(_settings.MonitorPosition.X);
+
+        if (!_settings.ShowMapWindow)
+        {
+            _windowService.HideWindow(_mapWindowViewModel);
+        }
     }
 
     private void GridSizeChanged()
@@ -271,6 +276,15 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         if (settingsWindowViewModel.MonitorChanged)
         {
             _mapWindowViewModel.ChangeWindowPosition(_settings.MonitorPosition.X);
+        }
+
+        if (_settings.ShowMapWindow)
+        {
+            _windowService.ShowWindow(_mapWindowViewModel);
+        }
+        else
+        {
+            _windowService.HideWindow(_mapWindowViewModel);
         }
 
         if (settingsWindowViewModel.MonsterTokensDownloaded)

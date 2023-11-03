@@ -11,7 +11,7 @@ using System.Windows.Input;
 
 namespace DigitalBattleMap.ViewModels;
 
-public class CampaignControllerViewModel : ViewModelBase, IPlayerJoiner
+public class CampaignControllerViewModel : ViewModelBase, IPlayers
 {
     private IWindowService _windowService;
     private IWebCommunication _webCommunication;
@@ -79,6 +79,22 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayerJoiner
                 CampaignListChanged();
             }
         }
+    }
+
+    public bool IsTokenControlledByPlayer(TokenIndentifier tokenIndentifier)
+    {
+        if(CurrentCampaign != null)
+        {
+            foreach (var player in CurrentCampaign.Players)
+            {
+                if (player.TokenIdentifiers.Contains(tokenIndentifier))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public void AddToSaveFile(SaveFile saveFile)
@@ -346,6 +362,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayerJoiner
         }
     }
 
-    // Remove PlayerControl
+
     // Combine grid tab with background tab
+    // Use icons instead of names
 }

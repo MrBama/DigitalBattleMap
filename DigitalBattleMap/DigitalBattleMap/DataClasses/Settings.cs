@@ -12,6 +12,7 @@ public class Settings
     public ScreenPosition MonitorPosition { get; set; } = new();
     public int DefaultGridSize { get; set; } = 65;
     public bool IsSoftwareInstalled { get; set; }
+    public bool ShowMapWindow { get; set; } = true;
     public string ServerAddress { get; set; } = "http://localhost:8000";
     public string CurrentCampaignName { get; set; } = "";
     public List<Token> CustomTokens { get; set; } = new();

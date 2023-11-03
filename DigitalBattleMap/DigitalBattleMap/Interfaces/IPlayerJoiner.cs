@@ -2,7 +2,8 @@
 
 namespace DigitalBattleMap.Interfaces;
 
-public interface IPlayerJoiner
+public interface IPlayers
 {
     void AddTokenToPlayer(TokenIndentifier tokenIndentifier);
+    bool IsTokenControlledByPlayer(TokenIndentifier tokenIndentifier);
 }

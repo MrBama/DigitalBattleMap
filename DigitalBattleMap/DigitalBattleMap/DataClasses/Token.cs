@@ -10,7 +10,6 @@ public class Token : PropertyHandler, ICloneable
     public string Name { get; set; } = "";
     public TokenSize Size { get => Get<TokenSize>(); set => Set(value, NotifySizeChanged); }
     public string ImagePath { get; set; } = "";
-    public bool PlayerControl { get => Get<bool>(); set => Set(value); }
     public Statblock? Statblock { get; set; }
     public int? Hp { get; set; }
 
@@ -21,7 +20,6 @@ public class Token : PropertyHandler, ICloneable
             Name = Name,
             Size = Size,
             ImagePath = ImagePath,
-            PlayerControl = PlayerControl,
             Statblock = Statblock?.Clone<Statblock>(),
             Hp = Hp
         };

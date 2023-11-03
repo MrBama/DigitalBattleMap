@@ -22,7 +22,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     private IMouseCanvas _mouseCanvas;
     private Bitmap _tokenBitmap;
     private IMonsterTokens _monsterTokens;
-    private IPlayerJoiner _playerJoiner;
+    private IPlayers _players;
     private Settings _settings;
     private static object _lock = new();
 
@@ -33,13 +33,13 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         Initialize();
     }
 
-    public TokenControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, ICanvasSize canvasSize, IMouseCanvas mouseCanvas, IMonsterTokens monsterTokens, IPlayerJoiner playerJoiner, Settings settings, int gridSize) : base(canvasSize, gridSize)
+    public TokenControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, ICanvasSize canvasSize, IMouseCanvas mouseCanvas, IMonsterTokens monsterTokens, IPlayers players, Settings settings, int gridSize) : base(canvasSize, gridSize)
     {
         _windowService = windowService;
         _webCommunication = webCommunication;
         _mouseCanvas = mouseCanvas;
         _monsterTokens = monsterTokens;
-        _playerJoiner = playerJoiner;
+        _players = players;
         _webCommunication.OnMoveToken += MoveToken;
         _webCommunication.OnToggleCondition += ToggleCondition;
         _webCommunication.OnGetConditions += GetConditions;
@@ -128,13 +128,18 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             {
                 foreach (var (token, index) in selectTokenWindowViewModel.AddedTokens.WithIndex())
                 {
-                    var tokenListItem = new TokenListItem(token, this, _playerJoiner);
+                    var tokenListItem = new TokenListItem(token, this, _players);
                     tokenListItem.Token.OnSizeChanged += TokenChanged;
                     tokenListItem.OnTokenChanged += TokenChanged;
                     tokenListItem.OnConditionsChanged += TokenConditionsChanged;
                     tokenListItem.OnZLevelChanged += ZLevelChanged;
                     tokenListItem.Id = GetUniqueId(token.Name);
                     tokenListItem.Position = CalculateStartPosition(index);
+
+                    if (_players.IsTokenControlledByPlayer(tokenListItem.GetTokenIndentifier()))
+                    {
+                        _webCommunication.SendMessage(new ConditionsMessage { TokenIndentifier = tokenListItem.GetTokenIndentifier() });
+                    }
 
                     TokenList.Add(tokenListItem);
                     StatblocksViewModel.AddToken(tokenListItem);
@@ -316,9 +321,9 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 tokenListItem.OnConditionsChanged += TokenConditionsChanged;
                 tokenListItem.OnZLevelChanged += ZLevelChanged;
                 tokenListItem.Health.InitializeEditorHp();
-                tokenListItem.SetInterfaces(this, _playerJoiner);
+                tokenListItem.SetInterfaces(this, _players);
 
-                if (tokenListItem.Token.PlayerControl)
+                if (_players.IsTokenControlledByPlayer(tokenListItem.GetTokenIndentifier()))
                 {
                     _webCommunication.SendMessage(new ConditionsMessage { TokenIndentifier = tokenListItem.GetTokenIndentifier(), Conditions = tokenListItem.Conditions });
                 }
@@ -422,7 +427,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier) && t.Token.PlayerControl);
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier));
             if (tokenListItem != null)
             {
                 var offset = new Point<int>();
@@ -486,7 +491,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier) && t.Token.PlayerControl);
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier));
             if (tokenListItem != null)
             {
                 tokenListItem.ToggleCondition(e.Condition);
@@ -500,7 +505,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier) && t.Token.PlayerControl);
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier));
             if (tokenListItem != null && tokenListItem.Conditions.Count > 0)
             {
                 _webCommunication.SendMessage(new ConditionsMessage { TokenIndentifier = e.TokenIndentifier, Conditions = tokenListItem.Conditions });
@@ -593,7 +598,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     private void TokenConditionsChanged(object? sender, ConditionsChangedEventArgs e)
     {
         var tokenListItem = TokenList.Single(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier));
-        if (tokenListItem.Token.PlayerControl)
+        if (_players.IsTokenControlledByPlayer(tokenListItem.GetTokenIndentifier()))
         {
             _webCommunication.SendMessage(new ConditionsMessage { TokenIndentifier = e.TokenIndentifier, Conditions = e.NewConditions });
         }
