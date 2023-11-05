@@ -24,15 +24,17 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     private ITokenLinker _tokenLinker;
     private bool _disableSelectionAnimation;
     private DrawingShape _editShape;
+    private int _gridSize;
 
     public DrawingControllerViewModel()
     {
         Initialize();
     }
 
-    public DrawingControllerViewModel(ICanvasSize canvasSize, ITokenLinker tokenLinker, int gridSize) : base(canvasSize, gridSize)
+    public DrawingControllerViewModel(ICanvasSize canvasSize, ITokenLinker tokenLinker, int gridSize) : base(canvasSize)
     {
         _tokenLinker = tokenLinker;
+        _gridSize = gridSize;
         _canvasSize.OnCanvasSizeChanged += OnCanvasSizeChanged;
         Initialize();
     }
@@ -355,6 +357,11 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         matrix.Scale(zoomFactor, zoomFactor);
         matrix.Translate((_canvasSize.Width / 2), (_canvasSize.Height / 2));
         Strokes.Transform(matrix, false);
+    }
+
+    public void UpdateGridSize(int gridSize)
+    {
+        _gridSize = gridSize;
     }
 
     private void ActivateShapeEditor(bool activate)

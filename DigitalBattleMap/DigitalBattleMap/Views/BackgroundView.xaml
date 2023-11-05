@@ -30,6 +30,8 @@
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -118,6 +120,39 @@
             <Button Grid.Column="1" Content="Apply" Margin="5 0 0 0" Command="{Binding ApplyFogRemovalCommand}" IsEnabled="{Binding IsFogOfWarAreaSelected}"  Visibility="{Binding IsRemovingFog, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
         </Grid>
         <Button Grid.Row="9" Content="Clear fog" Margin="0 10 0 0" IsEnabled="{Binding IsFogOfWarEnabled}" Command="{Binding ClearFogCommand}"/>
-        <Button Grid.Row="10" Content="Clear" Command="{Binding ClearBackgroundCommand}" Margin="0 10 0 0" VerticalAlignment="Bottom"/>
+
+        <Grid Grid.Row="10" Margin="0 10 0 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Separator BorderThickness="1" BorderBrush="Gray"/>
+            <Label Grid.Column="1" Content="Grid" x:Name="testlabel" FontSize="20" FontWeight="Bold"/>
+            <Separator Grid.Column="2" BorderThickness="1" BorderBrush="Gray"/>
+        </Grid>
+
+        <Grid Grid.Row="11" Margin="0 10 0 0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="6*"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+
+            <Label Content="Grid size in pixels"/>
+            <TextBox Grid.Column="1" Text="{Binding GridSize, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center">
+                <TextBox.InputBindings>
+                    <KeyBinding Command="{Binding GridSizeEnterCommand}" Key="Enter" />
+                </TextBox.InputBindings>
+            </TextBox>
+            <Label Grid.Row="1" Content="Show grid" Margin="0 10 0 0"/>
+            <CheckBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding IsGridShown}" Margin="0 10 0 0"/>
+        </Grid>
+
+        <Button Grid.Row="12" Content="Clear" Command="{Binding ClearBackgroundCommand}" Margin="0 10 0 0" VerticalAlignment="Bottom"/>
     </Grid>
 </UserControl>

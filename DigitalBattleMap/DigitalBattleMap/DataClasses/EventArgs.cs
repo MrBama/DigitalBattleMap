@@ -42,3 +42,8 @@ public class GetTokensEventArgs : EventArgs
 {
     public string Player { get; set; } = "";
 }
+
+public class GridSizeChangedEventArgs : EventArgs
+{
+    public int NewGridSize { get; set; }
+}

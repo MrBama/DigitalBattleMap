@@ -25,6 +25,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     private IPlayers _players;
     private Settings _settings;
     private static object _lock = new();
+    private int _gridSize;
 
     public TokenControllerViewModel()
     {
@@ -33,13 +34,14 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         Initialize();
     }
 
-    public TokenControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, ICanvasSize canvasSize, IMouseCanvas mouseCanvas, IMonsterTokens monsterTokens, IPlayers players, Settings settings, int gridSize) : base(canvasSize, gridSize)
+    public TokenControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, ICanvasSize canvasSize, IMouseCanvas mouseCanvas, IMonsterTokens monsterTokens, IPlayers players, Settings settings, int gridSize) : base(canvasSize)
     {
         _windowService = windowService;
         _webCommunication = webCommunication;
         _mouseCanvas = mouseCanvas;
         _monsterTokens = monsterTokens;
         _players = players;
+        _gridSize = gridSize;
         _webCommunication.OnMoveToken += MoveToken;
         _webCommunication.OnToggleCondition += ToggleCondition;
         _webCommunication.OnGetConditions += GetConditions;
@@ -216,7 +218,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    public override void UpdateGridSize(int gridSize)
+    public void UpdateGridSize(int gridSize)
     {
         lock (_lock)
         {
