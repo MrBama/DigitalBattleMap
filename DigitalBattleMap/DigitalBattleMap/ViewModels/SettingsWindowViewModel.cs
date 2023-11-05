@@ -22,6 +22,7 @@ public class SettingsWindowViewModel : ViewModelBase
         ServerAddress = _settings.ServerAddress;
         SelectedMonitorPosition = _settings.MonitorPosition;
         ShowMapWindow = _settings.ShowMapWindow;
+        _initialMonitorPosition = _settings.MonitorPosition;
 
         foreach (var screenPosition in ScreenWrapper.GetScreenPositions())
         {

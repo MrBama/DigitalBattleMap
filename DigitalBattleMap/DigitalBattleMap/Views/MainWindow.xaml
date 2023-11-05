@@ -44,7 +44,7 @@
         <TabControl Margin="0 0 10 0" BorderBrush="Gray" BorderThickness="0" SelectedIndex="{Binding SelectedTabIndex}">
             <TabItem>
                 <TabItem.Header>
-                    <TextBlock Text="Campaign" FontSize="20" FontWeight="Bold"/>
+                    <Image Source="{Binding CampaignEmblemBitmapSource}" MaxHeight="45" Margin="2"/>
                 </TabItem.Header>
                 <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
                     <views:CampaignView DataContext="{Binding CampaignController}" Margin="10"/>
@@ -52,7 +52,7 @@
             </TabItem>
             <TabItem>
                 <TabItem.Header>
-                    <TextBlock Text="Background" FontSize="20" FontWeight="Bold"/>
+                    <Image Source="{Binding BackgroundEmblemBitmapSource}" MaxHeight="45" Margin="2"/>
                 </TabItem.Header>
                 <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
                     <views:BackgroundView DataContext="{Binding BackgroundController}" Margin="10"/>
@@ -88,7 +88,7 @@
             </TabItem>
             <TabItem>
                 <TabItem.Header>
-                    <TextBlock Text="Drawing" FontSize="20" FontWeight="Bold"/>
+                    <Image Source="{Binding DrawingEmblemBitmapSource}" MaxHeight="45" Margin="2"/>
                 </TabItem.Header>
                 <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
                     <views:DrawingView DataContext="{Binding DrawingController}" Margin="10"/>
@@ -96,7 +96,7 @@
             </TabItem>
             <TabItem>
                 <TabItem.Header>
-                    <TextBlock Text="Tokens" FontSize="20" FontWeight="Bold"/>
+                    <Image Source="{Binding TokenEmblemBitmapSource}" MaxHeight="45" Margin="2"/>
                 </TabItem.Header>
                 <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
                     <views:TokenView DataContext="{Binding TokenController}" Margin="10"/>
