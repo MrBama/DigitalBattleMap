@@ -5,6 +5,7 @@ using DigitalBattleMap.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Windows.Input;
@@ -33,6 +34,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
         _webCommunication.OnGetTokens += OnGetTokens;
         Campaigns = new(settings.Campaigns.Clone().OrderBy(c => c.Name));
         SetCurrentCampaign(Campaigns.SingleOrDefault(c => string.Equals(c.Name, settings.CurrentCampaignName, StringComparison.CurrentCultureIgnoreCase)));
+        ExpandCurrentCampaign();
     }
 
     protected override void InitializeCommands()
@@ -362,7 +364,19 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
         }
     }
 
-
-    // Combine grid tab with background tab
-    // Use icons instead of names
+    private void ExpandCurrentCampaign()
+    {
+        if (CurrentCampaign != null)
+        {
+            SelectedCampaign = CurrentCampaign;
+            if (CurrentCampaign.Players.Count > 0)
+            {
+                SelectedPlayer = CurrentCampaign.Players.First();
+                if (SelectedPlayer.TokenIdentifiers.Count > 0)
+                {
+                    SelectedToken = SelectedPlayer.TokenIdentifiers.First();
+                }
+            }
+        }
+    }
 }

@@ -288,6 +288,12 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         BackgroundController.SetSelectedTabIndex(SelectedTabIndex);
         switch (SelectedTabIndex)
         {
+            case TabIndex.Campaign:
+                MouseInputCanvasVisibility = Visibility.Hidden;
+                InkCanvasVisibility = Visibility.Visible;
+                TokenVisibility = Visibility.Visible;
+                InkCanvasZIndex = 0;
+                break;
             case TabIndex.Background:
                 InkCanvasVisibility = Visibility.Hidden;
                 MouseInputCanvasVisibility = Visibility.Visible;

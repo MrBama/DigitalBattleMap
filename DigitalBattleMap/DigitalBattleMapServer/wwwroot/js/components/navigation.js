@@ -116,16 +116,6 @@ connection.on("SetCampaign", function (players) {
     }
 });
 
-async function start() {
-    try {
-        await connection.start();
-    } catch (error) {
-        console.log(error);
-    }
-};
-
-start();
-
 $(document).ready(function () {
     let currentOrientation = $(".btn-orientation").attr('orientation');
 
@@ -211,15 +201,25 @@ $(document).ready(function () {
             type: "POST"
         })
     })
-
-    // Request tokens with refresh
-
-    let settings = getSettings();
-    if (settings != null) {
-        $.ajax({
-            url: "Navigation/GetTokens",
-            type: "POST",
-            data: { 'player': settings.Name }
-        })
-    }   
 });
+
+async function start() {
+    try {
+        await connection.start();
+
+        // Request tokens with refresh
+        let settings = getSettings();
+        if (settings != null) {
+            $.ajax({
+                url: "Navigation/GetTokens",
+                type: "POST",
+                data: { 'player': settings.Name }
+            })
+        }   
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+start();
+
