@@ -86,7 +86,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         });
     }
     public bool IsTokenUpButtonEnabled { get => TokenList.IndexOf(SelectedToken) > 0; }
-    public bool IsTokenDownButtonEnabled { get => TokenList.IndexOf(SelectedToken) < TokenList.Count - 1; }
+    public bool IsTokenDownButtonEnabled { get => TokenList.IndexOf(SelectedToken) != -1 && TokenList.IndexOf(SelectedToken) < TokenList.Count - 1; }
     public ObservableCollection<TokenListItem> TokenList { get; set; } = new ObservableCollection<TokenListItem>();
     public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToBitmapImage(); }
     public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
