@@ -109,18 +109,18 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
 
     public void OpenSaveFile(SaveFile saveFile)
     {
-        if(saveFile.Campaign.Name != CurrentCampaign?.Name && Campaigns.SingleOrDefault(c => c.Name == saveFile.Campaign.Name) == null)
+        if(saveFile.Campaign.Name != CurrentCampaign?.Name)
         {
-            Campaigns.Add(saveFile.Campaign.Clone<Campaign>());
+            if(Campaigns.SingleOrDefault(c => c.Name == saveFile.Campaign.Name) == null)
+            {
+                Campaigns.Add(saveFile.Campaign.Clone<Campaign>());
+            }
+
             var campaign = Campaigns.Single(c => c.Name == saveFile.Campaign.Name);
             SetCurrentCampaign(campaign);
             _webCommunication.SendMessage(new CampaignMessage { Players = new List<Player>(CurrentCampaign!.Players.Clone()) });
-        }
-        else if(saveFile.Campaign.Name != CurrentCampaign?.Name)
-        {
-            var campaign = Campaigns.Single(c => c.Name == saveFile.Campaign.Name);
-            SetCurrentCampaign(campaign);
-            _webCommunication.SendMessage(new CampaignMessage { Players = new List<Player>(CurrentCampaign!.Players.Clone()) });
+            CampaignListChanged();
+            ExpandCurrentCampaign();
         }
     }
 
