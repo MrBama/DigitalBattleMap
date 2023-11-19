@@ -2,6 +2,7 @@
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -42,13 +43,12 @@ public class CreateTokenWindowViewModel : ViewModelBase
         _tokenBitmap = IO.File.LoadBitmap(editToken.ImagePath);
         _originalTokenImagePath = editToken.ImagePath;
         _tokenImageSelected = true;
-        _statblock = editToken.Statblock?.Copy();
+        _statblock = editToken.Statblock?.Clone<Statblock>();
         _tokens = tokens;
 
         ExistingTokenNames = tokens.Select(t => t.Name).ToList();
         TokenName = editToken.Name;
         SelectedTokenSize = editToken.Size;
-        PlayerControl = editToken.PlayerControl;
         Hp = editToken.Hp;
 
         if (_statblock != null)
@@ -88,7 +88,6 @@ public class CreateTokenWindowViewModel : ViewModelBase
     public string StatblockCopyName { get => Get<string>(); set => Set(value); }
     public string OptionalButtonText { get => Get<string>(); set => Set(value); }
     public bool IsOkButtonEnabled { get => AllInformationAvailable(); }
-    public bool PlayerControl { get => Get<bool>(); set => Set(value); }
     public bool IsOptionalShown { get => Get<bool>(); set => Set(value); }
     public bool IsStatblockCreated { get => Get<bool>(); set => Set(value, UpdateIsStatBlockEditable); }
     public bool IsStatblockEditable { get => Get<bool>(); set => Set(value); }
@@ -126,7 +125,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
 
     private bool AllInformationAvailable()
     {
-        return TokenName != null && TokenName != "" && _tokenImageSelected && ExistingTokenNames.SingleOrDefault(t => t.ToLower() == TokenName.ToLower()) == null;
+        return TokenName != null && TokenName != "" && _tokenImageSelected && ExistingTokenNames.SingleOrDefault(t => string.Equals(t, TokenName, StringComparison.CurrentCultureIgnoreCase)) == null;
     }
 
     private void OkButton()
@@ -150,7 +149,6 @@ public class CreateTokenWindowViewModel : ViewModelBase
             Name = TokenName,
             ImagePath = imagePath,
             Size = SelectedTokenSize,
-            PlayerControl = PlayerControl,
             Hp = Hp,
             Statblock = _statblock
         };
@@ -160,7 +158,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
 
     private void TokenNameChanged()
     {
-        if (ExistingTokenNames.SingleOrDefault(t => t.ToLower() == TokenName.ToLower()) == null)
+        if (ExistingTokenNames.SingleOrDefault(t => string.Equals(t, TokenName, StringComparison.CurrentCultureIgnoreCase)) == null)
         {
             NameBorderBrush = System.Windows.Media.Brushes.Transparent;
             NameToolTip = null;
@@ -232,7 +230,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
         if (selectTokenWindowViewModel.AddedTokens.Count == 1)
         {
             var token = selectTokenWindowViewModel.AddedTokens.First();
-            _statblock = token.Statblock?.Copy();
+            _statblock = token.Statblock?.Clone<Statblock>();
             IsStatblockCreated = true;
         }
     }

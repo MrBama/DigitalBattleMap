@@ -1,0 +1,124 @@
+﻿<UserControl x:Class="DigitalBattleMap.Views.CampaignView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels" 
+             xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements"
+             mc:Ignorable="d" 
+             d:DesignHeight="1080" d:DesignWidth="480"
+             Background="White"
+             FontSize="17">
+    <UserControl.DataContext>
+        <viewmodels:CampaignControllerViewModel/>
+    </UserControl.DataContext>
+    <UserControl.Resources>
+        <uielements:NullToBoolConverter x:Key="NullToBoolConverter"/>
+    </UserControl.Resources>
+        
+        <!--Campaign editor grid-->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <!--Select campaing grid-->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <Label Content="Current campaign"/>
+            <ComboBox Grid.Column="1" Margin="10 0 0 0" ItemsSource="{Binding Campaigns}" SelectedItem="{Binding CurrentCampaign}" VerticalContentAlignment="Center"/>
+        </Grid>
+        
+        <!--Edit campaign grid-->
+        <Label Grid.Row="1" Content="Campaigns" Margin="0 10 0 0"/>
+        <ListView Grid.Row="2" Margin="0 10 0 0" ItemsSource="{Binding Campaigns}" SelectedItem="{Binding SelectedCampaign}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Label Content="{Binding Name}"/>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <Grid Grid.Row="3" Margin="0 10 0 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Content="Remove" Margin="0 0 5 0" Command="{Binding RemoveCampaignCommand}" IsEnabled="{Binding SelectedCampaign, Converter={StaticResource NullToBoolConverter}}"/>
+            <Button Grid.Column="1" Content="Edit" Margin="5 0 5 0" Command="{Binding EditCampaignCommand}" IsEnabled="{Binding SelectedCampaign, Converter={StaticResource NullToBoolConverter}}"/>
+            <Button Grid.Column="2" Content="Add" Margin="5 0 0 0" Command="{Binding AddCampaignCommand}"/>
+        </Grid>
+
+        <!--Edit player grid-->
+        <Label Grid.Row="4" Content="Players" Margin="0 10 0 0"/>
+        <ListView Grid.Row="5" Margin="0 10 0 0" ItemsSource="{Binding SelectedCampaign.Players}" SelectedItem="{Binding SelectedPlayer}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Label Content="{Binding Name}"/>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <Grid Grid.Row="6" Margin="0 10 0 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Content="Remove" Margin="0 0 5 0" Command="{Binding RemovePlayerCommand}" IsEnabled="{Binding SelectedPlayer, Converter={StaticResource NullToBoolConverter}}"/>
+            <Button Grid.Column="1" Content="Edit" Margin="5 0 5 0" Command="{Binding EditPlayerCommand}" IsEnabled="{Binding SelectedPlayer, Converter={StaticResource NullToBoolConverter}}"/>
+            <Button Grid.Column="2" Content="Add" Margin="5 0 0 0" Command="{Binding AddPlayerCommand}" IsEnabled="{Binding SelectedCampaign, Converter={StaticResource NullToBoolConverter}}"/>
+        </Grid>
+
+        <!--Edit token grid-->
+        <Label Grid.Row="7" Content="Tokens" Margin="0 10 0 0"/>
+        <ListView Grid.Row="8" Margin="0 10 0 0" ItemsSource="{Binding SelectedPlayer.TokenIdentifiers}" SelectedItem="{Binding SelectedToken}" HorizontalContentAlignment="Stretch">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="{Binding Name}"/>
+                            <Label Grid.Column="1" Content="ID:" HorizontalAlignment="Right"/>
+                            <Label Grid.Column="2" Content="{Binding Id}"/>
+                        </Grid>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <Grid Grid.Row="9" Margin="0 10 0 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Content="Remove" Margin="0 0 5 0" Command="{Binding RemoveTokenCommand}" IsEnabled="{Binding SelectedToken, Converter={StaticResource NullToBoolConverter}}"/>
+            <Button Grid.Column="1" Content="Add" Margin="5 0 0 0" Command="{Binding AddTokenCommand}" IsEnabled="{Binding SelectedPlayer, Converter={StaticResource NullToBoolConverter}}"/>
+        </Grid>
+
+        <Button Grid.Row="10" Content="Save" Margin="0 10 0 0" Command="{Binding SaveCampaignsCommand}" IsEnabled="{Binding CampaignListUpdated}"/>
+    </Grid>
+</UserControl>

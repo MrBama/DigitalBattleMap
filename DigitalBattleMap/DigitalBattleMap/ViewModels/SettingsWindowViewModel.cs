@@ -17,6 +17,11 @@ public class SettingsWindowViewModel : ViewModelBase
     {
         _settings = settings;
         _windowService = windowService;
+
+        DefaultGridSize = _settings.DefaultGridSize;
+        ServerAddress = _settings.ServerAddress;
+        SelectedMonitorPosition = _settings.MonitorPosition;
+        ShowMapWindow = _settings.ShowMapWindow;
         _initialMonitorPosition = _settings.MonitorPosition;
 
         foreach (var screenPosition in ScreenWrapper.GetScreenPositions())
@@ -38,41 +43,10 @@ public class SettingsWindowViewModel : ViewModelBase
     public ICommand SaveCommand { get; set; }
     public ICommand DownloadMonsterTokensCommand { get; set; }
 
-    public int DefaultGridSize 
-    {
-        get => _settings.DefaultGridSize; 
-        set
-        {
-            if(value != _settings.DefaultGridSize)
-            {
-                _settings.DefaultGridSize = value;
-            }
-        }
-    }
-
-    public string ServerAddress
-    {
-        get => _settings.ServerAddress;
-        set
-        {
-            if (value != _settings.ServerAddress)
-            {
-                _settings.ServerAddress = value;
-            }
-        }
-    }
-
-    public ScreenPosition SelectedMonitorPosition
-    {
-        get => _settings.MonitorPosition;
-        set
-        {
-            if (value != _settings.MonitorPosition)
-            {
-                _settings.MonitorPosition = value;
-            }
-        }
-    }
+    public int DefaultGridSize { get => Get<int>(); set => Set(value); }
+    public string ServerAddress { get => Get<string>(); set => Set(value); }
+    public ScreenPosition SelectedMonitorPosition { get => Get<ScreenPosition>(); set => Set(value); }
+    public bool ShowMapWindow { get => Get<bool>(); set => Set(value); }
 
     private void SaveButtonClicked()
     {
@@ -80,6 +54,11 @@ public class SettingsWindowViewModel : ViewModelBase
         {
             MonitorChanged = true;
         }
+
+        _settings.DefaultGridSize = DefaultGridSize;
+        _settings.ServerAddress = ServerAddress;
+        _settings.MonitorPosition = SelectedMonitorPosition;
+        _settings.ShowMapWindow = ShowMapWindow;
 
         _settings.Save();
     }

@@ -40,7 +40,6 @@
                         <Grid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Visible" IsChecked="{Binding Visible}" Command="{Binding TokenVisibilityCommand}"/>
-                                <MenuItem Header="Player control" IsChecked="{Binding Token.PlayerControl}" Command="{Binding PlayerControlCommand}"/>
                                 <MenuItem Header="Size">
                                     <MenuItem Header="Tiny" IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Tiny}" Command="{Binding TokenSizeChangedCommand}" CommandParameter="Tiny"/>
                                     <MenuItem Header="Small" IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Small}" Command="{Binding TokenSizeChangedCommand}" CommandParameter="Small"/>
@@ -80,6 +79,7 @@
                                 </MenuItem>
                                 <MenuItem Header="Move to front" Command="{Binding MoveToFrontCommand}"/>
                                 <MenuItem Header="Move to back" Command="{Binding MoveToBackCommand}"/>
+                                <MenuItem Header="Add to player" Command="{Binding AddToPlayerCommand}"/>
                                 <MenuItem Header="{Binding LinkToTokenButtonText}" Command="{Binding LinkToTokenCommand}"/>
                             </ContextMenu>
                         </Grid.ContextMenu>

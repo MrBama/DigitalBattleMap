@@ -21,9 +21,11 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     private IWebCommunication _webCommunication;
     private IMouseCanvas _mouseCanvas;
     private Bitmap _tokenBitmap;
-    private List<Token> _monsterTokens = new();
+    private IMonsterTokens _monsterTokens;
+    private IPlayers _players;
     private Settings _settings;
     private static object _lock = new();
+    private int _gridSize;
 
     public TokenControllerViewModel()
     {
@@ -32,11 +34,14 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         Initialize();
     }
 
-    public TokenControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, ICanvasSize canvasSize, IMouseCanvas mouseCanvas, Settings settings, int gridSize) : base(canvasSize, gridSize)
+    public TokenControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, ICanvasSize canvasSize, IMouseCanvas mouseCanvas, IMonsterTokens monsterTokens, IPlayers players, Settings settings, int gridSize) : base(canvasSize)
     {
         _windowService = windowService;
         _webCommunication = webCommunication;
         _mouseCanvas = mouseCanvas;
+        _monsterTokens = monsterTokens;
+        _players = players;
+        _gridSize = gridSize;
         _webCommunication.OnMoveToken += MoveToken;
         _webCommunication.OnToggleCondition += ToggleCondition;
         _webCommunication.OnGetConditions += GetConditions;
@@ -49,7 +54,6 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         TokenBitmap = BitmapTools.CreateEmptyBitmap();
         TokenSelectionBitmapSource = BitmapTools.CreateEmptyBitmap().ToBitmapImage();
-        ReloadMonsterTokens();
     }
 
     protected override void InitializeCommands()
@@ -82,7 +86,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         });
     }
     public bool IsTokenUpButtonEnabled { get => TokenList.IndexOf(SelectedToken) > 0; }
-    public bool IsTokenDownButtonEnabled { get => TokenList.IndexOf(SelectedToken) < TokenList.Count - 1; }
+    public bool IsTokenDownButtonEnabled { get => TokenList.IndexOf(SelectedToken) != -1 && TokenList.IndexOf(SelectedToken) < TokenList.Count - 1; }
     public ObservableCollection<TokenListItem> TokenList { get; set; } = new ObservableCollection<TokenListItem>();
     public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToBitmapImage(); }
     public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
@@ -112,20 +116,12 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    public void ReloadMonsterTokens()
-    {
-        lock (_lock)
-        {
-            _monsterTokens = MonsterTokens.GetTokens();
-        }
-    }
-
     public void AddToken()
     {
         lock (_lock)
         {
-            var tokens = new List<Token>(_monsterTokens);
-            tokens.AddRange(_settings.CustomTokens);
+            var tokens = new List<Token>(_monsterTokens.GetTokens().Clone());
+            tokens.AddRange(_settings.CustomTokens.Clone());
 
             var selectTokenWindowViewModel = new SelectTokenWindowViewModel(tokens, _settings.TokenGroups);
             _windowService.ShowWindowDialog<SelectTokenWindow>(selectTokenWindowViewModel);
@@ -134,14 +130,18 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             {
                 foreach (var (token, index) in selectTokenWindowViewModel.AddedTokens.WithIndex())
                 {
-                    var tokenListItem = new TokenListItem(token);
+                    var tokenListItem = new TokenListItem(token, this, _players);
                     tokenListItem.Token.OnSizeChanged += TokenChanged;
                     tokenListItem.OnTokenChanged += TokenChanged;
                     tokenListItem.OnConditionsChanged += TokenConditionsChanged;
                     tokenListItem.OnZLevelChanged += ZLevelChanged;
                     tokenListItem.Id = GetUniqueId(token.Name);
                     tokenListItem.Position = CalculateStartPosition(index);
-                    tokenListItem.SetTokenLinker(this);
+
+                    if (_players.IsTokenControlledByPlayer(tokenListItem.GetTokenIndentifier()))
+                    {
+                        _webCommunication.SendMessage(new ConditionsMessage { TokenIndentifier = tokenListItem.GetTokenIndentifier() });
+                    }
 
                     TokenList.Add(tokenListItem);
                     StatblocksViewModel.AddToken(tokenListItem);
@@ -218,7 +218,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    public override void UpdateGridSize(int gridSize)
+    public void UpdateGridSize(int gridSize)
     {
         lock (_lock)
         {
@@ -323,9 +323,9 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 tokenListItem.OnConditionsChanged += TokenConditionsChanged;
                 tokenListItem.OnZLevelChanged += ZLevelChanged;
                 tokenListItem.Health.InitializeEditorHp();
-                tokenListItem.SetTokenLinker(this);
+                tokenListItem.SetInterfaces(this, _players);
 
-                if (tokenListItem.Token.PlayerControl)
+                if (_players.IsTokenControlledByPlayer(tokenListItem.GetTokenIndentifier()))
                 {
                     _webCommunication.SendMessage(new ConditionsMessage { TokenIndentifier = tokenListItem.GetTokenIndentifier(), Conditions = tokenListItem.Conditions });
                 }
@@ -356,7 +356,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            var customTokensWindowViewModel = new CustomTokensWindowViewModel(_windowService, _settings, _monsterTokens);
+            var customTokensWindowViewModel = new CustomTokensWindowViewModel(_windowService, _monsterTokens, _settings);
             _windowService.ShowWindowDialog<CustomTokensWindow>(customTokensWindowViewModel);
         }
     }
@@ -402,15 +402,15 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
     public void LinkToToken(ILinkableObject linkableObject)
     {
-        var tokenLinkWindowViewModel = new TokenLinkWindowViewModel(TokenList);
-        _windowService.ShowWindowDialog<TokenLinkWindow>(tokenLinkWindowViewModel);
+        var listSelectionWindowViewModel = new ListSelectionWindowViewModel<TokenListItem>(TokenList);
+        _windowService.ShowWindowDialog<ListSelectionWindow>(listSelectionWindowViewModel);
 
-        if (tokenLinkWindowViewModel.Success)
+        if (listSelectionWindowViewModel.Success)
         {
-            if (tokenLinkWindowViewModel.SelectedToken != linkableObject)
+            if (listSelectionWindowViewModel.SelectedItem != linkableObject)
             {
-                linkableObject.Link(tokenLinkWindowViewModel.SelectedToken);
-                tokenLinkWindowViewModel.SelectedToken.LinkedObjects.Add(linkableObject);
+                linkableObject.Link(listSelectionWindowViewModel.SelectedItem);
+                listSelectionWindowViewModel.SelectedItem.LinkedObjects.Add(linkableObject);
             }
         }
     }
@@ -429,7 +429,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier) && t.Token.PlayerControl);
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier));
             if (tokenListItem != null)
             {
                 var offset = new Point<int>();
@@ -493,7 +493,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier) && t.Token.PlayerControl);
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier));
             if (tokenListItem != null)
             {
                 tokenListItem.ToggleCondition(e.Condition);
@@ -507,7 +507,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier) && t.Token.PlayerControl);
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier));
             if (tokenListItem != null && tokenListItem.Conditions.Count > 0)
             {
                 _webCommunication.SendMessage(new ConditionsMessage { TokenIndentifier = e.TokenIndentifier, Conditions = tokenListItem.Conditions });
@@ -600,7 +600,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     private void TokenConditionsChanged(object? sender, ConditionsChangedEventArgs e)
     {
         var tokenListItem = TokenList.Single(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier));
-        if (tokenListItem.Token.PlayerControl)
+        if (_players.IsTokenControlledByPlayer(tokenListItem.GetTokenIndentifier()))
         {
             _webCommunication.SendMessage(new ConditionsMessage { TokenIndentifier = e.TokenIndentifier, Conditions = e.NewConditions });
         }

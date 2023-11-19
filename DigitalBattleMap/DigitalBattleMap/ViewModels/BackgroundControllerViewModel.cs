@@ -10,12 +10,15 @@ using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.ViewModels;
 
+public delegate void GridSizeChangedEventHandler(object sender, GridSizeChangedEventArgs e);
+
 public class BackgroundControllerViewModel : ControllerViewModelBase
 {
     private Bitmap _backgroundBitmap;
     private Bitmap _fogOfWarBitMap;
     private Bitmap _backgroundAndFogOfWarBitmap;
     private Bitmap _fullBackgroundBitmap;
+    private Bitmap _gridBitmap;
     private BitmapSource _backgroundAndFogOfWarBitmapSource;
     private Rectangle _area;
     private FogOfWarArea _selectedFogOfWarArea;
@@ -24,16 +27,20 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     private Point<double> _mouseDownPosition;
     private bool _mouseDown;
     private List<FogOfWarArea> _fogOfWarAreas = new();
+    private Settings _settings;
 
     public BackgroundControllerViewModel()
     {
+        GridSize = 65;
         Initialize();
     }
 
-    public BackgroundControllerViewModel(IWindowService windowService, ICanvasSize canvasSize, IMouseCanvas mouseCanvas, int gridSize) : base(canvasSize, gridSize)
+    public BackgroundControllerViewModel(IWindowService windowService, ICanvasSize canvasSize, IMouseCanvas mouseCanvas, Settings settings) : base(canvasSize)
     {
         _windowService = windowService;
         _mouseCanvas = mouseCanvas;
+        _settings = settings;
+        GridSize = _settings.DefaultGridSize;
         _mouseCanvas.SubscribeMouseDown(TabIndex.Background, MouseDown);
         _mouseCanvas.SubscribeMouseUp(TabIndex.Background, MouseUp);
         _mouseCanvas.SubscribeRectangleAreaSelected(TabIndex.Background, FogOfWarRectangleAreaSelected);
@@ -45,6 +52,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     {
         _area = new Rectangle(0, 0, Constants.BitmapSize.Width, Constants.BitmapSize.Height);
 
+        IsGridShown = true;
+        GridBitmap = BitmapTools.CreateGrid(GridSize);
         BackgroundBitmap = BitmapTools.CreateEmptyBitmap();
         FogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
         BackgroundAndFogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
@@ -66,9 +75,11 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         ApplyFogRemovalCommand = new RelayCommand(p => ApplyFogRemoval());
         CancelFogRemovalCommand = new RelayCommand(p => CancelFogRemoval());
         ClearFogCommand = new RelayCommand(p => ClearFog());
+        GridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
     }
 
     public event EventHandler OnBackgroundUpdated;
+    public event GridSizeChangedEventHandler OnGridSizeChanged;
 
     public bool HasOpenedBackground { get => Get<bool>(); set => Set(value); }
     public bool IsFogOfWarEnabled { get => Get<bool>(); set => Set(value, IsFogOfWarEnabledChanged); }
@@ -76,12 +87,15 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public bool IsFogOfWarAreaSelected { get => Get<bool>(); set => Set(value); }
     public bool FogRemovalRectangleShape { get => Get<bool>(); set => Set(value, FogRemovalShapeChanged); }
     public bool FogRemovalPolygonShape { get => Get<bool>(); set => Set(value); }
+    public bool IsGridShown { get => Get<bool>(); set => Set(value, GridShownChanged); }
     public int GridCellsWidth { get => Get<int>(); set => Set(value); }
     public int GridCellsHeight { get => Get<int>(); set => Set(value); }
     public int FeetPerGridCell { get => Get<int>(); set => Set(value); }
+    public int GridSize { get => Get<int>(); set => Set(value); }
     public double BackgroundZoomPercentage { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(BackgroundZoomPercentageLabel))); }
     public BitmapSource BackgroundBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public BitmapSource FogOfWarBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
+    public BitmapSource GridBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public string BackgroundZoomPercentageLabel { get => $"{BackgroundZoomPercentage}%"; }
 
     public ICommand OpenBackgroundCommand { get; set; }
@@ -93,6 +107,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public ICommand CancelFogRemovalCommand { get; set; }
     public ICommand ApplyFogRemovalCommand { get; set; }
     public ICommand ClearFogCommand { get; set; }
+    public ICommand GridSizeEnterCommand { get; set; }
 
     private Bitmap BackgroundBitmap
     {
@@ -133,6 +148,19 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         }
     }
 
+    private Bitmap GridBitmap
+    {
+        get => _gridBitmap;
+        set
+        {
+            if (value != _gridBitmap)
+            {
+                _gridBitmap = value;
+                GridBitmapSource = value.ToBitmapImage();
+            }
+        }
+    }
+
     public Bitmap GetBackgroundBitmap()
     {
         if (IsFogOfWarEnabled)
@@ -157,6 +185,11 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         }
     }
 
+    public Bitmap GetGridBitmap()
+    {
+        return GridBitmap;
+    }
+
     public void OpenBackground()
     {
         if (_windowService.ShowOpenFileDialog(out string path))
@@ -179,6 +212,10 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     public void ClearBackground()
     {
+        IsGridShown = true;
+        GridSize = _settings.DefaultGridSize;
+        GridSizeChanged();
+
         _fullBackgroundBitmap = null;
         _area = new Rectangle(0, 0, Constants.BitmapSize.Width, Constants.BitmapSize.Height);
         BackgroundBitmap = BitmapTools.CreateEmptyBitmap();
@@ -196,6 +233,12 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         NotifyBackgroundUpdated();
     }
 
+    public void UpdateGridSize(int gridSizeChange)
+    {
+        GridSize = Math.Max(GridSize + gridSizeChange, Constants.MinimalZoomGridSize);
+        GridSizeChanged();
+    }
+
     public override void Zoom(double zoomFactor)
     {
         if (_fullBackgroundBitmap != null)
@@ -209,7 +252,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     {
         if (_fullBackgroundBitmap != null)
         {
-            double preciseGridSize = _gridSize * movementCount;
+            double preciseGridSize = GridSize * movementCount;
             var distanceX = (int)Math.Round(preciseGridSize.Map(0, Constants.BitmapSize.Width, 0, _area.Width));
             var distanceY = (int)Math.Round(preciseGridSize.Map(0, Constants.BitmapSize.Height, 0, _area.Height));
 
@@ -235,6 +278,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     public override void AddToSaveFile(SaveFile saveFile)
     {
+        saveFile.IsGridShown = IsGridShown;
+        saveFile.GridSize = GridSize;
         saveFile.FullBackground = _fullBackgroundBitmap;
         saveFile.BackgroundArea = _area;
         saveFile.GridCellsWidth = GridCellsWidth;
@@ -247,6 +292,10 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public override void OpenSaveFile(SaveFile saveFile)
     {
         ClearBackground();
+
+        IsGridShown = saveFile.IsGridShown;
+        GridSize = saveFile.GridSize;
+        GridSizeChanged();
 
         GridCellsWidth = saveFile.GridCellsWidth;
         GridCellsHeight = saveFile.GridCellsHeight;
@@ -333,7 +382,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         gridCellsPerBackgroundGridCell = Math.Max(gridCellsPerBackgroundGridCell, 1);
 
         // Resize background to match grid size
-        var newSize = new Size<double>(_gridSize * gridCellsPerBackgroundGridCell * GridCellsWidth, _gridSize * gridCellsPerBackgroundGridCell * GridCellsHeight);
+        var newSize = new Size<double>(GridSize * gridCellsPerBackgroundGridCell * GridCellsWidth, GridSize * gridCellsPerBackgroundGridCell * GridCellsHeight);
         double factor = _fullBackgroundBitmap.Width / newSize.Width;
         var newAreaSize = new Size<double>(Math.Round(Constants.BitmapSize.Width * factor), Math.Round(Constants.BitmapSize.Height * factor));
         _area.X += (int)Math.Round((_area.Width - newAreaSize.Width) / 2);
@@ -347,11 +396,16 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         _area.Y += (int)Math.Round(backgroundGridSize - (_area.Y % backgroundGridSize));
 
         // Move background grid to overlap with normal grid
-        var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(_gridSize));
+        var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(GridSize));
         _area.X -= (int)Math.Round(gridOffset.X.Map(0, Constants.BitmapSize.Width, 0, _area.Width));
         _area.Y -= (int)Math.Round(gridOffset.Y.Map(0, Constants.BitmapSize.Height, 0, _area.Height));
 
         CreateBackground();
+    }
+
+    private void NotifyGridSizeChanged(int newGridSize)
+    {
+        OnGridSizeChanged?.Invoke(this, new GridSizeChangedEventArgs() { NewGridSize = newGridSize });
     }
 
     private void NotifyBackgroundUpdated()
@@ -498,5 +552,18 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
                 _mouseCanvas.SetMode(MouseCanvasMode.PolygonSelection);
             }
         }
+    }
+
+    private void GridSizeChanged()
+    {
+        GridSize = Math.Max(GridSize, 1);
+        GridBitmap = IsGridShown ? BitmapTools.CreateGrid(GridSize) : BitmapTools.CreateEmptyBitmap();
+        NotifyGridSizeChanged(GridSize);
+    }
+
+    private void GridShownChanged()
+    {
+        GridBitmap = IsGridShown ? BitmapTools.CreateGrid(GridSize) : BitmapTools.CreateEmptyBitmap();
+        NotifyGridSizeChanged(GridSize);
     }
 }

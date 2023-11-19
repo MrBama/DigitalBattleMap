@@ -7,7 +7,7 @@ namespace DigitalBattleMap;
 
 public class WindowService : IWindowService
 {
-    private List<Window> _windows = new();
+    private Dictionary<object, Window> _windows = new();
 
     public void ShowWindow<T>(object dataContext) where T : Window, new()
     {
@@ -15,8 +15,24 @@ public class WindowService : IWindowService
         {
             DataContext = dataContext
         };
-        _windows.Add(window);
+        _windows[dataContext] = window;
         window.Show();
+    }
+
+    public void ShowWindow(object dataContext)
+    {
+        if (_windows.ContainsKey(dataContext))
+        {
+            _windows[dataContext].Show();
+        }
+    }
+
+    public void HideWindow(object dataContext)
+    {
+        if(_windows.ContainsKey(dataContext))
+        {
+            _windows[dataContext].Hide();
+        }
     }
 
     public void ShowWindowDialog<T>(object dataContext) where T : Window, new()
@@ -92,7 +108,7 @@ public class WindowService : IWindowService
 
     public void CloseAllWindows()
     {
-        foreach (var window in _windows)
+        foreach (var window in _windows.Values)
         {
             window.Close();
         }

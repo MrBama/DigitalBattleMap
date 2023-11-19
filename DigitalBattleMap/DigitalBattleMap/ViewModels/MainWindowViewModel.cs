@@ -5,8 +5,8 @@ using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System;
 using System.Drawing;
+using System.Reflection;
 using System.Windows;
-using System.Windows.Automation;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
@@ -14,13 +14,13 @@ namespace DigitalBattleMap.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase, ICanvasSize
 {
-    private Bitmap _gridBitmap;
     private IWindowService _windowService;
     private MapWindowViewModel _mapWindowViewModel;
     private Settings _settings;
     private ConnectionManager _connectionManager;
     private Size<double> _canvasSize;
     private Action _multiMoveAction;
+    private MonsterTokens _monsterTokens = new();
 
     public MainWindowViewModel(IWindowService windowService)
     {
@@ -33,45 +33,49 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     {
         // This is required to render MainWindow in editor
         IO.Initialize(new Directory(), new File(), new ZipFile());
-        Initialize();
+        CampaignController = new();
+        BackgroundController = new();
+        DrawingController = new();
+        TokenController = new();
+        InitializeProperties();
     }
 
-    public event Interfaces.CanvasSizeChangedEventHandler OnCanvasSizeChanged;
+    public event CanvasSizeChangedEventHandler OnCanvasSizeChanged;
 
     public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
     public int SelectedMapTabIndex { get => Get<int>(); set => Set(value); }
-    public int GridSize { get => Get<int>(); set => Set(value); }
     public int InkCanvasZIndex { get => Get<int>(); set => Set(value); }
     public int MultiMoveCount { get => Get<int>(); set => Set(value); }
-    public bool IsGridShown { get => Get<bool>(); set => Set(value, GridShownChanged); }
     public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, IsShowMapLockedChanged); }
     public bool ServerConnectionButtonEnabled { get => Get<bool>(); set => Set(value); }
     public bool IsConfigurationMenuExpanded { get => Get<bool>(); set => Set(value); }
     public bool IsMultiMove { get => Get<bool>(); set => Set(value); }
     public string ServerConnectionButtonText { get => Get<string>(); set => Set(value); }
     public string ServerConnectionStatus { get => Get<string>(); set => Set(value); }
-    public Visibility GridVisibility { get => Get<Visibility>(); set => Set(value); }
     public Visibility InkCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
     public Visibility MouseInputCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
     public Visibility TokenVisibility { get => Get<Visibility>(); set => Set(value); }
     public System.Windows.Media.Brush ServerConnectionStatusColor { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
 
     public MouseCanvasViewModel MouseCanvas { get; set; }
+    public CampaignControllerViewModel CampaignController { get; set; }
     public BackgroundControllerViewModel BackgroundController { get; set; }
     public DrawingControllerViewModel DrawingController { get; set; }
     public TokenControllerViewModel TokenController { get; set; }
-    public BitmapSource GridBitmapSource { get => _gridBitmap.ToBitmapImage(); }
     public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToBitmapImage(); }
     public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
     public BitmapSource MapArrowLeftBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Left).ToBitmapImage(); }
     public BitmapSource MapArrowRightBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Right).ToBitmapImage(); }
     public BitmapSource MapZoomInBitmapSource { get => BitmapTools.CreateZoomButton(true).ToBitmapImage(); }
     public BitmapSource MapZoomOutBitmapSource { get => BitmapTools.CreateZoomButton(false).ToBitmapImage(); }
+    public BitmapSource CampaignEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.CampaignEmblem.png")).ToBitmapImage(); }
+    public BitmapSource BackgroundEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.BackgroundEmblem.png")).ToBitmapImage(); }
+    public BitmapSource DrawingEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.DrawingEmblem.png")).ToBitmapImage(); }
+    public BitmapSource TokenEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.TokenEmblem.png")).ToBitmapImage(); }
 
     double ICanvasSize.Width => _canvasSize.Width;
     double ICanvasSize.Height => _canvasSize.Height;
 
-    public ICommand GridSizeEnterCommand { get; set; }
     public ICommand ShowMapCommand { get; set; }
     public ICommand WindowClosingCommand { get; set; }
     public ICommand InkCanvasSizeOnStartupCommand { get; set; }
@@ -92,25 +96,24 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     {
         InitializeProperties();
         _settings = Settings.Load();
-        GridSize = _settings.DefaultGridSize;
-        _gridBitmap = BitmapTools.CreateGrid(GridSize);
+        _monsterTokens.ReloadTokens();
         _connectionManager = new ConnectionManager();
         _connectionManager.OnConnected += ConnectionManagerConnected;
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
         MouseCanvas = new();
-        BackgroundController = new BackgroundControllerViewModel(_windowService, this, MouseCanvas, GridSize);
+        CampaignController = new CampaignControllerViewModel(_windowService, _connectionManager, _monsterTokens, _settings);
+        BackgroundController = new BackgroundControllerViewModel(_windowService, this, MouseCanvas, _settings);
+        BackgroundController.OnGridSizeChanged += OnGridSizeChanged;
         BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
-        TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, MouseCanvas, _settings, GridSize);
+        TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, MouseCanvas, _monsterTokens, CampaignController, _settings, BackgroundController.GridSize);
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
-        DrawingController = new DrawingControllerViewModel(this, TokenController, GridSize);
+        DrawingController = new DrawingControllerViewModel(this, TokenController, BackgroundController.GridSize);
         DrawingController.OnDrawingStrokesUpdated += DrawingStrokesUpdated;
     }
 
     private void InitializeProperties()
     {
-        IsGridShown = true;
         IsShowMapLocked = false;
-        GridVisibility = Visibility.Visible;
         InkCanvasVisibility = Visibility.Hidden;
         MouseInputCanvasVisibility = Visibility.Visible;
         TokenVisibility = Visibility.Hidden;
@@ -122,7 +125,6 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
 
     protected override void InitializeCommands()
     {
-        GridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
         ShowMapCommand = new RelayCommand(p => ShowMap());
         WindowClosingCommand = new RelayCommand(p => WindowClosing());
         InkCanvasSizeOnStartupCommand = new RelayCommand(p => SetInkCanvasSize((double)p));
@@ -138,6 +140,13 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         HideConfigurationCommand = new RelayCommand(p => { IsConfigurationMenuExpanded = false; });
         KeyDownCommand = new RelayCommand(p => KeyDown((KeyEventArgs)p));
         KeyUpCommand = new RelayCommand(p => KeyUp((KeyEventArgs)p));
+    }
+
+    private void OnGridSizeChanged(object sender, GridSizeChangedEventArgs e)
+    {
+        DrawingController.UpdateGridSize(e.NewGridSize);
+        TokenController.UpdateGridSize(e.NewGridSize);
+        UpdateMap(DrawLayer.GridAndStrokes);
     }
 
     private void OnBackgroundUpdated(object? sender, EventArgs e)
@@ -160,17 +169,11 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         _mapWindowViewModel = new MapWindowViewModel();
         _windowService.ShowWindow<MapWindow>(_mapWindowViewModel);
         _mapWindowViewModel.ChangeWindowPosition(_settings.MonitorPosition.X);
-    }
 
-    private void GridSizeChanged()
-    {
-        GridSize = Math.Max(GridSize, 1);
-        _gridBitmap = BitmapTools.CreateGrid(GridSize);
-        BackgroundController.UpdateGridSize(GridSize);
-        DrawingController.UpdateGridSize(GridSize);
-        TokenController.UpdateGridSize(GridSize);
-        NotifyPropertyChange(nameof(GridBitmapSource));
-        UpdateMap(DrawLayer.GridAndStrokes);
+        if (!_settings.ShowMapWindow)
+        {
+            _windowService.HideWindow(_mapWindowViewModel);
+        }
     }
 
     private void ShowMap(DrawLayer drawing = 0)
@@ -204,8 +207,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
 
     private Bitmap CreateGridAndDrawingBitmap()
     {
-        var gridBitmap = IsGridShown ? _gridBitmap : BitmapTools.CreateEmptyBitmap();
-        return BitmapTools.CreateGridAndStrokesBitmap(gridBitmap, DrawingController.Strokes, Size<int>.Create(_canvasSize));
+        return BitmapTools.CreateGridAndStrokesBitmap(BackgroundController.GetGridBitmap(), DrawingController.Strokes, Size<int>.Create(_canvasSize));
     }
 
     private void WindowClosing()
@@ -250,9 +252,6 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
             BackgroundController.ClearBackground();
             DrawingController.ClearDrawings();
             TokenController.ClearTokens();
-            IsGridShown = true;
-            GridSize = _settings.DefaultGridSize;
-            GridSizeChanged();
 
             _connectionManager.ClearMap();
         }
@@ -268,9 +267,18 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
             _mapWindowViewModel.ChangeWindowPosition(_settings.MonitorPosition.X);
         }
 
+        if (_settings.ShowMapWindow)
+        {
+            _windowService.ShowWindow(_mapWindowViewModel);
+        }
+        else
+        {
+            _windowService.HideWindow(_mapWindowViewModel);
+        }
+
         if (settingsWindowViewModel.MonsterTokensDownloaded)
         {
-            TokenController.ReloadMonsterTokens();
+            _monsterTokens.ReloadTokens();
         }
     }
 
@@ -280,14 +288,15 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         BackgroundController.SetSelectedTabIndex(SelectedTabIndex);
         switch (SelectedTabIndex)
         {
+            case TabIndex.Campaign:
+                MouseInputCanvasVisibility = Visibility.Hidden;
+                InkCanvasVisibility = Visibility.Visible;
+                TokenVisibility = Visibility.Visible;
+                InkCanvasZIndex = 0;
+                break;
             case TabIndex.Background:
                 InkCanvasVisibility = Visibility.Hidden;
                 MouseInputCanvasVisibility = Visibility.Visible;
-                TokenVisibility = Visibility.Hidden;
-                break;
-            case TabIndex.Grid:
-                InkCanvasVisibility = Visibility.Hidden;
-                MouseInputCanvasVisibility = Visibility.Hidden;
                 TokenVisibility = Visibility.Hidden;
                 break;
             case TabIndex.Drawing:
@@ -303,19 +312,6 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
                 InkCanvasZIndex = 0;
                 break;
         }
-    }
-
-    public void GridShownChanged()
-    {
-        if (IsGridShown)
-        {
-            GridVisibility = Visibility.Visible;
-        }
-        else
-        {
-            GridVisibility = Visibility.Hidden;
-        }
-        UpdateMap(DrawLayer.GridAndStrokes);
     }
 
     public Size<double> GetSize()
@@ -348,11 +344,8 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     {
         if (_windowService.ShowSaveFileDialog(out string path, filter: "(*.dbm)|*.dbm"))
         {
-            var saveFile = new SaveFile
-            {
-                GridSize = GridSize,
-                IsGridShown = IsGridShown
-            };
+            var saveFile = new SaveFile();
+            CampaignController.AddToSaveFile(saveFile);
             BackgroundController.AddToSaveFile(saveFile);
             DrawingController.AddToSaveFile(saveFile);
             TokenController.AddToSaveFile(saveFile);
@@ -368,10 +361,8 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
             IsShowMapLocked = false;
 
             var saveFile = SaveFile.Open(path);
+            CampaignController.OpenSaveFile(saveFile);
             BackgroundController.OpenSaveFile(saveFile);
-            GridSize = saveFile.GridSize;
-            GridSizeChanged();
-            IsGridShown = saveFile.IsGridShown;
             DrawingController.OpenSaveFile(saveFile);
             TokenController.OpenSaveFile(saveFile);
 
@@ -389,14 +380,14 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     {
         if (!IsMultiMove)
         {
-            Zoom(GridSize + Constants.DefaultZoomSize);
+            Zoom(Constants.DefaultZoomSize);
         }
         else
         {
             MultiMoveCount++;
             _multiMoveAction = () =>
             {
-                Zoom(GridSize + (Constants.DefaultZoomSize * MultiMoveCount));
+                Zoom(Constants.DefaultZoomSize * MultiMoveCount);
             };
         }
     }
@@ -405,30 +396,27 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     {
         if (!IsMultiMove)
         {
-            Zoom(GridSize + -Constants.DefaultZoomSize);
+            Zoom(-Constants.DefaultZoomSize);
         }
         else
         {
             MultiMoveCount++;
             _multiMoveAction = () =>
             {
-                Zoom(GridSize + (-Constants.DefaultZoomSize * MultiMoveCount));
+                Zoom(-Constants.DefaultZoomSize * MultiMoveCount);
             };
         }
     }
 
-    private void Zoom(double newGridSize)
+    private void Zoom(int gridSizeChange)
     {
-        var gridSize = Math.Max(newGridSize, Constants.MinimalZoomGridSize);
+        var oldGridSize = BackgroundController.GridSize;
         var currentIsShowMapLocked = IsShowMapLocked;
         IsShowMapLocked = false;
-        var zoomFactor = gridSize / GridSize;
+        BackgroundController.UpdateGridSize(gridSizeChange);
 
+        var zoomFactor = (double)BackgroundController.GridSize / (double)oldGridSize;
         BackgroundController.Zoom(zoomFactor);
-
-        GridSize = (int)gridSize;
-        GridSizeChanged();
-
         DrawingController.Zoom(zoomFactor);
         TokenController.Zoom(zoomFactor);
 
@@ -496,7 +484,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         if (keyEventArgs.Key == Key.LeftShift && IsMultiMove)
         {
             IsMultiMove = false;
-            if(_multiMoveAction != null)
+            if (_multiMoveAction != null)
             {
                 _multiMoveAction();
                 _multiMoveAction = null;

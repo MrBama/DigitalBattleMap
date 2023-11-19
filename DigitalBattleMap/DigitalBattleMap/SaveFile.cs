@@ -31,6 +31,8 @@ public class SaveFile
 
     public Rectangle BackgroundArea { get; set; }
 
+    public Campaign Campaign { get; set; } = new();
+
     public List<TokenListItem> TokenList { get; set; } = new();
 
     public List<DrawingShapeSave> DrawingShapes { get; set; } = new();

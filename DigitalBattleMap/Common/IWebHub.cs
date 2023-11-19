@@ -5,5 +5,8 @@ public interface IWebHub
     Task MoveToken(string character, Direction direction);
     Task ToggleCondition(string character, Condition condition);
     Task SetConditions(string character, List<Condition> conditions);
+    Task SetTokens(string player, List<string> tokens);
+    Task SetCampaign(Dictionary<string, List<string>> players);
+    Task GetTokens(string player);
     Task GetConditions(string character);
 }

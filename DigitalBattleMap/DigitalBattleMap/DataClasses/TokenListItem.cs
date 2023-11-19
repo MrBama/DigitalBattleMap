@@ -14,24 +14,27 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     private Bitmap _bitmap;
     private ITokenLink _tokenLink;
     private ITokenLinker _tokenLinker;
+    private IPlayers _players;
 
     public TokenListItem()
     {
         LinkToTokenButtonText = "Link to token";
 
         TokenSizeChangedCommand = new RelayCommand(p => TokenSizeChanged((string)p));
-        PlayerControlCommand = new RelayCommand(p => PlayerControlToggled());
         ConditionChangedCommand = new RelayCommand(p => ConditionChanged((string)p));
         ClearAllConditionsCommand = new RelayCommand(p => ClearAllConditions());
         TokenVisibilityCommand = new RelayCommand(p => ToggleTokenVisibility());
         MoveToFrontCommand = new RelayCommand(p => MoveToFront());
         MoveToBackCommand = new RelayCommand(p => MoveToBack());
         LinkToTokenCommand = new RelayCommand(p => LinkToDifferentToken());
+        AddToPlayerCommand = new RelayCommand(p => AddToPlayer());
     }
 
-    public TokenListItem(Token token) : this()
+    public TokenListItem(Token token, ITokenLinker tokenLinker, IPlayers players) : this()
     {
         Token = token;
+        _tokenLinker = tokenLinker;
+        _players = players;
 
         if (token.Hp != null)
         {
@@ -62,8 +65,6 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     [JsonIgnore]
     public ICommand TokenSizeChangedCommand { get; set; }
     [JsonIgnore]
-    public ICommand PlayerControlCommand { get; set; }
-    [JsonIgnore]
     public ICommand ConditionChangedCommand { get; set; }
     [JsonIgnore]
     public ICommand ClearAllConditionsCommand { get; set; }
@@ -74,7 +75,9 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     [JsonIgnore]
     public ICommand MoveToBackCommand { get; set; }
     [JsonIgnore]
-    public ICommand LinkToTokenCommand { get; set; }
+    public ICommand LinkToTokenCommand { get; set; }    
+    [JsonIgnore]
+    public ICommand AddToPlayerCommand { get; set; }
 
     public Bitmap GetBitmap()
     {
@@ -86,9 +89,10 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         return _bitmap;
     }
 
-    public void SetTokenLinker(ITokenLinker tokenLinker)
+    public void SetInterfaces(ITokenLinker tokenLinker, IPlayers players)
     {
         _tokenLinker = tokenLinker;
+        _players = players;
     }
 
     public void ToggleCondition(Condition condition)
@@ -173,12 +177,6 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         Token.Size = Enum.Parse<TokenSize>(size);
     }
 
-    private void PlayerControlToggled()
-    {
-        Token.PlayerControl = !Token.PlayerControl;
-        NotifyConditionsChanged();
-    }
-
     private void ConditionChanged(string conditionString)
     {
         var condition = Enum.Parse<Condition>(conditionString);
@@ -249,5 +247,10 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         {
             LinkToTokenButtonText = "Link to token";
         }
+    }
+
+    private void AddToPlayer()
+    {
+        _players.AddTokenToPlayer(GetTokenIndentifier());
     }
 }

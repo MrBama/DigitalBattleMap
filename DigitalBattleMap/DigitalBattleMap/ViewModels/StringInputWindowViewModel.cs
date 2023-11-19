@@ -1,26 +1,28 @@
 ﻿using DigitalBattleMap.Utilities;
-using System;
 using System.Windows.Input;
 
 namespace DigitalBattleMap.ViewModels;
 
+public delegate bool ValidateStringInputDelegate(string input, out string errorMessage);
+
 public class StringInputWindowViewModel : ViewModelBase
 {
-    private Func<string, bool> _validate = (p) => true;
+    private ValidateStringInputDelegate _validator;
 
-    public StringInputWindowViewModel() : this("", "", (p) => true)
+    public StringInputWindowViewModel() : this("", "", null)
     {
     }
 
-    public StringInputWindowViewModel(string header, Func<string, bool> validate) : this(header, "", validate)
+    public StringInputWindowViewModel(string header, ValidateStringInputDelegate validate) : this(header, "", validate)
     {
     }
 
-    public StringInputWindowViewModel(string header, string input, Func<string, bool> validate)
+    public StringInputWindowViewModel(string header, string input, ValidateStringInputDelegate validator)
     {
-        _validate = validate;
+        _validator = validator;
         Header = header;            
         Input = input;
+        ErrorMessage = "";
     }
 
     protected override void InitializeCommands()
@@ -30,6 +32,8 @@ public class StringInputWindowViewModel : ViewModelBase
 
     public string Header { get => Get<string>(); set => Set(value); }
     public string Input { get => Get<string>(); set => Set(value, OnInputChange); }
+    public string ErrorMessage { get => Get<string>(); set => Set(value, () => NotifyPropertyChange(nameof(ShowErrorMessage))); }
+    public bool ShowErrorMessage { get => ErrorMessage != null && ErrorMessage != ""; }
     public bool Success { get; set; }
     public bool IsOkEnabled { get => Get<bool>(); set => Set(value); }
 
@@ -42,7 +46,19 @@ public class StringInputWindowViewModel : ViewModelBase
 
     private void OnInputChange()
     {
-        IsOkEnabled = _validate(Input);
+        if(_validator != null)
+        {
+            IsOkEnabled = _validator(Input, out var errorMessage);
+            if (IsOkEnabled)
+            {
+                ErrorMessage = "";
+            }
+            else
+            {
+                ErrorMessage = errorMessage;
+            }
+        }
+
     }
 }
 

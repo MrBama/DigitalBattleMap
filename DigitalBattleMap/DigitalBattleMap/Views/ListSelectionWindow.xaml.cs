@@ -2,11 +2,11 @@
 
 namespace DigitalBattleMap.Views;
 /// <summary>
-/// Interaction logic for TokenLinkWindow.xaml
+/// Interaction logic for ListSelectionWindow.xaml
 /// </summary>
-public partial class TokenLinkWindow : Window
+public partial class ListSelectionWindow : Window
 {
-    public TokenLinkWindow()
+    public ListSelectionWindow()
     {
         InitializeComponent();
     }

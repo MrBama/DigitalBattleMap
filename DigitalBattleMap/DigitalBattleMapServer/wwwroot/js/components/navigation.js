@@ -31,11 +31,38 @@ const connection = new signalR.HubConnectionBuilder()
     .withAutomaticReconnect()
     .build();
 
-connection.on("SetConditions", function (character, conditions) {
-    let selectedCharacter = $("#character").val();
-    let characterWithId = character + "_1";
+function getSettings() {
+    let cookie = {};
+    decodeURIComponent(document.cookie).split(';').forEach(function (el) {
+        let [key, value] = el.split('=');
+        cookie[key.trim()] = value;
+    })
 
-    if (character.localeCompare(selectedCharacter, undefined, { sensitivity: 'accent' }) === 0 || characterWithId.localeCompare(selectedCharacter, undefined, { sensitivity: 'accent' }) === 0) {
+    if (cookie.hasOwnProperty("_settings")) {
+        return JSON.parse(cookie["_settings"]);
+    }
+    else {
+        return null;
+    }
+}
+
+function getConditions() {
+    let character = $("#tokens").val();
+
+    if (!character)
+        return;
+
+    $.ajax({
+        url: "Navigation/GetConditions",
+        type: "POST",
+        data: { 'character': character }
+    })
+}
+
+connection.on("SetConditions", function (character, conditions) {
+    let selectedCharacter = $("#tokens").val();
+
+    if (character.localeCompare(selectedCharacter, undefined, { sensitivity: 'accent' }) === 0) {
         for (const button of conditionButtons) {
             document.getElementById(button).style.backgroundColor = '';
         }
@@ -46,15 +73,48 @@ connection.on("SetConditions", function (character, conditions) {
     }
 });
 
-async function start() {
-    try {
-        await connection.start();
-    } catch (error) {
-        console.log(error);
-    }
-};
+connection.on("SetTokens", function (player, tokens) {
+    let settings = getSettings();
 
-start();
+    if (settings != null && settings.Name.localeCompare(player, undefined, { sensitivity: 'accent' }) === 0) {
+        let select = document.getElementById("tokens");
+
+        while (select.options.length > 0) {
+            select.remove(0);
+        }
+
+        for (const token of tokens) {
+            let option = document.createElement("option");
+            option.text = token;
+            select.add(option);
+        }
+
+        getConditions();
+    }
+});
+
+connection.on("SetCampaign", function (players) {
+    let settings = getSettings();
+    if (settings == null) {
+        return;
+    }
+
+    let select = document.getElementById("tokens");
+    while (select.options.length > 0) {
+        select.remove(0);
+    }
+
+    for (const player in players) {
+        if (settings.Name.localeCompare(player, undefined, { sensitivity: 'accent' }) === 0) {        
+            for (const token of players[player]) {
+                let option = document.createElement("option");
+                option.text = token;
+                select.add(option);
+            }
+            getConditions();
+        }
+    }
+});
 
 $(document).ready(function () {
     let currentOrientation = $(".btn-orientation").attr('orientation');
@@ -79,8 +139,10 @@ $(document).ready(function () {
     }
 
     $(".btn-direction").click(function() {
-        let character = $("#character").val();
+        let character = $("#tokens").val();
         let direction = $(this).attr('direction');
+
+        console.log(character);
 
         // Collapse conditions
         $('.collapsible-conditions-content').hide();
@@ -97,7 +159,7 @@ $(document).ready(function () {
     })
 
     $(".btn-condition").click(function () {
-        let character = $("#character").val();
+        let character = $("#tokens").val();
         let condition = $(this).attr('condition');
 
         if (!character)
@@ -110,21 +172,8 @@ $(document).ready(function () {
         })
     })
 
-    $(window).on("load", function () {
-        let character = $("#character").val();
-
-        if (!character)
-            return;
-
-        $.ajax({
-            url: "Navigation/GetConditions",
-            type: "POST",
-            data: { 'character': character }
-        })
-    });
-
-    $("#character").change(function () {
-        let character = $("#character").val();
+    $("#tokens").change(function () {
+        let character = $("#tokens").val();
 
         for (const button of conditionButtons) {
             document.getElementById(button).style.backgroundColor = '';
@@ -153,3 +202,24 @@ $(document).ready(function () {
         })
     })
 });
+
+async function start() {
+    try {
+        await connection.start();
+
+        // Request tokens with refresh
+        let settings = getSettings();
+        if (settings != null) {
+            $.ajax({
+                url: "Navigation/GetTokens",
+                type: "POST",
+                data: { 'player': settings.Name }
+            })
+        }   
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+start();
+

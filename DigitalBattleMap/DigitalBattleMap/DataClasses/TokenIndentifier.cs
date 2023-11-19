@@ -2,7 +2,7 @@
 
 namespace DigitalBattleMap.DataClasses;
 
-public class TokenIndentifier : IEquatable<TokenIndentifier>
+public class TokenIndentifier : IEquatable<TokenIndentifier>, ICloneable
 {
     public TokenIndentifier()
     {
@@ -32,9 +32,24 @@ public class TokenIndentifier : IEquatable<TokenIndentifier>
     public string Name { get; set; } = "";
     public int Id { get; set; } = 1;
 
+    public object Clone()
+    {
+        return new TokenIndentifier(Name, Id);
+    }
+
     public bool Equals(TokenIndentifier? other)
     {
         return other != null && string.Equals(other.Name, Name, StringComparison.CurrentCultureIgnoreCase) && other.Id.Equals(Id);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is TokenIndentifier other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
     }
 
     public string GetCombinedString()

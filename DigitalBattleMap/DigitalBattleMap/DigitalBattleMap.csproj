@@ -12,6 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\BackgroundEmblem.png" />
+    <None Remove="Resources\CampaignEmblem.png" />
     <None Remove="Resources\ConditionIcons\Baned.png" />
     <None Remove="Resources\ConditionIcons\Blessed.png" />
     <None Remove="Resources\ConditionIcons\Blinded.png" />
@@ -39,13 +41,17 @@
     <None Remove="Resources\ConditionIcons\Stabilized.png" />
     <None Remove="Resources\ConditionIcons\Stunned.png" />
     <None Remove="Resources\ConditionIcons\Unconcious.png" />
+    <None Remove="Resources\DrawingEmblem.png" />
     <None Remove="Resources\MonsterTokens.json" />
     <None Remove="Resources\RedoIcon.png" />
     <None Remove="Resources\SaveFileIcon.ico" />
+    <None Remove="Resources\TokenEmblem.png" />
     <None Remove="Resources\UndoIcon.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\BackgroundEmblem.png" />
+    <EmbeddedResource Include="Resources\CampaignEmblem.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Baned.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Blessed.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Blinded.png" />
@@ -73,9 +79,11 @@
     <EmbeddedResource Include="Resources\ConditionIcons\Stabilized.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Stunned.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Unconcious.png" />
+    <EmbeddedResource Include="Resources\DrawingEmblem.png" />
     <EmbeddedResource Include="Resources\MonsterTokens.json" />
     <EmbeddedResource Include="Resources\RedoIcon.png" />
     <EmbeddedResource Include="Resources\SaveFileIcon.ico" />
+    <EmbeddedResource Include="Resources\TokenEmblem.png" />
     <EmbeddedResource Include="Resources\UndoIcon.png" />
   </ItemGroup>
 

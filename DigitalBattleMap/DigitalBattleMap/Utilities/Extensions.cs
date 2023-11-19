@@ -73,4 +73,24 @@ public static class Extensions
         bitmap.Save(stream, ImageFormat.Png);
         return stream.ToArray();
     }
+
+    public static IList<T> Clone<T>(this IList<T> listToClone) where T : ICloneable
+    {
+        return listToClone.Select(item => (T)item.Clone()).ToList();
+    }
+
+    public static T Clone<T>(this T objectToClone) where T : ICloneable
+    {
+        return (T)objectToClone.Clone();
+    }
+
+    public static bool EqualsList<T>(this IEnumerable<T> lhs, IEnumerable<T> rhs) where T : IEquatable<T>
+    {
+        return lhs.All(rhs.Contains) && lhs.Count() == rhs.Count();
+    }
+
+    public static List<string> ToStringList(this IList<TokenIndentifier> tokenIndentifiers)
+    {
+        return tokenIndentifiers.Select(t => t.GetCombinedString()).ToList();
+    }    
 }

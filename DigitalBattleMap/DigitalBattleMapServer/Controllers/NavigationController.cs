@@ -54,6 +54,26 @@ public class NavigationController : Controller
         return Ok();
     }
 
+    [HttpPost]
+    public IActionResult SetTokens([FromBody] TokensDto tokensDto)
+    {
+        _webHub.Clients.All.SetTokens(tokensDto.Player, tokensDto.Tokens);
+        return Ok();
+    }
+
+    [HttpPost]
+    public IActionResult SetCampaign([FromBody] CampaignDto campaignDto)
+    {
+        _webHub.Clients.All.SetCampaign(campaignDto.Players);
+        return Ok();
+    }
+
+    [HttpPost]
+    public IActionResult GetTokens(string player)
+    {
+        _webHub.Clients.All.GetTokens(player);
+        return Ok();
+    }
 
     [HttpPost]
     public IActionResult GetConditions(string character)

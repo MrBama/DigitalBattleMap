@@ -3,26 +3,24 @@ using System;
 
 namespace DigitalBattleMap.DataClasses;
 
-public class Token : PropertyHandler
+public class Token : PropertyHandler, ICloneable
 {
     public event EventHandler OnSizeChanged;
 
     public string Name { get; set; } = "";
     public TokenSize Size { get => Get<TokenSize>(); set => Set(value, NotifySizeChanged); }
     public string ImagePath { get; set; } = "";
-    public bool PlayerControl { get => Get<bool>(); set => Set(value); }
     public Statblock? Statblock { get; set; }
     public int? Hp { get; set; }
 
-    public Token Copy()
+    public object Clone()
     {
         return new Token
         {
             Name = Name,
             Size = Size,
             ImagePath = ImagePath,
-            PlayerControl = PlayerControl,
-            Statblock = Statblock?.Copy(),
+            Statblock = Statblock?.Clone<Statblock>(),
             Hp = Hp
         };
     }
