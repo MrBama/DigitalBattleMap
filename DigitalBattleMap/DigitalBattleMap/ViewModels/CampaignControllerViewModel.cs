@@ -85,7 +85,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
 
     public bool IsTokenControlledByPlayer(TokenIndentifier tokenIndentifier)
     {
-        if(CurrentCampaign != null)
+        if (CurrentCampaign != null)
         {
             foreach (var player in CurrentCampaign.Players)
             {
@@ -101,7 +101,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
 
     public void AddToSaveFile(SaveFile saveFile)
     {
-        if(CurrentCampaign != null)
+        if (CurrentCampaign != null)
         {
             saveFile.Campaign = CurrentCampaign.Clone<Campaign>();
         }
@@ -109,9 +109,9 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
 
     public void OpenSaveFile(SaveFile saveFile)
     {
-        if(saveFile.Campaign.Name != CurrentCampaign?.Name)
+        if (saveFile.Campaign.Name != CurrentCampaign?.Name)
         {
-            if(Campaigns.SingleOrDefault(c => c.Name == saveFile.Campaign.Name) == null)
+            if (Campaigns.SingleOrDefault(c => c.Name == saveFile.Campaign.Name) == null)
             {
                 Campaigns.Add(saveFile.Campaign.Clone<Campaign>());
             }
@@ -182,7 +182,11 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
 
     private void RemovePlayer()
     {
-        _webCommunication.SendMessage(new TokensMessage { Player = SelectedPlayer.Name });
+        if (SelectedCampaign == CurrentCampaign)
+        {
+            _webCommunication.SendMessage(new TokensMessage { Player = SelectedPlayer.Name });
+        }
+
         SelectedCampaign.Players.Remove(SelectedPlayer);
 
         CampaignListChanged();
@@ -195,14 +199,20 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
 
         if (stringInputWindowViewModel.Success)
         {
-            _webCommunication.SendMessage(new TokensMessage { Player = SelectedPlayer.Name });
+            if (SelectedCampaign == CurrentCampaign)
+            {
+                _webCommunication.SendMessage(new TokensMessage { Player = SelectedPlayer.Name });
+            }
 
             SelectedPlayer.Name = stringInputWindowViewModel.Input;
             var selectedPlayer = SelectedPlayer;
             SelectedCampaign.Players.OrderCurrentBy(p => p.Name);
             SelectedPlayer = selectedPlayer;
 
-            _webCommunication.SendMessage(new TokensMessage { Player = SelectedPlayer.Name, Tokens = SelectedPlayer.TokenIdentifiers.ToStringList() });
+            if (SelectedCampaign == CurrentCampaign)
+            {
+                _webCommunication.SendMessage(new TokensMessage { Player = SelectedPlayer.Name, Tokens = SelectedPlayer.TokenIdentifiers.ToStringList() });
+            }
         }
         CampaignListChanged();
     }
@@ -218,7 +228,6 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
             SelectedCampaign.Players.Add(player);
             SelectedCampaign.Players.OrderCurrentBy(p => p.Name);
             SelectedPlayer = player;
-            _webCommunication.SendMessage(new TokensMessage { Player = player.Name, Tokens = player.TokenIdentifiers.ToStringList() });
         }
         CampaignListChanged();
     }
@@ -283,7 +292,11 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
     private void RemoveToken()
     {
         SelectedPlayer.TokenIdentifiers.Remove(SelectedToken);
-        _webCommunication.SendMessage(new TokensMessage { Player = SelectedPlayer.Name, Tokens = SelectedPlayer.TokenIdentifiers.ToStringList() });
+
+        if (SelectedCampaign == CurrentCampaign)
+        {
+            _webCommunication.SendMessage(new TokensMessage { Player = SelectedPlayer.Name, Tokens = SelectedPlayer.TokenIdentifiers.ToStringList() });
+        }
         CampaignListChanged();
     }
 
@@ -304,7 +317,10 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
             var tokenIdentifier = new TokenIndentifier(token.Name);
             SelectedPlayer.TokenIdentifiers.Add(tokenIdentifier);
             SelectedToken = tokenIdentifier;
-            _webCommunication.SendMessage(new TokensMessage { Player = SelectedPlayer.Name, Tokens = SelectedPlayer.TokenIdentifiers.ToStringList() });
+            if (SelectedCampaign == CurrentCampaign)
+            {
+                _webCommunication.SendMessage(new TokensMessage { Player = SelectedPlayer.Name, Tokens = SelectedPlayer.TokenIdentifiers.ToStringList() });
+            }
         }
 
         CampaignListChanged();
@@ -356,7 +372,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
         {
             foreach (var player in CurrentCampaign.Players)
             {
-                if(string.Equals(e.Player, player.Name, StringComparison.CurrentCultureIgnoreCase))
+                if (string.Equals(e.Player, player.Name, StringComparison.CurrentCultureIgnoreCase))
                 {
                     _webCommunication.SendMessage(new TokensMessage { Player = e.Player, Tokens = player.TokenIdentifiers.ToStringList() });
                 }
