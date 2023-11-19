@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using System.Xml.Linq;
 
 namespace DigitalBattleMap.ViewModels;
 

@@ -3,7 +3,6 @@ using DigitalBattleMap.Common.Dto;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
