@@ -10,6 +10,7 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
@@ -26,6 +27,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     private Settings _settings;
     private static object _lock = new();
     private int _gridSize;
+    private bool _changingInitiative = false;
 
     public TokenControllerViewModel()
     {
@@ -67,12 +69,13 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         SortInitiativeCommand = new RelayCommand(p => SortInitiative());
         UndoTokenMoveCommand = new RelayCommand(p => Undo());
         RedoTokenMoveCommand = new RelayCommand(p => Redo());
+        SelectedItemsChangedCommand = new RelayCommand(p => SelectedItemsChanged((SelectionChangedEventArgs)p));
     }
 
     public event EventHandler OnTokenBitmapUpdated;
 
     public StatblocksViewModel StatblocksViewModel { get; set; } = new();
-    public CommandHistory<TokenOffset> TokenOffsetHistory { get; set; } = new(10);
+    public CommandHistory<TokenMoveCommand> TokenMoveHistory { get; set; } = new(10);
     public BitmapSource TokenBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource TokenSelectionBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public TokenListItem SelectedToken
@@ -80,13 +83,13 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         get => Get<TokenListItem>();
         set => Set(value, () =>
         {
-            UpdateTokenSelection();
-            NotifyPropertyChange(nameof(IsTokenUpButtonEnabled));
-            NotifyPropertyChange(nameof(IsTokenDownButtonEnabled));
+            NotifyPropertyChange(nameof(IsInitiativeUpButtonEnabled));
+            NotifyPropertyChange(nameof(IsInitiativeDownButtonEnabled));
         });
     }
-    public bool IsTokenUpButtonEnabled { get => TokenList.IndexOf(SelectedToken) > 0; }
-    public bool IsTokenDownButtonEnabled { get => TokenList.IndexOf(SelectedToken) != -1 && TokenList.IndexOf(SelectedToken) < TokenList.Count - 1; }
+    public List<TokenListItem> SelectedTokens { get => Get<List<TokenListItem>>(); set => Set(value); }
+    public bool IsInitiativeUpButtonEnabled { get => IsInitiativeUpAllowed(SelectedToken); }
+    public bool IsInitiativeDownButtonEnabled { get => IsInitiativeDownAllowed(SelectedToken); }
     public ObservableCollection<TokenListItem> TokenList { get; set; } = new ObservableCollection<TokenListItem>();
     public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToBitmapImage(); }
     public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
@@ -102,6 +105,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     public ICommand SortInitiativeCommand { get; set; }
     public ICommand UndoTokenMoveCommand { get; set; }
     public ICommand RedoTokenMoveCommand { get; set; }
+    public ICommand SelectedItemsChangedCommand { get; set; }
 
     private Bitmap TokenBitmap
     {
@@ -159,13 +163,16 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         {
             if (SelectedToken != null)
             {
-                if (TokenList.Count(t => t.Token.Name == SelectedToken.Token.Name) == 1)
+                foreach (var tokenListItem in SelectedTokens)
                 {
-                    StatblocksViewModel.RemoveToken(SelectedToken);
-                }
+                    if (TokenList.Count(t => t.Token.Name == SelectedToken.Token.Name) == 1)
+                    {
+                        StatblocksViewModel.RemoveToken(SelectedToken);
+                    }
 
-                SelectedToken.Dispose();
-                TokenList.Remove(SelectedToken);
+                    SelectedToken.Dispose();
+                    TokenList.Remove(SelectedToken);
+                }
                 CreateTokenBitmap();
             }
         }
@@ -181,7 +188,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             }
             TokenList.Clear();
             StatblocksViewModel.Clear();
-            TokenOffsetHistory.Clear();
+            TokenMoveHistory.Clear();
             CreateTokenBitmap();
         }
     }
@@ -190,11 +197,21 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            var selectedToken = SelectedToken;
-            var index = TokenList.IndexOf(SelectedToken);
-            TokenList.Remove(selectedToken);
-            TokenList.Insert(index - 1, selectedToken);
-            SelectedToken = selectedToken;
+            _changingInitiative = true;
+            var selectedTokens = SelectedTokens;
+
+            foreach (var tokenListItem in selectedTokens.OrderByList(TokenList))
+            {
+                if(IsInitiativeUpAllowed(tokenListItem))
+                {
+                    var index = TokenList.IndexOf(tokenListItem);
+                    TokenList.Remove(tokenListItem);
+                    TokenList.Insert(index - 1, tokenListItem);
+                }
+            }
+
+            SelectedTokens = selectedTokens;
+            _changingInitiative = false;
         }
     }
 
@@ -202,11 +219,21 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            var selectedToken = SelectedToken;
-            var index = TokenList.IndexOf(SelectedToken);
-            TokenList.Remove(selectedToken);
-            TokenList.Insert(index + 1, selectedToken);
-            SelectedToken = selectedToken;
+            _changingInitiative = true;
+            var selectedTokens = SelectedTokens;
+
+            foreach (var tokenListItem in selectedTokens.OrderByDescendingList(TokenList))
+            {
+                if (IsInitiativeDownAllowed(tokenListItem))
+                {
+                    var index = TokenList.IndexOf(tokenListItem);
+                    TokenList.Remove(tokenListItem);
+                    TokenList.Insert(index + 1, tokenListItem);
+                }
+            }
+
+            SelectedTokens = selectedTokens;
+            _changingInitiative = false;
         }
     }
 
@@ -255,8 +282,17 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                     linkedObject.UpdatePosition(Point<int>.Create(offset));
                 }
 
+                // Update other selected tokens
+                foreach (var tokenListItem in SelectedTokens)
+                {
+                    if (tokenListItem != SelectedToken)
+                    {
+                        tokenListItem.UpdatePosition(Point<int>.Create(offset));
+                    }
+                }
+
+                TokenMoveHistory.Enqueue(new TokenMoveCommand(SelectedTokens.Select(t => t.GetTokenIndentifier()).ToList(), Point<int>.Create(cellOffset)));
                 SelectedToken.Position = Point<int>.Create(newPosition);
-                TokenOffsetHistory.Enqueue(new TokenOffset(SelectedToken.GetTokenIndentifier(), Point<int>.Create(cellOffset)));
                 CreateTokenBitmap();
             }
         }
@@ -481,7 +517,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 tokenListItem.Position.X += offset.X;
                 tokenListItem.Position.Y += offset.Y;
 
-                TokenOffsetHistory.Enqueue(new TokenOffset(tokenListItem.GetTokenIndentifier(), new Point<int>(offset.X / _gridSize, offset.Y / _gridSize)));
+                TokenMoveHistory.Enqueue(new TokenMoveCommand(tokenListItem.GetTokenIndentifier(), new Point<int>(offset.X / _gridSize, offset.Y / _gridSize)));
                 CreateTokenBitmap();
                 uiThread.Release();
                 Task.WaitAll(tasks.ToArray());
@@ -608,13 +644,19 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
     private void UpdateTokenSelection()
     {
-        var bitmap = BitmapTools.CreateEmptyBitmap();
-        if (SelectedToken != null)
+        lock (_lock)
         {
-            BitmapTools.DrawTokenSelection(bitmap, SelectedToken.Token.GetSizeFactor(), SelectedToken.Position, _gridSize);
-        }
+            var bitmap = BitmapTools.CreateEmptyBitmap();
+            if (SelectedToken != null)
+            {
+                foreach (var tokenListItem in SelectedTokens)
+                {
+                    BitmapTools.DrawTokenSelection(bitmap, tokenListItem.Token.GetSizeFactor(), tokenListItem.Position, _gridSize);
+                }
+            }
 
-        TokenSelectionBitmapSource = bitmap.ToBitmapImage();
+            TokenSelectionBitmapSource = bitmap.ToBitmapImage();
+        }
     }
 
     private void ZLevelChanged(object? sender, ZLevelChangedEventArgs eventArgs)
@@ -649,10 +691,13 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            if (TokenOffsetHistory.TryDequeuePreviousCommand(out var tokenOffset))
+            if (TokenMoveHistory.TryDequeuePreviousCommand(out var tokenMoveCommand))
             {
-                var offset = new Point<int>(-tokenOffset.Offset.X, -tokenOffset.Offset.Y);
-                MoveTokenWithCellOffset(tokenOffset.TokenIndentifier, offset);
+                var offset = new Point<int>(-tokenMoveCommand.Offset.X, -tokenMoveCommand.Offset.Y);
+                foreach (var tokenIdentifier in tokenMoveCommand.TokenIndentifiers)
+                {
+                    MoveTokenWithCellOffset(tokenIdentifier, offset);
+                }
             }
         }
     }
@@ -661,10 +706,13 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            if (TokenOffsetHistory.TryDequeueNextCommand(out var tokenOffset))
+            if (TokenMoveHistory.TryDequeueNextCommand(out var tokenMoveCommand))
             {
-                var offset = new Point<int>(tokenOffset.Offset);
-                MoveTokenWithCellOffset(tokenOffset.TokenIndentifier, offset);
+                var offset = new Point<int>(tokenMoveCommand.Offset);
+                foreach (var tokenIdentifier in tokenMoveCommand.TokenIndentifiers)
+                {
+                    MoveTokenWithCellOffset(tokenIdentifier, offset);
+                }
             }
         }
     }
@@ -685,5 +733,26 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             tokenListItem.Position.Y += offset.Y;
             CreateTokenBitmap();
         }
+    }
+
+    private void SelectedItemsChanged(SelectionChangedEventArgs eventArgs)
+    {
+        if (eventArgs.AddedItems.Count > 0 || eventArgs.RemovedItems.Count > 0)
+        {
+            if (!_changingInitiative)
+            {
+                UpdateTokenSelection();
+            }
+        }
+    }
+
+    private bool IsInitiativeUpAllowed(TokenListItem tokenListItem)
+    {
+        return TokenList.IndexOf(tokenListItem) > 0;
+    }
+
+    private bool IsInitiativeDownAllowed(TokenListItem tokenListItem)
+    {
+        return TokenList.IndexOf(tokenListItem) != -1 && TokenList.IndexOf(tokenListItem) < TokenList.Count - 1;
     }
 }

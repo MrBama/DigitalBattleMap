@@ -67,6 +67,32 @@ public static class Extensions
         }
     }
 
+    public static IList<T> OrderByList<T>(this IList<T> source, IList<T> list)
+    {
+        var items = new List<Tuple<T, int>>();
+
+        foreach (var item in source)
+        {
+            var index = list.IndexOf(item);
+            items.Add(new(item, index));
+        }
+
+        return items.OrderBy(t => t.Item2).Select(i => i.Item1).ToList();
+    }
+
+    public static IList<T> OrderByDescendingList<T>(this IList<T> source, IList<T> list)
+    {
+        var items = new List<Tuple<T, int>>();
+
+        foreach (var item in source)
+        {
+            var index = list.IndexOf(item);
+            items.Add(new(item, index));
+        }
+
+        return items.OrderByDescending(t => t.Item2).Select(i => i.Item1).ToList();
+    }
+
     public static byte[] ToPng(this Bitmap bitmap)
     {
         using MemoryStream stream = new();

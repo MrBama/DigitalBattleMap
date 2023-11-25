@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements" 
-             xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels"
+             xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels" 
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d" 
              d:DesignHeight="1080" d:DesignWidth="480"
              Background="White"
@@ -34,6 +35,9 @@
 
         <Button Content="Custom tokens" Command="{Binding CustomTokensCommand}"/>
         <ListView Grid.Row="1" ItemsSource="{Binding TokenList}" HorizontalContentAlignment="Stretch" Margin="0 10 0 0" SelectedItem="{Binding SelectedToken}" FontSize="14">
+            <i:Interaction.Behaviors>
+                <uielements:MultiSelectionBehavior SelectedItems="{Binding SelectedTokens, Mode=TwoWay}" SelectedItemsChangedCommand="{Binding SelectedItemsChangedCommand}"/>
+            </i:Interaction.Behaviors>
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid Background="Transparent">
@@ -143,16 +147,16 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Button Margin="0 0 5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding IsTokenUpButtonEnabled}" Command="{Binding TokenUpCommand}">
+            <Button Margin="0 0 7.5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding IsInitiativeUpButtonEnabled}" Command="{Binding TokenUpCommand}">
                 <Image Source="{Binding MapArrowUpBitmapSource}"/>
             </Button>
-            <Button Grid.Column="1" Margin="5 0 5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding IsTokenDownButtonEnabled}" Command="{Binding TokenDownCommand}">
+            <Button Grid.Column="1" Margin="2.5 0 5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" IsEnabled="{Binding IsInitiativeDownButtonEnabled}" Command="{Binding TokenDownCommand}">
                 <Image Source="{Binding MapArrowDownBitmapSource}"/>
             </Button>
-            <Button Grid.Column="2" Margin="5 0 0 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" Command="{Binding UndoTokenMoveCommand}" IsEnabled="{Binding TokenOffsetHistory.IsPreviousCommandAvailable}">
+            <Button Grid.Column="2" Margin="5 0 2.5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" Command="{Binding UndoTokenMoveCommand}" IsEnabled="{Binding TokenMoveHistory.IsPreviousCommandAvailable}">
                 <Image Source="{Binding UndoBitmapSource}"/>
             </Button>
-            <Button Grid.Column="3" Margin="5 0 5 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" Command="{Binding RedoTokenMoveCommand}" IsEnabled="{Binding TokenOffsetHistory.IsNextCommandAvailable}">
+            <Button Grid.Column="3" Margin="7.5 0 0 0" Height="{Binding ElementName=AddTokenButton, Path=ActualHeight}" Command="{Binding RedoTokenMoveCommand}" IsEnabled="{Binding TokenMoveHistory.IsNextCommandAvailable}">
                 <Image Source="{Binding RedoBitmapSource}"/>
             </Button>
             <Button x:Name="AddTokenButton" Grid.Row="1" Grid.ColumnSpan="2" Content="Add" Margin="0 10 5 0" Command="{Binding AddTokenCommand}"/>
