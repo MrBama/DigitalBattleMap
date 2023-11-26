@@ -12,8 +12,9 @@ namespace DigitalBattleMap.ViewModels;
 public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
 {
     private int _selectedTabIndex;
-    private Dictionary<int, List<Action<Point<double>>>> _mouseDownEvents = new();
-    private Dictionary<int, List<Action<Point<double>>>> _mouseUpEvents = new();
+    private Dictionary<int, List<Action<Point<double>>>> _leftButtonDownEvents = new();
+    private Dictionary<int, List<Action<Point<double>>>> _leftButtonUpEvents = new();
+    private Dictionary<int, List<Action<Point<double>>>> _rightButtonDownEvents = new();
     private Dictionary<int, List<Action<RectangleF>>> _rectangleAreaSelectedEvents = new();
     private Dictionary<int, List<Action<Polygon>>> _polygonAreaSelectedEvents = new();
     private MouseCanvasMode _mode;
@@ -26,9 +27,10 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
 
     protected override void InitializeCommands()
     {
-        MouseDownCommand = new RelayCommand(p => MouseDown());
-        MouseUpCommand = new RelayCommand(p => MouseUp());
-        MouseMoveCommand = new RelayCommand(p => MouseMove());
+        LeftButtonDownCommand = new RelayCommand(p => LeftButtonDown());
+        LeftButtonUpCommand = new RelayCommand(p => LeftButtonUp());
+        LeftButtonMoveCommand = new RelayCommand(p => LeftButtonMove());
+        RightButtonDownCommand = new RelayCommand(p => RightButtonDown());
     }
 
     public double MouseX { get; set; }
@@ -41,9 +43,10 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     public bool IsRectangleSelectionStarted { get => Get<bool>(); set => Set(value); }
     public System.Windows.Media.PointCollection PolygonSelectionPoints { get => Get<System.Windows.Media.PointCollection>(); set => Set(value); }
 
-    public ICommand MouseDownCommand { get; set; }
-    public ICommand MouseUpCommand { get; set; }
-    public ICommand MouseMoveCommand { get; set; }
+    public ICommand LeftButtonDownCommand { get; set; }
+    public ICommand LeftButtonUpCommand { get; set; }
+    public ICommand LeftButtonMoveCommand { get; set; }
+    public ICommand RightButtonDownCommand { get; set; }
 
     public void SetSelectedTabIndex(int tabIndex)
     {
@@ -69,24 +72,34 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         }
     }
 
-    public void SubscribeMouseDown(int tabIndex, Action<Point<double>> action)
+    public void SubscribeLeftButtonDown(int tabIndex, Action<Point<double>> action)
     {
-        if (!_mouseDownEvents.ContainsKey(tabIndex))
+        if (!_leftButtonDownEvents.ContainsKey(tabIndex))
         {
-            _mouseDownEvents[tabIndex] = new();
+            _leftButtonDownEvents[tabIndex] = new();
         }
 
-        _mouseDownEvents[tabIndex].Add(action);
+        _leftButtonDownEvents[tabIndex].Add(action);
     }
 
-    public void SubscribeMouseUp(int tabIndex, Action<Point<double>> action)
+    public void SubscribeLeftButtonUp(int tabIndex, Action<Point<double>> action)
     {
-        if (!_mouseUpEvents.ContainsKey(tabIndex))
+        if (!_leftButtonUpEvents.ContainsKey(tabIndex))
         {
-            _mouseUpEvents[tabIndex] = new();
+            _leftButtonUpEvents[tabIndex] = new();
         }
 
-        _mouseUpEvents[tabIndex].Add(action);
+        _leftButtonUpEvents[tabIndex].Add(action);
+    }
+
+    public void SubscribeRightButtonDown(int tabIndex, Action<Point<double>> action)
+    {
+        if (!_rightButtonDownEvents.ContainsKey(tabIndex))
+        {
+            _rightButtonDownEvents[tabIndex] = new();
+        }
+
+        _rightButtonDownEvents[tabIndex].Add(action);
     }
 
     public void SubscribeRectangleAreaSelected(int tabIndex, Action<RectangleF> action)
@@ -117,12 +130,12 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         PolygonSelectionPoints = new();
     }
 
-    private void MouseDown()
+    private void LeftButtonDown()
     {
         switch (_mode)
         {
             case MouseCanvasMode.Click:
-                MouseDownClick();
+                LeftButtonDownClick();
                 return;
             case MouseCanvasMode.RectangleSelection:
                 MouseDownRectangleSelection();
@@ -132,12 +145,12 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         }
     }
 
-    private void MouseUp()
+    private void LeftButtonUp()
     {
         switch (_mode)
         {
             case MouseCanvasMode.Click:
-                MouseUpClick();
+                LeftButtonUpClick();
                 return;
             case MouseCanvasMode.RectangleSelection:
                 MouseUpRectangleSelection();
@@ -148,7 +161,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         }
     }
 
-    private void MouseMove()
+    private void LeftButtonMove()
     {
         switch (_mode)
         {
@@ -162,24 +175,24 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         }
     }
 
-    private void MouseDownClick()
+    private void LeftButtonDownClick()
     {
         var point = new Point<double>(MouseX, MouseY);
-        if (_mouseDownEvents.ContainsKey(_selectedTabIndex))
+        if (_leftButtonDownEvents.ContainsKey(_selectedTabIndex))
         {
-            foreach (var action in _mouseDownEvents[_selectedTabIndex])
+            foreach (var action in _leftButtonDownEvents[_selectedTabIndex])
             {
                 action(point);
             }
         }
     }
 
-    private void MouseUpClick()
+    private void LeftButtonUpClick()
     {
         var point = new Point<double>(MouseX, MouseY);
-        if (_mouseUpEvents.ContainsKey(_selectedTabIndex))
+        if (_leftButtonUpEvents.ContainsKey(_selectedTabIndex))
         {
-            foreach (var action in _mouseUpEvents[_selectedTabIndex])
+            foreach (var action in _leftButtonUpEvents[_selectedTabIndex])
             {
                 action(point);
             }
@@ -257,6 +270,18 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
                 {
                     action(polygon);
                 }
+            }
+        }
+    }
+
+    private void RightButtonDown()
+    {
+        var point = new Point<double>(MouseX, MouseY);
+        if (_rightButtonDownEvents.ContainsKey(_selectedTabIndex))
+        {
+            foreach (var action in _rightButtonDownEvents[_selectedTabIndex])
+            {
+                action(point);
             }
         }
     }

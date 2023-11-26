@@ -41,8 +41,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         _mouseCanvas = mouseCanvas;
         _settings = settings;
         GridSize = _settings.DefaultGridSize;
-        _mouseCanvas.SubscribeMouseDown(TabIndex.Background, MouseDown);
-        _mouseCanvas.SubscribeMouseUp(TabIndex.Background, MouseUp);
+        _mouseCanvas.SubscribeLeftButtonDown(TabIndex.Background, MouseDown);
+        _mouseCanvas.SubscribeLeftButtonUp(TabIndex.Background, MouseUp);
         _mouseCanvas.SubscribeRectangleAreaSelected(TabIndex.Background, FogOfWarRectangleAreaSelected);
         _mouseCanvas.SubscribePolygonAreaSelected(TabIndex.Background, FogOfWarPolygonAreaSelected);
         Initialize();

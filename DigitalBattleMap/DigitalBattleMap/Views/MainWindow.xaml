@@ -117,13 +117,16 @@
                                 </i:Interaction.Behaviors>
                                 <i:Interaction.Triggers>
                                     <i:EventTrigger EventName="MouseLeftButtonDown">
-                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.MouseDownCommand}" />
+                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.LeftButtonDownCommand}" />
                                     </i:EventTrigger>
                                     <i:EventTrigger EventName="MouseLeftButtonUp">
-                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.MouseUpCommand}" />
+                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.LeftButtonUpCommand}" />
+                                    </i:EventTrigger>
+                                    <i:EventTrigger EventName="MouseRightButtonDown">
+                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.RightButtonDownCommand}" />
                                     </i:EventTrigger>
                                     <i:EventTrigger EventName="MouseMove">
-                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.MouseMoveCommand}" IsEnabled="{Binding MouseCanvas.IsRectangleSelectionStarted}" />
+                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.LeftButtonMoveCommand}" IsEnabled="{Binding MouseCanvas.IsRectangleSelectionStarted}" />
                                     </i:EventTrigger>
                                 </i:Interaction.Triggers>
                                 <Rectangle 

@@ -47,7 +47,8 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         _webCommunication.OnMoveToken += MoveToken;
         _webCommunication.OnToggleCondition += ToggleCondition;
         _webCommunication.OnGetConditions += GetConditions;
-        _mouseCanvas.SubscribeMouseDown(TabIndex.Tokens, MouseDown);
+        _mouseCanvas.SubscribeLeftButtonDown(TabIndex.Tokens, MouseLeftButtonDown);
+        _mouseCanvas.SubscribeRightButtonDown(TabIndex.Tokens, MouseRightButtonDown);
         _settings = settings;
         Initialize();
     }
@@ -202,7 +203,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
             foreach (var tokenListItem in selectedTokens.OrderByList(TokenList))
             {
-                if(IsInitiativeUpAllowed(tokenListItem))
+                if (IsInitiativeUpAllowed(tokenListItem))
                 {
                     var index = TokenList.IndexOf(tokenListItem);
                     TokenList.Remove(tokenListItem);
@@ -252,47 +253,6 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             _gridSize = gridSize;
             if (TokenList.Count > 0)
             {
-                CreateTokenBitmap();
-            }
-        }
-    }
-
-    private void MouseDown(Point<double> point)
-    {
-        lock (_lock)
-        {
-            if (SelectedToken != null)
-            {
-                var newPosition = new Point<double>
-                {
-                    X = point.X.Map(0, _canvasSize.Width, 0, Constants.BitmapSize.Width),
-                    Y = point.Y.Map(0, _canvasSize.Height, 0, Constants.BitmapSize.Height)
-                };
-
-                var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(_gridSize));
-                var cellX = Math.Floor((SelectedToken.Position.X - gridOffset.X) / _gridSize);
-                var cellY = Math.Floor((SelectedToken.Position.Y - gridOffset.Y) / _gridSize);
-                var newCellX = Math.Floor((newPosition.X - gridOffset.X) / _gridSize);
-                var newCellY = Math.Floor((newPosition.Y - gridOffset.Y) / _gridSize);
-
-                var cellOffset = new Point<double>(newCellX - cellX, newCellY - cellY);
-                var offset = new Point<double>(cellOffset.X * _gridSize, cellOffset.Y * _gridSize);
-                foreach (var linkedObject in SelectedToken.LinkedObjects)
-                {
-                    linkedObject.UpdatePosition(Point<int>.Create(offset));
-                }
-
-                // Update other selected tokens
-                foreach (var tokenListItem in SelectedTokens)
-                {
-                    if (tokenListItem != SelectedToken)
-                    {
-                        tokenListItem.UpdatePosition(Point<int>.Create(offset));
-                    }
-                }
-
-                TokenMoveHistory.Enqueue(new TokenMoveCommand(SelectedTokens.Select(t => t.GetTokenIndentifier()).ToList(), Point<int>.Create(cellOffset)));
-                SelectedToken.Position = Point<int>.Create(newPosition);
                 CreateTokenBitmap();
             }
         }
@@ -458,6 +418,85 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         {
             linkableObject.Link(tokenListItem);
             tokenListItem.LinkedObjects.Add(linkableObject);
+        }
+    }
+
+    private void MouseLeftButtonDown(Point<double> point)
+    {
+        lock (_lock)
+        {
+            if (SelectedToken != null)
+            {
+                var newPosition = new Point<double>
+                {
+                    X = point.X.Map(0, _canvasSize.Width, 0, Constants.BitmapSize.Width),
+                    Y = point.Y.Map(0, _canvasSize.Height, 0, Constants.BitmapSize.Height)
+                };
+
+                var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(_gridSize));
+                var cellX = Math.Floor((SelectedToken.Position.X - gridOffset.X) / _gridSize);
+                var cellY = Math.Floor((SelectedToken.Position.Y - gridOffset.Y) / _gridSize);
+                var newCellX = Math.Floor((newPosition.X - gridOffset.X) / _gridSize);
+                var newCellY = Math.Floor((newPosition.Y - gridOffset.Y) / _gridSize);
+
+                var cellOffset = new Point<double>(newCellX - cellX, newCellY - cellY);
+                var offset = new Point<double>(cellOffset.X * _gridSize, cellOffset.Y * _gridSize);
+                foreach (var linkedObject in SelectedToken.LinkedObjects)
+                {
+                    linkedObject.UpdatePosition(Point<int>.Create(offset));
+                }
+
+                // Update other selected tokens
+                foreach (var tokenListItem in SelectedTokens)
+                {
+                    if (tokenListItem != SelectedToken)
+                    {
+                        tokenListItem.UpdatePosition(Point<int>.Create(offset));
+                    }
+                }
+
+                TokenMoveHistory.Enqueue(new TokenMoveCommand(SelectedTokens.Select(t => t.GetTokenIndentifier()).ToList(), Point<int>.Create(cellOffset)));
+                SelectedToken.Position = Point<int>.Create(newPosition);
+                CreateTokenBitmap();
+            }
+        }
+    }
+
+    private void MouseRightButtonDown(Point<double> point)
+    {
+        lock (_lock)
+        {
+            var position = new Point<double>
+            {
+                X = point.X.Map(0, _canvasSize.Width, 0, Constants.BitmapSize.Width),
+                Y = point.Y.Map(0, _canvasSize.Height, 0, Constants.BitmapSize.Height)
+            };
+
+            var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(_gridSize));
+            var bottomRight = new Point<double>
+            {
+                X = position.X + _gridSize - ((position.X - gridOffset.X) % _gridSize),
+                Y = position.Y + _gridSize - ((position.Y - gridOffset.Y) % _gridSize)
+            };
+
+            var foundTokens = new List<TokenListItem>();
+
+            foreach (var tokenListItem in TokenList)
+            {
+                var sizeFactor = Math.Max(1, tokenListItem.Token.GetSizeFactor());
+                var topLeft = new Point<double>(bottomRight.X - (sizeFactor * _gridSize), bottomRight.Y - (sizeFactor * _gridSize));
+
+                if ((tokenListItem.Position.X > topLeft.X && tokenListItem.Position.X < bottomRight.X) &&
+                    (tokenListItem.Position.Y > topLeft.Y && tokenListItem.Position.Y < bottomRight.Y))
+                {
+                    foundTokens.Add(tokenListItem);
+                }
+            }
+
+            if (foundTokens.Count > 0)
+            {
+                SelectedToken = foundTokens.OrderBy(t => t.ZLevel).Last();
+            }
         }
     }
 

@@ -16,6 +16,12 @@ public class MultiSelectionBehavior : Behavior<ListView>
         AssociatedObject.SelectionChanged += ListViewSelectionChanged;
     }
 
+    protected override void OnDetaching()
+    {
+        base.OnDetaching();
+        AssociatedObject.SelectionChanged -= ListViewSelectionChanged;
+    }
+
     public bool InternalSet { get; set; }
 
     public IList SelectedItems
