@@ -28,6 +28,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         MoveToBackCommand = new RelayCommand(p => MoveToBack());
         LinkToTokenCommand = new RelayCommand(p => LinkToDifferentToken());
         AddToPlayerCommand = new RelayCommand(p => AddToPlayer());
+        ExpandConditionsCommand = new RelayCommand(p => ExpandConditions());
     }
 
     public TokenListItem(Token token, ITokenLinker tokenLinker, IPlayers players) : this()
@@ -59,6 +60,9 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     public TokenHealth Health { get; set; } = new TokenHealth();
 
     [JsonIgnore]
+    public bool AreConditionsVisible { get => Get<bool>(); set => Set(value); }
+
+    [JsonIgnore]
     public List<ILinkableObject> LinkedObjects { get; set; } = new();
     [JsonIgnore]
     public string LinkToTokenButtonText { get => Get<string>(); set => Set(value); }
@@ -75,9 +79,11 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     [JsonIgnore]
     public ICommand MoveToBackCommand { get; set; }
     [JsonIgnore]
-    public ICommand LinkToTokenCommand { get; set; }    
+    public ICommand LinkToTokenCommand { get; set; }
     [JsonIgnore]
     public ICommand AddToPlayerCommand { get; set; }
+    [JsonIgnore]
+    public ICommand ExpandConditionsCommand { get; set; }
 
     public Bitmap GetBitmap()
     {
@@ -252,5 +258,10 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     private void AddToPlayer()
     {
         _players.AddTokenToPlayer(GetTokenIndentifier());
+    }
+
+    private void ExpandConditions()
+    {
+        AreConditionsVisible = !AreConditionsVisible;
     }
 }

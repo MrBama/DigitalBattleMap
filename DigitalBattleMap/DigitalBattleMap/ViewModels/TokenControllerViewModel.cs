@@ -776,6 +776,14 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
     private void SelectedItemsChanged(SelectionChangedEventArgs eventArgs)
     {
+        foreach (var tokenListItem in TokenList)
+        {
+            if(SelectedToken == null || !SelectedToken.GetTokenIndentifier().Equals(tokenListItem.GetTokenIndentifier()))
+            {
+                tokenListItem.AreConditionsVisible = false;
+            }
+        }
+
         if (eventArgs.AddedItems.Count > 0 || eventArgs.RemovedItems.Count > 0)
         {
             if (!_changingInitiative)
