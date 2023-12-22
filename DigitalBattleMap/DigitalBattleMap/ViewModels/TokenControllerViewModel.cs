@@ -28,6 +28,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     private static object _lock = new();
     private int _gridSize;
     private bool _changingInitiative = false;
+    private TokenListItemMultiActions _tokenListItemMultiActions;
 
     public TokenControllerViewModel()
     {
@@ -38,6 +39,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
     public TokenControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, ICanvasSize canvasSize, IMouseCanvas mouseCanvas, IMonsterTokens monsterTokens, IPlayers players, Settings settings, int gridSize) : base(canvasSize)
     {
+        Initialize();
         _windowService = windowService;
         _webCommunication = webCommunication;
         _mouseCanvas = mouseCanvas;
@@ -50,13 +52,14 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         _mouseCanvas.SubscribeLeftButtonDown(TabIndex.Tokens, MouseLeftButtonDown);
         _mouseCanvas.SubscribeRightButtonDown(TabIndex.Tokens, MouseRightButtonDown);
         _settings = settings;
-        Initialize();
     }
 
     private void Initialize()
     {
         TokenBitmap = BitmapTools.CreateEmptyBitmap();
         TokenSelectionBitmapSource = BitmapTools.CreateEmptyBitmap().ToBitmapImage();
+        _tokenListItemMultiActions = new TokenListItemMultiActions(() => SelectedTokens);
+        _tokenListItemMultiActions.OnConditionsChanged += TokenConditionsChanged;
     }
 
     protected override void InitializeCommands()
@@ -76,7 +79,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     public event EventHandler OnTokenBitmapUpdated;
 
     public StatblocksViewModel StatblocksViewModel { get; set; } = new();
-    public CommandHistory<TokenMoveCommand> TokenMoveHistory { get; set; } = new(10);
+    public CommandHistory<TokenMoveCommand> TokenMoveHistory { get; set; } = new(30);
     public BitmapSource TokenBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource TokenSelectionBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public TokenListItem SelectedToken
@@ -135,7 +138,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             {
                 foreach (var (token, index) in selectTokenWindowViewModel.AddedTokens.WithIndex())
                 {
-                    var tokenListItem = new TokenListItem(token, this, _players);
+                    var tokenListItem = new TokenListItem(token, this, _players, _tokenListItemMultiActions);
                     tokenListItem.Token.OnSizeChanged += TokenChanged;
                     tokenListItem.OnTokenChanged += TokenChanged;
                     tokenListItem.OnConditionsChanged += TokenConditionsChanged;
@@ -314,12 +317,12 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             ClearTokens();
             foreach (var tokenListItem in saveFile.TokenList)
             {
+                tokenListItem.SetInterfaces(this, _players, _tokenListItemMultiActions);
                 tokenListItem.Token.OnSizeChanged += TokenChanged;
                 tokenListItem.OnTokenChanged += TokenChanged;
                 tokenListItem.OnConditionsChanged += TokenConditionsChanged;
                 tokenListItem.OnZLevelChanged += ZLevelChanged;
                 tokenListItem.Health.InitializeEditorHp();
-                tokenListItem.SetInterfaces(this, _players);
 
                 if (_players.IsTokenControlledByPlayer(tokenListItem.GetTokenIndentifier()))
                 {
@@ -495,7 +498,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
             if (foundTokens.Count > 0)
             {
-                SelectedToken = foundTokens.OrderBy(t => t.ZLevel).Last();
+                SelectedTokens = new() { foundTokens.OrderBy(t => t.ZLevel).Last() };
             }
         }
     }
@@ -702,27 +705,21 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            if (SelectedToken != null)
+            var tokenListItem = (TokenListItem)sender!;
+
+            if (eventArgs.ZLevelDirection == ZLevelDirection.Front)
             {
-                var newZLevel = SelectedToken.ZLevel;
-
-                if (eventArgs.ZLevelDirection == ZLevelDirection.Front)
-                {
-                    var maxZLevel = TokenList.Max(t => t.ZLevel);
-                    newZLevel = maxZLevel + 1;
-                }
-                else
-                {
-                    var minZLevel = TokenList.Min(t => t.ZLevel);
-                    newZLevel = minZLevel - 1;
-                }
-
-                if (newZLevel != SelectedToken.ZLevel)
-                {
-                    SelectedToken.ZLevel = newZLevel;
-                    CreateTokenBitmap();
-                }
+                var maxZLevel = TokenList.Max(t => t.ZLevel);
+                tokenListItem.ZLevel = maxZLevel + 1;
             }
+            else
+            {
+                var minZLevel = TokenList.Min(t => t.ZLevel);
+                tokenListItem.ZLevel = minZLevel - 1;
+            }
+
+            _tokenListItemMultiActions.ZLevelChanged(tokenListItem);
+            CreateTokenBitmap();
         }
     }
 
@@ -778,7 +775,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         foreach (var tokenListItem in TokenList)
         {
-            if(SelectedToken == null || !SelectedToken.GetTokenIndentifier().Equals(tokenListItem.GetTokenIndentifier()))
+            if (SelectedToken == null || !SelectedToken.GetTokenIndentifier().Equals(tokenListItem.GetTokenIndentifier()))
             {
                 tokenListItem.AreConditionsVisible = false;
             }

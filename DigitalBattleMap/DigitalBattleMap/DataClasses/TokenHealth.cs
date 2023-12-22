@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.Utilities;
 using Newtonsoft.Json;
+using System;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
 using Brush = System.Windows.Media.Brush;
@@ -22,6 +23,9 @@ public class TokenHealth : PropertyHandler
         HpEscCommand = new RelayCommand(p => DiscardHp());
         MaxHpEscCommand = new RelayCommand(p => DiscardMaxHp());
     }
+
+    public event EventHandler OnHpChanged;
+    public event EventHandler OnMaxHpChanged;
 
     [JsonIgnore]
     public ICommand HpEnterCommand { get; set; }
@@ -91,6 +95,23 @@ public class TokenHealth : PropertyHandler
         InitializeEditorHp();
     }
 
+    public void ApplyHp()
+    {
+        SetHp(EditorHp);
+        EditorHp = Hp;
+        SetHpColor();
+        NotifyHpChanged();
+    }
+
+    public void ApplyMaxHp()
+    {
+        SetMaxHp(EditorMaxHp);
+        EditorHp = Hp;
+        EditorMaxHp = MaxHp;
+        SetHpColor();
+        NotifyMaxHpChanged();
+    }
+
     private void SetMaxHp(string value)
     {
         if (value == "")
@@ -156,21 +177,6 @@ public class TokenHealth : PropertyHandler
         }
     }
 
-    private void ApplyHp()
-    {
-        SetHp(EditorHp);
-        EditorHp = Hp;
-        SetHpColor();
-    }
-
-    private void ApplyMaxHp()
-    {
-        SetMaxHp(EditorMaxHp);
-        EditorHp = Hp;
-        EditorMaxHp = MaxHp;
-        SetHpColor();
-    }
-
     private void DiscardHp()
     {
         EditorHp = Hp;
@@ -219,5 +225,15 @@ public class TokenHealth : PropertyHandler
         {
             Color = Brushes.White;
         }
+    }
+
+    private void NotifyHpChanged()
+    {
+        OnHpChanged?.Invoke(this, new EventArgs());
+    }
+
+    private void NotifyMaxHpChanged()
+    {
+        OnMaxHpChanged?.Invoke(this, new EventArgs());
     }
 }

@@ -15,10 +15,13 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     private ITokenLink _tokenLink;
     private ITokenLinker _tokenLinker;
     private IPlayers _players;
+    private ITokenListItemMultiActions _multiActions;
 
     public TokenListItem()
     {
         LinkToTokenButtonText = "Link to token";
+        Conditions = new List<Condition>();
+        Visible = true;
 
         TokenSizeChangedCommand = new RelayCommand(p => TokenSizeChanged((string)p));
         ConditionChangedCommand = new RelayCommand(p => ConditionChanged((string)p));
@@ -31,20 +34,24 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         ExpandConditionsCommand = new RelayCommand(p => ExpandConditions());
     }
 
-    public TokenListItem(Token token, ITokenLinker tokenLinker, IPlayers players) : this()
+    public TokenListItem(Token token, ITokenLinker tokenLinker, IPlayers players, ITokenListItemMultiActions multiActions) : this()
     {
         Token = token;
+        Token.OnSizeChanged += TokenSizeChanged;
         _tokenLinker = tokenLinker;
         _players = players;
+        _multiActions = multiActions;
 
         if (token.Hp != null)
         {
             Health.InitializeEditorHp(token.Hp ?? default);
         }
+
+        Health.OnHpChanged += HealthChanged;
+        Health.OnMaxHpChanged += MaxHealthChanged;
     }
 
     public delegate void ZLevelChangedEventHandler(object sender, ZLevelChangedEventArgs e);
-    public delegate void ConditionsChangedEventHandler(object sender, ConditionsChangedEventArgs e);
 
     public event EventHandler OnTokenChanged;
     public event ConditionsChangedEventHandler OnConditionsChanged;
@@ -53,10 +60,10 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     public Token Token { get; set; }
     public Point<int> Position { get; set; } = new Point<int>();
     public int Id { get; set; }
-    public List<Condition> Conditions { get; set; } = new List<Condition>();
-    public bool Visible { get; set; } = true;
+    public List<Condition> Conditions { get => Get<List<Condition>>(); set => Set(value); }
+    public bool Visible { get => Get<bool>(); set => Set(value); }
     public int ZLevel { get; set; }
-    public int Initiative { get; set; }
+    public int Initiative { get => Get<int>(); set => Set(value, () => _multiActions?.InitiativeChanged(this)); }
     public TokenHealth Health { get; set; } = new TokenHealth();
 
     [JsonIgnore]
@@ -95,10 +102,15 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         return _bitmap;
     }
 
-    public void SetInterfaces(ITokenLinker tokenLinker, IPlayers players)
+    public void SetInterfaces(ITokenLinker tokenLinker, IPlayers players, ITokenListItemMultiActions multiActions)
     {
         _tokenLinker = tokenLinker;
         _players = players;
+        _multiActions = multiActions;
+
+        Token.OnSizeChanged += TokenSizeChanged;
+        Health.OnHpChanged += HealthChanged;
+        Health.OnMaxHpChanged += MaxHealthChanged;
     }
 
     public void ToggleCondition(Condition condition)
@@ -178,6 +190,11 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         RefershLinkToTokenButtonText();
     }
 
+    public override string ToString()
+    {
+        return $"{Token.Name} ID: {Id}";
+    }
+
     private void TokenSizeChanged(string size)
     {
         Token.Size = Enum.Parse<TokenSize>(size);
@@ -188,19 +205,18 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         var condition = Enum.Parse<Condition>(conditionString);
         ToggleCondition(condition);
 
+        _multiActions.ConditionsChanged(this);
         NotifyConditionsChanged();
         NotifyTokenChanged();
     }
 
     private void ClearAllConditions()
     {
-        if (Conditions.Count > 0)
-        {
-            Conditions.Clear();
-            NotifyConditionsChanged();
-            NotifyTokenChanged();
-            NotifyPropertyChange(nameof(Conditions));
-        }
+        Conditions.Clear();
+        _multiActions.ConditionsChanged(this);
+        NotifyConditionsChanged();
+        NotifyTokenChanged();
+        NotifyPropertyChange(nameof(Conditions));
     }
 
     private void NotifyTokenChanged()
@@ -216,8 +232,8 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     private void ToggleTokenVisibility()
     {
         Visible = !Visible;
+        _multiActions.VisibilityChanged(this);
         NotifyTokenChanged();
-        NotifyPropertyChange(nameof(Visible));
     }
 
     private void MoveToFront()
@@ -263,5 +279,20 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     private void ExpandConditions()
     {
         AreConditionsVisible = !AreConditionsVisible;
+    }
+
+    private void TokenSizeChanged(object? sender, EventArgs e)
+    {
+        _multiActions.TokenSizeChanged(this);
+    }
+
+    private void HealthChanged(object? sender, EventArgs e)
+    {
+        _multiActions.HealthChanged(this);
+    }
+
+    private void MaxHealthChanged(object? sender, EventArgs e)
+    {
+        _multiActions.MaxHealthChanged(this);
     }
 }

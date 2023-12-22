@@ -46,6 +46,11 @@ public class Token : PropertyHandler, ICloneable
         }
     }
 
+    public void SetSizeWithoutNotification(TokenSize size)
+    {
+        Set(size, nameof(Size));
+    }
+
     public override string ToString()
     {
         return Name;
