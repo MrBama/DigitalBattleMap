@@ -15,6 +15,7 @@ public class TokenHealth : PropertyHandler
     private Brush _color = Brushes.White;
     private Regex _integerRegex = new(@"^[0-9]*$", RegexOptions.IgnoreCase);
     private Regex _hpRegex = new(@"^([-+])?([0-9]+)*$", RegexOptions.IgnoreCase);
+    private CommandHistory<int> _hpHistory = new(30);
 
     public TokenHealth()
     {
@@ -22,6 +23,8 @@ public class TokenHealth : PropertyHandler
         MaxHpEnterCommand = new RelayCommand(p => ApplyMaxHp());
         HpEscCommand = new RelayCommand(p => DiscardHp());
         MaxHpEscCommand = new RelayCommand(p => DiscardMaxHp());
+        CtrlZCommand = new RelayCommand(p => UndoHpChange());
+        CtrlYCommand = new RelayCommand(p => RedoHpChange());
     }
 
     public event EventHandler OnHpChanged;
@@ -35,6 +38,10 @@ public class TokenHealth : PropertyHandler
     public ICommand HpEscCommand { get; set; }
     [JsonIgnore]
     public ICommand MaxHpEscCommand { get; set; }
+    [JsonIgnore]
+    public ICommand CtrlZCommand { get; set; }
+    [JsonIgnore]
+    public ICommand CtrlYCommand { get; set; }
 
     [JsonIgnore]
     public string EditorHp
@@ -97,9 +104,18 @@ public class TokenHealth : PropertyHandler
 
     public void ApplyHp()
     {
+        var previousHp = Hp;
+
         SetHp(EditorHp);
         EditorHp = Hp;
         SetHpColor();
+
+        if(previousHp != Hp)
+        {
+            var hpChange = int.Parse(Hp) - int.Parse(previousHp);
+            _hpHistory.Enqueue(hpChange);
+        }
+
         NotifyHpChanged();
     }
 
@@ -235,5 +251,27 @@ public class TokenHealth : PropertyHandler
     private void NotifyMaxHpChanged()
     {
         OnMaxHpChanged?.Invoke(this, new EventArgs());
+    }
+
+    private void UndoHpChange()
+    {
+        if(_hpHistory.TryDequeuePreviousCommand(out var hpChange))
+        {
+            var newHp = int.Parse(Hp) - hpChange;
+            Hp = newHp.ToString();
+            EditorHp = newHp.ToString();
+            SetHpColor();
+        }
+    }
+
+    private void RedoHpChange()
+    {
+        if (_hpHistory.TryDequeueNextCommand(out var hpChange))
+        {
+            var newHp = int.Parse(Hp) + hpChange;
+            Hp = newHp.ToString();
+            EditorHp = newHp.ToString();
+            SetHpColor();
+        }
     }
 }

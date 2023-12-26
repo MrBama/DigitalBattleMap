@@ -97,6 +97,8 @@
                                 <TextBox.InputBindings>
                                     <KeyBinding Command="{Binding Health.HpEnterCommand}" Key="Enter" />
                                     <KeyBinding Command="{Binding Health.HpEscCommand}" Key="Esc" />
+                                    <KeyBinding Command="{Binding Health.CtrlZCommand}" Key="Z" Modifiers="Ctrl"/>
+                                    <KeyBinding Command="{Binding Health.CtrlYCommand}" Key="Y" Modifiers="Ctrl"/>
                                 </TextBox.InputBindings>
                             </TextBox>
                             <Label Grid.Column="5" Content="/"/>
