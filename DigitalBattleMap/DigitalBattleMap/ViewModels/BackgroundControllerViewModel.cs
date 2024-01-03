@@ -62,6 +62,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         GridCellsHeight = 10;
         FeetPerGridCell = Constants.FeetPerGridCell;
         FogRemovalRectangleShape = true;
+        ZoomSize = Constants.DefaultZoomSize;
     }
 
     protected override void InitializeCommands()
@@ -92,6 +93,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public int GridCellsHeight { get => Get<int>(); set => Set(value); }
     public int FeetPerGridCell { get => Get<int>(); set => Set(value); }
     public int GridSize { get => Get<int>(); set => Set(value); }
+    public int ZoomSize { get => Get<int>(); set => Set(value); }
     public double BackgroundZoomPercentage { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(BackgroundZoomPercentageLabel))); }
     public BitmapSource BackgroundBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public BitmapSource FogOfWarBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
@@ -230,6 +232,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         IsRemovingFog = false;
         FogRemovalRectangleShape = true;
         FogRemovalPolygonShape = false;
+        ZoomSize = Constants.DefaultZoomSize;
         NotifyBackgroundUpdated();
     }
 

@@ -380,14 +380,14 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     {
         if (!IsMultiMove)
         {
-            Zoom(Constants.DefaultZoomSize);
+            Zoom(BackgroundController.ZoomSize);
         }
         else
         {
             MultiMoveCount++;
             _multiMoveAction = () =>
             {
-                Zoom(Constants.DefaultZoomSize * MultiMoveCount);
+                Zoom(BackgroundController.ZoomSize * MultiMoveCount);
             };
         }
     }
@@ -396,14 +396,14 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     {
         if (!IsMultiMove)
         {
-            Zoom(-Constants.DefaultZoomSize);
+            Zoom(-BackgroundController.ZoomSize);
         }
         else
         {
             MultiMoveCount++;
             _multiMoveAction = () =>
             {
-                Zoom(-Constants.DefaultZoomSize * MultiMoveCount);
+                Zoom(-BackgroundController.ZoomSize * MultiMoveCount);
             };
         }
     }
