@@ -559,7 +559,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     private void GridSizeChanged()
     {
-        GridSize = Math.Max(GridSize, 1);
+        GridSize = Math.Max(GridSize, Constants.MinimalZoomGridSize);
         GridBitmap = IsGridShown ? BitmapTools.CreateGrid(GridSize) : BitmapTools.CreateEmptyBitmap();
         NotifyGridSizeChanged(GridSize);
     }

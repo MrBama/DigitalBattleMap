@@ -337,15 +337,19 @@ public static class BitmapTools
         var yFactor = new double[] { 1.0, 0.5, 0.5, 0.0, };
         var conditionSize = new Size<double>(tokenSize.Width / 2.5, tokenSize.Height / 2.5);
 
-        for (int i = 0; i < 4 && i < conditions.Count; i++)
+        // Only draw conditions when size is atleast 1
+        if(conditionSize.Width >= 1 && conditionSize.Height >= 1)
         {
-            var resizedConditionImage = ResizeBitmap(_conditionIcons.GetConditionIcon(conditions[i]), Size<int>.Create(conditionSize));
+            for (int i = 0; i < 4 && i < conditions.Count; i++)
+            {
+                var resizedConditionImage = ResizeBitmap(_conditionIcons.GetConditionIcon(conditions[i]), Size<int>.Create(conditionSize));
 
-            var drawingPosition = Point<double>.Create(tokenDrawingPosition);
-            drawingPosition.X += (tokenSize.Width * xFactor[i]) - (conditionSize.Width * xFactor[i]);
-            drawingPosition.Y += (tokenSize.Height * yFactor[i]) - (conditionSize.Height * yFactor[i]);
+                var drawingPosition = Point<double>.Create(tokenDrawingPosition);
+                drawingPosition.X += (tokenSize.Width * xFactor[i]) - (conditionSize.Width * xFactor[i]);
+                drawingPosition.Y += (tokenSize.Height * yFactor[i]) - (conditionSize.Height * yFactor[i]);
 
-            DrawImageOnBitmap(bitmap, resizedConditionImage, Point<int>.Create(drawingPosition));
+                DrawImageOnBitmap(bitmap, resizedConditionImage, Point<int>.Create(drawingPosition));
+            }
         }
     }
 
@@ -377,6 +381,10 @@ public static class BitmapTools
         var tokenSize = new Size<int>((int)preciseTokenSize, (int)preciseTokenSize);
         tokenSize.Width -= 2 * margin;
         tokenSize.Height -= 2 * margin;
+
+        // Make sure that tokenSize is not not negative because of subtracting the margin
+        tokenSize.Width = Math.Max(tokenSize.Width, 1);
+        tokenSize.Height = Math.Max(tokenSize.Height, 1);
 
         return (drawingPosition, tokenSize);
     }
