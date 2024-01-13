@@ -345,7 +345,6 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         if (_windowService.ShowSaveFileDialog(out string path, filter: "(*.dbm)|*.dbm"))
         {
             var saveFile = new SaveFile();
-            CampaignController.AddToSaveFile(saveFile);
             BackgroundController.AddToSaveFile(saveFile);
             DrawingController.AddToSaveFile(saveFile);
             TokenController.AddToSaveFile(saveFile);
@@ -361,7 +360,6 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
             IsShowMapLocked = false;
 
             var saveFile = SaveFile.Open(path);
-            CampaignController.OpenSaveFile(saveFile);
             BackgroundController.OpenSaveFile(saveFile);
             DrawingController.OpenSaveFile(saveFile);
             TokenController.OpenSaveFile(saveFile);

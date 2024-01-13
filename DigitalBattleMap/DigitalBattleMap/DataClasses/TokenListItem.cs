@@ -37,7 +37,6 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     public TokenListItem(Token token, ITokenLinker tokenLinker, IPlayers players, ITokenListItemMultiActions multiActions) : this()
     {
         Token = token;
-        Token.OnSizeChanged += TokenSizeChanged;
         _tokenLinker = tokenLinker;
         _players = players;
         _multiActions = multiActions;
@@ -49,6 +48,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
 
         Health.OnHpChanged += HealthChanged;
         Health.OnMaxHpChanged += MaxHealthChanged;
+        Token.OnSizeChanged += TokenSizeChanged;
     }
 
     public delegate void ZLevelChangedEventHandler(object sender, ZLevelChangedEventArgs e);

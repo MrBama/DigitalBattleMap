@@ -6,6 +6,7 @@ namespace DigitalBattleMap.DataClasses;
 public class Token : PropertyHandler, ICloneable
 {
     public event EventHandler OnSizeChanged;
+    public event EventHandler OnRequestRedraw;
 
     public string Name { get; set; } = "";
     public TokenSize Size { get => Get<TokenSize>(); set => Set(value, NotifySizeChanged); }
@@ -59,5 +60,6 @@ public class Token : PropertyHandler, ICloneable
     private void NotifySizeChanged()
     {
         OnSizeChanged?.Invoke(this, new EventArgs());
+        OnRequestRedraw?.Invoke(this, new EventArgs());
     }
 }

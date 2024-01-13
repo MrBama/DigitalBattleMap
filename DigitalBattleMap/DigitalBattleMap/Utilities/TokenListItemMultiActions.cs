@@ -89,7 +89,7 @@ public class TokenListItemMultiActions : ITokenListItemMultiActions
         {
             _executing = true;
             var selectedTokens = _getSelectedTokens();
-            if (selectedTokens.Count > 1 && selectedTokens.Contains(tokenListItem))
+            if (selectedTokens != null && selectedTokens.Count > 1 && selectedTokens.Contains(tokenListItem))
             {
                 foreach (var selectedTokenListItem in selectedTokens)
                 {

@@ -139,7 +139,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 foreach (var (token, index) in selectTokenWindowViewModel.AddedTokens.WithIndex())
                 {
                     var tokenListItem = new TokenListItem(token, this, _players, _tokenListItemMultiActions);
-                    tokenListItem.Token.OnSizeChanged += TokenChanged;
+                    tokenListItem.Token.OnRequestRedraw += TokenChanged;
                     tokenListItem.OnTokenChanged += TokenChanged;
                     tokenListItem.OnConditionsChanged += TokenConditionsChanged;
                     tokenListItem.OnZLevelChanged += ZLevelChanged;
@@ -318,7 +318,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             foreach (var tokenListItem in saveFile.TokenList)
             {
                 tokenListItem.SetInterfaces(this, _players, _tokenListItemMultiActions);
-                tokenListItem.Token.OnSizeChanged += TokenChanged;
+                tokenListItem.Token.OnRequestRedraw += TokenChanged;
                 tokenListItem.OnTokenChanged += TokenChanged;
                 tokenListItem.OnConditionsChanged += TokenConditionsChanged;
                 tokenListItem.OnZLevelChanged += ZLevelChanged;
