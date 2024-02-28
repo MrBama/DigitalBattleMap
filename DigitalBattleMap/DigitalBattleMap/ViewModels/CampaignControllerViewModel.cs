@@ -339,7 +339,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
         }
     }
 
-    private void OnGetTokens(object sender, GetTokensEventArgs e)
+    private void OnGetTokens(object? sender, GetTokensEventArgs e)
     {
         if (CurrentCampaign != null)
         {

@@ -503,7 +503,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    private void MoveToken(object sender, MoveTokenEventArgs e)
+    private void MoveToken(object? sender, MoveTokenEventArgs e)
     {
         lock (_lock)
         {
@@ -567,7 +567,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    private void ToggleCondition(object sender, ToggleConditionEventArgs e)
+    private void ToggleCondition(object? sender, ToggleConditionEventArgs e)
     {
         lock (_lock)
         {
@@ -581,7 +581,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    private void GetConditions(object sender, GetConditionsEventArgs e)
+    private void GetConditions(object? sender, GetConditionsEventArgs e)
     {
         lock (_lock)
         {

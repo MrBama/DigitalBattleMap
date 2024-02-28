@@ -41,7 +41,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         InitializeProperties();
     }
 
-    public event CanvasSizeChangedEventHandler OnCanvasSizeChanged;
+    public event EventHandler<CanvasSizeChangedEventArgs> OnCanvasSizeChanged;
 
     public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
     public int SelectedMapTabIndex { get => Get<int>(); set => Set(value); }
@@ -143,7 +143,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         KeyUpCommand = new RelayCommand(p => KeyUp((KeyEventArgs)p));
     }
 
-    private void OnGridSizeChanged(object sender, GridSizeChangedEventArgs e)
+    private void OnGridSizeChanged(object? sender, GridSizeChangedEventArgs e)
     {
         DrawingController.UpdateGridSize(e.NewGridSize);
         TokenController.UpdateGridSize(e.NewGridSize);

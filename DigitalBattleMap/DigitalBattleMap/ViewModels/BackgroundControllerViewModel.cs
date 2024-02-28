@@ -10,8 +10,6 @@ using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.ViewModels;
 
-public delegate void GridSizeChangedEventHandler(object sender, GridSizeChangedEventArgs e);
-
 public class BackgroundControllerViewModel : ControllerViewModelBase
 {
     private Bitmap _backgroundBitmap;
@@ -80,7 +78,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     }
 
     public event EventHandler OnBackgroundUpdated;
-    public event GridSizeChangedEventHandler OnGridSizeChanged;
+    public event EventHandler<GridSizeChangedEventArgs> OnGridSizeChanged;
 
     public bool HasOpenedBackground { get => Get<bool>(); set => Set(value); }
     public bool IsFogOfWarEnabled { get => Get<bool>(); set => Set(value, IsFogOfWarEnabledChanged); }

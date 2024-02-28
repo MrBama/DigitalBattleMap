@@ -1,12 +1,11 @@
 ﻿using DigitalBattleMap.DataClasses;
+using System;
 
 namespace DigitalBattleMap.Interfaces;
 
-public delegate void CanvasSizeChangedEventHandler(object sender, CanvasSizeChangedEventArgs e);
-
 public interface ICanvasSize
 {
-    event CanvasSizeChangedEventHandler OnCanvasSizeChanged;
+    event EventHandler<CanvasSizeChangedEventArgs> OnCanvasSizeChanged;
 
     public double Width { get; }
     public double Height { get; }

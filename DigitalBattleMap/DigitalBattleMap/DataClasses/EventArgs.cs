@@ -4,8 +4,6 @@ using DigitalBattleMap.Common;
 
 namespace DigitalBattleMap.DataClasses;
 
-public delegate void ConditionsChangedEventHandler(object sender, ConditionsChangedEventArgs e);
-
 public class MoveTokenEventArgs : EventArgs
 {
     public TokenIndentifier TokenIndentifier { get; set; } = new();

@@ -27,10 +27,10 @@ public class ConnectionManager : IWebCommunication
     // Events
     public event EventHandler<EventArgs> OnConnected;
     public event EventHandler<DisconnectedEventArgs> OnDisconnect;
-    public event MoveTokenEventHandler OnMoveToken;
-    public event ToggleConditionEventHandler OnToggleCondition;
-    public event GetConditionsEventHandler OnGetConditions;
-    public event GetTokensEventHandler OnGetTokens;
+    public event EventHandler<MoveTokenEventArgs> OnMoveToken;
+    public event EventHandler<ToggleConditionEventArgs> OnToggleCondition;
+    public event EventHandler<GetConditionsEventArgs> OnGetConditions;
+    public event EventHandler<GetTokensEventArgs> OnGetTokens;
 
     private bool _isConnected;
     private Queue<MapUpdate> _mapUpdateQueue = new();

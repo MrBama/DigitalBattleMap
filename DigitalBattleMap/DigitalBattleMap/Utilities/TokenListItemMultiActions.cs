@@ -16,7 +16,7 @@ public class TokenListItemMultiActions : ITokenListItemMultiActions
         _getSelectedTokens = getSelectedTokens;
     }
 
-    public event ConditionsChangedEventHandler OnConditionsChanged;
+    public event EventHandler<ConditionsChangedEventArgs> OnConditionsChanged;
 
     public void ConditionsChanged(TokenListItem tokenListItem)
     {

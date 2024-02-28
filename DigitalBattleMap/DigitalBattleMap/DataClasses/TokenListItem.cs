@@ -51,11 +51,9 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         Token.OnSizeChanged += TokenSizeChanged;
     }
 
-    public delegate void ZLevelChangedEventHandler(object sender, ZLevelChangedEventArgs e);
-
     public event EventHandler OnTokenChanged;
-    public event ConditionsChangedEventHandler OnConditionsChanged;
-    public event ZLevelChangedEventHandler OnZLevelChanged;
+    public event EventHandler<ConditionsChangedEventArgs> OnConditionsChanged;
+    public event EventHandler<ZLevelChangedEventArgs> OnZLevelChanged;
 
     public Token Token { get; set; }
     public Point<int> Position { get; set; } = new Point<int>();
