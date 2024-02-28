@@ -49,3 +49,8 @@ public class GridSizeChangedEventArgs : EventArgs
 {
     public int NewGridSize { get; set; }
 }
+
+public class DisconnectedEventArgs : EventArgs
+{
+    public bool IsConnectionLost { get; set; }
+}

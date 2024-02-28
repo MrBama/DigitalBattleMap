@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.Utilities;
+using System;
 using System.Windows.Input;
 
 namespace DigitalBattleMap.ViewModels;
@@ -7,15 +8,37 @@ public class ConfirmationWindowViewModel : ViewModelBase
 {
     protected override void InitializeCommands()
     {
-        YesCommand = new RelayCommand(p => YesButtonClicked());
+        LeftButtonCommand = new RelayCommand(p => LeftButtonClicked());
+        MiddleButtonCommand = new RelayCommand(p => MiddleButtonClicked());
+        RightButtonCommand = new RelayCommand(p => RightButtonClicked());
     }
 
     public string Content { get; set; } = "Are you sure?";
-    public bool Confirmed { get; set; } = false;
-    public ICommand YesCommand { get; set; }
+    public string LeftButtonContent { get; set; } = "Yes";
+    public string MiddleButtonContent { get; set; } = "Ok";
+    public string RightButtonContent { get; set; } = "No";
+    public bool IsLeftButtonVisible { get; set; } = true;
+    public bool IsMiddleButtonVisible { get; set; } = false;
+    public bool IsRightButtonVisible { get; set; } = true;
+    public Action LeftButtonAction { get; set; } = () => { };
+    public Action MiddleButtonAction { get; set; } = () => { };
+    public Action RightButtonAction { get; set; } = () => { };
+    public ICommand LeftButtonCommand { get; set; }
+    public ICommand MiddleButtonCommand { get; set; }
+    public ICommand RightButtonCommand { get; set; }
 
-    private void YesButtonClicked()
+    private void LeftButtonClicked()
     {
-        Confirmed = true;
+        LeftButtonAction();
+    }
+
+    private void MiddleButtonClicked()
+    {
+        MiddleButtonAction();
+    }
+
+    private void RightButtonClicked()
+    {
+        RightButtonAction();
     }
 }

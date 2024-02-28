@@ -11,7 +11,7 @@ public delegate void GetTokensEventHandler(object sender, GetTokensEventArgs e);
 public interface IWebCommunication
 {
     public event EventHandler<EventArgs> OnConnected;
-    public event EventHandler<EventArgs> OnDisconnect;
+    public event EventHandler<DisconnectedEventArgs> OnDisconnect;
     public event MoveTokenEventHandler OnMoveToken;
     public event ToggleConditionEventHandler OnToggleCondition;
     public event GetConditionsEventHandler OnGetConditions;

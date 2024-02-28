@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DigitalBattleMap.Views" 
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
-        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels"
+        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels" 
+        xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements"
         mc:Ignorable="d"
         Title="ConfirmationWindow" Height="200" Width="400"
         FontSize="17"
@@ -14,6 +15,9 @@
     <Window.DataContext>
         <viewmodels:ConfirmationWindowViewModel/>
     </Window.DataContext>
+    <Window.Resources>
+        <uielements:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Window.Resources>
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -24,20 +28,29 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="auto"/>
-            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Label Grid.Row="1" Grid.ColumnSpan="5" Content="{Binding Content}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 0 0 25"/>
-        <Button Grid.Row="2" Grid.Column="1" Content="Yes" Padding="10 5 10 5" Command="{Binding YesCommand}">
+        <Label Grid.Row="1" Grid.ColumnSpan="7" Content="{Binding Content}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 0 0 25"/>
+        <Button Grid.Row="2" Grid.Column="1" Content="{Binding LeftButtonContent}" Padding="10 5 10 5" Command="{Binding LeftButtonCommand}" Visibility="{Binding IsLeftButtonVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="Click">
                     <i:CallMethodAction MethodName="Close" TargetObject="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}" />
                 </i:EventTrigger>
             </i:Interaction.Triggers>
         </Button>
-        <Button Grid.Row="2" Grid.Column="3" Content="No" Padding="10 5 10 5">
+        <Button Grid.Row="2" Grid.Column="3" Content="{Binding MiddleButtonContent}" Padding="10 5 10 5" Command="{Binding MiddleButtonCommand}" Visibility="{Binding IsMiddleButtonVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="Click">
+                    <i:CallMethodAction MethodName="Close" TargetObject="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </Button>
+        <Button Grid.Row="2" Grid.Column="5" Content="{Binding RightButtonContent}" Padding="10 5 10 5" Command="{Binding RightButtonCommand}" Visibility="{Binding IsRightButtonVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="Click">
                     <i:CallMethodAction MethodName="Close" TargetObject="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}" />

@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.Common.Dto;
+using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System.Drawing;
 using System.Net.Http;
@@ -7,7 +8,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 
 namespace DigitalBattleMap.DataClasses;
-public class MapUpdate
+public class MapUpdate : IWebMessage
 {
     public DrawLayer Layer { get; set; }
     public Bitmap Bitmap { get; set; }

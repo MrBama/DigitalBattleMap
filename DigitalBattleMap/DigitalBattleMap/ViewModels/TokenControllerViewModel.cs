@@ -662,7 +662,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     private string GetTokenIdString(TokenListItem tokenListItem)
     {
         var tokenId = "";
-        if (TokenList.Count(t => t.Token.Name == tokenListItem.Token.Name) > 1)
+        if (TokenList.Count(t => t.Token.Name == tokenListItem.Token.Name && t.Visible) > 1)
         {
             tokenId = tokenListItem.Id.ToString();
         }

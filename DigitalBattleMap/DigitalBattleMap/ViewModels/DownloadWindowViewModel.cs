@@ -140,13 +140,15 @@ public class DownloadWindowViewModel : ViewModelBase
 
     private void Redownload()
     {
+        var confirmed = false;
         var confirmationWindowViewModel = new ConfirmationWindowViewModel
         {
-            Content = "Are you sure you want to\nredownload all tokens?"
+            Content = "Are you sure you want to\nredownload all tokens?",
+            LeftButtonAction = () => { confirmed = true; }
         };
         _windowService.ShowWindowDialog<ConfirmationWindow>(confirmationWindowViewModel);
 
-        if (confirmationWindowViewModel.Confirmed)
+        if (confirmed)
         {
             Cancel();
             IO.Directory.Delete(Constants.MonsterTokensPath, true);

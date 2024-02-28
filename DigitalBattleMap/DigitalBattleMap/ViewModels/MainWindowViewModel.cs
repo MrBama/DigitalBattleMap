@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace DigitalBattleMap.ViewModels;
 
@@ -241,13 +242,15 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
 
     private void ClearMap()
     {
+        var confirmed = false;
         var confirmationWindowViewModel = new ConfirmationWindowViewModel
         {
-            Content = "Are you sure you want to clear everything?"
+            Content = "Are you sure you want to clear everything?",
+            LeftButtonAction = () => { confirmed = true; }
         };
         _windowService.ShowWindowDialog<ConfirmationWindow>(confirmationWindowViewModel);
 
-        if (confirmationWindowViewModel.Confirmed)
+        if (confirmed)
         {
             BackgroundController.ClearBackground();
             DrawingController.ClearDrawings();
@@ -446,12 +449,28 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         }
     }
 
-    private void ConnectionManagerDisconnected(object? sender, EventArgs e)
+    private void ConnectionManagerDisconnected(object? sender, DisconnectedEventArgs e)
     {
         ServerConnectionButtonText = "Connect";
         ServerConnectionButtonEnabled = true;
         ServerConnectionStatus = "Disconnected";
         ServerConnectionStatusColor = System.Windows.Media.Brushes.Red;
+
+        if(e.IsConnectionLost)
+        {
+            var confirmationWindowViewModel = new ConfirmationWindowViewModel
+            {
+                Content = "Connection with the server was lost!",
+                IsLeftButtonVisible = false,
+                IsRightButtonVisible = false,
+                IsMiddleButtonVisible = true
+            };
+
+            Application.Current.Dispatcher.Invoke(() => 
+            {
+                _windowService.ShowWindowDialog<ConfirmationWindow>(confirmationWindowViewModel);
+            });
+        }
     }
 
     private void ConnectionManagerConnected(object? sender, EventArgs e)

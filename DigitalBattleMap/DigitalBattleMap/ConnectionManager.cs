@@ -26,7 +26,7 @@ public class ConnectionManager : IWebCommunication
 
     // Events
     public event EventHandler<EventArgs> OnConnected;
-    public event EventHandler<EventArgs> OnDisconnect;
+    public event EventHandler<DisconnectedEventArgs> OnDisconnect;
     public event MoveTokenEventHandler OnMoveToken;
     public event ToggleConditionEventHandler OnToggleCondition;
     public event GetConditionsEventHandler OnGetConditions;
@@ -63,7 +63,7 @@ public class ConnectionManager : IWebCommunication
             {
                 // Failed to make a connection
                 _httpClient.Dispose();
-                OnDisconnect?.Invoke(this, EventArgs.Empty);
+                OnDisconnect?.Invoke(this, new DisconnectedEventArgs());
                 throw;
             }
 
@@ -78,25 +78,7 @@ public class ConnectionManager : IWebCommunication
 
     public void Disconnect()
     {
-        if (!_isConnected)
-            return;
-
-        Task.Run(async () =>
-        {
-            await Task.WhenAll(
-                _webHubConnection.StopAsync(),
-                _webHubConnection.DisposeAsync().AsTask(),
-
-                _mapHubConnection.StopAsync(),
-                _mapHubConnection.DisposeAsync().AsTask());
-
-            _httpClient.Dispose();
-
-            _isConnected = false;
-            _thread?.Join();
-
-            OnDisconnect?.Invoke(this, EventArgs.Empty);
-        });
+        Disconnect(false);
     }
 
     public void UpdatePlayerControlAllowed(bool isAllowed)
@@ -118,7 +100,7 @@ public class ConnectionManager : IWebCommunication
     {
         if (_playerControlAllowed)
         {
-            OnToggleCondition?.Invoke(this, new ToggleConditionEventArgs { TokenIndentifier = new TokenIndentifier(character), Condition = condition});
+            OnToggleCondition?.Invoke(this, new ToggleConditionEventArgs { TokenIndentifier = new TokenIndentifier(character), Condition = condition });
         }
 
         return Task.CompletedTask;
@@ -168,6 +150,29 @@ public class ConnectionManager : IWebCommunication
         _messageQueue.Enqueue(webMessage);
     }
 
+    private void Disconnect(bool isConnectionLost)
+    {
+        if (!_isConnected)
+            return;
+
+        Task.Run(async () =>
+        {
+            await Task.WhenAll(
+                _webHubConnection.StopAsync(),
+                _webHubConnection.DisposeAsync().AsTask(),
+
+                _mapHubConnection.StopAsync(),
+                _mapHubConnection.DisposeAsync().AsTask());
+
+            _httpClient.Dispose();
+
+            _isConnected = false;
+            _thread?.Join();
+
+            OnDisconnect?.Invoke(this, new DisconnectedEventArgs { IsConnectionLost = isConnectionLost });
+        });
+    }
+
     private void Configure()
     {
         _webHubConnection.On<string, Direction>(nameof(MoveToken), MoveToken);
@@ -189,17 +194,34 @@ public class ConnectionManager : IWebCommunication
 
             if (newMapUpdate)
             {
-                _httpClient.SendAsync(mapUpdate!.CreateHttpRequestMessage()).Wait();
+                if (!SendHttpMessage(mapUpdate))
+                    return;
             }
 
             if (_messageQueue.TryDequeue(out var webMessage))
             {
-                _httpClient.SendAsync(webMessage.CreateHttpRequestMessage()).Wait();
+                if (!SendHttpMessage(webMessage))
+                    return;
             }
             else if (!newMapUpdate) // Only sleep when there is no mapUpdate or webMessage
             {
                 Thread.Sleep(100);
             }
         }
+    }
+
+    private bool SendHttpMessage(IWebMessage webMessage)
+    {
+        try
+        {
+            _httpClient.SendAsync(webMessage.CreateHttpRequestMessage()).Wait();
+        }
+        catch // Connection lost
+        {
+            Disconnect(true);
+            return false;
+        }
+
+        return true;
     }
 }
