@@ -29,7 +29,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     {
         LeftButtonDownCommand = new RelayCommand(p => LeftButtonDown());
         LeftButtonUpCommand = new RelayCommand(p => LeftButtonUp());
-        LeftButtonMoveCommand = new RelayCommand(p => LeftButtonMove());
+        MoveCommand = new RelayCommand(p => Move());
         RightButtonDownCommand = new RelayCommand(p => RightButtonDown());
     }
 
@@ -40,12 +40,12 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     public double SelectionX { get => Get<double>(); set => Set(value); }
     public double SelectionY { get => Get<double>(); set => Set(value); }
     public bool IsSelectionAreaVisible { get => Get<bool>(); set => Set(value); }
-    public bool IsRectangleSelectionStarted { get => Get<bool>(); set => Set(value); }
+    public bool IsSelectionStarted { get => Get<bool>(); set => Set(value); }
     public System.Windows.Media.PointCollection PolygonSelectionPoints { get => Get<System.Windows.Media.PointCollection>(); set => Set(value); }
 
     public ICommand LeftButtonDownCommand { get; set; }
     public ICommand LeftButtonUpCommand { get; set; }
-    public ICommand LeftButtonMoveCommand { get; set; }
+    public ICommand MoveCommand { get; set; }
     public ICommand RightButtonDownCommand { get; set; }
 
     public void SetSelectedTabIndex(int tabIndex)
@@ -67,7 +67,6 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
                 break;
             case MouseCanvasMode.PolygonSelection:
                 IsSelectionAreaVisible = true;
-                IsRectangleSelectionStarted = false;
                 break;
         }
     }
@@ -126,7 +125,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     {
         SelectionWidth = 0;
         SelectionHeight = 0;
-        IsRectangleSelectionStarted = false;
+        IsSelectionStarted = false;
         PolygonSelectionPoints = new();
     }
 
@@ -141,6 +140,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
                 MouseDownRectangleSelection();
                 return;
             case MouseCanvasMode.PolygonSelection:
+                MouseDownPolygonSelection();
                 return;
         }
     }
@@ -161,7 +161,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         }
     }
 
-    private void LeftButtonMove()
+    private void Move()
     {
         switch (_mode)
         {
@@ -171,6 +171,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
                 MouseMoveRectangleSelection();
                 return;
             case MouseCanvasMode.PolygonSelection:
+                MouseMovePolygonSelection();
                 return;
         }
     }
@@ -203,14 +204,14 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     {
         var point = new Point<double>(MouseX, MouseY);
         _selectionStartPosition = point;
-        IsRectangleSelectionStarted = true;
+        IsSelectionStarted = true;
         SelectionX = point.X;
         SelectionY = point.Y;
     }
 
     private void MouseMoveRectangleSelection()
     {
-        if (IsRectangleSelectionStarted)
+        if (IsSelectionStarted)
         {
             var point = new Point<double>(MouseX, MouseY);
 
@@ -236,7 +237,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
 
     private void MouseUpRectangleSelection()
     {
-        IsRectangleSelectionStarted = false;
+        IsSelectionStarted = false;
         var area = new RectangleF((float)SelectionX, (float)SelectionY, (float)SelectionWidth, (float)SelectionHeight);
 
         if (_rectangleAreaSelectedEvents.ContainsKey(_selectedTabIndex))
@@ -248,16 +249,34 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         }
     }
 
-    private void MouseUpPolygonSelection()
+    private void MouseDownPolygonSelection()
     {
+        IsSelectionStarted = true;
         var point = new Point<double>(MouseX, MouseY);
         var newPoints = new System.Windows.Media.PointCollection(PolygonSelectionPoints)
         {
             new System.Windows.Point(point.X, point.Y)
         };
         PolygonSelectionPoints = newPoints;
+    }
 
-        if(PolygonSelectionPoints.Count >= 3)
+    private void MouseMovePolygonSelection()
+    {
+        if (IsSelectionStarted)
+        {
+            var point = new Point<double>(MouseX, MouseY);
+            var newPoints = new System.Windows.Media.PointCollection(PolygonSelectionPoints)
+            {
+                new System.Windows.Point(point.X, point.Y)
+            };
+            PolygonSelectionPoints = newPoints;
+        }
+    }
+
+    private void MouseUpPolygonSelection()
+    {
+        IsSelectionStarted = false;
+        if (PolygonSelectionPoints.Count >= 3)
         {
             var polygon = new Polygon
             {

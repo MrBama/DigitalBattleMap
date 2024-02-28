@@ -126,7 +126,7 @@
                                         <i:InvokeCommandAction Command="{Binding MouseCanvas.RightButtonDownCommand}" />
                                     </i:EventTrigger>
                                     <i:EventTrigger EventName="MouseMove">
-                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.LeftButtonMoveCommand}" IsEnabled="{Binding MouseCanvas.IsRectangleSelectionStarted}" />
+                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.MoveCommand}" IsEnabled="{Binding MouseCanvas.IsSelectionStarted}" />
                                     </i:EventTrigger>
                                 </i:Interaction.Triggers>
                                 <Rectangle 
