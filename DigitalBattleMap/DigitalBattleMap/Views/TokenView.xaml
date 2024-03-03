@@ -15,6 +15,7 @@
     </UserControl.DataContext>
     <UserControl.Resources>
         <uielements:TokenSizeToBoolConverter x:Key="TokenSizeToBoolConverter"/>
+        <uielements:TokenOrientationToBoolConverter x:Key="TokenOrientationToBoolConverter"/>
         <uielements:ConditionToBoolConverter x:Key="ConditionToBoolConverter"/>
         <uielements:NullToBoolConverter x:Key="NullConverter"/>
         <uielements:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
@@ -53,6 +54,12 @@
                                     <MenuItem Header="Large" IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Large}" Command="{Binding TokenSizeChangedCommand}" CommandParameter="Large"/>
                                     <MenuItem Header="Huge" IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Huge}" Command="{Binding TokenSizeChangedCommand}" CommandParameter="Huge"/>
                                     <MenuItem Header="Gargantuan" IsChecked="{Binding Token.Size, Converter={StaticResource TokenSizeToBoolConverter}, ConverterParameter=Gargantuan}" Command="{Binding TokenSizeChangedCommand}" CommandParameter="Gargantuan"/>
+                                </MenuItem>
+                                <MenuItem Header="Orientation">
+                                    <MenuItem Header="North" IsChecked="{Binding Token.Orientation, Converter={StaticResource TokenOrientationToBoolConverter}, ConverterParameter=North}" Command="{Binding TokenOrientationChangedCommand}" CommandParameter="North"/>
+                                    <MenuItem Header="East" IsChecked="{Binding Token.Orientation, Converter={StaticResource TokenOrientationToBoolConverter}, ConverterParameter=East}" Command="{Binding TokenOrientationChangedCommand}" CommandParameter="East"/>
+                                    <MenuItem Header="South" IsChecked="{Binding Token.Orientation, Converter={StaticResource TokenOrientationToBoolConverter}, ConverterParameter=South}" Command="{Binding TokenOrientationChangedCommand}" CommandParameter="South"/>
+                                    <MenuItem Header="West" IsChecked="{Binding Token.Orientation, Converter={StaticResource TokenOrientationToBoolConverter}, ConverterParameter=West}" Command="{Binding TokenOrientationChangedCommand}" CommandParameter="West"/>
                                 </MenuItem>
                                 <MenuItem Header="Move to front" Command="{Binding MoveToFrontCommand}"/>
                                 <MenuItem Header="Move to back" Command="{Binding MoveToBackCommand}"/>

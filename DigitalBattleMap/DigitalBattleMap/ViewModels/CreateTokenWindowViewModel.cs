@@ -49,6 +49,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
         ExistingTokenNames = tokens.Select(t => t.Name).ToList();
         TokenName = editToken.Name;
         SelectedTokenSize = editToken.Size;
+        SelectedTokenOrientation = editToken.Orientation;
         Hp = editToken.Hp;
 
         if (_statblock != null)
@@ -82,6 +83,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
     }
 
     public TokenSize SelectedTokenSize { get => Get<TokenSize>(); set => Set(value); }
+    public TokenOrientation SelectedTokenOrientation { get => Get<TokenOrientation>(); set => Set(value); }
     public string TokenName { get => Get<string>(); set => Set(value, TokenNameChanged); }
     public System.Windows.Media.Brush NameBorderBrush { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
     public string NameToolTip { get => Get<string>(); set => Set(value); }
@@ -119,6 +121,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
     private void InitializeProperties()
     {
         SelectedTokenSize = TokenSize.Medium;
+        SelectedTokenOrientation = TokenOrientation.East;
         NameBorderBrush = System.Windows.Media.Brushes.Transparent;
         OptionalButtonText = "Show optional";
     }
@@ -149,6 +152,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
             Name = TokenName,
             ImagePath = imagePath,
             Size = SelectedTokenSize,
+            Orientation = SelectedTokenOrientation,
             Hp = Hp,
             Statblock = _statblock
         };

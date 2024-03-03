@@ -1,15 +1,18 @@
 ﻿using DigitalBattleMap.Utilities;
 using System;
+using System.Drawing;
 
 namespace DigitalBattleMap.DataClasses;
 
 public class Token : PropertyHandler, ICloneable
 {
     public event EventHandler OnSizeChanged;
+    public event EventHandler OnOrientationChanged;
     public event EventHandler OnRequestRedraw;
 
     public string Name { get; set; } = "";
     public TokenSize Size { get => Get<TokenSize>(); set => Set(value, NotifySizeChanged); }
+    public TokenOrientation Orientation { get => Get<TokenOrientation>(); set => Set(value, NotifyOrientationChanged); }
     public string ImagePath { get; set; } = "";
     public Statblock? Statblock { get; set; }
     public int? Hp { get; set; }
@@ -20,6 +23,7 @@ public class Token : PropertyHandler, ICloneable
         {
             Name = Name,
             Size = Size,
+            Orientation = Orientation,
             ImagePath = ImagePath,
             Statblock = Statblock?.Clone<Statblock>(),
             Hp = Hp
@@ -52,6 +56,11 @@ public class Token : PropertyHandler, ICloneable
         Set(size, nameof(Size));
     }
 
+    public void SetOrientationWithoutNotification(TokenOrientation orientation)
+    {
+        Set(orientation, nameof(Orientation));
+    }
+
     public override string ToString()
     {
         return Name;
@@ -61,5 +70,96 @@ public class Token : PropertyHandler, ICloneable
     {
         OnSizeChanged?.Invoke(this, new EventArgs());
         OnRequestRedraw?.Invoke(this, new EventArgs());
+    }
+
+    private void NotifyOrientationChanged()
+    {
+        OnOrientationChanged?.Invoke(this, new EventArgs());
+        OnRequestRedraw?.Invoke(this, new EventArgs());
+    }
+
+    internal RotateFlipType GetOrientation()
+    {
+        switch (Orientation)
+        {
+            case TokenOrientation.North:
+                return RotateFlipType.RotateNoneFlipNone;
+            case TokenOrientation.East:
+                return RotateFlipType.Rotate270FlipNone;
+            case TokenOrientation.South:
+                return RotateFlipType.Rotate180FlipNone;
+            case TokenOrientation.West:
+                return RotateFlipType.Rotate90FlipNone;
+            default:
+                return RotateFlipType.Rotate270FlipNone;
+        }
+    }
+
+    internal int GetTokenCondictionCounter(int i)
+    {
+        switch (Orientation)
+        {
+            case TokenOrientation.North:
+                return i;
+            case TokenOrientation.East:
+                return ShiftEast(i);
+            case TokenOrientation.South:
+                return ShiftSouth(i);
+            case TokenOrientation.West:
+                return ShiftWest(i);
+            default:
+                return ShiftEast(i);
+        }
+    }
+
+    private int ShiftWest(int i)
+    {
+        switch (i)
+        {
+            case 0:
+                return 1;
+            case 1:
+                return 3;
+            case 2:
+                return 0;
+            case 3:
+                return 2;
+            default:
+                return i;
+        }
+    }
+
+    private int ShiftSouth(int i)
+    {
+        switch (i)
+        {
+            case 0:
+                return 3;
+            case 1:
+                return 2;
+            case 2:
+                return 1;
+            case 3:
+                return 0;
+            default:
+                return i;
+        }
+    }
+
+    private int ShiftEast(int i)
+    {
+        switch (i)
+        {
+            case 0:
+                return 2;
+            case 1:
+                return 0;
+            case 2:
+                return 3;
+            case 3:
+                return 1;
+            default:
+                return i;
+        }
     }
 }

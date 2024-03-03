@@ -26,6 +26,14 @@ public enum TokenSize
     Gargantuan
 }
 
+public enum TokenOrientation
+{
+    North,
+    East,
+    South,
+    West
+}
+
 public enum ZLevelDirection
 {
     Back,
@@ -44,7 +52,9 @@ public enum DrawingButton
 public enum DrawingShapeType
 {
     Rectangle,
-    Circle
+    Circle,
+    Cone,
+    Line
 }
 
 public enum MouseCanvasMode

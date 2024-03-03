@@ -58,9 +58,18 @@
         <Grid Grid.Row="5" Grid.Column="1" Margin="10 10 0 0" Visibility="{Binding IsOptionalShown, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBox VerticalContentAlignment="Center" Text="{Binding Hp, UpdateSourceTrigger=PropertyChanged, TargetNullValue={x:Static sys:String.Empty}}"/>
+            <TextBox Grid.ColumnSpan="2" VerticalContentAlignment="Center" Text="{Binding Hp, UpdateSourceTrigger=PropertyChanged, TargetNullValue={x:Static sys:String.Empty}}"/>
+            <Label Grid.Column="2" VerticalContentAlignment="Center"  Content="Flip"/>
+            <ComboBox Grid.Column="3" SelectedItem="{Binding SelectedTokenOrientation}" VerticalContentAlignment="Center">
+                <dataclasses:TokenOrientation>North</dataclasses:TokenOrientation>
+                <dataclasses:TokenOrientation>East</dataclasses:TokenOrientation>
+                <dataclasses:TokenOrientation>South</dataclasses:TokenOrientation>
+                <dataclasses:TokenOrientation>West</dataclasses:TokenOrientation>
+            </ComboBox>
         </Grid>
 
         <!--Statblock grid-->

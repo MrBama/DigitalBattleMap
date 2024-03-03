@@ -159,8 +159,9 @@ public static class BitmapTools
         if (IsTokenVisible(drawingPosition, gridSize))
         {
             var resizedTokenImage = ResizeBitmap(tokenListItem.GetBitmap(), tokenSize);
+            resizedTokenImage.RotateFlip(tokenListItem.Token.GetOrientation());
             DrawImageOnBitmap(bitmap, resizedTokenImage, drawingPosition);
-            DrawTokenConditions(bitmap, tokenListItem.Conditions, drawingPosition, tokenSize);
+            DrawTokenConditions(bitmap, tokenListItem, drawingPosition, tokenSize);
             DrawTokenId(bitmap, tokenId, drawingPosition, tokenSize);
         }
     }
@@ -322,7 +323,7 @@ public static class BitmapTools
         }
     }
 
-    private static void DrawTokenConditions(Bitmap bitmap, List<Condition> conditions, Point<int> tokenDrawingPosition, Size<int> tokenSize)
+    private static void DrawTokenConditions(Bitmap bitmap, TokenListItem tokenListItem, Point<int> tokenDrawingPosition, Size<int> tokenSize)
     {
         /* Position index:
          * 
@@ -340,13 +341,16 @@ public static class BitmapTools
         // Only draw conditions when size is atleast 1
         if(conditionSize.Width >= 1 && conditionSize.Height >= 1)
         {
-            for (int i = 0; i < 4 && i < conditions.Count; i++)
+            for (int i = 0; i < 4 && i < tokenListItem.Conditions.Count; i++)
             {
-                var resizedConditionImage = ResizeBitmap(_conditionIcons.GetConditionIcon(conditions[i]), Size<int>.Create(conditionSize));
+                int j = tokenListItem.Token.GetTokenCondictionCounter(i);
 
+                var resizedConditionImage = ResizeBitmap(_conditionIcons.GetConditionIcon(tokenListItem.Conditions[i]), Size<int>.Create(conditionSize));
+                resizedConditionImage.RotateFlip(tokenListItem.Token.GetOrientation());
                 var drawingPosition = Point<double>.Create(tokenDrawingPosition);
-                drawingPosition.X += (tokenSize.Width * xFactor[i]) - (conditionSize.Width * xFactor[i]);
-                drawingPosition.Y += (tokenSize.Height * yFactor[i]) - (conditionSize.Height * yFactor[i]);
+
+                drawingPosition.X += (tokenSize.Width * xFactor[j]) - (conditionSize.Width * xFactor[j]);
+                drawingPosition.Y += (tokenSize.Height * yFactor[j]) - (conditionSize.Height * yFactor[j]);
 
                 DrawImageOnBitmap(bitmap, resizedConditionImage, Point<int>.Create(drawingPosition));
             }

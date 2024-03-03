@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -88,6 +89,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public int ShapeSizeY { get => Get<int>(); set => Set(value); }
     public bool RectangleShapeSelected { get => Get<bool>(); set => Set(value); }
     public bool CircleShapeSelected { get => Get<bool>(); set => Set(value); }
+    public bool ConeShapeSelected { get => Get<bool>(); set => Set(value); }
+    public bool LineShapeSelected { get => Get<bool>(); set => Set(value); }
     public StrokeCollection Strokes { get => Get<StrokeCollection>(); set => Set(value); }
     public bool IsShapeEditAndRemoveEnabled { get => SelectedShape != null && !IsShapeEditorActive; }
     public bool IsShapeDrawn { get => ShapeStroke != null; }
@@ -270,6 +273,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             PenSize = _editShape.Stroke.DrawingAttributes.Width;
             RectangleShapeSelected = _editShape.DrawingShapeType == DrawingShapeType.Rectangle;
             CircleShapeSelected = _editShape.DrawingShapeType == DrawingShapeType.Circle;
+            ConeShapeSelected = _editShape.DrawingShapeType == DrawingShapeType.Cone;
+            LineShapeSelected = _editShape.DrawingShapeType == DrawingShapeType.Line;
             ShapeSizeX = _editShape.Size.X;
             ShapeSizeY = _editShape.Size.Y;
             ChangeDrawingButton(_editShape.DrawingButton);
@@ -335,6 +340,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         PenSize = SelectedShape.Stroke.DrawingAttributes.Width;
         RectangleShapeSelected = SelectedShape.DrawingShapeType == DrawingShapeType.Rectangle;
         CircleShapeSelected = SelectedShape.DrawingShapeType == DrawingShapeType.Circle;
+        ConeShapeSelected = SelectedShape.DrawingShapeType == DrawingShapeType.Cone;
+        LineShapeSelected = SelectedShape.DrawingShapeType == DrawingShapeType.Line;
         ShapeSizeX = SelectedShape.Size.X;
         ShapeSizeY = SelectedShape.Size.Y;
         ChangeDrawingButton(SelectedShape.DrawingButton);
@@ -550,19 +557,51 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
 
         var startPoint = SnapPoint(new Point<double>(addedStroke.StylusPoints.First().X, addedStroke.StylusPoints.First().Y), gridOffset, halfGridSize);
-        var distanceToEdgeX = Math.Round((double)ShapeSizeX / Constants.FeetPerGridCell); // Get amount of grid cells
-        distanceToEdgeX *= inkCanvasGridSize;
-        distanceToEdgeX /= 2; // divide by 2 to get radius
-        var distanceToEdgeY = Math.Round((double)ShapeSizeY / Constants.FeetPerGridCell); // Get amount of grid cells
-        distanceToEdgeY *= inkCanvasGridSize;
-        distanceToEdgeY /= 2; // divide by 2 to get radius
+        double distanceToEdgeX, distanceToEdgeY;
+        if (RectangleShapeSelected || CircleShapeSelected)
+        {
+            distanceToEdgeX = Math.Round((double)ShapeSizeX / Constants.FeetPerGridCell); // Get amount of grid cells
+            distanceToEdgeX *= inkCanvasGridSize;
+            distanceToEdgeY = Math.Round((double)ShapeSizeY / Constants.FeetPerGridCell); // Get amount of grid cells
+            distanceToEdgeY *= inkCanvasGridSize;
+            distanceToEdgeX /= 2; // divide by 2 to get radius
+            distanceToEdgeY /= 2; // divide by 2 to get radius
+        }
+        else
+        {
+            distanceToEdgeX = Math.Round((double)ShapeSizeX / Constants.FeetPerGridCell); // Get amount of grid cells
+            distanceToEdgeX *= inkCanvasGridSize;
+            if (LineShapeSelected)
+            {
+                distanceToEdgeY = Math.Round((double)ShapeSizeY / Constants.FeetPerGridCell); // Get amount of grid cells
+                distanceToEdgeY *= inkCanvasGridSize;
+            }
+            else
+            {
+                distanceToEdgeY = startPoint.Y;
+                distanceToEdgeY *= inkCanvasGridSize;
+            }
+        }
+
+        //direction
+        var directionPoint = SnapPoint(new Point<double>(addedStroke.StylusPoints.Last().X, addedStroke.StylusPoints.Last().Y), gridOffset, halfGridSize);
 
         Strokes.Remove(ShapeStroke);
-        addedStroke.StylusPoints = CreateShape(startPoint, new Point<double>(distanceToEdgeX, distanceToEdgeY));
+        addedStroke.StylusPoints = CreateShape(startPoint, new Point<double>(distanceToEdgeX, distanceToEdgeY), directionPoint);
+        if (LineShapeSelected)
+        {
+            distanceToEdgeY = Math.Round((double)ShapeSizeY / Constants.FeetPerGridCell); // Get amount of grid cells
+            distanceToEdgeY *= inkCanvasGridSize;
+            addedStroke.DrawingAttributes.Width = distanceToEdgeY;
+            addedStroke.DrawingAttributes.Height = distanceToEdgeY;
+            var color = addedStroke.DrawingAttributes.Color;
+            color.A = 50;
+            addedStroke.DrawingAttributes.Color = color;
+        }
         ShapeStroke = addedStroke;
     }
 
-    private StylusPointCollection CreateShape(Point<double> startPoint, Point<double> distanceToEdge)
+    private StylusPointCollection CreateShape(Point<double> startPoint, Point<double> distanceToEdge, Point<double> directionPoint)
     {
         var points = new StylusPointCollection();
 
@@ -573,6 +612,52 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             points.Add(new StylusPoint(startPoint.X + distanceToEdge.X, startPoint.Y + distanceToEdge.Y));
             points.Add(new StylusPoint(startPoint.X - distanceToEdge.X, startPoint.Y + distanceToEdge.Y));
             points.Add(new StylusPoint(startPoint.X - distanceToEdge.X, startPoint.Y - distanceToEdge.Y));
+        }
+        else if (ConeShapeSelected)
+        {
+            // Find angle of cone
+            double stepsize = 0.05;
+            Point<double> point1 = TranslatePoint(distanceToEdge, startPoint);
+            Point<double> point2 = TranslatePoint(directionPoint, startPoint);
+            double dot = point1.X * point2.X + point1.Y * point2.Y;    // dot product
+            double det = point1.X * point2.Y - point1.Y * point2.X;    // determinant
+            double angle = Math.Atan2(det, dot);             // -pi < 0 < pi
+            double cicleStart = angle + Math.PI/4;
+
+            for (double i = cicleStart; i <= cicleStart + Math.PI / 2; i += stepsize) //always 1/4 of a cicle
+            {
+                var x = startPoint.X + distanceToEdge.X * Math.Cos(i);
+                var y = startPoint.Y + distanceToEdge.X * Math.Sin(i);
+                points.Add(new StylusPoint(x, y));
+            }
+            points.Add(new StylusPoint(startPoint.X, startPoint.Y));
+            points.Add(points.First());
+        }
+        else if (LineShapeSelected)
+        {
+            var thickness = distanceToEdge.Y;
+            distanceToEdge.Y = startPoint.Y;
+            distanceToEdge.Y *= CalculateInkCanvasGridSize();
+
+            Point<double> point1 = TranslatePoint(distanceToEdge, startPoint);
+            Point<double> point2 = TranslatePoint(directionPoint, startPoint);
+            // Find angle of line
+            double dot = point1.X * point2.X + point1.Y * point2.Y;    // dot product
+            double det = point1.X * point2.Y - point1.Y * point2.X;    // determinant
+            double angle = Math.Atan2(det, dot);             // -pi < 0 < pi
+            double cicleStart = angle+ Math.PI/2;
+
+            var x = startPoint.X + distanceToEdge.X * Math.Cos(cicleStart);
+            var y = startPoint.Y + distanceToEdge.X * Math.Sin(cicleStart);
+
+            // Shorten line for thinkness for later
+            var percentage = (thickness / distanceToEdge.X)/2;
+            point1 = ShortenPoint(startPoint.X, startPoint.Y, x, y, percentage);
+            point2 = ShortenPoint(startPoint.X, startPoint.Y, x, y, 1 - percentage);
+
+            points.Add(new StylusPoint(point1.X, point1.Y));
+            points.Add(new StylusPoint(point2.X, point2.Y));
+            points.Add(points.First());
         }
         else
         {
@@ -590,9 +675,20 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         return points;
     }
 
+    private Point<double> ShortenPoint(double X1, double Y1, double X2, double Y2, double percentage)
+    {
+        //(Ax+ t(Bx−Ax),Ay + t(By−Ay))
+        return new Point<double>((X1 + percentage * (X2 - X1)), (Y1 + percentage * (Y2 - Y1)));
+    }
+
+    private Point<double> TranslatePoint(Point<double> point, Point<double> center)
+    {
+        return new Point<double>(point.X - center.X, point.Y - center.Y);
+    }
+
     private DrawingShapeType GetDrawingShapeType()
     {
-        return RectangleShapeSelected ? DrawingShapeType.Rectangle : DrawingShapeType.Circle;
+        return RectangleShapeSelected ? DrawingShapeType.Rectangle : CircleShapeSelected ? DrawingShapeType.Circle : ConeShapeSelected ? DrawingShapeType.Cone : DrawingShapeType.Line;
     }
 
     private void PreventErasingShape(StrokeCollection removed, StrokeCollection added)

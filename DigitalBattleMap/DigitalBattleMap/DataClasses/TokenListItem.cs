@@ -24,6 +24,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         Visible = true;
 
         TokenSizeChangedCommand = new RelayCommand(p => TokenSizeChanged((string)p));
+        TokenOrientationChangedCommand = new RelayCommand(p => TokenOrientationChanged((string)p));
         ConditionChangedCommand = new RelayCommand(p => ConditionChanged((string)p));
         ClearAllConditionsCommand = new RelayCommand(p => ClearAllConditions());
         TokenVisibilityCommand = new RelayCommand(p => ToggleTokenVisibility());
@@ -49,6 +50,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         Health.OnHpChanged += HealthChanged;
         Health.OnMaxHpChanged += MaxHealthChanged;
         Token.OnSizeChanged += TokenSizeChanged;
+        Token.OnOrientationChanged += TokenOrientationChanged;
     }
 
     public event EventHandler OnTokenChanged;
@@ -73,6 +75,8 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     public string LinkToTokenButtonText { get => Get<string>(); set => Set(value); }
     [JsonIgnore]
     public ICommand TokenSizeChangedCommand { get; set; }
+    [JsonIgnore]
+    public ICommand TokenOrientationChangedCommand { get; set; }
     [JsonIgnore]
     public ICommand ConditionChangedCommand { get; set; }
     [JsonIgnore]
@@ -107,6 +111,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         _multiActions = multiActions;
 
         Token.OnSizeChanged += TokenSizeChanged;
+        Token.OnOrientationChanged += TokenOrientationChanged;
         Health.OnHpChanged += HealthChanged;
         Health.OnMaxHpChanged += MaxHealthChanged;
     }
@@ -198,6 +203,11 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         Token.Size = Enum.Parse<TokenSize>(size);
     }
 
+    private void TokenOrientationChanged(string orientation)
+    {
+        Token.Orientation = Enum.Parse<TokenOrientation>(orientation);
+    }
+
     private void ConditionChanged(string conditionString)
     {
         var condition = Enum.Parse<Condition>(conditionString);
@@ -283,6 +293,11 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     {
         _multiActions.TokenSizeChanged(this);
     }
+    private void TokenOrientationChanged(object? sender, EventArgs e)
+    {
+        _multiActions.TokenOrientationChanged(this);
+    }
+    
 
     private void HealthChanged(object? sender, EventArgs e)
     {

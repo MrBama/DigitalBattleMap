@@ -67,6 +67,14 @@ public class TokenListItemMultiActions : ITokenListItemMultiActions
         });
     }
 
+    public void TokenOrientationChanged(TokenListItem tokenListItem)
+    {
+        Execute(tokenListItem, (TokenListItem selectedTokenListItem) =>
+        {
+            selectedTokenListItem.Token.SetOrientationWithoutNotification(tokenListItem.Token.Orientation);
+        });
+    }
+
     public void VisibilityChanged(TokenListItem tokenListItem)
     {
         Execute(tokenListItem, (TokenListItem selectedTokenListItem) =>
