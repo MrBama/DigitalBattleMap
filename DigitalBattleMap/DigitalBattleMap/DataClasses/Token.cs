@@ -1,6 +1,7 @@
 ﻿using DigitalBattleMap.Utilities;
 using System;
 using System.Drawing;
+using System.Windows.Navigation;
 
 namespace DigitalBattleMap.DataClasses;
 
@@ -95,71 +96,20 @@ public class Token : PropertyHandler, ICloneable
         }
     }
 
-    internal int GetTokenCondictionCounter(int i)
+    internal int GetOrientationAngle()
     {
         switch (Orientation)
         {
             case TokenOrientation.North:
-                return i;
+                return 0;
             case TokenOrientation.East:
-                return ShiftEast(i);
+                return 270;
             case TokenOrientation.South:
-                return ShiftSouth(i);
+                return 180;
             case TokenOrientation.West:
-                return ShiftWest(i);
+                return 90;
             default:
-                return ShiftEast(i);
-        }
-    }
-
-    private int ShiftWest(int i)
-    {
-        switch (i)
-        {
-            case 0:
-                return 1;
-            case 1:
-                return 3;
-            case 2:
-                return 0;
-            case 3:
-                return 2;
-            default:
-                return i;
-        }
-    }
-
-    private int ShiftSouth(int i)
-    {
-        switch (i)
-        {
-            case 0:
-                return 3;
-            case 1:
-                return 2;
-            case 2:
-                return 1;
-            case 3:
-                return 0;
-            default:
-                return i;
-        }
-    }
-
-    private int ShiftEast(int i)
-    {
-        switch (i)
-        {
-            case 0:
-                return 2;
-            case 1:
-                return 0;
-            case 2:
-                return 3;
-            case 3:
-                return 1;
-            default:
-                return i;
+                return 270;
         }
     }
 }

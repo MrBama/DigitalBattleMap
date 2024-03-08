@@ -8,6 +8,7 @@ namespace DigitalBattleMap.Utilities;
 public class PropertyHandler : INotifyPropertyChanged
 {
     private Dictionary<string, object> _properties = new();
+    private List<PropertyChangedWatcher> _propertyChangedWatchers = new();
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -25,6 +26,7 @@ public class PropertyHandler : INotifyPropertyChanged
     {
         _properties[propertyName] = value;
         NotifyPropertyChange(propertyName);
+        NotifyPropertyChangedWatchers(propertyName);
     }
 
     protected void Set<T>(T value, Action action, [CallerMemberName] string propertyName = "")
@@ -32,10 +34,33 @@ public class PropertyHandler : INotifyPropertyChanged
         _properties[propertyName] = value;
         NotifyPropertyChange(propertyName);
         action();
+        NotifyPropertyChangedWatchers(propertyName);
     }
 
     protected void NotifyPropertyChange([CallerMemberName] string propertyName = "")
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    protected void RegisterPropertyChangedWatcher(string propertyName, List<string> watchedProperties)
+    {
+        _propertyChangedWatchers.Add(new PropertyChangedWatcher { PropertyName = propertyName, WatchedProperties = watchedProperties });
+    }
+
+    private void NotifyPropertyChangedWatchers(string propertyName)
+    {
+        foreach (var watcher in _propertyChangedWatchers)
+        {
+            if(watcher.WatchedProperties.Contains(propertyName))
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(watcher.PropertyName));
+            }
+        }
+    }
+
+    private class PropertyChangedWatcher
+    {
+        public string PropertyName { get; set; }
+        public List<string> WatchedProperties { get; set; } = new();
     }
 }

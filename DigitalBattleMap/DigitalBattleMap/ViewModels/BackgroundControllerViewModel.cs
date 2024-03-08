@@ -49,6 +49,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     private void Initialize()
     {
         _area = new Rectangle(0, 0, Constants.BitmapSize.Width, Constants.BitmapSize.Height);
+        RegisterPropertyChangedWatcher(nameof(IsBackgroundEditingAllowed), new List<string>() { nameof(HasOpenedBackground), nameof(IsFogOfWarEnabled) });
 
         IsGridShown = true;
         GridBitmap = BitmapTools.CreateGrid(GridSize);
@@ -70,7 +71,6 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         BackgroundZoomInCommand = new RelayCommand(p => ZoomIn(BackgroundZoomPercentage));
         BackgroundZoomOutCommand = new RelayCommand(p => ZoomOut(BackgroundZoomPercentage));
         FitBackgroundToGridCommand = new RelayCommand(p => FitToGrid());
-        RemoveFogCommand = new RelayCommand(p => RemoveFog());
         ApplyFogRemovalCommand = new RelayCommand(p => ApplyFogRemoval());
         CancelFogRemovalCommand = new RelayCommand(p => CancelFogRemoval());
         ClearFogCommand = new RelayCommand(p => ClearFog());
@@ -80,9 +80,9 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public event EventHandler OnBackgroundUpdated;
     public event EventHandler<GridSizeChangedEventArgs> OnGridSizeChanged;
 
+    public bool IsBackgroundEditingAllowed { get => HasOpenedBackground && !IsFogOfWarEnabled; }
     public bool HasOpenedBackground { get => Get<bool>(); set => Set(value); }
     public bool IsFogOfWarEnabled { get => Get<bool>(); set => Set(value, IsFogOfWarEnabledChanged); }
-    public bool IsRemovingFog { get => Get<bool>(); set => Set(value); }
     public bool IsFogOfWarAreaSelected { get => Get<bool>(); set => Set(value); }
     public bool FogRemovalRectangleShape { get => Get<bool>(); set => Set(value, FogRemovalShapeChanged); }
     public bool FogRemovalPolygonShape { get => Get<bool>(); set => Set(value); }
@@ -103,7 +103,6 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public ICommand BackgroundZoomInCommand { get; set; }
     public ICommand BackgroundZoomOutCommand { get; set; }
     public ICommand FitBackgroundToGridCommand { get; set; }
-    public ICommand RemoveFogCommand { get; set; }
     public ICommand CancelFogRemovalCommand { get; set; }
     public ICommand ApplyFogRemovalCommand { get; set; }
     public ICommand ClearFogCommand { get; set; }
@@ -204,8 +203,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
             ExtractGridCells(Path.GetFileNameWithoutExtension(path));
             FeetPerGridCell = Constants.FeetPerGridCell;
             HasOpenedBackground = true;
+            IsFogOfWarEnabled = false;
             _fogOfWarAreas.Clear();
-            CancelFogRemoval();
             CreateBackground();
         }
     }
@@ -227,7 +226,6 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         FeetPerGridCell = Constants.FeetPerGridCell;
         HasOpenedBackground = false;
         IsFogOfWarEnabled = false;
-        IsRemovingFog = false;
         FogRemovalRectangleShape = true;
         FogRemovalPolygonShape = false;
         ZoomSize = Constants.DefaultZoomSize;
@@ -312,14 +310,6 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         }
 
         CreateBackground();
-    }
-
-    public void SetSelectedTabIndex(int tabIndex)
-    {
-        if (tabIndex != TabIndex.Background && IsRemovingFog)
-        {
-            CancelFogRemoval();
-        }
     }
 
     private void MouseDown(Point<double> point)
@@ -464,25 +454,24 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     private void IsFogOfWarEnabledChanged()
     {
-        if (!IsFogOfWarEnabled)
+        if (IsFogOfWarEnabled)
         {
-            FogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
-            CancelFogRemoval();
-        }
-        CreateBackground();
-    }
-
-    private void RemoveFog()
-    {
-        IsRemovingFog = true;
-        if (FogRemovalRectangleShape)
-        {
-            _mouseCanvas.SetMode(MouseCanvasMode.RectangleSelection);
+            if (FogRemovalRectangleShape)
+            {
+                _mouseCanvas.SetMode(MouseCanvasMode.RectangleSelection);
+            }
+            else
+            {
+                _mouseCanvas.SetMode(MouseCanvasMode.PolygonSelection);
+            }
         }
         else
         {
-            _mouseCanvas.SetMode(MouseCanvasMode.PolygonSelection);
+            FogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
+            CancelFogRemoval();
+            _mouseCanvas.SetMode(MouseCanvasMode.Click);
         }
+        CreateBackground();
     }
 
     private void ApplyFogRemoval()
@@ -495,9 +484,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     private void CancelFogRemoval()
     {
-        IsRemovingFog = false;
         IsFogOfWarAreaSelected = false;
-        _mouseCanvas.SetMode(MouseCanvasMode.Click);
+        _mouseCanvas.ResetSelection();
     }
 
     private void ClearFog()
@@ -542,7 +530,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     private void FogRemovalShapeChanged()
     {
-        if (_mouseCanvas != null && IsRemovingFog)
+        if (_mouseCanvas != null && IsFogOfWarEnabled)
         {
             if (FogRemovalRectangleShape)
             {

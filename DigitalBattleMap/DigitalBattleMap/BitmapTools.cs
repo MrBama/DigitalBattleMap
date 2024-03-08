@@ -334,8 +334,18 @@ public static class BitmapTools
          *     0
          */
 
-        var xFactor = new double[] { 0.5, 0.0, 1.0, 0.5 };
-        var yFactor = new double[] { 1.0, 0.5, 0.5, 0.0, };
+        var conditionPositions = new List<Point<double>>()
+        {
+            new Point<double>(0.5, 1.0),
+            new Point<double>(0.0, 0.5), 
+            new Point<double>(1.0, 0.5), 
+            new Point<double>(0.5, 0.0) 
+        };
+
+        int orientationAngle = tokenListItem.Token.GetOrientationAngle();
+        var orientationOrigin = new Point<double>(0.5, 0.5);
+        conditionPositions.ForEach(c => c.Rotate(orientationOrigin, orientationAngle));
+
         var conditionSize = new Size<double>(tokenSize.Width / 2.5, tokenSize.Height / 2.5);
 
         // Only draw conditions when size is atleast 1
@@ -343,14 +353,12 @@ public static class BitmapTools
         {
             for (int i = 0; i < 4 && i < tokenListItem.Conditions.Count; i++)
             {
-                int j = tokenListItem.Token.GetTokenCondictionCounter(i);
-
                 var resizedConditionImage = ResizeBitmap(_conditionIcons.GetConditionIcon(tokenListItem.Conditions[i]), Size<int>.Create(conditionSize));
                 resizedConditionImage.RotateFlip(tokenListItem.Token.GetOrientation());
                 var drawingPosition = Point<double>.Create(tokenDrawingPosition);
 
-                drawingPosition.X += (tokenSize.Width * xFactor[j]) - (conditionSize.Width * xFactor[j]);
-                drawingPosition.Y += (tokenSize.Height * yFactor[j]) - (conditionSize.Height * yFactor[j]);
+                drawingPosition.X += (tokenSize.Width * conditionPositions[i].X) - (conditionSize.Width * conditionPositions[i].X);
+                drawingPosition.Y += (tokenSize.Height * conditionPositions[i].Y) - (conditionSize.Height * conditionPositions[i].Y);
 
                 DrawImageOnBitmap(bitmap, resizedConditionImage, Point<int>.Create(drawingPosition));
             }

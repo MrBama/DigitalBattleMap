@@ -42,6 +42,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void Initialize()
     {
+        RegisterPropertyChangedWatcher(nameof(IsShapeEditAndRemoveEnabled), new List<string> { nameof(SelectedShape), nameof(IsShapeEditorActive) });
+
         InkCanvasDrawingAttributes = new DrawingAttributes();
         PenSize = 5;
         InkCanvasDrawingAttributes.Width = PenSize;
@@ -374,7 +376,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     private void ActivateShapeEditor(bool activate)
     {
         IsShapeEditorActive = activate;
-        NotifyPropertyChange(nameof(IsShapeEditAndRemoveEnabled));
     }
 
     private void ChangeDrawingButton(DrawingButton drawingButton)
@@ -622,7 +623,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             double dot = point1.X * point2.X + point1.Y * point2.Y;    // dot product
             double det = point1.X * point2.Y - point1.Y * point2.X;    // determinant
             double angle = Math.Atan2(det, dot);             // -pi < 0 < pi
-            double cicleStart = angle + Math.PI/4;
+            double cicleStart = angle + Math.PI / 4;
 
             for (double i = cicleStart; i <= cicleStart + Math.PI / 2; i += stepsize) //always 1/4 of a cicle
             {
@@ -645,13 +646,13 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             double dot = point1.X * point2.X + point1.Y * point2.Y;    // dot product
             double det = point1.X * point2.Y - point1.Y * point2.X;    // determinant
             double angle = Math.Atan2(det, dot);             // -pi < 0 < pi
-            double cicleStart = angle+ Math.PI/2;
+            double cicleStart = angle + Math.PI / 2;
 
             var x = startPoint.X + distanceToEdge.X * Math.Cos(cicleStart);
             var y = startPoint.Y + distanceToEdge.X * Math.Sin(cicleStart);
 
             // Shorten line for thinkness for later
-            var percentage = (thickness / distanceToEdge.X)/2;
+            var percentage = (thickness / distanceToEdge.X) / 2;
             point1 = ShortenPoint(startPoint.X, startPoint.Y, x, y, percentage);
             point2 = ShortenPoint(startPoint.X, startPoint.Y, x, y, 1 - percentage);
 
@@ -710,8 +711,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         {
             ShowShapeSelection();
         }
-
-        NotifyPropertyChange(nameof(IsShapeEditAndRemoveEnabled));
     }
 
     private void ShowShapeSelection()

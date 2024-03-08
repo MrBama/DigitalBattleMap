@@ -37,6 +37,28 @@ public class Point<T> : IEquatable<Point<T>> where T : IEquatable<T>
 
     public T Y { get; set; }
 
+    public void Rotate(Point<T> rotationOrigin, int angle)
+    {
+        dynamic radians = (Math.PI / 180) * angle;
+        dynamic sin = Math.Sin(radians);
+        dynamic cos = Math.Cos(radians);
+
+        dynamic x = X;
+        dynamic y = Y;
+
+        // Translate point back to origin
+        x -= rotationOrigin.X;
+        y -= rotationOrigin.Y;
+
+        // Rotate point
+        dynamic xnew = x * cos - y * sin;
+        dynamic ynew = x * sin + y * cos;
+
+        // Translate point back
+        X = xnew + rotationOrigin.X;
+        Y = ynew + rotationOrigin.Y;
+    }
+
     public bool Equals(Point<T>? other)
     {
         return other != null && other.X.Equals(X) && other.Y.Equals(Y);

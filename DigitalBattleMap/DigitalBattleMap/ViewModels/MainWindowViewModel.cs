@@ -116,7 +116,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     {
         IsShowMapLocked = false;
         InkCanvasVisibility = Visibility.Hidden;
-        MouseInputCanvasVisibility = Visibility.Visible;
+        MouseInputCanvasVisibility = Visibility.Hidden;
         TokenVisibility = Visibility.Hidden;
         ServerConnectionButtonText = "Connect";
         ServerConnectionStatus = "Disconnected";
@@ -288,7 +288,6 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     public void SelectedTabChanged()
     {
         MouseCanvas.SetSelectedTabIndex(SelectedTabIndex);
-        BackgroundController.SetSelectedTabIndex(SelectedTabIndex);
         switch (SelectedTabIndex)
         {
             case TabIndex.Campaign:

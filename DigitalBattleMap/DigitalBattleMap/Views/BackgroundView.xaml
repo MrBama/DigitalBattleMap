@@ -43,8 +43,8 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Row="1" Content="Zoom in" Margin="0 0 5 0" Command="{Binding BackgroundZoomInCommand}" IsEnabled="{Binding HasOpenedBackground}"/>
-            <Button Grid.Row="1" Grid.Column="1" Content="Zoom out" Margin="5 0 0 0" Command="{Binding BackgroundZoomOutCommand}" IsEnabled="{Binding HasOpenedBackground}"/>
+            <Button Grid.Row="1" Content="Zoom in" Margin="0 0 5 0" Command="{Binding BackgroundZoomInCommand}" IsEnabled="{Binding IsBackgroundEditingAllowed}"/>
+            <Button Grid.Row="1" Grid.Column="1" Content="Zoom out" Margin="5 0 0 0" Command="{Binding BackgroundZoomOutCommand}" IsEnabled="{Binding IsBackgroundEditingAllowed}"/>
         </Grid>
         
         <!--Zoom factor grid-->
@@ -58,7 +58,7 @@
             <Slider Grid.Column="1" VerticalAlignment="Center" Minimum="1" Maximum="100" Value="{Binding BackgroundZoomPercentage, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True" Margin="10 0 10 0"/>
             <Label Grid.Column="2" Content="{Binding BackgroundZoomPercentageLabel}" />
         </Grid>
-        <Button Grid.Row="3" Margin="0 10 0 0" Content="Fit to grid" Command="{Binding FitBackgroundToGridCommand}" IsEnabled="{Binding HasOpenedBackground}"/>
+        <Button Grid.Row="3" Margin="0 10 0 0" Content="Fit to grid" Command="{Binding FitBackgroundToGridCommand}" IsEnabled="{Binding IsBackgroundEditingAllowed}"/>
 
         <!--Fit background cells grid-->
         <Grid Grid.Row="4" Margin="0 10 0 0">
@@ -70,9 +70,9 @@
             </Grid.ColumnDefinitions>
 
             <Label Grid.Row="1" Content="Grid cells" Width="{Binding ElementName=FeetPerGridCellLabel, Path=ActualWidth}"/>
-            <TextBox x:Name="GridCellsXTextBox" Grid.Row="1" Grid.Column="1" VerticalContentAlignment="Center" Text="{Binding GridCellsWidth, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding HasOpenedBackground}"/>
+            <TextBox x:Name="GridCellsXTextBox" Grid.Row="1" Grid.Column="1" VerticalContentAlignment="Center" Text="{Binding GridCellsWidth, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsBackgroundEditingAllowed}"/>
             <Label Grid.Row="1" Grid.Column="2" Content="x"/>
-            <TextBox Grid.Row="1" Grid.Column="3" VerticalContentAlignment="Center" Text="{Binding GridCellsHeight, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding HasOpenedBackground}"/>
+            <TextBox Grid.Row="1" Grid.Column="3" VerticalContentAlignment="Center" Text="{Binding GridCellsHeight, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsBackgroundEditingAllowed}"/>
         </Grid>
         
         <!--Fit background feet grid-->
@@ -84,7 +84,7 @@
             </Grid.ColumnDefinitions>
 
             <Label x:Name="FeetPerGridCellLabel" Content="Feet per grid cell"/>
-            <TextBox Grid.Column="1" VerticalContentAlignment="Center" Text="{Binding FeetPerGridCell, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding HasOpenedBackground}" Width="{Binding ElementName=GridCellsXTextBox,Path=ActualWidth}" HorizontalAlignment="Left"/>
+            <TextBox Grid.Column="1" VerticalContentAlignment="Center" Text="{Binding FeetPerGridCell, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsBackgroundEditingAllowed}" Width="{Binding ElementName=GridCellsXTextBox,Path=ActualWidth}" HorizontalAlignment="Left"/>
         </Grid>
 
         <!--Enable fog of war grid-->
@@ -115,9 +115,8 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Button Grid.ColumnSpan="2" Content="Remove fog" Command="{Binding RemoveFogCommand}" Visibility="{Binding IsRemovingFog, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
-            <Button Content="Cancel" Margin="0 0 5 0" Command="{Binding CancelFogRemovalCommand}" Visibility="{Binding IsRemovingFog, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
-            <Button Grid.Column="1" Content="Apply" Margin="5 0 0 0" Command="{Binding ApplyFogRemovalCommand}" IsEnabled="{Binding IsFogOfWarAreaSelected}"  Visibility="{Binding IsRemovingFog, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
+            <Button Content="Cancel" Margin="0 0 5 0" Command="{Binding CancelFogRemovalCommand}" IsEnabled="{Binding IsFogOfWarAreaSelected}" />
+            <Button Grid.Column="1" Content="Apply" Margin="5 0 0 0" Command="{Binding ApplyFogRemovalCommand}" IsEnabled="{Binding IsFogOfWarAreaSelected}" />
         </Grid>
         <Button Grid.Row="9" Content="Clear fog" Margin="0 10 0 0" IsEnabled="{Binding IsFogOfWarEnabled}" Command="{Binding ClearFogCommand}"/>
 

@@ -59,9 +59,9 @@ public class SelectTokenWindowViewModel : ViewModelBase
 
     public string SearchText { get => Get<string>(); set => Set(value, SearchTextChanged); }
     public Token SelectedToken { get => Get<Token>(); set => Set(value, OnSelectedTokenChanged); }
-    public TokenGroup SelectedGroup { get => Get<TokenGroup>(); set => Set(value, () => NotifyPropertyChange(nameof(IsTokenSelected))); }
+    public TokenGroup SelectedGroup { get => Get<TokenGroup>(); set => Set(value); }
     public int NumberOfTokens { get => Get<int>(); set => Set(value); }
-    public int SelectedTabIndex { get => Get<int>(); set => Set(value, () => NotifyPropertyChange(nameof(IsTokenSelected))); }
+    public int SelectedTabIndex { get => Get<int>(); set => Set(value); }
     public bool SearchTokenNameOnly { get => Get<bool>(); set => Set(value); }
     public TokenSize SelectedTokenSize { get => Get<TokenSize>(); set => Set(value); }
     public ObservableCollection<Token> TokenList { get; set; } = new ObservableCollection<Token>();
@@ -74,6 +74,8 @@ public class SelectTokenWindowViewModel : ViewModelBase
 
     private void InitializeProperties()
     {
+        RegisterPropertyChangedWatcher(nameof(IsTokenSelected), new List<string> { nameof(SelectedToken), nameof(SelectedGroup), nameof(SelectedTabIndex) });
+
         SearchText = "";
         NumberOfTokens = 1;
         SelectedTokenSize = TokenSize.Medium;
@@ -144,8 +146,6 @@ public class SelectTokenWindowViewModel : ViewModelBase
         {
             SelectedTokenSize = TokenSize.Medium;
         }
-
-        NotifyPropertyChange(nameof(IsTokenSelected));
     }
 
     private bool AreTokensSelected()
