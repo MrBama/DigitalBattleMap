@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 
 namespace DigitalBattleMap.ViewModels;
 
@@ -51,6 +50,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     public bool ServerConnectionButtonEnabled { get => Get<bool>(); set => Set(value); }
     public bool IsConfigurationMenuExpanded { get => Get<bool>(); set => Set(value); }
     public bool IsMultiMove { get => Get<bool>(); set => Set(value); }
+    public bool HideDungeonMasterFeatures { get => Get<bool>(); set => Set(value); }
     public string ServerConnectionButtonText { get => Get<string>(); set => Set(value); }
     public string ServerConnectionStatus { get => Get<string>(); set => Set(value); }
     public Visibility InkCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
@@ -97,6 +97,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     {
         InitializeProperties();
         _settings = Settings.Load();
+        _settings.OnSettingChanged += SettingChanged;
         _monsterTokens.ReloadTokens();
         _connectionManager = new ConnectionManager();
         _connectionManager.OnConnected += ConnectionManagerConnected;
@@ -110,11 +111,11 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
         DrawingController = new DrawingControllerViewModel(this, TokenController, BackgroundController.GridSize);
         DrawingController.OnDrawingStrokesUpdated += DrawingStrokesUpdated;
+        HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
     }
 
     private void InitializeProperties()
     {
-        IsShowMapLocked = false;
         InkCanvasVisibility = Visibility.Hidden;
         MouseInputCanvasVisibility = Visibility.Hidden;
         TokenVisibility = Visibility.Hidden;
@@ -264,20 +265,6 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     {
         var settingsWindowViewModel = new SettingsWindowViewModel(_settings, _windowService);
         _windowService.ShowWindowDialog<SettingsWindow>(settingsWindowViewModel);
-
-        if (settingsWindowViewModel.MonitorChanged)
-        {
-            _mapWindowViewModel.ChangeWindowPosition(_settings.MonitorPosition.X);
-        }
-
-        if (_settings.ShowMapWindow)
-        {
-            _windowService.ShowWindow(_mapWindowViewModel);
-        }
-        else
-        {
-            _windowService.HideWindow(_mapWindowViewModel);
-        }
 
         if (settingsWindowViewModel.MonsterTokensDownloaded)
         {
@@ -505,6 +492,29 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
                 _multiMoveAction();
                 _multiMoveAction = null;
             }
+        }
+    }
+
+    private void SettingChanged(object? sender, SettingChangedEventArgs e)
+    {
+        if (e.SettingName == nameof(Settings.MonitorPosition))
+        {
+            _mapWindowViewModel.ChangeWindowPosition(_settings.MonitorPosition.X);
+        }
+        else if (e.SettingName == nameof(Settings.ShowMapWindow))
+        {
+            if (_settings.ShowMapWindow)
+            {
+                _windowService.ShowWindow(_mapWindowViewModel);
+            }
+            else
+            {
+                _windowService.HideWindow(_mapWindowViewModel);
+            }
+        }
+        else if (e.SettingName == nameof(Settings.HideDungeonMasterFeatures))
+        {
+            HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
         }
     }
 }

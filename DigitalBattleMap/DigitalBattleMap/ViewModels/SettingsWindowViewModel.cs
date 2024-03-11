@@ -11,7 +11,6 @@ public class SettingsWindowViewModel : ViewModelBase
 {
     private Settings _settings;
     private IWindowService _windowService;
-    private ScreenPosition _initialMonitorPosition;
 
     public SettingsWindowViewModel(Settings settings, IWindowService windowService)
     {
@@ -22,7 +21,7 @@ public class SettingsWindowViewModel : ViewModelBase
         ServerAddress = _settings.ServerAddress;
         SelectedMonitorPosition = _settings.MonitorPosition;
         ShowMapWindow = _settings.ShowMapWindow;
-        _initialMonitorPosition = _settings.MonitorPosition;
+        HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
 
         foreach (var screenPosition in ScreenWrapper.GetScreenPositions())
         {
@@ -37,7 +36,6 @@ public class SettingsWindowViewModel : ViewModelBase
     }
 
     public ObservableCollection<ScreenPosition> MonitorPositions { get; private set; } = new ObservableCollection<ScreenPosition>();
-    public bool MonitorChanged { get; set; }
     public bool MonsterTokensDownloaded { get; set; }
 
     public ICommand SaveCommand { get; set; }
@@ -47,18 +45,15 @@ public class SettingsWindowViewModel : ViewModelBase
     public string ServerAddress { get => Get<string>(); set => Set(value); }
     public ScreenPosition SelectedMonitorPosition { get => Get<ScreenPosition>(); set => Set(value); }
     public bool ShowMapWindow { get => Get<bool>(); set => Set(value); }
+    public bool HideDungeonMasterFeatures { get => Get<bool>(); set => Set(value); }
 
     private void SaveButtonClicked()
     {
-        if(!SelectedMonitorPosition.Equals(_initialMonitorPosition))
-        {
-            MonitorChanged = true;
-        }
-
         _settings.DefaultGridSize = DefaultGridSize;
         _settings.ServerAddress = ServerAddress;
         _settings.MonitorPosition = SelectedMonitorPosition;
         _settings.ShowMapWindow = ShowMapWindow;
+        _settings.HideDungeonMasterFeatures = HideDungeonMasterFeatures;
 
         _settings.Save();
     }

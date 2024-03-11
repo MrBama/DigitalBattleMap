@@ -16,6 +16,7 @@
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
@@ -31,9 +32,11 @@
         <Label Grid.Row="2" Content="Server Address" Margin="0 10 0 0"/>
         <TextBox Grid.Row="2" Grid.Column="1" Margin="0 10 0 0" Text="{Binding ServerAddress, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
         <Label Grid.Row="3" Content="Show map window" Margin="0 10 0 0"/>
-        <CheckBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding ShowMapWindow}"/>
-        <Button Grid.Row="4" Grid.ColumnSpan="2" Content="Download monster tokens" Margin="0 10 0 0" Command="{Binding DownloadMonsterTokensCommand}"/>
-        <Button Grid.Row="6" Grid.ColumnSpan="2" Content="Save" Command="{Binding SaveCommand}" IsDefault="True">
+        <CheckBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" Margin="0 10 0 0" IsChecked="{Binding ShowMapWindow}"/>
+        <Label Grid.Row="4" Content="Hide DM features" Margin="0 10 0 0"/>
+        <CheckBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Center" Margin="0 10 0 0" IsChecked="{Binding HideDungeonMasterFeatures}"/>
+        <Button Grid.Row="5" Grid.ColumnSpan="2" Content="Download monster tokens" Margin="0 10 0 0" Command="{Binding DownloadMonsterTokensCommand}"/>
+        <Button Grid.Row="7" Grid.ColumnSpan="2" Content="Save" Command="{Binding SaveCommand}" IsDefault="True">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="Click">
                     <i:CallMethodAction MethodName="Close" TargetObject="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}" />

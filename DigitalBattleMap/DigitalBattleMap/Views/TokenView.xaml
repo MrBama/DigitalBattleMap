@@ -19,6 +19,7 @@
         <uielements:ConditionToBoolConverter x:Key="ConditionToBoolConverter"/>
         <uielements:NullToBoolConverter x:Key="NullConverter"/>
         <uielements:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <uielements:BoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter" IsInverted="True"/>
     </UserControl.Resources>
     
     <!--Tokens grid-->
@@ -100,7 +101,8 @@
                             <Label Content="Initiative"/>
                             <TextBox Grid.Column="1" VerticalContentAlignment="Center" Margin="5 0 0 0" MinWidth="45" Text="{Binding Initiative, UpdateSourceTrigger=PropertyChanged}"/>
                             <Button Grid.Column="2" Content="C" Margin="5 0 5 0" Width="{Binding ActualHeight, RelativeSource={RelativeSource self}}" Command="{Binding ExpandConditionsCommand}"/>
-                            <TextBox Grid.Column="4" VerticalContentAlignment="Center" MinWidth="45" Text="{Binding Health.EditorHp, UpdateSourceTrigger=PropertyChanged}" Background="{Binding Health.Color}">
+                            <TextBox Grid.Column="4" VerticalContentAlignment="Center" MinWidth="45" Text="{Binding Health.EditorHp, UpdateSourceTrigger=PropertyChanged}" Background="{Binding Health.Color}" 
+                                     Visibility="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=DataContext.HideDungeonMasterFeatures, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}">
                                 <TextBox.InputBindings>
                                     <KeyBinding Command="{Binding Health.HpEnterCommand}" Key="Enter" />
                                     <KeyBinding Command="{Binding Health.HpEscCommand}" Key="Esc" />
@@ -108,14 +110,17 @@
                                     <KeyBinding Command="{Binding Health.CtrlYCommand}" Key="Y" Modifiers="Ctrl"/>
                                 </TextBox.InputBindings>
                             </TextBox>
-                            <Label Grid.Column="5" Content="/"/>
-                            <TextBox Grid.Column="6" VerticalContentAlignment="Center" MinWidth="45" Text="{Binding Health.EditorMaxHp, UpdateSourceTrigger=PropertyChanged}" Background="{Binding Health.Color}">
+                            <Label Grid.Column="5" Content="/"
+                                   Visibility="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=DataContext.HideDungeonMasterFeatures, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}"/>
+                            <TextBox Grid.Column="6" VerticalContentAlignment="Center" MinWidth="45" Text="{Binding Health.EditorMaxHp, UpdateSourceTrigger=PropertyChanged}" Background="{Binding Health.Color}"
+                                     Visibility="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=DataContext.HideDungeonMasterFeatures, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}">
                                 <TextBox.InputBindings>
                                     <KeyBinding Command="{Binding Health.MaxHpEnterCommand}" Key="Enter" />
                                     <KeyBinding Command="{Binding Health.MaxHpEscCommand}" Key="Esc" />
                                 </TextBox.InputBindings>
                             </TextBox>
-                            <Label Grid.Column="7" Content="HP"/>
+                            <Label Grid.Column="7" Content="HP"
+                                   Visibility="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=DataContext.HideDungeonMasterFeatures, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}"/>
                         </Grid>
                         
                         <!--Conditions grid-->

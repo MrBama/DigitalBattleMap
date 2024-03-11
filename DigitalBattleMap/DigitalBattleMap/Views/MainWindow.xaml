@@ -16,6 +16,7 @@
     </Window.DataContext>
     <Window.Resources>
         <uielements:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <uielements:BoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter" IsInverted="True"/>
     </Window.Resources>
 
     <i:Interaction.Triggers>
@@ -146,7 +147,7 @@
                         </Grid>
                     </Border>
                 </TabItem>
-                <TabItem>
+                <TabItem Visibility="{Binding HideDungeonMasterFeatures, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}">
                     <TabItem.Header>
                         <TextBlock Text="Statblocks" FontSize="20" FontWeight="Bold"/>
                     </TabItem.Header>

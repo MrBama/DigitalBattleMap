@@ -59,3 +59,8 @@ public class DisconnectedEventArgs : EventArgs
 {
     public bool IsConnectionLost { get; set; }
 }
+
+public class SettingChangedEventArgs : EventArgs
+{
+    public string SettingName { get; set; }
+}

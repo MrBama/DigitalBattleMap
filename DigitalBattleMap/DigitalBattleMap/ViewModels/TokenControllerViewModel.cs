@@ -52,6 +52,8 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         _mouseCanvas.SubscribeLeftButtonDown(TabIndex.Tokens, MouseLeftButtonDown);
         _mouseCanvas.SubscribeRightButtonDown(TabIndex.Tokens, MouseRightButtonDown);
         _settings = settings;
+        _settings.OnSettingChanged += SettingChanged;
+        HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
     }
 
     private void Initialize()
@@ -94,6 +96,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     public List<TokenListItem> SelectedTokens { get => Get<List<TokenListItem>>(); set => Set(value); }
     public bool IsInitiativeUpButtonEnabled { get => IsInitiativeUpAllowed(SelectedToken); }
     public bool IsInitiativeDownButtonEnabled { get => IsInitiativeDownAllowed(SelectedToken); }
+    public bool HideDungeonMasterFeatures { get => Get<bool>(); set => Set(value); }
     public ObservableCollection<TokenListItem> TokenList { get; set; } = new ObservableCollection<TokenListItem>();
     public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToBitmapImage(); }
     public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
@@ -798,5 +801,13 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     private bool IsInitiativeDownAllowed(TokenListItem tokenListItem)
     {
         return TokenList.IndexOf(tokenListItem) != -1 && TokenList.IndexOf(tokenListItem) < TokenList.Count - 1;
+    }
+
+    private void SettingChanged(object? sender, SettingChangedEventArgs e)
+    {
+        if (e.SettingName == nameof(Settings.HideDungeonMasterFeatures))
+        {
+            HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
+        }
     }
 }
