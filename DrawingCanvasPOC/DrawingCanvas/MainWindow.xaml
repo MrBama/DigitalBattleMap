@@ -1,0 +1,69 @@
+﻿<Window x:Class="DrawingCanvas.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors" xmlns:drawingcanvas="clr-namespace:DrawingCanvas"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="800" Width="1200">
+    <Window.DataContext>
+        <drawingcanvas:DrawingCanvasViewModel/>
+    </Window.DataContext>
+    <Window.Resources>
+        <drawingcanvas:BoolToInvertedBoolConverter x:Key="InvertBoolConverter"/>
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="2*"/>
+        </Grid.ColumnDefinitions>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Slider Minimum="1" Maximum="100" Value="{Binding ActiveShape.Size}"/>
+            <RadioButton Grid.Row="1" Content="Black" IsChecked="{Binding RadioButtonBlack}"/>
+            <RadioButton Grid.Row="2" Content="Red" IsChecked="{Binding RadioButtonRed}"/>
+            <RadioButton Grid.Row="3" Content="Eraser" IsChecked="{Binding RadioButtonEraser}"/>
+            <Button Grid.Row="4" Content="Create rectangle" Command="{Binding CreateRectangleCommand}"/>
+            <Button Grid.Row="5" Content="Create circle" Command="{Binding CreateCircleCommand}"/>
+            <Button Grid.Row="6" Content="Edit shape" Command="{Binding EditShapeCommand}" IsEnabled="{Binding ActiveShape.IsEditing, Converter={StaticResource InvertBoolConverter}}"/>
+            <Button Grid.Row="7" Content="Cancel edit shape" Command="{Binding CancelEditShapeCommand}" IsEnabled="{Binding ActiveShape.IsEditing}"/>
+            <Button Grid.Row="8" Content="Apply edit shape" Command="{Binding ApplyEditShapeCommand}" IsEnabled="{Binding ActiveShape.IsEditing}"/>
+            <ListView Grid.Row="9" ItemsSource="{Binding ShapeCollection}" SelectedItem="{Binding SelectedShape}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Label Content="{Binding Size}"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+        <drawingcanvas:CustomCanvas Grid.Column="1" x:Name="MainCanvas" Background="Transparent" ActiveShape="{Binding ActiveShape}" ShapeCollection="{Binding ShapeCollection}" Cursor="{Binding ActiveShape.Cursor}">
+            <i:Interaction.Behaviors>
+                <drawingcanvas:MouseBehavior MouseX="{Binding X, Mode=OneWayToSource}" MouseY="{Binding Y, Mode=OneWayToSource}"/>
+            </i:Interaction.Behaviors>
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="MouseLeftButtonDown">
+                    <i:InvokeCommandAction Command="{Binding ActiveShape.LeftButtonDownCommand}" />
+                </i:EventTrigger>
+                <i:EventTrigger EventName="MouseLeftButtonUp">
+                    <i:InvokeCommandAction Command="{Binding ActiveShape.LeftButtonUpCommand}" />
+                </i:EventTrigger>
+                <i:EventTrigger EventName="PreviewMouseMove">
+                    <i:InvokeCommandAction Command="{Binding ActiveShape.MouseMoveCommand}" PassEventArgsToCommand="True" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </drawingcanvas:CustomCanvas>
+    </Grid>
+</Window>
