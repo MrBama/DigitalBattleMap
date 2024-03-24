@@ -28,6 +28,7 @@
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Slider Minimum="1" Maximum="100" Value="{Binding ActiveShape.Size}"/>
@@ -36,10 +37,11 @@
             <RadioButton Grid.Row="3" Content="Eraser" IsChecked="{Binding RadioButtonEraser}"/>
             <Button Grid.Row="4" Content="Create rectangle" Command="{Binding CreateRectangleCommand}"/>
             <Button Grid.Row="5" Content="Create circle" Command="{Binding CreateCircleCommand}"/>
-            <Button Grid.Row="6" Content="Edit shape" Command="{Binding EditShapeCommand}" IsEnabled="{Binding ActiveShape.IsEditing, Converter={StaticResource InvertBoolConverter}}"/>
-            <Button Grid.Row="7" Content="Cancel edit shape" Command="{Binding CancelEditShapeCommand}" IsEnabled="{Binding ActiveShape.IsEditing}"/>
-            <Button Grid.Row="8" Content="Apply edit shape" Command="{Binding ApplyEditShapeCommand}" IsEnabled="{Binding ActiveShape.IsEditing}"/>
-            <ListView Grid.Row="9" ItemsSource="{Binding ShapeCollection}" SelectedItem="{Binding SelectedShape}">
+            <Button Grid.Row="6" Content="Create cone" Command="{Binding CreateConeCommand}"/>
+            <Button Grid.Row="7" Content="Edit shape" Command="{Binding EditShapeCommand}" IsEnabled="{Binding ActiveShape.IsEditing, Converter={StaticResource InvertBoolConverter}}"/>
+            <Button Grid.Row="8" Content="Cancel edit shape" Command="{Binding CancelEditShapeCommand}" IsEnabled="{Binding ActiveShape.IsEditing}"/>
+            <Button Grid.Row="9" Content="Apply edit shape" Command="{Binding ApplyEditShapeCommand}" IsEnabled="{Binding ActiveShape.IsEditing}"/>
+            <ListView Grid.Row="10" ItemsSource="{Binding ShapeCollection}" SelectedItem="{Binding SelectedShape}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <Grid>

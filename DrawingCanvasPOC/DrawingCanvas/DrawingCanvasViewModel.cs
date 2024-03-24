@@ -14,6 +14,7 @@ public class DrawingCanvasViewModel : PropertyHandler, IMouse
         RadioButtonBlack = true;
         CreateRectangleCommand = new RelayCommand(p => CreateRectangle());
         CreateCircleCommand = new RelayCommand(p => CreateCircle());
+        CreateConeCommand = new RelayCommand(p => CreateCone());
         EditShapeCommand = new RelayCommand(p => EditShape());
         ApplyEditShapeCommand = new RelayCommand(p => ApplyEditShape());
         CancelEditShapeCommand = new RelayCommand(p => CancelEditShape());
@@ -29,6 +30,7 @@ public class DrawingCanvasViewModel : PropertyHandler, IMouse
     public bool RadioButtonEraser { get => Get<bool>(); set => Set(value, () => SetRadioButton(value, RadioButton.Eraser)); }
     public ICommand CreateRectangleCommand { get; set; }
     public ICommand CreateCircleCommand { get; set; }
+    public ICommand CreateConeCommand { get; set; }
     public ICommand EditShapeCommand { get; set; }
     public ICommand ApplyEditShapeCommand { get; set; }
     public ICommand CancelEditShapeCommand { get; set; }
@@ -110,6 +112,15 @@ public class DrawingCanvasViewModel : PropertyHandler, IMouse
     private void CreateCircle()
     {
         ActiveShape = new CircleDrawingShape(this, ApplyActiveShape)
+        {
+            Color = GetColor(),
+            Size = ActiveShape.Size
+        };
+    }
+
+    private void CreateCone()
+    {
+        ActiveShape = new ConeDrawingShape(this, ApplyActiveShape)
         {
             Color = GetColor(),
             Size = ActiveShape.Size
