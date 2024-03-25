@@ -189,6 +189,14 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         return GridBitmap;
     }
 
+    public void SetSelectedTabIndex(int tabIndex)
+    {
+        if (tabIndex != TabIndex.Background && IsFogOfWarEnabled)// IsRemovingFog)
+        {
+            CancelFogRemoval();
+        }
+    }
+
     public void OpenBackground()
     {
         if (_windowService.ShowOpenFileDialog(out string path))
@@ -485,7 +493,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     private void CancelFogRemoval()
     {
         IsFogOfWarAreaSelected = false;
-        _mouseCanvas.ResetSelection();
+        _mouseCanvas.SetMode(MouseCanvasMode.Click);
     }
 
     private void ClearFog()
