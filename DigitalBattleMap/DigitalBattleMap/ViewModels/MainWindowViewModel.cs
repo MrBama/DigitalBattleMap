@@ -275,7 +275,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     public void SelectedTabChanged()
     {
         MouseCanvas.SetSelectedTabIndex(SelectedTabIndex);
-        BackgroundController.SetSelectedTabIndex(SelectedTabIndex);
+        BackgroundController.ConfigureMouseCanvas(SelectedTabIndex == TabIndex.Background);
         switch (SelectedTabIndex)
         {
             case TabIndex.Campaign:

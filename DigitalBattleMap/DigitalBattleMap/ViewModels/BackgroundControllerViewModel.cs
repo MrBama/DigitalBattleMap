@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Reflection.Metadata.Ecma335;
+using System.Security.Policy;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
@@ -189,11 +191,23 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         return GridBitmap;
     }
 
-    public void SetSelectedTabIndex(int tabIndex)
+    public void ConfigureMouseCanvas(bool isActive)
     {
-        if (tabIndex != TabIndex.Background && IsFogOfWarEnabled)// IsRemovingFog)
+        if(isActive && IsFogOfWarEnabled)
+        {
+            if (FogRemovalRectangleShape)
+            {
+                _mouseCanvas.SetMode(MouseCanvasMode.RectangleSelection);
+            }
+            else
+            {
+                _mouseCanvas.SetMode(MouseCanvasMode.PolygonSelection);
+            }
+        }   
+        else
         {
             CancelFogRemoval();
+            _mouseCanvas.SetMode(MouseCanvasMode.Click);
         }
     }
 
@@ -493,7 +507,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     private void CancelFogRemoval()
     {
         IsFogOfWarAreaSelected = false;
-        _mouseCanvas.SetMode(MouseCanvasMode.Click);
+        _mouseCanvas.ResetSelection();
     }
 
     private void ClearFog()
@@ -540,6 +554,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     {
         if (_mouseCanvas != null && IsFogOfWarEnabled)
         {
+            IsFogOfWarAreaSelected = false;
+
             if (FogRemovalRectangleShape)
             {
                 _mouseCanvas.SetMode(MouseCanvasMode.RectangleSelection);
