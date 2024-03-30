@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Reflection.Metadata.Ecma335;
+using System.Security.Policy;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
@@ -187,6 +189,26 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public Bitmap GetGridBitmap()
     {
         return GridBitmap;
+    }
+
+    public void ConfigureMouseCanvas(bool isActive)
+    {
+        if(isActive && IsFogOfWarEnabled)
+        {
+            if (FogRemovalRectangleShape)
+            {
+                _mouseCanvas.SetMode(MouseCanvasMode.RectangleSelection);
+            }
+            else
+            {
+                _mouseCanvas.SetMode(MouseCanvasMode.PolygonSelection);
+            }
+        }   
+        else
+        {
+            CancelFogRemoval();
+            _mouseCanvas.SetMode(MouseCanvasMode.Click);
+        }
     }
 
     public void OpenBackground()
@@ -532,6 +554,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     {
         if (_mouseCanvas != null && IsFogOfWarEnabled)
         {
+            IsFogOfWarAreaSelected = false;
+
             if (FogRemovalRectangleShape)
             {
                 _mouseCanvas.SetMode(MouseCanvasMode.RectangleSelection);
