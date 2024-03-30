@@ -3,14 +3,14 @@ using System.Windows.Input;
 using System.Windows.Media;
 
 namespace DrawingCanvas;
-public class DrawingCanvasViewModel : PropertyHandler, IMouse
+public class DrawingCanvasViewModel : PropertyHandler
 {
     private RadioButton _radioButton = RadioButton.Black;
 
     public DrawingCanvasViewModel()
     {
         ShapeCollection = new();
-        ActiveShape = new StrokeDrawingShape(this, ApplyActiveShape);
+        ActiveShape = new StrokeDrawingShape(ApplyActiveShape);
         RadioButtonBlack = true;
         CreateRectangleCommand = new RelayCommand(p => CreateRectangle());
         CreateCircleCommand = new RelayCommand(p => CreateCircle());
@@ -23,8 +23,6 @@ public class DrawingCanvasViewModel : PropertyHandler, IMouse
     public DrawingShape ActiveShape { get => Get<DrawingShape>(); set => Set(value); }
     public DrawingShape SelectedShape { get => Get<DrawingShape>(); set => Set(value); }
     public DrawingShapeCollection ShapeCollection { get => Get<DrawingShapeCollection>(); set => Set(value); }
-    public double X { get; set; }
-    public double Y { get; set; }
     public bool RadioButtonBlack { get => Get<bool>(); set => Set(value, () => SetRadioButton(value, RadioButton.Black)); }
     public bool RadioButtonRed { get => Get<bool>(); set => Set(value, () => SetRadioButton(value, RadioButton.Red)); }
     public bool RadioButtonEraser { get => Get<bool>(); set => Set(value, () => SetRadioButton(value, RadioButton.Eraser)); }
@@ -42,7 +40,7 @@ public class DrawingCanvasViewModel : PropertyHandler, IMouse
             ShapeCollection.Add(ActiveShape);
         }
 
-        ActiveShape = new StrokeDrawingShape(this, ApplyActiveShape)
+        ActiveShape = new StrokeDrawingShape(ApplyActiveShape)
         {
             Color = GetColor(),
             Size = ActiveShape.Size
@@ -62,7 +60,7 @@ public class DrawingCanvasViewModel : PropertyHandler, IMouse
     {
         if (previousRadioButton == RadioButton.Eraser)
         {
-            ActiveShape = new StrokeDrawingShape(this, ApplyActiveShape)
+            ActiveShape = new StrokeDrawingShape(ApplyActiveShape)
             {
                 Color = GetColor(),
                 Size = ActiveShape.Size
@@ -78,7 +76,7 @@ public class DrawingCanvasViewModel : PropertyHandler, IMouse
                 ActiveShape.Color = Brushes.Red;
                 break;
             case RadioButton.Eraser:
-                ActiveShape = new EraserDrawingShape(this, ShapeCollection)
+                ActiveShape = new EraserDrawingShape(ShapeCollection)
                 {
                     Size = ActiveShape.Size
                 };
@@ -102,7 +100,7 @@ public class DrawingCanvasViewModel : PropertyHandler, IMouse
 
     private void CreateRectangle()
     {
-        ActiveShape = new RectangleDrawingShape(this, ApplyActiveShape)
+        ActiveShape = new RectangleDrawingShape(ApplyActiveShape)
         {
             Color = GetColor(),
             Size = ActiveShape.Size
@@ -111,7 +109,7 @@ public class DrawingCanvasViewModel : PropertyHandler, IMouse
 
     private void CreateCircle()
     {
-        ActiveShape = new CircleDrawingShape(this, ApplyActiveShape)
+        ActiveShape = new CircleDrawingShape(ApplyActiveShape)
         {
             Color = GetColor(),
             Size = ActiveShape.Size
@@ -120,7 +118,7 @@ public class DrawingCanvasViewModel : PropertyHandler, IMouse
 
     private void CreateCone()
     {
-        ActiveShape = new ConeDrawingShape(this, ApplyActiveShape)
+        ActiveShape = new ConeDrawingShape(ApplyActiveShape)
         {
             Color = GetColor(),
             Size = ActiveShape.Size
@@ -144,7 +142,7 @@ public class DrawingCanvasViewModel : PropertyHandler, IMouse
     private void CancelEditShape()
     {
         ActiveShape.CancelEditShape();
-        ActiveShape = new StrokeDrawingShape(this, ApplyActiveShape)
+        ActiveShape = new StrokeDrawingShape(ApplyActiveShape)
         {
             Color = GetColor(),
             Size = ActiveShape.Size

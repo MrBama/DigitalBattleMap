@@ -51,21 +51,16 @@
                 </ListView.ItemTemplate>
             </ListView>
         </Grid>
-        <drawingcanvas:CustomCanvas Grid.Column="1" x:Name="MainCanvas" Background="Transparent" ActiveShape="{Binding ActiveShape}" ShapeCollection="{Binding ShapeCollection}" Cursor="{Binding ActiveShape.Cursor}">
-            <i:Interaction.Behaviors>
-                <drawingcanvas:MouseBehavior MouseX="{Binding X, Mode=OneWayToSource}" MouseY="{Binding Y, Mode=OneWayToSource}"/>
-            </i:Interaction.Behaviors>
-            <i:Interaction.Triggers>
-                <i:EventTrigger EventName="MouseLeftButtonDown">
-                    <i:InvokeCommandAction Command="{Binding ActiveShape.LeftButtonDownCommand}" />
-                </i:EventTrigger>
-                <i:EventTrigger EventName="MouseLeftButtonUp">
-                    <i:InvokeCommandAction Command="{Binding ActiveShape.LeftButtonUpCommand}" />
-                </i:EventTrigger>
-                <i:EventTrigger EventName="PreviewMouseMove">
-                    <i:InvokeCommandAction Command="{Binding ActiveShape.MouseMoveCommand}" PassEventArgsToCommand="True" />
-                </i:EventTrigger>
-            </i:Interaction.Triggers>
+        <drawingcanvas:CustomCanvas 
+            Grid.Column="1" 
+            x:Name="MainCanvas" 
+            Background="Transparent" 
+            ActiveShape="{Binding ActiveShape}" 
+            ShapeCollection="{Binding ShapeCollection}" 
+            Cursor="{Binding ActiveShape.Cursor}"
+            MouseLeftButtonDownCommand="{Binding ActiveShape.LeftButtonDownCommand}"
+            MouseMoveCommand="{Binding ActiveShape.MouseMoveCommand}"
+            MouseLeftButtonUpCommand="{Binding ActiveShape.LeftButtonUpCommand}">
         </drawingcanvas:CustomCanvas>
     </Grid>
 </Window>

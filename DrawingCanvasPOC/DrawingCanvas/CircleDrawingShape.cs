@@ -9,7 +9,7 @@ public class CircleDrawingShape : DrawingShape
     private Point _previousMovePosition;
     private double _radius;
 
-    public CircleDrawingShape(IMouse mouse, Action applyShapeCallback) : base(mouse, applyShapeCallback)
+    public CircleDrawingShape(Action applyShapeCallback) : base(applyShapeCallback)
     {
     }
 

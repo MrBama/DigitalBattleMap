@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DrawingCanvas.HelperClasses;
+using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows;
@@ -8,23 +9,21 @@ using System.Windows.Media;
 namespace DrawingCanvas;
 public abstract class DrawingShape : PropertyHandler
 {
-    private IMouse _mouse;
     private Action _applyShapeCallback;
     MouseButtonState _previousMouseButtonState;
     private DrawingShapeInfo _editInfo;
 
-    public DrawingShape(IMouse mouse, Action applyShapeCallback)
+    public DrawingShape(Action applyShapeCallback)
     {
-        _mouse = mouse;
         _applyShapeCallback = applyShapeCallback;
 
         Color = Brushes.Black;
         Size = 15;
         Points = new();
 
-        LeftButtonDownCommand = new RelayCommand(p => LeftButtonDown());
-        LeftButtonUpCommand = new RelayCommand(p => LeftButtonUp());
-        MouseMoveCommand = new RelayCommand(p => MouseMove((MouseEventArgs)p));
+        LeftButtonDownCommand = new RelayCommand(p => LeftButtonDown((MouseDataEventArgs)p));
+        LeftButtonUpCommand = new RelayCommand(p => LeftButtonUp((MouseDataEventArgs)p));
+        MouseMoveCommand = new RelayCommand(p => MouseMove((MouseDataEventArgs)p));
     }
 
     public event NotifyCollectionChangedEventHandler OnPointsChanged;
@@ -87,46 +86,46 @@ public abstract class DrawingShape : PropertyHandler
         OnPointsChanged?.Invoke(this, e);
     }
 
-    private void LeftButtonDown()
+    private void LeftButtonDown(MouseDataEventArgs mouseDataEventArgs)
     {
         if(_previousMouseButtonState == MouseButtonState.Released)
         {
             _previousMouseButtonState = MouseButtonState.Pressed;
-            ButtonDown(new Point(_mouse.X, _mouse.Y));
+            ButtonDown(mouseDataEventArgs.Position);
         }
     }
 
-    private void LeftButtonUp()
+    private void LeftButtonUp(MouseDataEventArgs mouseDataEventArgs)
     {
         if (_previousMouseButtonState == MouseButtonState.Pressed)
         {
             _previousMouseButtonState = MouseButtonState.Released;
-            ButtonUp(new Point(_mouse.X, _mouse.Y));
+            ButtonUp(mouseDataEventArgs.Position);
         }
     }
 
-    private void MouseMove(MouseEventArgs mouseEventArgs)
+    private void MouseMove(MouseDataEventArgs mouseDataEventArgs)
     {
-        var directlyOver = mouseEventArgs.MouseDevice.DirectlyOver;
+        var directlyOver = mouseDataEventArgs.MouseEventArgs.MouseDevice.DirectlyOver;
         if (directlyOver is CustomCanvas || directlyOver is PointEllipse)
         {
-            var mouseButtonState = mouseEventArgs.LeftButton;
+            var mouseButtonState = mouseDataEventArgs.MouseEventArgs.LeftButton;
             if (_previousMouseButtonState != mouseButtonState)
             {
                 _previousMouseButtonState = mouseButtonState;
 
                 if (mouseButtonState == MouseButtonState.Pressed)
                 {
-                    ButtonDown(new Point(_mouse.X, _mouse.Y));
+                    ButtonDown(mouseDataEventArgs.Position);
                 }
                 else
                 {
-                    ButtonUp(new Point(_mouse.X, _mouse.Y));
+                    ButtonUp(mouseDataEventArgs.Position);
                 }
             }
             else
             {
-                MouseMove(new Point(_mouse.X, _mouse.Y), mouseButtonState == MouseButtonState.Pressed);
+                MouseMove(mouseDataEventArgs.Position, mouseButtonState == MouseButtonState.Pressed);
             }
         }
     }

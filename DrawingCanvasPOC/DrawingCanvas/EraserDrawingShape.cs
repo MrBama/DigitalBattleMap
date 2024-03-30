@@ -10,7 +10,7 @@ public class EraserDrawingShape : DrawingShape
 {
     private DrawingShapeCollection _drawingShapeCollection;
 
-    public EraserDrawingShape(IMouse mouse, DrawingShapeCollection drawingShapeCollection) : base(mouse, () => { })
+    public EraserDrawingShape(DrawingShapeCollection drawingShapeCollection) : base(() => { })
     {
         _drawingShapeCollection = drawingShapeCollection;
     }

@@ -1,10 +1,12 @@
-﻿using System;
+﻿using DrawingCanvas.HelperClasses;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace DrawingCanvas;
 
@@ -22,6 +24,10 @@ public class CustomCanvas : Canvas
 
     public static readonly DependencyProperty ActiveShapeProperty = DependencyProperty.Register(nameof(ActiveShape), typeof(DrawingShape), typeof(CustomCanvas), new PropertyMetadata(OnActiveShapeDependencyPropertyChanged));
     public static readonly DependencyProperty ShapeCollectionProperty = DependencyProperty.Register(nameof(ShapeCollection), typeof(DrawingShapeCollection), typeof(CustomCanvas), new PropertyMetadata(OnShapesDependencyPropertyChanged));
+    
+    public static readonly DependencyProperty MouseLeftButtonDownCommandProperty = DependencyProperty.Register(nameof(MouseLeftButtonDownCommand), typeof(ICommand), typeof(CustomCanvas));
+    public static readonly DependencyProperty MouseMoveCommandProperty = DependencyProperty.Register(nameof(MouseMoveCommand), typeof(ICommand), typeof(CustomCanvas));
+    public static readonly DependencyProperty MouseLeftButtonUpCommandProperty = DependencyProperty.Register(nameof(MouseLeftButtonUpCommand), typeof(ICommand), typeof(CustomCanvas));
 
     public DrawingShape ActiveShape
     {
@@ -33,6 +39,42 @@ public class CustomCanvas : Canvas
     {
         get => (DrawingShapeCollection)GetValue(ShapeCollectionProperty);
         set => SetValue(ShapeCollectionProperty, value);
+    }
+
+    public ICommand MouseLeftButtonDownCommand
+    {
+        get => (ICommand)GetValue(MouseLeftButtonDownCommandProperty);
+        set => SetValue(MouseLeftButtonDownCommandProperty, value);
+    }
+
+    public ICommand MouseMoveCommand
+    {
+        get => (ICommand)GetValue(MouseMoveCommandProperty);
+        set => SetValue(MouseMoveCommandProperty, value);
+    } 
+    
+    public ICommand MouseLeftButtonUpCommand
+    {
+        get => (ICommand)GetValue(MouseLeftButtonUpCommandProperty);
+        set => SetValue(MouseLeftButtonUpCommandProperty, value);
+    }
+
+    protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
+    {
+        base.OnMouseLeftButtonDown(e);
+        MouseLeftButtonDownCommand.Execute(new MouseDataEventArgs(e, e.GetPosition(this)));
+    }
+
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        base.OnMouseMove(e);
+        MouseMoveCommand.Execute(new MouseDataEventArgs(e, e.GetPosition(this)));
+    }
+
+    protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
+    {
+        base.OnMouseLeftButtonUp(e);
+        MouseLeftButtonUpCommand.Execute(new MouseDataEventArgs(e, e.GetPosition(this)));
     }
 
     private static void OnActiveShapeDependencyPropertyChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)

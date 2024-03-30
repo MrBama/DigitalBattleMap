@@ -10,7 +10,7 @@ public class RectangleDrawingShape : DrawingShape
     private double _distanceX;
     private double _distanceY;
 
-    public RectangleDrawingShape(IMouse mouse, Action applyShapeCallback) : base(mouse, applyShapeCallback)
+    public RectangleDrawingShape(Action applyShapeCallback) : base(applyShapeCallback)
     {
     }
 

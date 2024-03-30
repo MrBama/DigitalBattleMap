@@ -12,7 +12,7 @@ public class ConeDrawingShape : DrawingShape
     private double _radius;
     private double _circleStart;
 
-    public ConeDrawingShape(IMouse mouse, Action applyShapeCallback) : base(mouse, applyShapeCallback)
+    public ConeDrawingShape(Action applyShapeCallback) : base(applyShapeCallback)
     {
     }
 

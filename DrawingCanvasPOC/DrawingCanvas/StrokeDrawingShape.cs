@@ -5,7 +5,7 @@ namespace DrawingCanvas;
 
 public class StrokeDrawingShape : DrawingShape
 {
-    public StrokeDrawingShape(IMouse mouse, Action applyShapeCallback) : base(mouse, applyShapeCallback)
+    public StrokeDrawingShape(Action applyShapeCallback) : base(applyShapeCallback)
     {
     }
 
