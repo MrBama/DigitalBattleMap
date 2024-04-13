@@ -51,16 +51,20 @@
                 </ListView.ItemTemplate>
             </ListView>
         </Grid>
-        <drawingcanvas:CustomCanvas 
+        <drawingcanvas:CustomInkCanvas
             Grid.Column="1" 
-            x:Name="MainCanvas" 
             Background="Transparent" 
             ActiveShape="{Binding ActiveShape}" 
-            ShapeCollection="{Binding ShapeCollection}" 
+            ShapeCollection="{Binding ShapeCollection}">
+        </drawingcanvas:CustomInkCanvas>
+        <drawingcanvas:MouseCanvas 
+            Grid.Column="1" 
+            Background="Transparent" 
             Cursor="{Binding ActiveShape.Cursor}"
             MouseLeftButtonDownCommand="{Binding ActiveShape.LeftButtonDownCommand}"
             MouseMoveCommand="{Binding ActiveShape.MouseMoveCommand}"
             MouseLeftButtonUpCommand="{Binding ActiveShape.LeftButtonUpCommand}">
-        </drawingcanvas:CustomCanvas>
+        </drawingcanvas:MouseCanvas>
+
     </Grid>
 </Window>

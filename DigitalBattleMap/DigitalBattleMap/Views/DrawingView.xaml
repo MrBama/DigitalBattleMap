@@ -90,8 +90,8 @@
                 <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
             <Label Content="Pen size" />
-            <Slider Grid.Column="1" VerticalAlignment="Center" Margin="10 0 10 0" Minimum="1" Maximum="100" Value="{Binding PenSize, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True"/>
-            <TextBox Grid.Column="2" Text="{Binding PenSize, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
+            <Slider Grid.Column="1" VerticalAlignment="Center" Margin="10 0 10 0" Minimum="1" Maximum="100" Value="{Binding ActiveShape.Size, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True"/>
+            <TextBox Grid.Column="2" Text="{Binding ActiveShape.Size, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
         </Grid>
 
         <!--Snapping grid-->
@@ -103,7 +103,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Label Content="Snap to grid"/>
-            <CheckBox Grid.Column="1" VerticalContentAlignment="Center" Margin="10 0 0 0" IsChecked="{Binding IsSnapToGridEnabled}"/>
+            <CheckBox Grid.Column="1" VerticalContentAlignment="Center" Margin="10 0 0 0" IsChecked="{Binding ActiveShape.SnapToGrid}"/>
         </Grid>
 
         <ListView Grid.Row="3" Margin="0 10 0 0" ItemsSource="{Binding Shapes}" SelectedItem="{Binding SelectedShape}" HorizontalContentAlignment="Stretch" IsEnabled="{Binding IsShapeEditorActive, Converter={StaticResource InvertBoolConverter}}">

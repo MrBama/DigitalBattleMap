@@ -334,21 +334,21 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         CreateBackground();
     }
 
-    private void MouseDown(Point<double> point)
+    private void MouseDown(MouseDataEventArgs e)
     {
-        _mouseDownPosition = point;
+        _mouseDownPosition = e.Position;
         _mouseDown = true;
     }
 
-    private void MouseUp(Point<double> point)
+    private void MouseUp(MouseDataEventArgs e)
     {
         if (_fullBackgroundBitmap != null && _mouseDown)
         {
-            var distanceX = _mouseDownPosition.X - point.X;
+            var distanceX = _mouseDownPosition.X - e.Position.X;
             distanceX = distanceX.Map(0, _canvasSize.Width, 0, _area.Width);
             _area.X += (int)distanceX;
 
-            var distanceY = _mouseDownPosition.Y - point.Y;
+            var distanceY = _mouseDownPosition.Y - e.Position.Y;
             distanceY = distanceY.Map(0, _canvasSize.Width, 0, _area.Width);
             _area.Y += (int)distanceY;
 

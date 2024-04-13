@@ -70,10 +70,10 @@ public class DrawingCanvasViewModel : PropertyHandler
         switch (newRadioButton)
         {
             case RadioButton.Black:
-                ActiveShape.Color = Brushes.Black;
+                ActiveShape.Color = Colors.Black;
                 break;
             case RadioButton.Red:
-                ActiveShape.Color = Brushes.Red;
+                ActiveShape.Color = Colors.Red;
                 break;
             case RadioButton.Eraser:
                 ActiveShape = new EraserDrawingShape(ShapeCollection)
@@ -86,15 +86,15 @@ public class DrawingCanvasViewModel : PropertyHandler
         }
     }
 
-    private Brush GetColor()
+    private Color GetColor()
     {
         if (RadioButtonBlack)
         {
-            return Brushes.Black;
+            return Colors.Black;
         }
         else
         {
-            return Brushes.Red;
+            return Colors.Red;
         }
     }
 

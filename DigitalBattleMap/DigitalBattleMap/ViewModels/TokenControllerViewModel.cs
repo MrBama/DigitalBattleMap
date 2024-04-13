@@ -427,7 +427,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    private void MouseLeftButtonDown(Point<double> point)
+    private void MouseLeftButtonDown(MouseDataEventArgs e)
     {
         lock (_lock)
         {
@@ -435,8 +435,8 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             {
                 var newPosition = new Point<double>
                 {
-                    X = point.X.Map(0, _canvasSize.Width, 0, Constants.BitmapSize.Width),
-                    Y = point.Y.Map(0, _canvasSize.Height, 0, Constants.BitmapSize.Height)
+                    X = e.Position.X.Map(0, _canvasSize.Width, 0, Constants.BitmapSize.Width),
+                    Y = e.Position.Y.Map(0, _canvasSize.Height, 0, Constants.BitmapSize.Height)
                 };
 
                 var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(_gridSize));
@@ -468,14 +468,14 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    private void MouseRightButtonDown(Point<double> point)
+    private void MouseRightButtonDown(MouseDataEventArgs e)
     {
         lock (_lock)
         {
             var position = new Point<double>
             {
-                X = point.X.Map(0, _canvasSize.Width, 0, Constants.BitmapSize.Width),
-                Y = point.Y.Map(0, _canvasSize.Height, 0, Constants.BitmapSize.Height)
+                X = e.Position.X.Map(0, _canvasSize.Width, 0, Constants.BitmapSize.Width),
+                Y = e.Position.Y.Map(0, _canvasSize.Height, 0, Constants.BitmapSize.Height)
             };
 
             var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(_gridSize));

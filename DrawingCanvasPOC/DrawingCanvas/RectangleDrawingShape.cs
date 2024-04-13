@@ -29,7 +29,6 @@ public class RectangleDrawingShape : DrawingShape
         Points.Add(new Point(_startPosition.X - _distanceX, _startPosition.Y + _distanceY));
         Points.Add(new Point(_startPosition.X - _distanceX, _startPosition.Y - _distanceY));
 
-        BitmapTools.SmoothLine(Points, Size);
         ApplyShape();
     }
 
@@ -43,17 +42,12 @@ public class RectangleDrawingShape : DrawingShape
             _distanceX = Math.Abs(_startPosition.X - position.X);
             _distanceY = Math.Abs(_startPosition.Y - position.Y);
 
-            Points.Add(new Point(_startPosition.X - _distanceX, _startPosition.Y - _distanceY));
-            Points.Add(new Point(_startPosition.X, _startPosition.Y - _distanceY));
-            Points.Add(new Point(_startPosition.X + _distanceX, _startPosition.Y - _distanceY));
-
-            Points.Add(new Point(_startPosition.X - _distanceX, _startPosition.Y));
             Points.Add(new Point(_startPosition.X, _startPosition.Y));
-            Points.Add(new Point(_startPosition.X + _distanceX, _startPosition.Y));
-
-            Points.Add(new Point(_startPosition.X - _distanceX, _startPosition.Y + _distanceY));
-            Points.Add(new Point(_startPosition.X, _startPosition.Y + _distanceY));
+            Points.Add(new Point(_startPosition.X - _distanceX, _startPosition.Y - _distanceY));
+            Points.Add(new Point(_startPosition.X + _distanceX, _startPosition.Y - _distanceY));
             Points.Add(new Point(_startPosition.X + _distanceX, _startPosition.Y + _distanceY));
+            Points.Add(new Point(_startPosition.X - _distanceX, _startPosition.Y + _distanceY));
+            Points.Add(new Point(_startPosition.X - _distanceX, _startPosition.Y - _distanceY));
         }
     }
 }

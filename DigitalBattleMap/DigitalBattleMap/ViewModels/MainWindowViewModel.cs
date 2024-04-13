@@ -109,7 +109,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
         TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, MouseCanvas, _monsterTokens, CampaignController, _settings, BackgroundController.GridSize);
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
-        DrawingController = new DrawingControllerViewModel(this, TokenController, BackgroundController.GridSize);
+        DrawingController = new DrawingControllerViewModel(this, TokenController, MouseCanvas, BackgroundController.GridSize);
         DrawingController.OnDrawingStrokesUpdated += DrawingStrokesUpdated;
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
     }
@@ -291,7 +291,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
                 break;
             case TabIndex.Drawing:
                 InkCanvasVisibility = Visibility.Visible;
-                MouseInputCanvasVisibility = Visibility.Hidden;
+                MouseInputCanvasVisibility = Visibility.Visible;
                 TokenVisibility = Visibility.Visible;
                 InkCanvasZIndex = 1;
                 break;

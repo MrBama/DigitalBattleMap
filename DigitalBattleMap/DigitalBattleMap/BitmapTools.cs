@@ -34,11 +34,10 @@ public static class BitmapTools
         return bitmap;
     }
 
-    public static Bitmap CreateColorButton(Color color, bool addSelectionIndicator)
+    public static Bitmap CreateColorButton(Brush brush, bool addSelectionIndicator)
     {
         var bitmap = new Bitmap(70, 70);
         using var graphics = Graphics.FromImage(bitmap);
-        var brush = new SolidBrush(color);
         var borderPen = new Pen(Color.Gray, 4);
 
         graphics.FillEllipse(brush, 9, 9, 50, 50);

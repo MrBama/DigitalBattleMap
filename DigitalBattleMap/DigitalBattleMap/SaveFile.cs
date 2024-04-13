@@ -33,7 +33,7 @@ public class SaveFile
 
     public List<TokenListItem> TokenList { get; set; } = new();
 
-    public List<DrawingShapeSave> DrawingShapes { get; set; } = new();
+    //public List<DrawingShapeSave> DrawingShapes { get; set; } = new();
 
     public List<ObjectLink> ObjectLinks { get; set; } = new();
 

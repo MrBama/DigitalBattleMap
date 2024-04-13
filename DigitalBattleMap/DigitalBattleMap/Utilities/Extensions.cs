@@ -8,6 +8,7 @@ using System.Windows.Media.Imaging;
 using System.Collections.ObjectModel;
 using DigitalBattleMap.DataClasses;
 using System.Windows.Media;
+using System.Runtime.CompilerServices;
 
 namespace DigitalBattleMap.Utilities;
 
@@ -118,5 +119,10 @@ public static class Extensions
     public static List<string> ToStringList(this IList<TokenIndentifier> tokenIndentifiers)
     {
         return tokenIndentifiers.Select(t => t.GetCombinedString()).ToList();
-    }    
+    }
+
+    public static System.Drawing.Brush ToDrawingBrush(this System.Windows.Media.Color color)
+    {
+        return new SolidBrush(System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B));
+    }
 }

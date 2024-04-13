@@ -28,7 +28,7 @@ public class StrokeDrawingShape : DrawingShape
             if (!Points.Contains(position))
             {
                 Points.Add(position);
-                BitmapTools.SmoothLine(Points, Size);
+                //BitmapTools.SmoothLine(Points, Size);
             }
         }
     }

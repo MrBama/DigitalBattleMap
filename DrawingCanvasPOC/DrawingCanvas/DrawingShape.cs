@@ -17,7 +17,7 @@ public abstract class DrawingShape : PropertyHandler
     {
         _applyShapeCallback = applyShapeCallback;
 
-        Color = Brushes.Black;
+        Color = Colors.Black;
         Size = 15;
         Points = new();
 
@@ -28,10 +28,10 @@ public abstract class DrawingShape : PropertyHandler
 
     public event NotifyCollectionChangedEventHandler OnPointsChanged;
 
-    public Brush Color { get => Get<Brush>(); set => Set(value, () => NotifyPropertyChange(nameof(Cursor))); }
+    public Color Color { get => Get<Color>(); set => Set(value, () => NotifyPropertyChange(nameof(Cursor))); }
     public int Size { get => Get<int>(); set => Set(value, () => NotifyPropertyChange(nameof(Cursor))); }
     public bool IsEditing { get => Get<bool>(); set => Set(value); }
-    public virtual Cursor Cursor { get => CursorHelper.CreateCursor(Color, Size); }
+    public virtual Cursor Cursor { get => CursorHelper.CreateCursor(new SolidColorBrush(Color), Size); }
     public virtual bool IsErasable => false;
     public ObservableCollection<Point> Points
     {
@@ -107,7 +107,7 @@ public abstract class DrawingShape : PropertyHandler
     private void MouseMove(MouseDataEventArgs mouseDataEventArgs)
     {
         var directlyOver = mouseDataEventArgs.MouseEventArgs.MouseDevice.DirectlyOver;
-        if (directlyOver is CustomCanvas || directlyOver is PointEllipse)
+        if (directlyOver is MouseCanvas)
         {
             var mouseButtonState = mouseDataEventArgs.MouseEventArgs.LeftButton;
             if (_previousMouseButtonState != mouseButtonState)

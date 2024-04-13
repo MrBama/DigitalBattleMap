@@ -14,7 +14,7 @@ public class DrawingShapeInfo
         Points = drawingShape.Points.ToList();
     }
 
-    public Brush Color { get; set; }
+    public Color Color { get; set; }
     public int Size { get; set; }
     public List<Point> Points { get; set; }
 }
