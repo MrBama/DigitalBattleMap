@@ -1,17 +1,13 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
-using DigitalBattleMap.UIElements;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Windows;
-using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Threading;
 
 namespace DigitalBattleMap.DrawingShapes;
 
@@ -186,18 +182,23 @@ public abstract class DrawingShape : PropertyHandler
         Color = Colors.Black;
         Size = 5;
         Points = new();
+        Name = "DrawingShape";
 
         LeftButtonDownCommand = new RelayCommand(p => LeftButtonDown((MouseDataEventArgs)p));
         LeftButtonUpCommand = new RelayCommand(p => LeftButtonUp((MouseDataEventArgs)p));
         MouseMoveCommand = new RelayCommand(p => MouseMove((MouseDataEventArgs)p));
+
+        RegisterPropertyChangedWatcher(nameof(Cursor), new List<string> { nameof(Color), nameof(Size) });
     }
 
     public event NotifyCollectionChangedEventHandler OnPointsChanged;
 
-    public Color Color { get => Get<Color>(); set => Set(value, () => NotifyPropertyChange(nameof(Cursor))); }
-    public int Size { get => Get<int>(); set =>  Set(Math.Clamp(value, 1, 100), () => NotifyPropertyChange(nameof(Cursor))); }
+    public Color Color { get => Get<Color>(); set => Set(value, () => NotifyPropertyChange(nameof(ColorBrush))); }
+    public Brush ColorBrush { get => new SolidColorBrush(Color); }
+    public int Size { get => Get<int>(); set =>  Set(Math.Clamp(value, 1, 100)); }
     public bool IsEditing { get => Get<bool>(); set => Set(value); }
     public bool SnapToGrid { get => Get<bool>(); set => Set(value); }
+    public string Name { get => Get<string>(); protected set => Set(value); }
     public virtual Cursor Cursor { get => CursorCreator.Create(new SolidColorBrush(Color), Math.Max(8, Size)); }
     public virtual bool IsErasable => false;
     public ObservableCollection<Point<double>> Points

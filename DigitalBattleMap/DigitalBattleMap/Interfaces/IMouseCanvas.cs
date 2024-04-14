@@ -1,6 +1,7 @@
 ﻿using DigitalBattleMap.DataClasses;
 using System;
 using System.Drawing;
+using System.Windows.Input;
 
 namespace DigitalBattleMap.Interfaces;
 
@@ -14,4 +15,5 @@ public interface IMouseCanvas
     public void SubscribePolygonAreaSelected(int tabIndex, Action<Polygon> action);
     public void SetMode(MouseCanvasMode mode);
     public void ResetSelection();
+    public void SetCursor(int tabIndex, Cursor cursor);
 }

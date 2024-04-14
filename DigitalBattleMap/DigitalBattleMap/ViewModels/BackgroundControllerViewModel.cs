@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.Policy;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
@@ -409,7 +407,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         _area.Y += (int)Math.Round(backgroundGridSize - (_area.Y % backgroundGridSize));
 
         // Move background grid to overlap with normal grid
-        var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(GridSize));
+        var gridOffset = Point<double>.Create(Mathematics.CalculateGridOffset(GridSize));
         _area.X -= (int)Math.Round(gridOffset.X.Map(0, Constants.BitmapSize.Width, 0, _area.Width));
         _area.Y -= (int)Math.Round(gridOffset.Y.Map(0, Constants.BitmapSize.Height, 0, _area.Height));
 

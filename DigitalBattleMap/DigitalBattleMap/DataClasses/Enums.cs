@@ -53,8 +53,7 @@ public enum DrawingShapeType
 {
     Rectangle,
     Circle,
-    Cone,
-    Line
+    Cone
 }
 
 public enum MouseCanvasMode

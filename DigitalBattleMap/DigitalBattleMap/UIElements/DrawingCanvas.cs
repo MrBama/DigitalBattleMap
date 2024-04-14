@@ -7,10 +7,8 @@ using System.Windows;
 using System;
 using System.Windows.Controls;
 using System.Windows.Input;
-using DigitalBattleMap.Utilities;
 using DigitalBattleMap.DrawingShapes;
 using System.Windows.Ink;
-using System.Windows.Forms;
 
 namespace DigitalBattleMap.UIElements;
 
@@ -248,8 +246,9 @@ public class DrawingCanvas : InkCanvas
         var stylusPoints = new StylusPointCollection();
         foreach (var point in drawingShape.Points)
         {
-            stylusPoints.Add(new StylusPoint(point.X, point.Y));
+            stylusPoints.Add(new StylusPoint(point.X, point.Y, 0.36f));
         }
+
         return stylusPoints;
     }
 }

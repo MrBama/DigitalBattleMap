@@ -439,7 +439,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                     Y = e.Position.Y.Map(0, _canvasSize.Height, 0, Constants.BitmapSize.Height)
                 };
 
-                var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(_gridSize));
+                var gridOffset = Point<double>.Create(Mathematics.CalculateGridOffset(_gridSize));
                 var cellX = Math.Floor((SelectedToken.Position.X - gridOffset.X) / _gridSize);
                 var cellY = Math.Floor((SelectedToken.Position.Y - gridOffset.Y) / _gridSize);
                 var newCellX = Math.Floor((newPosition.X - gridOffset.X) / _gridSize);
@@ -478,7 +478,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 Y = e.Position.Y.Map(0, _canvasSize.Height, 0, Constants.BitmapSize.Height)
             };
 
-            var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(_gridSize));
+            var gridOffset = Point<double>.Create(Mathematics.CalculateGridOffset(_gridSize));
             var bottomRight = new Point<double>
             {
                 X = position.X + _gridSize - ((position.X - gridOffset.X) % _gridSize),

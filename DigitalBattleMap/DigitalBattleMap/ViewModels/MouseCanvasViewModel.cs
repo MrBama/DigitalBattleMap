@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace DigitalBattleMap.ViewModels;
 
@@ -18,11 +19,13 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     private Dictionary<int, List<Action<MouseDataEventArgs>>> _rightButtonDownEvents = new();
     private Dictionary<int, List<Action<RectangleF>>> _rectangleAreaSelectedEvents = new();
     private Dictionary<int, List<Action<Polygon>>> _polygonAreaSelectedEvents = new();
+    private Dictionary<int, Cursor> _cursors = new();
     private MouseCanvasMode _mode;
     private Point<double> _selectionStartPosition = new();
 
     public MouseCanvasViewModel()
     {
+        Cursor = Cursors.Hand;
         PolygonSelectionPoints = new();
     }
 
@@ -42,7 +45,8 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     public double SelectionY { get => Get<double>(); set => Set(value); }
     public bool IsSelectionAreaVisible { get => Get<bool>(); set => Set(value); }
     public bool IsSelectionStarted { get => Get<bool>(); set => Set(value); }
-    public System.Windows.Media.PointCollection PolygonSelectionPoints { get => Get<System.Windows.Media.PointCollection>(); set => Set(value); }
+    public PointCollection PolygonSelectionPoints { get => Get<PointCollection>(); set => Set(value); }
+    public virtual Cursor Cursor { get => Get<Cursor>(); set => Set(value); }
 
     public ICommand LeftButtonDownCommand { get; set; }
     public ICommand LeftButtonUpCommand { get; set; }
@@ -52,6 +56,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     public void SetSelectedTabIndex(int tabIndex)
     {
         _selectedTabIndex = tabIndex;
+        SelectCursor(tabIndex);
     }
 
     public void SetMode(MouseCanvasMode mode)
@@ -138,6 +143,16 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         SelectionHeight = 0;
         IsSelectionStarted = false;
         PolygonSelectionPoints = new();
+    }
+
+    public void SetCursor(int tabIndex, Cursor cursor)
+    {
+        _cursors[tabIndex] = cursor;
+        
+        if(tabIndex == _selectedTabIndex)
+        {
+            SelectCursor(tabIndex);
+        }
     }
 
     private void LeftButtonDown(MouseButtonEventArgs e)
@@ -326,6 +341,18 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
             {
                 action(new MouseDataEventArgs(e, point));
             }
+        }
+    }
+
+    private void SelectCursor(int tabIndex)
+    {
+        if(_cursors.ContainsKey(tabIndex))
+        {
+            Cursor = _cursors[tabIndex];
+        }
+        else
+        {
+            Cursor = Cursors.Hand;
         }
     }
 }

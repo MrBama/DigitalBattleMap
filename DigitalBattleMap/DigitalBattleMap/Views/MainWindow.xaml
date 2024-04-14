@@ -110,19 +110,9 @@
                                 Width="{Binding ElementName=GridLayer, Path=ActualWidth}" 
                                 Height="{Binding ElementName=GridLayer, Path=ActualHeight}">
                             </uielements:DrawingCanvas>
-                            <!--<uielements:InkCanvasControl Background="{Binding DrawingController.InkCanvasBackgroundBitmapSource}" 
-                                            DefaultDrawingAttributes="{Binding DrawingController.InkCanvasDrawingAttributes}" 
-                                            Width="{Binding ElementName=GridLayer, Path=ActualWidth}" 
-                                            Height="{Binding ElementName=GridLayer, Path=ActualHeight}"
-                                            EditingMode="{Binding DrawingController.EditingMode}"
-                                            EraserShape="{Binding DrawingController.EraserShape}"
-                                            Strokes="{Binding DrawingController.Strokes, Mode=TwoWay}"
-                                            Visibility="{Binding InkCanvasVisibility}"
-                                            Panel.ZIndex="{Binding InkCanvasZIndex}">
-                            </uielements:InkCanvasControl>-->
                             <Image Source="{Binding TokenController.TokenBitmapSource}" Visibility="{Binding TokenVisibility}"/>
                             <Image Source="{Binding TokenController.TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
-                            <Canvas Visibility="{Binding MouseInputCanvasVisibility}" Background="Transparent" Cursor="Hand" Panel.ZIndex="5">
+                            <Canvas Visibility="{Binding MouseInputCanvasVisibility}" Background="Transparent" Cursor="{Binding MouseCanvas.Cursor}" Panel.ZIndex="5">
                                 <i:Interaction.Behaviors>
                                     <uielements:MouseBehavior MouseX="{Binding MouseCanvas.MouseX, Mode=OneWayToSource}" MouseY="{Binding MouseCanvas.MouseY, Mode=OneWayToSource}"/>
                                 </i:Interaction.Behaviors>

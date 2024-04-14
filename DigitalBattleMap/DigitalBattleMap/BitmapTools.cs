@@ -1,5 +1,4 @@
-﻿using DigitalBattleMap.Common;
-using DigitalBattleMap.DataClasses;
+﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
@@ -218,20 +217,6 @@ public static class BitmapTools
         }
     }
 
-    public static Point<int> CalculateGridOffset(int gridSize)
-    {
-        var middleGridCellX = (Constants.BitmapSize.Width / 2) - (gridSize / 2);
-        var middleGridCellY = (Constants.BitmapSize.Height / 2) - (gridSize / 2);
-
-        var xModulo = middleGridCellX % gridSize;
-        var yModulo = middleGridCellY % gridSize;
-
-        var startX = xModulo == 0 ? 0 : xModulo;
-        var startY = yModulo == 0 ? 0 : yModulo;
-
-        return new(startX, startY);
-    }
-
     public static Bitmap CreateFogOfWarBitmap(Rectangle area, List<FogOfWarArea> removedAreas)
     {
         var bitmap = new Bitmap(area.Width, area.Height);
@@ -366,7 +351,7 @@ public static class BitmapTools
 
     private static (Point<int>, Size<int>) CalculateTokenDrawingPositionAndSize(double tokenSizeFactor, Point<int> tokenPosition, int gridSize)
     {
-        var gridStart = CalculateGridOffset(gridSize);
+        var gridStart = Mathematics.CalculateGridOffset(gridSize);
         var margin = 4;
 
         // Calculate grid cell
@@ -408,7 +393,7 @@ public static class BitmapTools
 
     private static void DrawGrid(Bitmap bitmap, int gridSize)
     {
-        var gridOffset = CalculateGridOffset(gridSize);
+        var gridOffset = Mathematics.CalculateGridOffset(gridSize);
 
         using var graphics = Graphics.FromImage(bitmap);
         Pen blackPen = new(Color.Black, 1);

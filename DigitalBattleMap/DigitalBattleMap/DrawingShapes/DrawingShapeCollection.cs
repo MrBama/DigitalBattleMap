@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Reflection;
+using System.Linq;
 
 namespace DigitalBattleMap.DrawingShapes;
 
@@ -47,10 +47,11 @@ public class DrawingShapeCollection : IEnumerable, INotifyCollectionChanged
 
     public void Remove(DrawingShape drawingShape)
     {
-        var index = _drawingShapes.IndexOf(drawingShape);
-        _drawingShapes.Remove(drawingShape);
+        var index = _drawingShapes.Where(s => !s.IsErasable).ToList().IndexOf(drawingShape);
         drawingShape.PropertyChanged -= DrawingShapePropertyChanged;
         drawingShape.OnPointsChanged -= DrawingShapePointsChanged;
+        _drawingShapes.Remove(drawingShape);
+
         DrawingShapeCollectionChanged(new DrawingShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Remove, ChangedShape = drawingShape });
 
         // Only show shapes that cannot be removed with the eraser

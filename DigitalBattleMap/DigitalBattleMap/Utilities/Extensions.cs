@@ -8,7 +8,6 @@ using System.Windows.Media.Imaging;
 using System.Collections.ObjectModel;
 using DigitalBattleMap.DataClasses;
 using System.Windows.Media;
-using System.Runtime.CompilerServices;
 
 namespace DigitalBattleMap.Utilities;
 
