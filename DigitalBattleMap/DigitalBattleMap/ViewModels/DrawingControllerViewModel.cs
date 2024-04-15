@@ -62,7 +62,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         ShapeSizeX = 10;
         ShapeSizeY = 10;
         RectangleShapeSelected = true;
-        Strokes = new StrokeCollection();
         ShapeCollection = new();
         ActiveShape = new StrokeDrawingShape(ApplyActiveShape, _canvasSize, _gridSize);
     }
@@ -101,7 +100,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public bool CircleShapeSelected { get => Get<bool>(); set => Set(value); }
     public bool ConeShapeSelected { get => Get<bool>(); set => Set(value); }
     public bool LineShapeSelected { get => Get<bool>(); set => Set(value); }
-    public StrokeCollection Strokes { get => Get<StrokeCollection>(); set => Set(value); }
     //public bool IsShapeEditAndRemoveEnabled { get => SelectedShape != null && !IsShapeEditorActive; }
     //public bool IsShapeDrawn { get => ShapeStroke != null; }
     public bool IsShapeEditorActive { get => Get<bool>(); set => Set(value); }
@@ -120,19 +118,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public ICommand DrawRectangleCommand { get; set; }
     public ICommand DrawCircleCommand { get; set; }
     public ICommand DrawConeCommand { get; set; }
-
-    //private Stroke ShapeStroke
-    //{
-    //    get => _shapeStroke;
-    //    set
-    //    {
-    //        if (value != _shapeStroke)
-    //        {
-    //            _shapeStroke = value;
-    //            NotifyPropertyChange(nameof(IsShapeDrawn));
-    //        }
-    //    }
-    //}
 
     public DrawingShape ActiveShape
     {
@@ -156,29 +141,29 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     public override void Move(ArrowDirection direction, int movementCount)
     {
-        //var matrix = new System.Windows.Media.Matrix();
-        //double gridSize = _gridSize * movementCount;
-        //var distanceX = gridSize.Map(0, Constants.BitmapSize.Width, 0, _canvasSize.Width);
-        //var distanceY = gridSize.Map(0, Constants.BitmapSize.Height, 0, _canvasSize.Height);
+        var matrix = new Matrix();
+        double gridSize = _gridSize * movementCount;
+        var distanceX = gridSize.Map(0, Constants.BitmapSize.Width, 0, _canvasSize.Width);
+        var distanceY = gridSize.Map(0, Constants.BitmapSize.Height, 0, _canvasSize.Height);
 
-        //switch (direction)
-        //{
-        //    case ArrowDirection.Up:
-        //        matrix.Translate(0, distanceY);
-        //        break;
-        //    case ArrowDirection.Down:
-        //        matrix.Translate(0, -distanceY);
-        //        break;
-        //    case ArrowDirection.Left:
-        //        matrix.Translate(distanceX, 0);
-        //        break;
-        //    case ArrowDirection.Right:
-        //        matrix.Translate(-distanceX, 0);
-        //        break;
-        //}
+        switch (direction)
+        {
+            case ArrowDirection.Up:
+                matrix.Translate(0, distanceY);
+                break;
+            case ArrowDirection.Down:
+                matrix.Translate(0, -distanceY);
+                break;
+            case ArrowDirection.Left:
+                matrix.Translate(distanceX, 0);
+                break;
+            case ArrowDirection.Right:
+                matrix.Translate(-distanceX, 0);
+                break;
+        }
 
-        //Strokes.Transform(matrix, false);
-        //NotifyDrawingStrokesUpdated();
+        ShapeCollection.Transform(matrix);
+        NotifyDrawingStrokesUpdated();
     }
 
     public override void AddToSaveFile(SaveFile saveFile)
@@ -246,21 +231,21 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void OnCanvasSizeChanged(object? sender, CanvasSizeChangedEventArgs eventArgs)
     {
-        //if (eventArgs.OldSize != null && !eventArgs.OldSize.Equals(eventArgs.NewSize))
-        //{
-        //    var zoomFactor = eventArgs.NewSize.Width / eventArgs.OldSize.Width;
-        //    var matrix = new System.Windows.Media.Matrix();
-        //    matrix.Scale(zoomFactor, zoomFactor);
-        //    Strokes.Transform(matrix, false);
+        if (eventArgs.OldSize != null && !eventArgs.OldSize.Equals(eventArgs.NewSize))
+        {
+            var zoomFactor = eventArgs.NewSize.Width / eventArgs.OldSize.Width;
 
-        //    foreach (var stroke in Strokes)
-        //    {
-        //        stroke.DrawingAttributes.Width *= zoomFactor;
-        //        stroke.DrawingAttributes.Height *= zoomFactor;
-        //    }
+            foreach (var shape in ShapeCollection.GetShapes())
+            {
+                shape.Size *= zoomFactor;
+            }
 
-        //    NotifyDrawingStrokesUpdated();
-        //}
+            var matrix = new Matrix();
+            matrix.Scale(zoomFactor, zoomFactor);
+            ShapeCollection.Transform(matrix);
+
+            NotifyDrawingStrokesUpdated();
+        }
     }
 
     public void OpenObjectLinks(List<ObjectLink> objectLinks)
@@ -276,11 +261,11 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     public override void Zoom(double zoomFactor)
     {
-        //var matrix = new System.Windows.Media.Matrix();
-        //matrix.Translate(-(_canvasSize.Width / 2), -(_canvasSize.Height / 2));
-        //matrix.Scale(zoomFactor, zoomFactor);
-        //matrix.Translate((_canvasSize.Width / 2), (_canvasSize.Height / 2));
-        //Strokes.Transform(matrix, false);
+        var matrix = new Matrix();
+        matrix.Translate(-(_canvasSize.Width / 2), -(_canvasSize.Height / 2));
+        matrix.Scale(zoomFactor, zoomFactor);
+        matrix.Translate((_canvasSize.Width / 2), (_canvasSize.Height / 2));
+        ShapeCollection.Transform(matrix);
     }
 
     public void UpdateGridSize(int gridSize)
@@ -793,4 +778,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
  * - Link shape to token
  * - Circle
  * - Cone
+ * - Move mouse logic to MouseCanvas
+ * - Right click move shape
  */

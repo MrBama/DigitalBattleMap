@@ -195,11 +195,11 @@ public abstract class DrawingShape : PropertyHandler
 
     public Color Color { get => Get<Color>(); set => Set(value, () => NotifyPropertyChange(nameof(ColorBrush))); }
     public Brush ColorBrush { get => new SolidColorBrush(Color); }
-    public int Size { get => Get<int>(); set =>  Set(Math.Clamp(value, 1, 100)); }
+    public double Size { get => Get<double>(); set =>  Set(Math.Clamp(value, 1, 100)); }
     public bool IsEditing { get => Get<bool>(); set => Set(value); }
     public bool SnapToGrid { get => Get<bool>(); set => Set(value); }
     public string Name { get => Get<string>(); protected set => Set(value); }
-    public virtual Cursor Cursor { get => CursorCreator.Create(new SolidColorBrush(Color), Math.Max(8, Size)); }
+    public virtual Cursor Cursor { get => CursorCreator.Create(new SolidColorBrush(Color), (int)Math.Max(8, Size)); }
     public virtual bool IsErasable => false;
     public ObservableCollection<Point<double>> Points
     {
@@ -313,7 +313,7 @@ public abstract class DrawingShape : PropertyHandler
         }
 
         public Color Color { get; set; }
-        public int Size { get; set; }
+        public double Size { get; set; }
         public List<Point<double>> Points { get; set; }
     }
 }

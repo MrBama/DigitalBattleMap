@@ -7,6 +7,7 @@ using System.Linq;
 using System.Windows.Media.Imaging;
 using System.Collections.ObjectModel;
 using DigitalBattleMap.DataClasses;
+using System.Windows;
 using System.Windows.Media;
 
 namespace DigitalBattleMap.Utilities;

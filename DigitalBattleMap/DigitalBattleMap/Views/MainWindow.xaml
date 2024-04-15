@@ -24,7 +24,7 @@
             <i:InvokeCommandAction Command="{Binding WindowClosingCommand}" />
         </i:EventTrigger>
         <i:EventTrigger EventName="ContentRendered">
-            <i:InvokeCommandAction Command="{Binding InkCanvasSizeOnStartupCommand}" CommandParameter="{Binding ElementName=MapCanvas, Path=ActualWidth}"/>
+            <i:InvokeCommandAction Command="{Binding CanvasSizeOnStartupCommand}" CommandParameter="{Binding ElementName=MapCanvas, Path=ActualWidth}"/>
         </i:EventTrigger>
         <i:EventTrigger EventName="KeyDown">
             <i:InvokeCommandAction Command="{Binding KeyDownCommand}" PassEventArgsToCommand="True"/>
@@ -94,7 +94,7 @@
                         <Grid x:Name="MapCanvas">
                             <i:Interaction.Triggers>
                                 <i:EventTrigger EventName="SizeChanged">
-                                    <i:InvokeCommandAction Command="{Binding InkCanvasSizeChangedCommand}" PassEventArgsToCommand="True"/>
+                                    <i:InvokeCommandAction Command="{Binding CanvasSizeChangedCommand}" PassEventArgsToCommand="True"/>
                                 </i:EventTrigger>
                             </i:Interaction.Triggers>
                             <Image Source="{Binding BackgroundController.BackgroundBitmapSource}"/>

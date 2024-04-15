@@ -79,8 +79,8 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
 
     public ICommand ShowMapCommand { get; set; }
     public ICommand WindowClosingCommand { get; set; }
-    public ICommand InkCanvasSizeOnStartupCommand { get; set; }
-    public ICommand InkCanvasSizeChangedCommand { get; set; }
+    public ICommand CanvasSizeOnStartupCommand { get; set; }
+    public ICommand CanvasSizeChangedCommand { get; set; }
     public ICommand ClearAllCommand { get; set; }
     public ICommand SettingsCommand { get; set; }
     public ICommand MoveMapArrowCommand { get; set; }
@@ -129,8 +129,8 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     {
         ShowMapCommand = new RelayCommand(p => ShowMap());
         WindowClosingCommand = new RelayCommand(p => WindowClosing());
-        InkCanvasSizeOnStartupCommand = new RelayCommand(p => SetInkCanvasSize((double)p));
-        InkCanvasSizeChangedCommand = new RelayCommand(p => InkCanvasSizeChanged((SizeChangedEventArgs)p));
+        CanvasSizeOnStartupCommand = new RelayCommand(p => SetInkCanvasSize((double)p));
+        CanvasSizeChangedCommand = new RelayCommand(p => InkCanvasSizeChanged((SizeChangedEventArgs)p));
         ClearAllCommand = new RelayCommand(p => ClearMap());
         SettingsCommand = new RelayCommand(p => OpenSettings());
         MoveMapArrowCommand = new RelayCommand(p => MoveMap((string)p));
@@ -209,7 +209,8 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
 
     private Bitmap CreateGridAndDrawingBitmap()
     {
-        return BitmapTools.CreateGridAndStrokesBitmap(BackgroundController.GetGridBitmap(), DrawingController.Strokes, Size<int>.Create(_canvasSize));
+        return new Bitmap(1,1);
+        //return BitmapTools.CreateGridAndStrokesBitmap(BackgroundController.GetGridBitmap(), DrawingController.Strokes, Size<int>.Create(_canvasSize));
     }
 
     private void WindowClosing()

@@ -17,7 +17,7 @@ public class EraserDrawingShape : DrawingShape
         _drawingShapeCollection = drawingShapeCollection;
     }
 
-    public override Cursor Cursor { get => CursorCreator.Create(Brushes.White, new Pen(Brushes.Black, 1), Size); }
+    public override Cursor Cursor { get => CursorCreator.Create(Brushes.White, new Pen(Brushes.Black, 1), (int)Math.Max(8, Size)); }
 
     protected override void ButtonDown(Point<double> position)
     {

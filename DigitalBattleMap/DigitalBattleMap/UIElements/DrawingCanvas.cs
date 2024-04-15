@@ -47,17 +47,17 @@ public class DrawingCanvas : InkCanvas
     {
         var canvas = (DrawingCanvas)dependencyObject;
 
-        if (eventArgs.OldValue is DrawingShape oldDrawingShape)
+        if (eventArgs.OldValue is DrawingShape oldShape)
         {
-            oldDrawingShape.PropertyChanged -= _shapePropertyChangedHandler;
-            oldDrawingShape.OnPointsChanged -= _shapePointsChangedHandler;
-            canvas.EraseActiveShape(oldDrawingShape);
+            oldShape.PropertyChanged -= _shapePropertyChangedHandler;
+            oldShape.OnPointsChanged -= _shapePointsChangedHandler;
+            canvas.EraseActiveShape(oldShape);
         }
 
-        if (eventArgs.NewValue is DrawingShape newDrawingShape)
+        if (eventArgs.NewValue is DrawingShape newShape)
         {
-            newDrawingShape.PropertyChanged += _shapePropertyChangedHandler;
-            newDrawingShape.OnPointsChanged += _shapePointsChangedHandler;
+            newShape.PropertyChanged += _shapePropertyChangedHandler;
+            newShape.OnPointsChanged += _shapePointsChangedHandler;
         }
     }
 
@@ -95,6 +95,9 @@ public class DrawingCanvas : InkCanvas
             case CollectionChangedAction.Remove:
                 EraseShape(e.ChangedShape);
                 break;
+            case CollectionChangedAction.Update:
+                UpdateShape(e.ChangedShape);
+                break;
             case CollectionChangedAction.Clear:
                 EraseAll();
                 break;
@@ -106,20 +109,20 @@ public class DrawingCanvas : InkCanvas
     private void OnShapePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         var properties = new List<string> { nameof(DrawingShape.Size), nameof(DrawingShape.Color), nameof(DrawingShape.Points) };
-        if (sender is DrawingShape drawingShape)
+        if (sender is DrawingShape shape)
         {
             if (properties.Contains(e.PropertyName))
             {
-                if(_strokes.ContainsKey(drawingShape))
+                if(_strokes.ContainsKey(shape))
                 {
-                    var index = Strokes.IndexOf(_strokes[drawingShape]);
-                    EraseShape(drawingShape);
-                    InsertShape(index, drawingShape);
+                    var index = Strokes.IndexOf(_strokes[shape]);
+                    EraseShape(shape);
+                    InsertShape(index, shape);
                 }
                 else
                 {
-                    EraseShape(drawingShape);
-                    DrawShape(drawingShape);
+                    EraseShape(shape);
+                    DrawShape(shape);
                 }
             }
         }
@@ -231,6 +234,13 @@ public class DrawingCanvas : InkCanvas
         }
     }
 
+    private void UpdateShape(DrawingShape shape)
+    {
+        var index = Strokes.IndexOf(_strokes[shape]);
+        EraseShape(shape);
+        InsertShape(index, shape);
+    }
+
     private Stroke CreateStroke(DrawingShape shape)
     {
         var stroke = new Stroke(ConvertToStylusPointCollection(shape));
@@ -241,10 +251,10 @@ public class DrawingCanvas : InkCanvas
         return stroke;
     }
 
-    private static StylusPointCollection ConvertToStylusPointCollection(DrawingShape drawingShape)
+    private static StylusPointCollection ConvertToStylusPointCollection(DrawingShape shape)
     {
         var stylusPoints = new StylusPointCollection();
-        foreach (var point in drawingShape.Points)
+        foreach (var point in shape.Points)
         {
             stylusPoints.Add(new StylusPoint(point.X, point.Y, 0.36f));
         }
