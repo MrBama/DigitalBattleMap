@@ -146,13 +146,13 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         {
             saveFile.DrawingShapes.Add(shape);
 
-            if (shape.IsLinked())
+            if (shape.LinkableObject.IsLinked())
             {
                 var objectLink = new ObjectLink
                 {
                     LinkableObjectType = typeof(DrawingShape),
                     Index = index,
-                    TokenIndentifier = shape.GetLinkIdentifier()
+                    TokenIndentifier = shape.LinkableObject.GetLinkIdentifier()
                 };
                 saveFile.ObjectLinks.Add(objectLink);
             }
@@ -241,7 +241,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     {
         foreach (var shape in ShapeCollection.GetShapes())
         {
-            shape.Dispose();
+            shape.LinkableObject.Dispose();
         }
 
         ShapeCollection.Clear();

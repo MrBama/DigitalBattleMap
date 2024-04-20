@@ -113,7 +113,7 @@
                     <Grid Background="Transparent">
                         <Grid.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="{Binding LinkToTokenButtonText}" Command="{Binding LinkToTokenCommand}"/>
+                                <MenuItem Header="{Binding LinkableObject.LinkToTokenButtonText}" Command="{Binding LinkToTokenCommand}"/>
                             </ContextMenu>
                         </Grid.ContextMenu>
                         <Grid.ColumnDefinitions>

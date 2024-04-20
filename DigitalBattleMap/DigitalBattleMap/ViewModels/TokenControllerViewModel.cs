@@ -299,13 +299,13 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             saveFile.TokenList = TokenList.ToList();
             foreach ((var token, var index) in TokenList.WithIndex())
             {
-                if (token.IsLinked())
+                if (token.LinkableObject.IsLinked())
                 {
                     var objectLink = new ObjectLink
                     {
                         LinkableObjectType = typeof(TokenListItem),
                         Index = index,
-                        TokenIndentifier = token.GetLinkIdentifier()
+                        TokenIndentifier = token.LinkableObject.GetLinkIdentifier()
                     };
                     saveFile.ObjectLinks.Add(objectLink);
                 }
@@ -409,10 +409,10 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
         if (listSelectionWindowViewModel.Success)
         {
-            if (listSelectionWindowViewModel.SelectedItem != linkableObject)
+            if (listSelectionWindowViewModel.SelectedItem.LinkableObject != linkableObject)
             {
-                linkableObject.Link(listSelectionWindowViewModel.SelectedItem);
-                listSelectionWindowViewModel.SelectedItem.LinkedObjects.Add(linkableObject);
+                linkableObject.LinkableObject.Link(listSelectionWindowViewModel.SelectedItem);
+                listSelectionWindowViewModel.SelectedItem.LinkedObjects.Add(linkableObject.LinkableObject);
             }
         }
     }
@@ -422,8 +422,8 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         var tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(tokenIndentifier));
         if (tokenListItem != null)
         {
-            linkableObject.Link(tokenListItem);
-            tokenListItem.LinkedObjects.Add(linkableObject);
+            linkableObject.LinkableObject.Link(tokenListItem);
+            tokenListItem.LinkedObjects.Add(linkableObject.LinkableObject);
         }
     }
 

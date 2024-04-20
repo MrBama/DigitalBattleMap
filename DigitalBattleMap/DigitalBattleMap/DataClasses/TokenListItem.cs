@@ -12,16 +12,15 @@ namespace DigitalBattleMap.DataClasses;
 public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisposable
 {
     private Bitmap _bitmap;
-    private ITokenLink _tokenLink;
     private ITokenLinker _tokenLinker;
     private IPlayers _players;
     private ITokenListItemMultiActions _multiActions;
 
     public TokenListItem()
     {
-        LinkToTokenButtonText = "Link to token";
         Conditions = new List<Condition>();
         Visible = true;
+        LinkableObject = new LinkableObject(UpdatePosition);
 
         TokenSizeChangedCommand = new RelayCommand(p => TokenSizeChanged((string)p));
         TokenOrientationChangedCommand = new RelayCommand(p => TokenOrientationChanged((string)p));
@@ -70,9 +69,9 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     public bool AreConditionsVisible { get => Get<bool>(); set => Set(value); }
 
     [JsonIgnore]
-    public List<ILinkableObject> LinkedObjects { get; set; } = new();
+    public List<LinkableObject> LinkedObjects { get; set; } = new();
     [JsonIgnore]
-    public string LinkToTokenButtonText { get => Get<string>(); set => Set(value); }
+    public LinkableObject LinkableObject { get; private set; }
     [JsonIgnore]
     public ICommand TokenSizeChangedCommand { get; set; }
     [JsonIgnore]
@@ -134,7 +133,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         NotifyPropertyChange(nameof(Conditions));
     }
 
-    public void Unlink(ILinkableObject linkableObject)
+    public void Unlink(LinkableObject linkableObject)
     {
         LinkedObjects.Remove(linkableObject);
     }
@@ -146,7 +145,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
 
     public void Dispose()
     {
-        Unlink();
+        LinkableObject.Dispose();
 
         foreach (var linkedObject in LinkedObjects)
         {
@@ -163,36 +162,6 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         {
             linkedObject.UpdatePosition(offset);
         }
-    }
-
-    public void Link(ITokenLink tokenLink)
-    {
-        _tokenLink?.Unlink(this);
-        _tokenLink = tokenLink;
-        RefershLinkToTokenButtonText();
-    }
-
-    public void Unlink()
-    {
-        _tokenLink?.Unlink(this);
-        _tokenLink = null;
-        RefershLinkToTokenButtonText();
-    }
-
-    public bool IsLinked()
-    {
-        return _tokenLink != null;
-    }
-
-    public TokenIndentifier GetLinkIdentifier()
-    {
-        return _tokenLink.GetTokenIndentifier();
-    }
-
-    public void DisposeLink()
-    {
-        _tokenLink = null;
-        RefershLinkToTokenButtonText();
     }
 
     public override string ToString()
@@ -258,26 +227,13 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
 
     private void LinkToDifferentToken()
     {
-        if (!IsLinked())
+        if (!LinkableObject.IsLinked())
         {
             _tokenLinker.LinkToToken(this);
         }
         else
         {
-            Unlink();
-        }
-    }
-
-    private void RefershLinkToTokenButtonText()
-    {
-        if (IsLinked())
-        {
-            var linkIdentifier = GetLinkIdentifier();
-            LinkToTokenButtonText = $"Unlink from {linkIdentifier.Name} {linkIdentifier.Id}";
-        }
-        else
-        {
-            LinkToTokenButtonText = "Link to token";
+            LinkableObject.Unlink();
         }
     }
 
@@ -299,7 +255,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     {
         _multiActions.TokenOrientationChanged(this);
     }
-    
+
 
     private void HealthChanged(object? sender, EventArgs e)
     {

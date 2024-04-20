@@ -10,17 +10,15 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Threading;
 
 namespace DigitalBattleMap.DrawingShapes;
 
-public abstract class DrawingShape : PropertyHandler, ILinkableObject, IDisposable
+public abstract class DrawingShape : PropertyHandler, ILinkableObject
 {
     private Action _applyShapeCallback;
     MouseButtonState _previousMouseButtonState;
     private DrawingShapeInfo _editInfo;
     protected ICanvasSize _canvasSize;
-    private ITokenLink _tokenLink;
     private ITokenLinker _tokenLinker;
     protected int _gridSize;
 
@@ -35,7 +33,7 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject, IDisposab
         PenSize = 5;
         Points = new();
         Name = "DrawingShape";
-        LinkToTokenButtonText = "Link to token";
+        LinkableObject = new LinkableObject(UpdatePosition);
 
         LeftButtonDownCommand = new RelayCommand(p => LeftButtonDown((MouseDataEventArgs)p));
         LeftButtonUpCommand = new RelayCommand(p => LeftButtonUp((MouseDataEventArgs)p));
@@ -55,7 +53,6 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject, IDisposab
     public bool IsEditing { get => Get<bool>(); set => Set(value); }
     public bool SnapToGrid { get => Get<bool>(); set => Set(value); }
     public string Name { get => Get<string>(); protected set => Set(value); }
-    public string LinkToTokenButtonText { get => Get<string>(); set => Set(value); }
     public virtual Cursor Cursor { get => CursorCreator.Create(new SolidColorBrush(Color), (int)Math.Max(8, PenSize)); }
     public virtual bool IsErasable => false;
     public Type Type { get => GetType(); }
@@ -80,11 +77,13 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject, IDisposab
     }
 
     [JsonIgnore]
-    public ICommand LeftButtonDownCommand { get; private set; }
+    public LinkableObject LinkableObject { get; private set; }
     [JsonIgnore]
-    public ICommand LeftButtonUpCommand { get; private set; }
+    public ICommand LeftButtonDownCommand { get; set; }
     [JsonIgnore]
-    public ICommand MouseMoveCommand { get; private set; }
+    public ICommand LeftButtonUpCommand { get; set; }
+    [JsonIgnore]
+    public ICommand MouseMoveCommand { get; set; }
     [JsonIgnore]
     public ICommand LinkToTokenCommand { get; set; }
 
@@ -183,41 +182,6 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject, IDisposab
         });
     }
 
-    public void Link(ITokenLink tokenLink)
-    {
-        _tokenLink?.Unlink(this);
-        _tokenLink = tokenLink;
-        RefreshLinkToTokenButtonText();
-    }
-
-    public void Unlink()
-    {
-        _tokenLink?.Unlink(this);
-        _tokenLink = null;
-        RefreshLinkToTokenButtonText();
-    }
-
-    public bool IsLinked()
-    {
-        return _tokenLink != null;
-    }
-
-    public void DisposeLink()
-    {
-        _tokenLink = null;
-        RefreshLinkToTokenButtonText();
-    }
-
-    public TokenIndentifier GetLinkIdentifier()
-    {
-        return _tokenLink.GetTokenIndentifier();
-    }
-
-    public void Dispose()
-    {
-        Unlink();
-    }
-
     protected abstract void ButtonDown(Point<double> position);
     protected abstract void ButtonUp(Point<double> position);
     protected abstract void MouseMove(Point<double> position, bool buttonDown);
@@ -232,28 +196,15 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject, IDisposab
         OnPointsChanged?.Invoke(this, e);
     }
 
-    private void RefreshLinkToTokenButtonText()
-    {
-        if (IsLinked())
-        {
-            var linkIdentifier = GetLinkIdentifier();
-            LinkToTokenButtonText = $"Unlink from {linkIdentifier.Name} {linkIdentifier.Id}";
-        }
-        else
-        {
-            LinkToTokenButtonText = "Link to token";
-        }
-    }
-
     private void LinkToDifferentToken()
     {
-        if (!IsLinked())
+        if (!LinkableObject.IsLinked())
         {
             _tokenLinker.LinkToToken(this);
         }
         else
         {
-            Unlink();
+            LinkableObject.Unlink();
         }
     }
 
