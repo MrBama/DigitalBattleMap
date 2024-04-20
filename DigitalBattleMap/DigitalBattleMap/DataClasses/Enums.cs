@@ -74,6 +74,5 @@ public enum CollectionChangedAction
     Add,
     Insert,
     Remove,
-    Update,
     Clear,
 }

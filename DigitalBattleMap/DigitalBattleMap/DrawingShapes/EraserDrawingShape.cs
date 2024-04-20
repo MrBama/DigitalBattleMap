@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.ObjectModel;
@@ -12,12 +13,12 @@ public class EraserDrawingShape : DrawingShape
 {
     private DrawingShapeCollection _drawingShapeCollection;
 
-    public EraserDrawingShape(DrawingShapeCollection drawingShapeCollection) : base(() => { }, null, 1)
+    public EraserDrawingShape(DrawingShapeCollection drawingShapeCollection, ICanvasSize canvasSize) : base(() => { }, null, canvasSize, 1)
     {
         _drawingShapeCollection = drawingShapeCollection;
     }
 
-    public override Cursor Cursor { get => CursorCreator.Create(Brushes.White, new Pen(Brushes.Black, 1), (int)Math.Max(8, Size)); }
+    public override Cursor Cursor { get => CursorCreator.Create(Brushes.White, new Pen(Brushes.Black, 1), (int)Math.Max(8, PenSize)); }
 
     protected override void ButtonDown(Point<double> position)
     {
@@ -26,6 +27,7 @@ public class EraserDrawingShape : DrawingShape
 
     protected override void ButtonUp(Point<double> position)
     {
+        RenderShape();
     }
 
     protected override void MouseMove(Point<double> position, bool buttonDown)
@@ -44,7 +46,7 @@ public class EraserDrawingShape : DrawingShape
             {
                 foreach (var point in shape.Points.ToList())
                 {
-                    if(DoesPointOverlapWithEraser(point, position))
+                    if(DoesPointOverlapWithEraser(point, shape.PenSizeCanvas, position))
                     {
                         RemovePointFromShape(shape, point, out var isSplit);
                         if (isSplit)
@@ -55,11 +57,11 @@ public class EraserDrawingShape : DrawingShape
         }
     }
 
-    private bool DoesPointOverlapWithEraser(Point<double> point, Point<double> mousePosition)
+    private bool DoesPointOverlapWithEraser(Point<double> point, double pointSize, Point<double> mousePosition)
     {
-        var radius = Size / 2;
-        var zeroBasedPoint = new Point<double>(point.X - mousePosition.X, point.Y - mousePosition.Y);
-        return Math.Sqrt(Math.Pow(zeroBasedPoint.X, 2) + Math.Pow(zeroBasedPoint.Y, 2)) < radius;
+        var radius = (PenSizeCanvas / 2) + (pointSize / 2);
+        var distance = new Point<double>(point.X - mousePosition.X, point.Y - mousePosition.Y);
+        return Math.Sqrt(Math.Pow(distance.X, 2) + Math.Pow(distance.Y, 2)) < radius;
     }
 
     private void RemovePointFromShape(DrawingShape shape, Point<double> point, out bool isSplit)
@@ -84,9 +86,9 @@ public class EraserDrawingShape : DrawingShape
     {
         var pointIndex = shape.Points.IndexOf(point);
 
-        var newShape = new StrokeDrawingShape(() => { }, null, 1)
+        var newShape = new StrokeDrawingShape(() => { }, null, _canvasSize, 1)
         {
-            Size = shape.Size,
+            PenSize = shape.PenSize,
             Color = shape.Color,
             Points = new ObservableCollection<Point<double>>(shape.Points.Skip(pointIndex))
         };

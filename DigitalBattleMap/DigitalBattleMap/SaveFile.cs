@@ -1,10 +1,10 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.DrawingShapes;
 using DigitalBattleMap.Utilities;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Windows.Ink;
 using static DigitalBattleMap.Utilities.FileManager;
 
 namespace DigitalBattleMap;
@@ -12,7 +12,6 @@ namespace DigitalBattleMap;
 public class SaveFile
 {
     private static string _saveFilePath = Path.Combine(Constants.TempDirectoryPath, "SaveFile.json");
-    private static string _drawingFilePath = Path.Combine(Constants.TempDirectoryPath, "Drawing.dat");
     private static string _fullBackgrondFilePath = Path.Combine(Constants.TempDirectoryPath, "FullBackground.png");
 
     public int GridSize { get; set; }
@@ -33,14 +32,11 @@ public class SaveFile
 
     public List<TokenListItem> TokenList { get; set; } = new();
 
-    //public List<DrawingShapeSave> DrawingShapes { get; set; } = new();
+    public List<DrawingShape> DrawingShapes { get; set; } = new();
 
     public List<ObjectLink> ObjectLinks { get; set; } = new();
 
     public List<FogOfWarArea> FogOfWarAreas { get; set; } = new();
-
-    [JsonIgnore]
-    public StrokeCollection Strokes { get; set; } = new();
 
     [JsonIgnore]
     public Bitmap FullBackground { get; set; }
@@ -49,11 +45,6 @@ public class SaveFile
     {
         using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
         FileManager.SaveFile(this, _saveFilePath);
-
-        using (var fileStream = new FileStream(_drawingFilePath, FileMode.Create))
-        {
-            Strokes.Save(fileStream);
-        }
 
         FullBackground?.Save(_fullBackgrondFilePath);
 
@@ -85,14 +76,9 @@ public class SaveFile
         using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
         IO.ZipFile.ExtractToDirectory(path, Constants.TempDirectoryPath);
 
-        if (!FileManager.OpenFile(_saveFilePath, new DerivedClassJsonConverter<Statblock>(), out SaveFile saveFile))
+        if (!FileManager.OpenFile(_saveFilePath, out SaveFile saveFile, new DerivedClassJsonConverter<Statblock>(), new DerivedClassJsonConverter<DrawingShape>()))
         {
             saveFile = new SaveFile();
-        }
-
-        using (var fileStream = new FileStream(_drawingFilePath, FileMode.Open))
-        {
-            saveFile.Strokes = new StrokeCollection(fileStream);
         }
 
         if (IO.File.Exists(_fullBackgrondFilePath))

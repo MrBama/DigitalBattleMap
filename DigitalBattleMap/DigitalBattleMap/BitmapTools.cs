@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.DrawingShapes;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,6 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Linq;
-using System.Windows.Ink;
 
 namespace DigitalBattleMap;
 
@@ -24,13 +24,6 @@ public static class BitmapTools
     public static Bitmap CreateEmptyBitmap()
     {
         return new(Constants.BitmapSize.Width, Constants.BitmapSize.Height);
-    }
-
-    public static Bitmap CreateGridAndStrokesBitmap(Bitmap grid, StrokeCollection strokes, Size<int> inkCanvasSize)
-    {
-        var bitmap = new Bitmap(grid);
-        DrawStrokes(bitmap, strokes, inkCanvasSize);
-        return bitmap;
     }
 
     public static Bitmap CreateColorButton(Brush brush, bool addSelectionIndicator)
@@ -244,6 +237,34 @@ public static class BitmapTools
         return bitmap;
     }
 
+    public static void DrawShapes(Bitmap bitmap, List<DrawingShape> shapes, Size<double> canvasSize)
+    {
+        using var graphics = Graphics.FromImage(bitmap);        
+        foreach (var shape in shapes)
+        {
+            var points = new List<Point<float>>();
+            var brush = new SolidBrush(Color.FromArgb(shape.Color.A, shape.Color.R, shape.Color.G, shape.Color.B));
+            var penSizeF = (float)shape.PenSize;
+
+            foreach (var point in shape.Points)
+            {
+                var halfSize = shape.PenSizeCanvas / 2;
+                var middleOfPoint = new Point<double>(point.X - halfSize, point.Y - halfSize);
+
+                var resizedX = (float)middleOfPoint.X.Map(0, canvasSize.Width, 0, Constants.BitmapSize.Width);
+                var resizedY = (float)middleOfPoint.Y.Map(0, canvasSize.Height, 0, Constants.BitmapSize.Height);
+                points.Add(new Point<float>(resizedX, resizedY));
+            }
+
+            SmoothLine(points, penSizeF);
+
+            foreach (var point in points)
+            {
+                graphics.FillEllipse(brush, point.X, point.Y, penSizeF, penSizeF);
+            }
+        }
+    }
+
     private static bool IsTokenVisible(Point<int> drawingPosition, int gridSize)
     {
         var isVisible = true;
@@ -303,7 +324,7 @@ public static class BitmapTools
 
             // Draw text
             var textOffset = (textSize * alignedTextOffset) / alignedTextSize;
-            graphics.DrawString(tokenId, new Font("", textSize, FontStyle.Bold, GraphicsUnit.Pixel), Brushes.Black, textPosition.X, textPosition.Y + textOffset, stringFormat);
+            graphics.DrawString(tokenId, new Font("", textSize, System.Drawing.FontStyle.Bold, GraphicsUnit.Pixel), Brushes.Black, textPosition.X, textPosition.Y + textOffset, stringFormat);
         }
     }
 
@@ -409,43 +430,7 @@ public static class BitmapTools
         }
     }
 
-    private static void DrawStrokes(Bitmap bitmap, StrokeCollection strokes, Size<int> canvasSize)
-    {
-        using var graphics = Graphics.FromImage(bitmap);
-        for (int strokeIndex = 0; strokeIndex < strokes.Count; strokeIndex++)
-        {
-            var points = new List<PointF>();
-            var drawingAttributs = strokes[strokeIndex].DrawingAttributes;
-            var mediaColor = drawingAttributs.Color;
-            var brush = new SolidBrush(Color.FromArgb(mediaColor.A, mediaColor.R, mediaColor.G, mediaColor.B));
-            var penSize = (float)drawingAttributs.Width; // We always use the same width and height
-
-            for (int pointIndex = 0; pointIndex < strokes[strokeIndex].StylusPoints.Count; pointIndex++)
-            {
-                var point = new PointF
-                {
-                    X = (float)strokes[strokeIndex].StylusPoints[pointIndex].X,
-                    Y = (float)strokes[strokeIndex].StylusPoints[pointIndex].Y
-                };
-                point.X -= penSize / 2;
-                point.Y -= penSize / 2;
-
-                var resizedX = point.X.Map(0, canvasSize.Width, 0, Constants.BitmapSize.Width);
-                var resizedY = point.Y.Map(0, canvasSize.Height, 0, Constants.BitmapSize.Height);
-                points.Add(new PointF(resizedX, resizedY));
-            }
-
-            SmoothLine(points, penSize);
-
-            foreach (var point in points)
-            {
-                var resizedPenSize = penSize.Map(0, canvasSize.Width, 0, Constants.BitmapSize.Width);
-                graphics.FillEllipse(brush, point.X, point.Y, resizedPenSize, resizedPenSize);
-            }
-        }
-    }
-
-    private static void SmoothLine(List<PointF> points, float penSize)
+    private static void SmoothLine(List<Point<float>> points, float penSize)
     {
         bool smoothRequired = true;
 
@@ -458,9 +443,9 @@ public static class BitmapTools
                 var coord2 = points[i + 1];
 
                 var dist = Math.Sqrt(Math.Pow(coord1.X - coord2.X, 2) + Math.Pow(coord1.Y - coord2.Y, 2));
-                if (dist > (penSize / 3))
+                if (dist > (penSize / 5))
                 {
-                    var newPoint = new PointF((coord1.X + coord2.X) / 2, (coord1.Y + coord2.Y) / 2);
+                    var newPoint = new Point<float>((coord1.X + coord2.X) / 2, (coord1.Y + coord2.Y) / 2);
                     points.Insert(i + 1, newPoint);
                     smoothRequired = true;
                 }

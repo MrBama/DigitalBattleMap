@@ -91,8 +91,8 @@
                 <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
             <Label Content="Pen size" />
-            <Slider Grid.Column="1" VerticalAlignment="Center" Margin="10 0 10 0" Minimum="1" Maximum="100" Value="{Binding ActiveShape.Size, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True"/>
-            <TextBox Grid.Column="2" Text="{Binding ActiveShape.Size, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
+            <Slider Grid.Column="1" VerticalAlignment="Center" Margin="10 0 10 0" Minimum="1" Maximum="100" Value="{Binding ActiveShape.PenSize, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True"/>
+            <TextBox Grid.Column="2" Text="{Binding ActiveShape.PenSize, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
         </Grid>
 
         <!--Snapping grid-->
@@ -110,7 +110,7 @@
         <ListView Grid.Row="3" Margin="0 10 0 0" ItemsSource="{Binding ShapeCollection}" SelectedItem="{Binding SelectedShape}" HorizontalContentAlignment="Stretch" IsEnabled="{Binding IsEditShapeActive, Converter={StaticResource InvertBoolConverter}}">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Grid>
+                    <Grid Background="Transparent">
                         <Grid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="{Binding LinkToTokenButtonText}" Command="{Binding LinkToTokenCommand}"/>

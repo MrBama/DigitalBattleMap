@@ -2,14 +2,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
-using System.Windows;
 using System.Windows.Media;
-using System.Windows.Shapes;
 
 namespace DigitalBattleMap.DrawingShapes;
 
@@ -20,6 +16,7 @@ public class DrawingShapeCollection : IEnumerable, INotifyCollectionChanged
     public event NotifyCollectionChangedEventHandler? OnDrawingShapePointsChanged;
     public event PropertyChangedEventHandler? OnDrawingShapePropertyChanged;
     public event EventHandler<DrawingShapeCollectionChangedEventArgs> OnDrawingShapeCollectionChanged;
+    public event EventHandler OnRenderShapes;
     public event NotifyCollectionChangedEventHandler? CollectionChanged; // This is only used for UI
 
     public void Add(DrawingShape drawingShape)
@@ -27,6 +24,7 @@ public class DrawingShapeCollection : IEnumerable, INotifyCollectionChanged
         _drawingShapes.Add(drawingShape);
         drawingShape.PropertyChanged += DrawingShapePropertyChanged;
         drawingShape.OnPointsChanged += DrawingShapePointsChanged;
+        drawingShape.OnRenderChanged += RenderShapes;
         DrawingShapeCollectionChanged(new DrawingShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Add, ChangedShape = drawingShape });
 
         // Only show shapes that cannot be removed with the eraser
@@ -41,6 +39,7 @@ public class DrawingShapeCollection : IEnumerable, INotifyCollectionChanged
         _drawingShapes.Insert(index, drawingShape);
         drawingShape.PropertyChanged += DrawingShapePropertyChanged;
         drawingShape.OnPointsChanged += DrawingShapePointsChanged;
+        drawingShape.OnRenderChanged += RenderShapes;
         DrawingShapeCollectionChanged(new DrawingShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Insert, ChangedShape = drawingShape, Index = index });
 
         // Only show shapes that cannot be removed with the eraser
@@ -55,6 +54,7 @@ public class DrawingShapeCollection : IEnumerable, INotifyCollectionChanged
         var index = _drawingShapes.Where(s => !s.IsErasable).ToList().IndexOf(drawingShape);
         drawingShape.PropertyChanged -= DrawingShapePropertyChanged;
         drawingShape.OnPointsChanged -= DrawingShapePointsChanged;
+        drawingShape.OnRenderChanged -= RenderShapes;
         _drawingShapes.Remove(drawingShape);
 
         DrawingShapeCollectionChanged(new DrawingShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Remove, ChangedShape = drawingShape });
@@ -72,6 +72,7 @@ public class DrawingShapeCollection : IEnumerable, INotifyCollectionChanged
         {
             drawingShape.PropertyChanged -= DrawingShapePropertyChanged;
             drawingShape.OnPointsChanged -= DrawingShapePointsChanged;
+            drawingShape.OnRenderChanged -= RenderShapes;
         }
         _drawingShapes.Clear();
         DrawingShapeCollectionChanged(new DrawingShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Clear });
@@ -98,15 +99,16 @@ public class DrawingShapeCollection : IEnumerable, INotifyCollectionChanged
         return _drawingShapes.IndexOf(drawingShape);
     }
 
+    public DrawingShape ElementAt(int index)
+    {
+        return _drawingShapes.ElementAt(index);
+    }
+
     public void Transform(Matrix matrix)
     {
         foreach (var shape in _drawingShapes)
         {
-            var points = ToWindowsPointArray(shape.Points);
-            matrix.Transform(points);
-            shape.Points = new ObservableCollection<Point<double>>(ToPointDoubleEnumerable(points));
-
-            DrawingShapeCollectionChanged(new DrawingShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Update, ChangedShape = shape });
+            shape.Transform(matrix);
         }
     }
 
@@ -130,13 +132,8 @@ public class DrawingShapeCollection : IEnumerable, INotifyCollectionChanged
         CollectionChanged?.Invoke(this, eventArgs);
     }
 
-    private Point[] ToWindowsPointArray(IEnumerable<Point<double>> points)
+    private void RenderShapes(object? sender, EventArgs e)
     {
-        return points.Select(p => new Point(p.X, p.Y)).ToArray();
-    }
-
-    private IEnumerable<Point<double>> ToPointDoubleEnumerable(Point[] points)
-    {
-        return points.Select(p => new Point<double>(p.X, p.Y));
+        OnRenderShapes?.Invoke(this, new EventArgs());
     }
 }

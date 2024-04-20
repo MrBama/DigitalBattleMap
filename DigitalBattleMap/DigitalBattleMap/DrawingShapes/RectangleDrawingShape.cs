@@ -12,7 +12,7 @@ public class RectangleDrawingShape : DrawingShape
     private double _distanceX;
     private double _distanceY;
 
-    public RectangleDrawingShape(Action applyShapeCallback, ICanvasSize canvasSize, int gridSize) : base(applyShapeCallback, canvasSize, gridSize)
+    public RectangleDrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, ICanvasSize canvasSize, int gridSize) : base(applyShapeCallback, tokenLinker, canvasSize, gridSize)
     {
         Name = "Rectangle";
     }

@@ -1,206 +1,64 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace DigitalBattleMap.DrawingShapes;
 
-//public class DrawingShape : PropertyHandler, ILinkableObject, IDisposable
-//{
-//    private ITokenLink _tokenLink;
-//    private ITokenLinker _tokenLinker;
-
-//    public DrawingShape()
-//    {
-//        LinkToTokenButtonText = "Link to token";
-//        LinkToTokenCommand = new RelayCommand(p => LinkToDifferentToken());
-//    }
-
-//    public DrawingShape(DrawingShape drawingShape)
-//    {
-//        DrawingShapeType = drawingShape.DrawingShapeType;
-//        Size = new Point<int>(drawingShape.Size);
-//        Stroke = drawingShape.Stroke.Clone();
-//        DrawingButton = drawingShape.DrawingButton;
-//        CanvasSize = drawingShape.CanvasSize;
-//    }
-
-//    public DrawingShapeType DrawingShapeType { get => Get<DrawingShapeType>(); set => Set(value); }
-//    public Point<int> Size { get => Get<Point<int>>(); set => Set(value, UpdateSizeString); }
-//    public string SizeString { get => Get<string>(); set => Set(value); }
-//    public Stroke Stroke { get => Get<Stroke>(); set => Set(value, () => NotifyPropertyChange(nameof(Color))); }
-//    public Brush Color { get => GetColor(); }
-//    public DrawingButton DrawingButton { get; set; }
-//    public ICanvasSize CanvasSize { get; set; }
-//    public string LinkToTokenButtonText { get => Get<string>(); set => Set(value); }
-//    public ICommand LinkToTokenCommand { get; set; }
-
-//    public event EventHandler OnPositionChanged;
-
-//    public void SetTokenLinker(ITokenLinker tokenLinker)
-//    {
-//        _tokenLinker = tokenLinker;
-//    }
-
-//    public void UpdatePosition(Point<int> offset)
-//    {
-//        var offsetDouble = Point<double>.Create(offset);
-//        var matrix = new Matrix();
-//        var distanceX = offsetDouble.X.Map(0, Constants.BitmapSize.Width, 0, CanvasSize.Width);
-//        var distanceY = offsetDouble.Y.Map(0, Constants.BitmapSize.Height, 0, CanvasSize.Height);
-
-//        matrix.Translate(distanceX, distanceY);
-
-//        Application.Current.Dispatcher.Invoke(() => { Stroke.Transform(matrix, false); }, DispatcherPriority.Normal);
-//        OnPositionChanged?.Invoke(this, new EventArgs());
-//    }
-
-//    public void Link(ITokenLink tokenLink)
-//    {
-//        _tokenLink?.Unlink(this);
-//        _tokenLink = tokenLink;
-//        RefershLinkToTokenButtonText();
-//    }
-
-//    public void Unlink()
-//    {
-//        _tokenLink?.Unlink(this);
-//        _tokenLink = null;
-//        RefershLinkToTokenButtonText();
-//    }
-
-//    public bool IsLinked()
-//    {
-//        return _tokenLink != null;
-//    }
-
-//    public TokenIndentifier GetLinkIdentifier()
-//    {
-//        return _tokenLink.GetTokenIndentifier();
-//    }
-
-//    public void DisposeLink()
-//    {
-//        _tokenLink = null;
-//        RefershLinkToTokenButtonText();
-//    }
-
-//    public void Dispose()
-//    {
-//        Unlink();
-//    }
-
-//    private Brush GetColor()
-//    {
-//        var brush = System.Windows.Media.Brushes.Transparent;
-//        if (Stroke != null)
-//        {
-//            brush = new SolidColorBrush(Stroke.DrawingAttributes.Color);
-//        }
-
-//        return brush;
-//    }
-
-//    private void RefershLinkToTokenButtonText()
-//    {
-//        if (IsLinked())
-//        {
-//            var linkIdentifier = GetLinkIdentifier();
-//            LinkToTokenButtonText = $"Unlink from {linkIdentifier.Name} {linkIdentifier.Id}";
-//        }
-//        else
-//        {
-//            LinkToTokenButtonText = "Link to token";
-//        }
-//    }
-
-//    private void LinkToDifferentToken()
-//    {
-//        if (!IsLinked())
-//        {
-//            _tokenLinker.LinkToToken(this);
-//        }
-//        else
-//        {
-//            Unlink();
-//        }
-//    }
-
-//    private void UpdateSizeString()
-//    {
-//        if(DrawingShapeType == DrawingShapeType.Rectangle)
-//        {
-//            SizeString = $"{Size.X} x {Size.Y} ft";
-//        }
-//        else
-//        {
-//            SizeString = $"{Size.X} ft";
-//        }
-//    }
-//}
-
-//public class DrawingShapeSave
-//{
-//    public DrawingShapeSave()
-//    {
-//    }
-
-//    public DrawingShapeSave(DrawingShape drawingShape, int strokeIndex)
-//    {
-//        DrawingShapeType = drawingShape.DrawingShapeType;
-//        Size = drawingShape.Size;
-//        DrawingButton = drawingShape.DrawingButton;
-//        StrokeIndex = strokeIndex;
-//    }
-
-//    public DrawingShapeType DrawingShapeType { get; set; }
-//    public Point<int> Size { get; set; }
-//    public DrawingButton DrawingButton { get; set; }
-//    public int StrokeIndex { get; set; }
-//}
-
-public abstract class DrawingShape : PropertyHandler
+public abstract class DrawingShape : PropertyHandler, ILinkableObject, IDisposable
 {
     private Action _applyShapeCallback;
     MouseButtonState _previousMouseButtonState;
     private DrawingShapeInfo _editInfo;
     protected ICanvasSize _canvasSize;
+    private ITokenLink _tokenLink;
+    private ITokenLinker _tokenLinker;
     protected int _gridSize;
 
-    public DrawingShape(Action applyShapeCallback, ICanvasSize canvasSize, int gridSize)
+    public DrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, ICanvasSize canvasSize, int gridSize)
     {
         _applyShapeCallback = applyShapeCallback;
+        _tokenLinker = tokenLinker;
         _canvasSize = canvasSize;
         _gridSize = gridSize;
 
         Color = Colors.Black;
-        Size = 5;
+        PenSize = 5;
         Points = new();
         Name = "DrawingShape";
+        LinkToTokenButtonText = "Link to token";
 
         LeftButtonDownCommand = new RelayCommand(p => LeftButtonDown((MouseDataEventArgs)p));
         LeftButtonUpCommand = new RelayCommand(p => LeftButtonUp((MouseDataEventArgs)p));
         MouseMoveCommand = new RelayCommand(p => MouseMove((MouseDataEventArgs)p));
+        LinkToTokenCommand = new RelayCommand(p => LinkToDifferentToken());
 
-        RegisterPropertyChangedWatcher(nameof(Cursor), new List<string> { nameof(Color), nameof(Size) });
+        RegisterPropertyChangedWatcher(nameof(Cursor), new List<string> { nameof(Color), nameof(PenSize) });
     }
 
     public event NotifyCollectionChangedEventHandler OnPointsChanged;
+    public event EventHandler OnRenderChanged;
 
     public Color Color { get => Get<Color>(); set => Set(value, () => NotifyPropertyChange(nameof(ColorBrush))); }
     public Brush ColorBrush { get => new SolidColorBrush(Color); }
-    public double Size { get => Get<double>(); set =>  Set(Math.Clamp(value, 1, 100)); }
+    public double PenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100)); } // This is map size instead of canvas size because of UI reasons.
+    public double PenSizeCanvas { get => PenSize.Map(0, Constants.BitmapSize.Width, 0, _canvasSize.Width); }
     public bool IsEditing { get => Get<bool>(); set => Set(value); }
     public bool SnapToGrid { get => Get<bool>(); set => Set(value); }
     public string Name { get => Get<string>(); protected set => Set(value); }
-    public virtual Cursor Cursor { get => CursorCreator.Create(new SolidColorBrush(Color), (int)Math.Max(8, Size)); }
+    public string LinkToTokenButtonText { get => Get<string>(); set => Set(value); }
+    public virtual Cursor Cursor { get => CursorCreator.Create(new SolidColorBrush(Color), (int)Math.Max(8, PenSize)); }
     public virtual bool IsErasable => false;
+    public Type Type { get => GetType(); }
     public ObservableCollection<Point<double>> Points
     {
         get => Get<ObservableCollection<Point<double>>>();
@@ -221,9 +79,14 @@ public abstract class DrawingShape : PropertyHandler
         }
     }
 
-    public ICommand LeftButtonDownCommand { get; set; }
-    public ICommand LeftButtonUpCommand { get; set; }
-    public ICommand MouseMoveCommand { get; set; }
+    [JsonIgnore]
+    public ICommand LeftButtonDownCommand { get; private set; }
+    [JsonIgnore]
+    public ICommand LeftButtonUpCommand { get; private set; }
+    [JsonIgnore]
+    public ICommand MouseMoveCommand { get; private set; }
+    [JsonIgnore]
+    public ICommand LinkToTokenCommand { get; set; }
 
     public void ApplyShape()
     {
@@ -240,7 +103,7 @@ public abstract class DrawingShape : PropertyHandler
     public void CancelEditShape()
     {
         IsEditing = false;
-        Size = _editInfo.Size;
+        PenSize = _editInfo.Size;
         Color = _editInfo.Color;
         Points = new ObservableCollection<Point<double>>(_editInfo.Points);
     }
@@ -265,27 +128,23 @@ public abstract class DrawingShape : PropertyHandler
 
     public void MouseMove(MouseDataEventArgs mouseDataEventArgs)
     {
-        var directlyOver = mouseDataEventArgs.MouseEventArgs.MouseDevice.DirectlyOver;
-        if (directlyOver is System.Windows.Controls.Canvas)
+        var mouseButtonState = mouseDataEventArgs.MouseEventArgs.LeftButton;
+        if (_previousMouseButtonState != mouseButtonState)
         {
-            var mouseButtonState = mouseDataEventArgs.MouseEventArgs.LeftButton;
-            if (_previousMouseButtonState != mouseButtonState)
-            {
-                _previousMouseButtonState = mouseButtonState;
+            _previousMouseButtonState = mouseButtonState;
 
-                if (mouseButtonState == MouseButtonState.Pressed)
-                {
-                    ButtonDown(mouseDataEventArgs.Position);
-                }
-                else
-                {
-                    ButtonUp(mouseDataEventArgs.Position);
-                }
+            if (mouseButtonState == MouseButtonState.Pressed)
+            {
+                ButtonDown(mouseDataEventArgs.Position);
             }
             else
             {
-                MouseMove(mouseDataEventArgs.Position, mouseButtonState == MouseButtonState.Pressed);
+                ButtonUp(mouseDataEventArgs.Position);
             }
+        }
+        else
+        {
+            MouseMove(mouseDataEventArgs.Position, mouseButtonState == MouseButtonState.Pressed);
         }
     }
 
@@ -294,13 +153,118 @@ public abstract class DrawingShape : PropertyHandler
         _gridSize = gridSize;
     }
 
+    public void SetProperties(Action applyShapeCallback, ITokenLinker tokenLinker, ICanvasSize canvasSize, int gridSize)
+    {
+        _applyShapeCallback = applyShapeCallback;
+        _tokenLinker = tokenLinker;
+        _canvasSize = canvasSize;
+        _gridSize = gridSize;
+    }
+
+    public void Transform(Matrix matrix)
+    {
+        var points = ToWindowsPointArray(Points);
+        matrix.Transform(points);
+        Points = new ObservableCollection<Point<double>>(ToPointDoubleEnumerable(points));
+    }
+
+    public void UpdatePosition(Point<int> offset)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            var offsetDouble = Point<double>.Create(offset);
+            var distanceX = offsetDouble.X.Map(0, Constants.BitmapSize.Width, 0, _canvasSize.Width);
+            var distanceY = offsetDouble.Y.Map(0, Constants.BitmapSize.Height, 0, _canvasSize.Height);
+            var matrix = new Matrix();
+            matrix.Translate(distanceX, distanceY);
+
+            Transform(matrix);
+            RenderShape();
+        });
+    }
+
+    public void Link(ITokenLink tokenLink)
+    {
+        _tokenLink?.Unlink(this);
+        _tokenLink = tokenLink;
+        RefreshLinkToTokenButtonText();
+    }
+
+    public void Unlink()
+    {
+        _tokenLink?.Unlink(this);
+        _tokenLink = null;
+        RefreshLinkToTokenButtonText();
+    }
+
+    public bool IsLinked()
+    {
+        return _tokenLink != null;
+    }
+
+    public void DisposeLink()
+    {
+        _tokenLink = null;
+        RefreshLinkToTokenButtonText();
+    }
+
+    public TokenIndentifier GetLinkIdentifier()
+    {
+        return _tokenLink.GetTokenIndentifier();
+    }
+
+    public void Dispose()
+    {
+        Unlink();
+    }
+
     protected abstract void ButtonDown(Point<double> position);
     protected abstract void ButtonUp(Point<double> position);
     protected abstract void MouseMove(Point<double> position, bool buttonDown);
 
+    protected void RenderShape()
+    {
+        OnRenderChanged?.Invoke(this, new EventArgs());
+    }
+
     private void OnPointsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         OnPointsChanged?.Invoke(this, e);
+    }
+
+    private void RefreshLinkToTokenButtonText()
+    {
+        if (IsLinked())
+        {
+            var linkIdentifier = GetLinkIdentifier();
+            LinkToTokenButtonText = $"Unlink from {linkIdentifier.Name} {linkIdentifier.Id}";
+        }
+        else
+        {
+            LinkToTokenButtonText = "Link to token";
+        }
+    }
+
+    private void LinkToDifferentToken()
+    {
+        if (!IsLinked())
+        {
+            _tokenLinker.LinkToToken(this);
+        }
+        else
+        {
+            Unlink();
+        }
+    }
+
+    private Point[] ToWindowsPointArray(IEnumerable<Point<double>> points)
+    {
+        return points.Select(p => new Point(p.X, p.Y)).ToArray();
+    }
+
+    private IEnumerable<Point<double>> ToPointDoubleEnumerable(Point[] points)
+    {
+        return points.Select(p => new Point<double>(p.X, p.Y));
     }
 
     private class DrawingShapeInfo
@@ -308,7 +272,7 @@ public abstract class DrawingShape : PropertyHandler
         public DrawingShapeInfo(DrawingShape drawingShape)
         {
             Color = drawingShape.Color;
-            Size = drawingShape.Size;
+            Size = drawingShape.PenSize;
             Points = drawingShape.Points.ToList();
         }
 

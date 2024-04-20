@@ -9,7 +9,7 @@ namespace DigitalBattleMap.DrawingShapes;
 
 public class StrokeDrawingShape : DrawingShape
 {
-    public StrokeDrawingShape(Action applyShapeCallback, ICanvasSize canvasSize, int gridSize) : base(applyShapeCallback, canvasSize, gridSize)
+    public StrokeDrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, ICanvasSize canvasSize, int gridSize) : base(applyShapeCallback, tokenLinker, canvasSize, gridSize)
     {
     }
 

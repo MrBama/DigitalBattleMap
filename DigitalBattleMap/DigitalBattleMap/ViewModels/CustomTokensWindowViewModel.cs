@@ -295,7 +295,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
         using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
         IO.ZipFile.ExtractToDirectory(path, Constants.TempDirectoryPath);
 
-        if (FileManager.OpenFile(_tokenFilePath, new DerivedClassJsonConverter<Statblock>(), out Token token))
+        if (FileManager.OpenFile(_tokenFilePath, out Token token, new DerivedClassJsonConverter<Statblock>()))
         {
             if (_tokenList.SingleOrDefault(t => t.Name == token.Name) == null)
             {

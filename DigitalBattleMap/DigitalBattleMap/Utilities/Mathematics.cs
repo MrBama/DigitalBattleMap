@@ -104,7 +104,7 @@ public static class Mathematics
 
     public static double CalculateCanvasGridSize(ICanvasSize canvasSize, int gridSize)
     {
-        double inkCanvasGridSize = gridSize;
-        return inkCanvasGridSize.Map(0, Constants.BitmapSize.Width, 0, canvasSize.Width);
+        double canvasGridSize = gridSize;
+        return canvasGridSize.Map(0, Constants.BitmapSize.Width, 0, canvasSize.Width);
     }
 }

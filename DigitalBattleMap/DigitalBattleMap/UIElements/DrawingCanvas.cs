@@ -95,9 +95,6 @@ public class DrawingCanvas : InkCanvas
             case CollectionChangedAction.Remove:
                 EraseShape(e.ChangedShape);
                 break;
-            case CollectionChangedAction.Update:
-                UpdateShape(e.ChangedShape);
-                break;
             case CollectionChangedAction.Clear:
                 EraseAll();
                 break;
@@ -108,7 +105,7 @@ public class DrawingCanvas : InkCanvas
 
     private void OnShapePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        var properties = new List<string> { nameof(DrawingShape.Size), nameof(DrawingShape.Color), nameof(DrawingShape.Points) };
+        var properties = new List<string> { nameof(DrawingShape.PenSize), nameof(DrawingShape.Color), nameof(DrawingShape.Points) };
         if (sender is DrawingShape shape)
         {
             if (properties.Contains(e.PropertyName))
@@ -234,20 +231,14 @@ public class DrawingCanvas : InkCanvas
         }
     }
 
-    private void UpdateShape(DrawingShape shape)
-    {
-        var index = Strokes.IndexOf(_strokes[shape]);
-        EraseShape(shape);
-        InsertShape(index, shape);
-    }
-
     private Stroke CreateStroke(DrawingShape shape)
     {
         var stroke = new Stroke(ConvertToStylusPointCollection(shape));
-        stroke.DrawingAttributes.Width = shape.Size;
-        stroke.DrawingAttributes.Height = shape.Size;
+        stroke.DrawingAttributes.Width = shape.PenSizeCanvas;
+        stroke.DrawingAttributes.Height = shape.PenSizeCanvas;
         stroke.DrawingAttributes.Color = shape.Color;
-
+        stroke.DrawingAttributes.IgnorePressure = true;
+        
         return stroke;
     }
 
@@ -256,7 +247,7 @@ public class DrawingCanvas : InkCanvas
         var stylusPoints = new StylusPointCollection();
         foreach (var point in shape.Points)
         {
-            stylusPoints.Add(new StylusPoint(point.X, point.Y, 0.36f));
+            stylusPoints.Add(new StylusPoint(point.X, point.Y));
         }
 
         return stylusPoints;

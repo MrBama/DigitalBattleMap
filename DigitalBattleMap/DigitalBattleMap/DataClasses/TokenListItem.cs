@@ -146,6 +146,8 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
 
     public void Dispose()
     {
+        Unlink();
+
         foreach (var linkedObject in LinkedObjects)
         {
             linkedObject.DisposeLink();

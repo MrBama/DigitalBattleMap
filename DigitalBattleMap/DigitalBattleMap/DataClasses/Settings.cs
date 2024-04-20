@@ -27,7 +27,7 @@ public class Settings
 
     public static Settings Load()
     {
-        if (!FileManager.OpenFile(_settingsPath, new DerivedClassJsonConverter<Statblock>(), out Settings storage))
+        if (!FileManager.OpenFile(_settingsPath, out Settings storage, new DerivedClassJsonConverter<Statblock>()))
         {
             return new();
         }
