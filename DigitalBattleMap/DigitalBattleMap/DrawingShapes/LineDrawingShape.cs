@@ -1,0 +1,62 @@
+﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Interfaces;
+using DigitalBattleMap.Utilities;
+using System;
+
+namespace DigitalBattleMap.DrawingShapes;
+
+public class LineDrawingShape : DrawingShape
+{
+    private Point<double> _startPosition;
+    private Point<double> _previousMovePosition;
+
+    public LineDrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, ICanvasSize canvasSize, int gridSize) : base(applyShapeCallback, tokenLinker, canvasSize, gridSize)
+    {
+        Name = "Line";
+    }
+
+    protected override void ButtonDown(Point<double> position)
+    {
+        _startPosition = Mathematics.SnapPointToCanvasGrid(position, _canvasSize, _gridSize, _gridSize / 2);
+        Points.Add(position);
+    }
+
+    protected override void ButtonUp(Point<double> position)
+    {
+        ApplyShape();
+    }
+
+    protected override void MouseMove(Point<double> position, bool buttonDown)
+    {
+        if (buttonDown)
+        {
+            var snappedPosition = Mathematics.SnapPointToCanvasGrid(position, _canvasSize, _gridSize, _gridSize / 2);
+            if (snappedPosition != _previousMovePosition)
+            {
+                _previousMovePosition = snappedPosition;
+                Points.Clear();
+
+                var distanceX = _startPosition.X - snappedPosition.X;
+                var distanceY = _startPosition.Y - snappedPosition.Y;
+
+                var lineAngle = Math.Atan2(distanceY, distanceX);
+                var lineAngleInDegrees = lineAngle / Math.PI * 180;
+
+                var halfGridSizeCanvas = (double)_gridSize;
+                halfGridSizeCanvas = halfGridSizeCanvas.Map(0, Constants.BitmapSize.Width, 0, _canvasSize.Width) / 2;
+
+                // Add a point on the line that will be rotated to the corners
+                var startPosition = new Point<double>(_startPosition.X + halfGridSizeCanvas, _startPosition.Y);
+                var endPosition = new Point<double>(snappedPosition.X + halfGridSizeCanvas, snappedPosition.Y);
+
+                // Rotate the point to be perpendicular to the original line while keeping in mind the original angle of the line
+                Points.Add(startPosition.Rotate(_startPosition, lineAngleInDegrees + 90));
+                Points.Add(startPosition.Rotate(_startPosition, lineAngleInDegrees - 90));
+                Points.Add(endPosition.Rotate(snappedPosition, lineAngleInDegrees - 90));
+                Points.Add(endPosition.Rotate(snappedPosition, lineAngleInDegrees + 90));
+                Points.Add(startPosition.Rotate(_startPosition, lineAngleInDegrees + 90));
+            }
+
+        }
+    }
+}

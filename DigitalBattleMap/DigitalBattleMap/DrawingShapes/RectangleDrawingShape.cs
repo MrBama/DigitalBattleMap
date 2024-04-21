@@ -25,13 +25,7 @@ public class RectangleDrawingShape : DrawingShape
 
     protected override void ButtonUp(Point<double> position)
     {
-        Points.Clear();
-        Points.Add(new Point<double>(_startPosition.X + _distanceX, _startPosition.Y - _distanceY));
-        Points.Add(new Point<double>(_startPosition.X + _distanceX, _startPosition.Y + _distanceY));
-        Points.Add(new Point<double>(_startPosition.X - _distanceX, _startPosition.Y + _distanceY));
-        Points.Add(new Point<double>(_startPosition.X - _distanceX, _startPosition.Y - _distanceY));
-        Points.Add(new Point<double>(_startPosition.X + _distanceX, _startPosition.Y - _distanceY));
-
+        Points.RemoveAt(0); // Remove middle
         ApplyShape();
     }
 

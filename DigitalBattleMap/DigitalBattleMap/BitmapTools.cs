@@ -349,7 +349,7 @@ public static class BitmapTools
 
         int orientationAngle = tokenListItem.Token.GetOrientationAngle();
         var orientationOrigin = new Point<double>(0.5, 0.5);
-        conditionPositions.ForEach(c => c.Rotate(orientationOrigin, orientationAngle));
+        conditionPositions = conditionPositions.Select(c => c.Rotate(orientationOrigin, orientationAngle)).ToList();
 
         var conditionSize = new Size<double>(tokenSize.Width / 2.5, tokenSize.Height / 2.5);
 

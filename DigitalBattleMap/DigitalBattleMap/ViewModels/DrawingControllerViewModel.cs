@@ -68,6 +68,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         DrawRectangleCommand = new RelayCommand(p => DrawShape(DrawingShapeType.Rectangle));
         DrawCircleCommand = new RelayCommand(p => DrawShape(DrawingShapeType.Circle));
         DrawConeCommand = new RelayCommand(p => DrawShape(DrawingShapeType.Cone));
+        DrawLineCommand = new RelayCommand(p => DrawShape(DrawingShapeType.Line));
     }
 
     public event EventHandler OnDrawingShapesUpdated;
@@ -92,6 +93,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public ICommand DrawRectangleCommand { get; set; }
     public ICommand DrawCircleCommand { get; set; }
     public ICommand DrawConeCommand { get; set; }
+    public ICommand DrawLineCommand { get; set; }
 
     public DrawingShape ActiveShape
     {
@@ -437,6 +439,9 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             case DrawingShapeType.Cone:
                 DrawConeShape();
                 break;
+            case DrawingShapeType.Line:
+                LineConeShape();
+                break;
             default:
                 throw new NotImplementedException($"Shape {drawingShapeType} is not implemented");
         }
@@ -453,12 +458,29 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void DrawCircleShape()
     {
-
+        ActiveShape = new CircleDrawingShape(ApplyActiveShape, _tokenLinker, _canvasSize, _gridSize)
+        {
+            Color = ActiveShape.Color,
+            PenSize = ActiveShape.PenSize
+        };
     }
 
     private void DrawConeShape()
     {
+        ActiveShape = new ConeDrawingShape(ApplyActiveShape, _tokenLinker, _canvasSize, _gridSize)
+        {
+            Color = ActiveShape.Color,
+            PenSize = ActiveShape.PenSize
+        };
+    }
 
+    private void LineConeShape()
+    {
+        ActiveShape = new LineDrawingShape(ApplyActiveShape, _tokenLinker, _canvasSize, _gridSize)
+        {
+            Color = ActiveShape.Color,
+            PenSize = ActiveShape.PenSize
+        };
     }
 
     private void CancelDrawShape()
