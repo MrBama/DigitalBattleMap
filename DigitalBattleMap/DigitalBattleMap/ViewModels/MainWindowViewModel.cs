@@ -57,8 +57,8 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     public Visibility MouseInputCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
     public Visibility TokenVisibility { get => Get<Visibility>(); set => Set(value); }
     public System.Windows.Media.Brush ServerConnectionStatusColor { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
+    public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); set => Set(value); }
 
-    public MouseCanvasViewModel MouseCanvas { get; set; }
     public CampaignControllerViewModel CampaignController { get; set; }
     public BackgroundControllerViewModel BackgroundController { get; set; }
     public DrawingControllerViewModel DrawingController { get; set; }
@@ -104,12 +104,12 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
         MouseCanvas = new();
         CampaignController = new CampaignControllerViewModel(_windowService, _connectionManager, _monsterTokens, _settings);
-        BackgroundController = new BackgroundControllerViewModel(_windowService, this, MouseCanvas, _settings);
+        BackgroundController = new BackgroundControllerViewModel(_windowService, this, _settings);
         BackgroundController.OnGridSizeChanged += OnGridSizeChanged;
         BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
-        TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, MouseCanvas, _monsterTokens, CampaignController, _settings, BackgroundController.GridSize);
+        TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, _monsterTokens, CampaignController, _settings, BackgroundController.GridSize);
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
-        DrawingController = new DrawingControllerViewModel(this, TokenController, MouseCanvas, BackgroundController.GridSize);
+        DrawingController = new DrawingControllerViewModel(this, TokenController, BackgroundController.GridSize);
         DrawingController.OnDrawingShapesUpdated += DrawingShapesUpdated;
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
     }
@@ -274,8 +274,6 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
 
     public void SelectedTabChanged()
     {
-        MouseCanvas.SetSelectedTabIndex(SelectedTabIndex);
-        BackgroundController.ConfigureMouseCanvas(SelectedTabIndex == TabIndex.Background);
         switch (SelectedTabIndex)
         {
             case TabIndex.Campaign:
@@ -287,17 +285,20 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
             case TabIndex.Background:
                 DrawingCanvasVisibility = Visibility.Hidden;
                 MouseInputCanvasVisibility = Visibility.Visible;
+                MouseCanvas = BackgroundController.MouseCanvas;
                 TokenVisibility = Visibility.Hidden;
                 break;
             case TabIndex.Drawing:
                 DrawingCanvasVisibility = Visibility.Visible;
                 MouseInputCanvasVisibility = Visibility.Visible;
+                MouseCanvas = DrawingController.MouseCanvas;
                 TokenVisibility = Visibility.Visible;
                 DrawingCanvasZIndex = 1;
                 break;
             case TabIndex.Tokens:
                 DrawingCanvasVisibility = Visibility.Visible;
                 MouseInputCanvasVisibility = Visibility.Visible;
+                MouseCanvas = TokenController.MouseCanvas;
                 TokenVisibility = Visibility.Visible;
                 DrawingCanvasZIndex = 0;
                 break;

@@ -20,7 +20,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 {
     private DrawingButton _selectedDrawingButton = DrawingButton.Black;
     private ITokenLinker _tokenLinker;
-    private IMouseCanvas _mouseCanvas;
     private int _gridSize;
 
     public DrawingControllerViewModel()
@@ -28,18 +27,13 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         Initialize();
     }
 
-    public DrawingControllerViewModel(ICanvasSize canvasSize, ITokenLinker tokenLinker, IMouseCanvas mouseCanvas, int gridSize) : base(canvasSize)
+    public DrawingControllerViewModel(ICanvasSize canvasSize, ITokenLinker tokenLinker, int gridSize) : base(canvasSize)
     {
         Initialize();
 
         _tokenLinker = tokenLinker;
         _gridSize = gridSize;
-        _mouseCanvas = mouseCanvas;
 
-        _mouseCanvas.SubscribeLeftButtonDown(TabIndex.Drawing, MouseDown);
-        _mouseCanvas.SubscribeMouseMove(TabIndex.Drawing, MouseMove);
-        _mouseCanvas.SubscribeLeftButtonUp(TabIndex.Drawing, MouseUp);
-        _mouseCanvas.SetCursor(TabIndex.Drawing, ActiveShape.Cursor);
         _canvasSize.OnCanvasSizeChanged += OnCanvasSizeChanged;
     }
 
@@ -53,6 +47,13 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         ShapeCollection = new();
         ShapeCollection.OnRenderShapes += (_, _) => NotifyDrawingShapesUpdated();
         ActiveShape = new StrokeDrawingShape(ApplyActiveShape, _tokenLinker, _canvasSize, _gridSize);
+        MouseCanvas = new MouseCanvasViewModel();
+        MouseCanvas.OnLeftButtonDown += LeftButtonDown;
+        MouseCanvas.OnLeftButtonUp += LeftButtonUp;
+        MouseCanvas.OnRightButtonDown += RightButtonDown;
+        MouseCanvas.OnRightButtonUp += RightButtonUp;
+        MouseCanvas.OnMouseMove += MouseMove;
+        MouseCanvas.Cursor = ActiveShape.Cursor;
     }
 
     protected override void InitializeCommands()
@@ -80,6 +81,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public DrawingShapeCollection ShapeCollection { get => Get<DrawingShapeCollection>(); set => Set(value); }
     public bool IsDrawShapeActive { get => Get<bool>(); set => Set(value); }
     public bool IsEditShapeActive { get => Get<bool>(); set => Set(value); }
+    public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
     public ICommand SelectedDrawingButtonChangedCommand { get; set; }
     public ICommand ClearDrawingCommand { get; set; }
     public ICommand CancelDrawShapeCommand { get; set; }
@@ -372,19 +374,29 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
     }
 
-    private void MouseDown(MouseDataEventArgs e)
+    private void LeftButtonDown(object? sender, MouseButtonDataEventArgs e)
     {
         ActiveShape.LeftButtonDown(e);
     }
 
-    private void MouseMove(MouseDataEventArgs e)
-    {
-        ActiveShape.MouseMove(e);
-    }
-
-    private void MouseUp(MouseDataEventArgs e)
+    private void LeftButtonUp(object? sender, MouseButtonDataEventArgs e)
     {
         ActiveShape.LeftButtonUp(e);
+    }
+
+    private void RightButtonDown(object? sender, MouseButtonDataEventArgs e)
+    {
+        ActiveShape.RightButtonDown(e);
+    }
+
+    private void RightButtonUp(object? sender, MouseButtonDataEventArgs e)
+    {
+        ActiveShape.RightButtonUp(e);
+    }
+
+    private void MouseMove(object? sender, MouseMoveDataEventArgs e)
+    {
+        ActiveShape.MouseMove(e);
     }
 
     private DrawingShape CreateStrokeDrawingShape()
@@ -481,6 +493,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         {
             SetDrawingButtonSelection(_selectedDrawingButton, false);
             SetDrawingButtonSelection(drawingButton, true);
+            MouseCanvas.Cursor = ActiveShape.Cursor;
             _selectedDrawingButton = drawingButton;
         }
     }
@@ -514,7 +527,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     {
         if (e.PropertyName == nameof(DrawingShape.Cursor))
         {
-            _mouseCanvas.SetCursor(TabIndex.Drawing, ActiveShape.Cursor);
+            MouseCanvas.Cursor = ActiveShape.Cursor;
         }
     }
 
@@ -685,18 +698,11 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     //    }
     //}
 
-    //private void OnShapePositionChanged(object? sender, EventArgs e)
-    //{
-    //    NotifyDrawingStrokesUpdated();
-    //}
 }
-
 
 
 /* TODO:
  * - Circle
  * - Cone
- * - Move mouse logic to MouseCanvas
- * - Right click move shape
  * - Combine canvasSize and GridSize
  */

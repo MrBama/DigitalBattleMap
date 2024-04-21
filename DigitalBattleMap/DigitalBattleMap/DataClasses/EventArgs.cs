@@ -74,14 +74,20 @@ public class DrawingShapeCollectionChangedEventArgs : EventArgs
     public int Index { get; set; }
 }
 
-public class MouseDataEventArgs
+public class MouseDataEventArgs : EventArgs
 {
-    public MouseDataEventArgs(MouseEventArgs mouseEventArgs, Point<double> position)
-    {
-        MouseEventArgs = mouseEventArgs;
-        Position = position;
-    }
-
     public MouseEventArgs MouseEventArgs { get; set; }
-    public Point<double> Position { get; set; }
+    public Point<double> Position { get; set; } = new ();
+}
+
+public class MouseButtonDataEventArgs : EventArgs
+{
+    public Point<double> Position { get; set; } = new();
+}
+
+public class MouseMoveDataEventArgs : EventArgs
+{
+    public Point<double> Position { get; set; } = new();
+    public bool LeftButtonDown { get; set; }
+    public bool RightButtonDown { get; set; }
 }

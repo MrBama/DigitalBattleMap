@@ -7,13 +7,16 @@ namespace DigitalBattleMap.Interfaces;
 
 public interface IMouseCanvas
 {
-    public void SubscribeLeftButtonDown(int tabIndex, Action<MouseDataEventArgs> action);
-    public void SubscribeLeftButtonUp(int tabIndex, Action<MouseDataEventArgs> action);
-    public void SubscribeRightButtonDown(int tabIndex, Action<MouseDataEventArgs> action);
-    public void SubscribeMouseMove(int tabIndex, Action<MouseDataEventArgs> action);
-    public void SubscribeRectangleAreaSelected(int tabIndex, Action<RectangleF> action);
-    public void SubscribePolygonAreaSelected(int tabIndex, Action<Polygon> action);
+    public event EventHandler<MouseButtonDataEventArgs> OnLeftButtonDown;
+    public event EventHandler<MouseButtonDataEventArgs> OnLeftButtonUp;
+    public event EventHandler<MouseButtonDataEventArgs> OnRightButtonDown;
+    public event EventHandler<MouseButtonDataEventArgs> OnRightButtonUp;
+    public event EventHandler<MouseMoveDataEventArgs> OnMouseMove;
+    public event EventHandler<RectangleF> OnRectangleAreaSelected;
+    public event EventHandler<Polygon> OnPolygonAreaSelected;
+
+    public Cursor Cursor { get; set; }
+
     public void SetMode(MouseCanvasMode mode);
     public void ResetSelection();
-    public void SetCursor(int tabIndex, Cursor cursor);
 }

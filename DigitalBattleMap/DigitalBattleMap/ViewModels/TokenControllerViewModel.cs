@@ -20,7 +20,6 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 {
     private IWindowService _windowService;
     private IWebCommunication _webCommunication;
-    private IMouseCanvas _mouseCanvas;
     private Bitmap _tokenBitmap;
     private IMonsterTokens _monsterTokens;
     private IPlayers _players;
@@ -37,20 +36,17 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         Initialize();
     }
 
-    public TokenControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, ICanvasSize canvasSize, IMouseCanvas mouseCanvas, IMonsterTokens monsterTokens, IPlayers players, Settings settings, int gridSize) : base(canvasSize)
+    public TokenControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, ICanvasSize canvasSize, IMonsterTokens monsterTokens, IPlayers players, Settings settings, int gridSize) : base(canvasSize)
     {
         Initialize();
         _windowService = windowService;
         _webCommunication = webCommunication;
-        _mouseCanvas = mouseCanvas;
         _monsterTokens = monsterTokens;
         _players = players;
         _gridSize = gridSize;
         _webCommunication.OnMoveToken += MoveToken;
         _webCommunication.OnToggleCondition += ToggleCondition;
         _webCommunication.OnGetConditions += GetConditions;
-        _mouseCanvas.SubscribeLeftButtonDown(TabIndex.Tokens, MouseLeftButtonDown);
-        _mouseCanvas.SubscribeRightButtonDown(TabIndex.Tokens, MouseRightButtonDown);
         _settings = settings;
         _settings.OnSettingChanged += SettingChanged;
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
@@ -62,6 +58,9 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         TokenSelectionBitmapSource = BitmapTools.CreateEmptyBitmap().ToBitmapImage();
         _tokenListItemMultiActions = new TokenListItemMultiActions(() => SelectedTokens);
         _tokenListItemMultiActions.OnConditionsChanged += TokenConditionsChanged;
+        MouseCanvas = new MouseCanvasViewModel();
+        MouseCanvas.OnLeftButtonDown += MouseLeftButtonDown;
+        MouseCanvas.OnRightButtonDown += MouseRightButtonDown;
     }
 
     protected override void InitializeCommands()
@@ -102,6 +101,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
     public BitmapSource UndoBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.UndoIcon.png")).ToBitmapImage(); }
     public BitmapSource RedoBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.RedoIcon.png")).ToBitmapImage(); }
+    public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
 
     public ICommand AddTokenCommand { get; set; }
     public ICommand RemoveTokenCommand { get; set; }
@@ -427,7 +427,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    private void MouseLeftButtonDown(MouseDataEventArgs e)
+    private void MouseLeftButtonDown(object? sender, MouseButtonDataEventArgs e)
     {
         lock (_lock)
         {
@@ -468,7 +468,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    private void MouseRightButtonDown(MouseDataEventArgs e)
+    private void MouseRightButtonDown(object? sender, MouseButtonDataEventArgs e)
     {
         lock (_lock)
         {

@@ -21,7 +21,6 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     private Rectangle _area;
     private FogOfWarArea _selectedFogOfWarArea;
     private IWindowService _windowService;
-    private IMouseCanvas _mouseCanvas;
     private Point<double> _mouseDownPosition;
     private bool _mouseDown;
     private List<FogOfWarArea> _fogOfWarAreas = new();
@@ -33,16 +32,11 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         Initialize();
     }
 
-    public BackgroundControllerViewModel(IWindowService windowService, ICanvasSize canvasSize, IMouseCanvas mouseCanvas, Settings settings) : base(canvasSize)
+    public BackgroundControllerViewModel(IWindowService windowService, ICanvasSize canvasSize, Settings settings) : base(canvasSize)
     {
         _windowService = windowService;
-        _mouseCanvas = mouseCanvas;
         _settings = settings;
         GridSize = _settings.DefaultGridSize;
-        _mouseCanvas.SubscribeLeftButtonDown(TabIndex.Background, MouseDown);
-        _mouseCanvas.SubscribeLeftButtonUp(TabIndex.Background, MouseUp);
-        _mouseCanvas.SubscribeRectangleAreaSelected(TabIndex.Background, FogOfWarRectangleAreaSelected);
-        _mouseCanvas.SubscribePolygonAreaSelected(TabIndex.Background, FogOfWarPolygonAreaSelected);
         Initialize();
     }
 
@@ -62,6 +56,11 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         FeetPerGridCell = Constants.FeetPerGridCell;
         FogRemovalRectangleShape = true;
         ZoomSize = Constants.DefaultZoomSize;
+        MouseCanvas = new MouseCanvasViewModel();
+        MouseCanvas.OnLeftButtonDown += MouseDown;
+        MouseCanvas.OnLeftButtonUp += MouseUp;
+        MouseCanvas.OnRectangleAreaSelected += FogOfWarRectangleAreaSelected;
+        MouseCanvas.OnPolygonAreaSelected += FogOfWarPolygonAreaSelected;
     }
 
     protected override void InitializeCommands()
@@ -97,6 +96,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public BitmapSource FogOfWarBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public BitmapSource GridBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public string BackgroundZoomPercentageLabel { get => $"{BackgroundZoomPercentage}%"; }
+    public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
 
     public ICommand OpenBackgroundCommand { get; set; }
     public ICommand ClearBackgroundCommand { get; set; }
@@ -187,26 +187,6 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public Bitmap GetGridBitmap()
     {
         return GridBitmap;
-    }
-
-    public void ConfigureMouseCanvas(bool isActive)
-    {
-        if(isActive && IsFogOfWarEnabled)
-        {
-            if (FogRemovalRectangleShape)
-            {
-                _mouseCanvas.SetMode(MouseCanvasMode.RectangleSelection);
-            }
-            else
-            {
-                _mouseCanvas.SetMode(MouseCanvasMode.PolygonSelection);
-            }
-        }   
-        else
-        {
-            CancelFogRemoval();
-            _mouseCanvas.SetMode(MouseCanvasMode.Click);
-        }
     }
 
     public void OpenBackground()
@@ -332,13 +312,13 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         CreateBackground();
     }
 
-    private void MouseDown(MouseDataEventArgs e)
+    private void MouseDown(object? sender, MouseButtonDataEventArgs e)
     {
         _mouseDownPosition = e.Position;
         _mouseDown = true;
     }
 
-    private void MouseUp(MouseDataEventArgs e)
+    private void MouseUp(object? sender, MouseButtonDataEventArgs e)
     {
         if (_fullBackgroundBitmap != null && _mouseDown)
         {
@@ -478,18 +458,18 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         {
             if (FogRemovalRectangleShape)
             {
-                _mouseCanvas.SetMode(MouseCanvasMode.RectangleSelection);
+                MouseCanvas.SetMode(MouseCanvasMode.RectangleSelection);
             }
             else
             {
-                _mouseCanvas.SetMode(MouseCanvasMode.PolygonSelection);
+                MouseCanvas.SetMode(MouseCanvasMode.PolygonSelection);
             }
         }
         else
         {
             FogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
             CancelFogRemoval();
-            _mouseCanvas.SetMode(MouseCanvasMode.Click);
+            MouseCanvas.SetMode(MouseCanvasMode.Click);
         }
         CreateBackground();
     }
@@ -498,14 +478,14 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     {
         _fogOfWarAreas.Add(_selectedFogOfWarArea);
         IsFogOfWarAreaSelected = false;
-        _mouseCanvas.ResetSelection();
+        MouseCanvas.ResetSelection();
         CreateBackground();
     }
 
     private void CancelFogRemoval()
     {
         IsFogOfWarAreaSelected = false;
-        _mouseCanvas.ResetSelection();
+        MouseCanvas.ResetSelection();
     }
 
     private void ClearFog()
@@ -515,7 +495,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         CreateBackground();
     }
 
-    private void FogOfWarRectangleAreaSelected(RectangleF rectangle)
+    private void FogOfWarRectangleAreaSelected(object? sender, RectangleF rectangle)
     {
         IsFogOfWarAreaSelected = true;
 
@@ -533,7 +513,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         _selectedFogOfWarArea = fogOfWarArea;
     }
 
-    private void FogOfWarPolygonAreaSelected(Polygon polygon)
+    private void FogOfWarPolygonAreaSelected(object? sender, Polygon polygon)
     {
         IsFogOfWarAreaSelected = true;
 
@@ -550,17 +530,17 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     private void FogRemovalShapeChanged()
     {
-        if (_mouseCanvas != null && IsFogOfWarEnabled)
+        if (MouseCanvas != null && IsFogOfWarEnabled)
         {
             IsFogOfWarAreaSelected = false;
 
             if (FogRemovalRectangleShape)
             {
-                _mouseCanvas.SetMode(MouseCanvasMode.RectangleSelection);
+                MouseCanvas.SetMode(MouseCanvasMode.RectangleSelection);
             }
             else
             {
-                _mouseCanvas.SetMode(MouseCanvasMode.PolygonSelection);
+                MouseCanvas.SetMode(MouseCanvasMode.PolygonSelection);
             }
         }
     }

@@ -112,24 +112,16 @@
                             </uielements:DrawingCanvas>
                             <Image Source="{Binding TokenController.TokenBitmapSource}" Visibility="{Binding TokenVisibility}"/>
                             <Image Source="{Binding TokenController.TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
-                            <Canvas Visibility="{Binding MouseInputCanvasVisibility}" Background="Transparent" Cursor="{Binding MouseCanvas.Cursor}" Panel.ZIndex="5">
-                                <i:Interaction.Behaviors>
-                                    <uielements:MouseBehavior MouseX="{Binding MouseCanvas.MouseX, Mode=OneWayToSource}" MouseY="{Binding MouseCanvas.MouseY, Mode=OneWayToSource}"/>
-                                </i:Interaction.Behaviors>
-                                <i:Interaction.Triggers>
-                                    <i:EventTrigger EventName="MouseLeftButtonDown">
-                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.LeftButtonDownCommand}" PassEventArgsToCommand="True"/>
-                                    </i:EventTrigger>
-                                    <i:EventTrigger EventName="MouseLeftButtonUp">
-                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.LeftButtonUpCommand}" PassEventArgsToCommand="True"/>
-                                    </i:EventTrigger>
-                                    <i:EventTrigger EventName="MouseRightButtonDown">
-                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.RightButtonDownCommand}" PassEventArgsToCommand="True"/>
-                                    </i:EventTrigger>
-                                    <i:EventTrigger EventName="MouseMove">
-                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.MoveCommand}" PassEventArgsToCommand="True"/>
-                                    </i:EventTrigger>
-                                </i:Interaction.Triggers>
+                            <uielements:MouseCanvas 
+                                Visibility="{Binding MouseInputCanvasVisibility}" 
+                                Background="Transparent" 
+                                Cursor="{Binding MouseCanvas.Cursor}" 
+                                Panel.ZIndex="5"
+                                LeftButtonDownCommand="{Binding MouseCanvas.LeftButtonDownCommand}"
+                                LeftButtonUpCommand="{Binding MouseCanvas.LeftButtonUpCommand}"
+                                RightButtonDownCommand="{Binding MouseCanvas.RightButtonDownCommand}"
+                                RightButtonUpCommand="{Binding MouseCanvas.RightButtonUpCommand}"
+                                MouseMoveCommand="{Binding MouseCanvas.MouseMoveCommand}">
                                 <Rectangle 
                                     Width="{Binding MouseCanvas.SelectionWidth}" 
                                     Height="{Binding MouseCanvas.SelectionHeight}" 
@@ -143,7 +135,7 @@
                                     Visibility="{Binding MouseCanvas.IsSelectionAreaVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
                                     Fill="#32B8D4F0"
                                     Stroke="#0078D7"/>
-                            </Canvas>
+                            </uielements:MouseCanvas>
                         </Grid>
                     </Border>
                 </TabItem>

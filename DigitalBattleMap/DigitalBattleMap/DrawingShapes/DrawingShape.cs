@@ -16,11 +16,12 @@ namespace DigitalBattleMap.DrawingShapes;
 public abstract class DrawingShape : PropertyHandler, ILinkableObject
 {
     private Action _applyShapeCallback;
-    MouseButtonState _previousMouseButtonState;
     private DrawingShapeInfo _editInfo;
     protected ICanvasSize _canvasSize;
     private ITokenLinker _tokenLinker;
     protected int _gridSize;
+    private Point<double> _previousMovePosition;
+    private bool _isMoving;
 
     public DrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, ICanvasSize canvasSize, int gridSize)
     {
@@ -35,9 +36,6 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
         Name = "DrawingShape";
         LinkableObject = new LinkableObject(UpdatePosition);
 
-        LeftButtonDownCommand = new RelayCommand(p => LeftButtonDown((MouseDataEventArgs)p));
-        LeftButtonUpCommand = new RelayCommand(p => LeftButtonUp((MouseDataEventArgs)p));
-        MouseMoveCommand = new RelayCommand(p => MouseMove((MouseDataEventArgs)p));
         LinkToTokenCommand = new RelayCommand(p => LinkToDifferentToken());
 
         RegisterPropertyChangedWatcher(nameof(Cursor), new List<string> { nameof(Color), nameof(PenSize) });
@@ -79,12 +77,6 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     [JsonIgnore]
     public LinkableObject LinkableObject { get; private set; }
     [JsonIgnore]
-    public ICommand LeftButtonDownCommand { get; set; }
-    [JsonIgnore]
-    public ICommand LeftButtonUpCommand { get; set; }
-    [JsonIgnore]
-    public ICommand MouseMoveCommand { get; set; }
-    [JsonIgnore]
     public ICommand LinkToTokenCommand { get; set; }
 
     public void ApplyShape()
@@ -107,43 +99,73 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
         Points = new ObservableCollection<Point<double>>(_editInfo.Points);
     }
 
-    public void LeftButtonDown(MouseDataEventArgs mouseDataEventArgs)
+    public void LeftButtonDown(MouseButtonDataEventArgs e)
     {
-        if (_previousMouseButtonState == MouseButtonState.Released)
+        ButtonDown(e.Position);
+    }
+
+    public void LeftButtonUp(MouseButtonDataEventArgs e)
+    {
+        ButtonUp(e.Position);
+    }
+
+    public void RightButtonDown(MouseButtonDataEventArgs e)
+    {
+        if (IsEditing)
         {
-            _previousMouseButtonState = MouseButtonState.Pressed;
-            ButtonDown(mouseDataEventArgs.Position);
+            var position = e.Position;
+
+            var minX = Points.Min(p => p.X);
+            var minY = Points.Min(p => p.Y);
+            var maxX = Points.Max(p => p.X);
+            var maxY = Points.Max(p => p.Y);
+
+            if (position.X >= minX && position.X <= maxX && position.Y >= minY && position.Y <= maxY)
+            {
+                _previousMovePosition = position;
+                _isMoving = true;
+            }
         }
     }
 
-    public void LeftButtonUp(MouseDataEventArgs mouseDataEventArgs)
+    public void RightButtonUp(MouseButtonDataEventArgs e)
     {
-        if (_previousMouseButtonState == MouseButtonState.Pressed)
+        if (IsEditing && _isMoving)
         {
-            _previousMouseButtonState = MouseButtonState.Released;
-            ButtonUp(mouseDataEventArgs.Position);
+            var position = e.Position;
+            if (position != _previousMovePosition)
+            {
+                var distanceX = position.X - _previousMovePosition.X;
+                var distanceY = position.Y - _previousMovePosition.Y;
+
+                var matrix = new Matrix();
+                matrix.Translate(distanceX, distanceY);
+                Transform(matrix);
+                RenderShape();
+            }
+
+            _isMoving = false;
         }
     }
 
-    public void MouseMove(MouseDataEventArgs mouseDataEventArgs)
+    public void MouseMove(MouseMoveDataEventArgs e)
     {
-        var mouseButtonState = mouseDataEventArgs.MouseEventArgs.LeftButton;
-        if (_previousMouseButtonState != mouseButtonState)
-        {
-            _previousMouseButtonState = mouseButtonState;
+        MouseMove(e.Position, e.LeftButtonDown);
 
-            if (mouseButtonState == MouseButtonState.Pressed)
-            {
-                ButtonDown(mouseDataEventArgs.Position);
-            }
-            else
-            {
-                ButtonUp(mouseDataEventArgs.Position);
-            }
-        }
-        else
+        if(e.RightButtonDown && IsEditing && _isMoving)
         {
-            MouseMove(mouseDataEventArgs.Position, mouseButtonState == MouseButtonState.Pressed);
+            var position = e.Position;
+            if (position != _previousMovePosition)
+            {
+                var distanceX = position.X - _previousMovePosition.X;
+                var distanceY = position.Y - _previousMovePosition.Y;
+
+                var matrix = new Matrix();
+                matrix.Translate(distanceX, distanceY);
+                Transform(matrix);
+
+                _previousMovePosition = position;
+            }
         }
     }
 
