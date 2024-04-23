@@ -85,11 +85,11 @@ public class Token : PropertyHandler, ICloneable
             case TokenOrientation.North:
                 return RotateFlipType.RotateNoneFlipNone;
             case TokenOrientation.East:
-                return RotateFlipType.Rotate270FlipNone;
+                return RotateFlipType.Rotate90FlipNone;
             case TokenOrientation.South:
                 return RotateFlipType.Rotate180FlipNone;
             case TokenOrientation.West:
-                return RotateFlipType.Rotate90FlipNone;
+                return RotateFlipType.Rotate270FlipNone;
             default:
                 return RotateFlipType.Rotate270FlipNone;
         }
@@ -102,11 +102,11 @@ public class Token : PropertyHandler, ICloneable
             case TokenOrientation.North:
                 return 0;
             case TokenOrientation.East:
-                return 270;
+                return 90;
             case TokenOrientation.South:
                 return 180;
             case TokenOrientation.West:
-                return 90;
+                return 270;
             default:
                 return 270;
         }

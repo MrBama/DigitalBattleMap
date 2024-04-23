@@ -286,6 +286,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         if(IsEditShapeActive)
         {
             ActiveShape.CancelEditShape();
+            NotifyDrawingShapesUpdated();
         }
 
         IsDrawShapeActive = false;
@@ -524,6 +525,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         IsEditShapeActive = false;
         ActiveShape.CancelEditShape();
         ActiveShape = CreateStrokeDrawingShape();
+        NotifyDrawingShapesUpdated();
     }
 
     private void ApplyEditShape()

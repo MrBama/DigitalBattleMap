@@ -18,7 +18,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     private MapWindowViewModel _mapWindowViewModel;
     private Settings _settings;
     private ConnectionManager _connectionManager;
-    private Size<double> _canvasSize = Size<double>.Create(Constants.BitmapSize);
+    private Size<double> _canvasSize;
     private Action _multiMoveAction;
     private MonsterTokens _monsterTokens = new();
 

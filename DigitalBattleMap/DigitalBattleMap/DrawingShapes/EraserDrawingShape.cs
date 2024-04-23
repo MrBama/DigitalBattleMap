@@ -57,9 +57,9 @@ public class EraserDrawingShape : DrawingShape
         }
     }
 
-    private bool DoesPointOverlapWithEraser(Point<double> point, double pointSize, Point<double> mousePosition)
+    private bool DoesPointOverlapWithEraser(Point<double> point, double eraserSize, Point<double> mousePosition)
     {
-        var radius = (PenSizeCanvas / 2) + (pointSize / 2);
+        var radius = (PenSizeCanvas / 2) + (eraserSize / 2);
         var distance = new Point<double>(point.X - mousePosition.X, point.Y - mousePosition.Y);
         return Math.Sqrt(Math.Pow(distance.X, 2) + Math.Pow(distance.Y, 2)) < radius;
     }
