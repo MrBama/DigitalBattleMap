@@ -12,7 +12,7 @@ using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.ViewModels;
 
-public class MainWindowViewModel : ViewModelBase, ICanvasSize
+public class MainWindowViewModel : ViewModelBase, IMapSize
 {
     private IWindowService _windowService;
     private MapWindowViewModel _mapWindowViewModel;
@@ -40,6 +40,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         InitializeProperties();
     }
 
+    public event EventHandler OnGridSizeChanged;
     public event EventHandler<CanvasSizeChangedEventArgs> OnCanvasSizeChanged;
 
     public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
@@ -74,8 +75,12 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     public BitmapSource DrawingEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.DrawingEmblem.png")).ToBitmapImage(); }
     public BitmapSource TokenEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.TokenEmblem.png")).ToBitmapImage(); }
 
-    double ICanvasSize.Width => _canvasSize.Width;
-    double ICanvasSize.Height => _canvasSize.Height;
+    int IMapSize.Width => Constants.MapSize.Width;
+    int IMapSize.Height => Constants.MapSize.Height;
+    int IMapSize.GridSize => BackgroundController.GridSize;
+    double IMapSize.CanvasWidth => _canvasSize.Width;
+    double IMapSize.CanvasHeight => _canvasSize.Height;
+    double IMapSize.CanvasGridSize => CalculateCanvasGridSize();
 
     public ICommand ShowMapCommand { get; set; }
     public ICommand WindowClosingCommand { get; set; }
@@ -105,11 +110,11 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         MouseCanvas = new();
         CampaignController = new CampaignControllerViewModel(_windowService, _connectionManager, _monsterTokens, _settings);
         BackgroundController = new BackgroundControllerViewModel(_windowService, this, _settings);
-        BackgroundController.OnGridSizeChanged += OnGridSizeChanged;
+        BackgroundController.OnGridSizeChanged += OnBackgroundGridSizeChanged;
         BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
-        TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, _monsterTokens, CampaignController, _settings, BackgroundController.GridSize);
+        TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, _monsterTokens, CampaignController, _settings);
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
-        DrawingController = new DrawingControllerViewModel(this, TokenController, BackgroundController.GridSize);
+        DrawingController = new DrawingControllerViewModel(this, TokenController);
         DrawingController.OnDrawingShapesUpdated += DrawingShapesUpdated;
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
     }
@@ -144,10 +149,9 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         KeyUpCommand = new RelayCommand(p => KeyUp((KeyEventArgs)p));
     }
 
-    private void OnGridSizeChanged(object? sender, GridSizeChangedEventArgs e)
+    private void OnBackgroundGridSizeChanged(object? sender, GridSizeChangedEventArgs e)
     {
-        DrawingController.UpdateGridSize(e.NewGridSize);
-        TokenController.UpdateGridSize(e.NewGridSize);
+        OnGridSizeChanged?.Invoke(this, new EventArgs());
         UpdateMap(DrawLayer.GridAndStrokes);
     }
 
@@ -305,7 +309,12 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         }
     }
 
-    public Size<double> GetSize()
+    public Size<int> GetSize()
+    {
+        return Constants.MapSize;
+    }
+
+    public Size<double> GetCanvasSize()
     {
         return _canvasSize;
     }
@@ -336,7 +345,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         if (_windowService.ShowSaveFileDialog(out string path, filter: "(*.dbm)|*.dbm"))
         {
             var saveFile = new SaveFile();
-            saveFile.CanvasSize = GetSize();
+            saveFile.CanvasSize = GetCanvasSize();
             BackgroundController.AddToSaveFile(saveFile);
             DrawingController.AddToSaveFile(saveFile);
             TokenController.AddToSaveFile(saveFile);
@@ -445,7 +454,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         ServerConnectionStatus = "Disconnected";
         ServerConnectionStatusColor = System.Windows.Media.Brushes.Red;
 
-        if(e.IsConnectionLost)
+        if (e.IsConnectionLost)
         {
             var confirmationWindowViewModel = new ConfirmationWindowViewModel
             {
@@ -455,7 +464,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
                 IsMiddleButtonVisible = true
             };
 
-            Application.Current.Dispatcher.Invoke(() => 
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 _windowService.ShowWindowDialog<ConfirmationWindow>(confirmationWindowViewModel);
             });
@@ -519,5 +528,11 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         {
             HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
         }
+    }
+
+    private double CalculateCanvasGridSize()
+    {
+        var gridSize = (double)BackgroundController.GridSize;
+        return gridSize.Map(0.0, Constants.MapSize.Width, 0.0, _canvasSize.Width);
     }
 }

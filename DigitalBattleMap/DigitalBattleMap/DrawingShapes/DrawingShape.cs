@@ -17,18 +17,16 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
 {
     private Action _applyShapeCallback;
     private DrawingShapeInfo _editInfo;
-    protected ICanvasSize _canvasSize;
+    protected IMapSize _mapSize;
     private ITokenLinker _tokenLinker;
-    protected int _gridSize;
     private Point<double> _previousMovePosition;
     private bool _isMoving;
 
-    public DrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, ICanvasSize canvasSize, int gridSize)
+    public DrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize)
     {
         _applyShapeCallback = applyShapeCallback;
         _tokenLinker = tokenLinker;
-        _canvasSize = canvasSize;
-        _gridSize = gridSize;
+        _mapSize = mapSize;
 
         Color = Colors.Black;
         PenSize = 5;
@@ -47,7 +45,7 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     public Color Color { get => Get<Color>(); set => Set(value, () => NotifyPropertyChange(nameof(ColorBrush))); }
     public Brush ColorBrush { get => new SolidColorBrush(Color); }
     public double PenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100)); } // This is map size instead of canvas size because of UI reasons.
-    public double PenSizeCanvas { get => PenSize.Map(0, Constants.BitmapSize.Width, 0, _canvasSize.Width); }
+    public double PenSizeCanvas { get => PenSize.Map(0, _mapSize.Width, 0, _mapSize.CanvasWidth); }
     public bool IsEditing { get => Get<bool>(); set => Set(value); }
     public bool SnapToGrid { get => Get<bool>(); set => Set(value); }
     public string Name { get => Get<string>(); protected set => Set(value); }
@@ -169,17 +167,11 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
         }
     }
 
-    public void UpdateGridSize(int gridSize)
-    {
-        _gridSize = gridSize;
-    }
-
-    public void SetProperties(Action applyShapeCallback, ITokenLinker tokenLinker, ICanvasSize canvasSize, int gridSize)
+    public void SetProperties(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize)
     {
         _applyShapeCallback = applyShapeCallback;
         _tokenLinker = tokenLinker;
-        _canvasSize = canvasSize;
-        _gridSize = gridSize;
+        _mapSize = mapSize;
     }
 
     public void Transform(Matrix matrix)
@@ -194,8 +186,8 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
         Application.Current.Dispatcher.Invoke(() =>
         {
             var offsetDouble = Point<double>.Create(offset);
-            var distanceX = offsetDouble.X.Map(0, Constants.BitmapSize.Width, 0, _canvasSize.Width);
-            var distanceY = offsetDouble.Y.Map(0, Constants.BitmapSize.Height, 0, _canvasSize.Height);
+            var distanceX = offsetDouble.X.Map(0, _mapSize.Width, 0, _mapSize.CanvasWidth);
+            var distanceY = offsetDouble.Y.Map(0, _mapSize.Height, 0, _mapSize.CanvasHeight);
             var matrix = new Matrix();
             matrix.Translate(distanceX, distanceY);
 

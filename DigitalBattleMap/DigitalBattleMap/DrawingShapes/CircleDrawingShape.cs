@@ -10,14 +10,14 @@ internal class CircleDrawingShape : DrawingShape
     private Point<double> _startPosition;
     private Point<double> _previousMovePosition;
 
-    public CircleDrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, ICanvasSize canvasSize, int gridSize) : base(applyShapeCallback, tokenLinker, canvasSize, gridSize)
+    public CircleDrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize) : base(applyShapeCallback, tokenLinker, mapSize)
     {
         Name = "Circle";
     }
 
     protected override void ButtonDown(Point<double> position)
     {
-        _startPosition = Mathematics.SnapPointToCanvasGrid(position, _canvasSize, _gridSize, _gridSize / 2);
+        _startPosition = Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2);
         Points.Add(position);
     }
 
@@ -31,7 +31,7 @@ internal class CircleDrawingShape : DrawingShape
     {
         if(buttonDown)
         {
-            var snappedPosition = Mathematics.SnapPointToCanvasGrid(position, _canvasSize, _gridSize, _gridSize / 2);
+            var snappedPosition = Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2);
             if(snappedPosition != _previousMovePosition)
             {
                 _previousMovePosition = snappedPosition;

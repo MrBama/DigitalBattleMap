@@ -23,7 +23,7 @@ public static class BitmapTools
 
     public static Bitmap CreateEmptyBitmap()
     {
-        return new(Constants.BitmapSize.Width, Constants.BitmapSize.Height);
+        return new(Constants.MapSize.Width, Constants.MapSize.Height);
     }
 
     public static Bitmap CreateColorButton(Brush brush, bool addSelectionIndicator)
@@ -116,7 +116,7 @@ public static class BitmapTools
 
     public static Bitmap ResizeBitmap(Bitmap bitmap)
     {
-        return ResizeBitmap(bitmap, Constants.BitmapSize);
+        return ResizeBitmap(bitmap, Constants.MapSize);
     }
 
     public static Bitmap ResizeBitmap(Bitmap bitmap, Size<int> size)
@@ -251,8 +251,8 @@ public static class BitmapTools
                 var halfSize = shape.PenSizeCanvas / 2;
                 var middleOfPoint = new Point<double>(point.X - halfSize, point.Y - halfSize);
 
-                var resizedX = (float)middleOfPoint.X.Map(0, canvasSize.Width, 0, Constants.BitmapSize.Width);
-                var resizedY = (float)middleOfPoint.Y.Map(0, canvasSize.Height, 0, Constants.BitmapSize.Height);
+                var resizedX = (float)middleOfPoint.X.Map(0, canvasSize.Width, 0, Constants.MapSize.Width);
+                var resizedY = (float)middleOfPoint.Y.Map(0, canvasSize.Height, 0, Constants.MapSize.Height);
                 points.Add(new Point<float>(resizedX, resizedY));
             }
 
@@ -273,7 +273,7 @@ public static class BitmapTools
         {
             isVisible = false;
         }
-        else if (drawingPosition.X - gridSize > Constants.BitmapSize.Width)
+        else if (drawingPosition.X - gridSize > Constants.MapSize.Width)
         {
             isVisible = false;
         }
@@ -281,7 +281,7 @@ public static class BitmapTools
         {
             isVisible = false;
         }
-        else if (drawingPosition.Y - gridSize > Constants.BitmapSize.Height)
+        else if (drawingPosition.Y - gridSize > Constants.MapSize.Height)
         {
             isVisible = false;
         }
@@ -388,7 +388,7 @@ public static class BitmapTools
         double tokenOffset = (tokenGridSize - preciseTokenSize) / 2;
 
         // Calculate drawing position using the calculated grid cell, token offset and margin
-        var drawingPosition = new Point<int>(gridStart);
+        var drawingPosition = Point<int>.Create(gridStart);
         drawingPosition.X += (int)Math.Round((gridCellX * gridSize) + tokenOffset);
         drawingPosition.Y += (int)Math.Round((gridCellY * gridSize) + tokenOffset);
         drawingPosition.X += margin;
@@ -419,14 +419,14 @@ public static class BitmapTools
         using var graphics = Graphics.FromImage(bitmap);
         Pen blackPen = new(Color.Black, 1);
 
-        for (int x = gridOffset.X; x < Constants.BitmapSize.Width; x += gridSize)
+        for (int x = gridOffset.X; x < Constants.MapSize.Width; x += gridSize)
         {
-            graphics.DrawLine(blackPen, x, 0, x, Constants.BitmapSize.Height);
+            graphics.DrawLine(blackPen, x, 0, x, Constants.MapSize.Height);
         }
 
-        for (int y = gridOffset.Y; y < Constants.BitmapSize.Height; y += gridSize)
+        for (int y = gridOffset.Y; y < Constants.MapSize.Height; y += gridSize)
         {
-            graphics.DrawLine(blackPen, 0, y, Constants.BitmapSize.Width, y);
+            graphics.DrawLine(blackPen, 0, y, Constants.MapSize.Width, y);
         }
     }
 
