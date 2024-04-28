@@ -79,7 +79,6 @@ public static class Mathematics
 
     public static List<Point<double>> SnapPointsToCanvasGrid(List<Point<double>> points, IMapSize mapSize)
     {
-        //return SnapPointsToCanvasGrid(points, mapSize, mapSize.CanvasGridSize);
         var canvasGridOffset = CalculateCanvasGridOffset(mapSize);
         return SnapPointsToGrid(points, canvasGridOffset, mapSize.CanvasGridSize);
     }
