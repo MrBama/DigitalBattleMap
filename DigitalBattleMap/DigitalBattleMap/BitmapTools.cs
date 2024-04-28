@@ -443,7 +443,7 @@ public static class BitmapTools
                 var coord2 = points[i + 1];
 
                 var dist = Math.Sqrt(Math.Pow(coord1.X - coord2.X, 2) + Math.Pow(coord1.Y - coord2.Y, 2));
-                if (dist > (penSize / 5))
+                if (dist > (penSize / 5.0f))
                 {
                     var newPoint = new Point<float>((coord1.X + coord2.X) / 2, (coord1.Y + coord2.Y) / 2);
                     points.Insert(i + 1, newPoint);
