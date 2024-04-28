@@ -65,8 +65,8 @@ public static class Mathematics
 
     public static Point<int> CalculateGridOffset(int gridSize)
     {
-        var middleGridCellX = (Constants.BitmapSize.Width / 2) - (gridSize / 2);
-        var middleGridCellY = (Constants.BitmapSize.Height / 2) - (gridSize / 2);
+        var middleGridCellX = (Constants.MapSize.Width / 2) - (gridSize / 2);
+        var middleGridCellY = (Constants.MapSize.Height / 2) - (gridSize / 2);
 
         var xModulo = middleGridCellX % gridSize;
         var yModulo = middleGridCellY % gridSize;
@@ -77,34 +77,21 @@ public static class Mathematics
         return new(startX, startY);
     }
 
-    public static List<Point<double>> SnapPointsToCanvasGrid(List<Point<double>> points, ICanvasSize canvasSize, int gridSize, int snapPointGridSize)
+    public static List<Point<double>> SnapPointsToCanvasGrid(List<Point<double>> points, IMapSize mapSize)
     {
-        var canvasGridSize = CalculateCanvasGridSize(canvasSize, snapPointGridSize);
-        var canvasGridOffset = CalculateCanvasGridOffset(canvasSize, gridSize);
-        return SnapPointsToGrid(points, canvasGridOffset, canvasGridSize);
+        var canvasGridOffset = CalculateCanvasGridOffset(mapSize);
+        return SnapPointsToGrid(points, canvasGridOffset, mapSize.CanvasGridSize);
     }
 
-    public static List<Point<double>> SnapPointsToCanvasGrid(List<Point<double>> points, ICanvasSize canvasSize, int gridSize)
+    public static Point<double> SnapPointToCanvasGrid(Point<double> point, IMapSize mapSize, double snapPointGridSize)
     {
-        return SnapPointsToCanvasGrid(points, canvasSize, gridSize, gridSize);
+        var canvasGridOffset = CalculateCanvasGridOffset(mapSize);
+        return SnapPointToGrid(point, canvasGridOffset, snapPointGridSize);
     }
 
-    public static Point<double> SnapPointToCanvasGrid(Point<double> point, ICanvasSize canvasSize, int gridSize, int snapPointGridSize)
+    public static Point<double> CalculateCanvasGridOffset(IMapSize mapSize)
     {
-        var canvasGridSize = CalculateCanvasGridSize(canvasSize, snapPointGridSize);
-        var canvasGridOffset = CalculateCanvasGridOffset(canvasSize, gridSize);
-        return SnapPointToGrid(point, canvasGridOffset, canvasGridSize);
-    }
-
-    public static Point<double> CalculateCanvasGridOffset(ICanvasSize canvasSize, int gridSize)
-    {
-        var gridOffset = Point<double>.Create(CalculateGridOffset(gridSize));
-        return new(gridOffset.X.Map(0, Constants.BitmapSize.Width, 0, canvasSize.Width), gridOffset.Y.Map(0, Constants.BitmapSize.Height, 0, canvasSize.Height));
-    }
-
-    public static double CalculateCanvasGridSize(ICanvasSize canvasSize, int gridSize)
-    {
-        double canvasGridSize = gridSize;
-        return canvasGridSize.Map(0, Constants.BitmapSize.Width, 0, canvasSize.Width);
+        var gridOffset = Point<double>.Create(CalculateGridOffset(mapSize.GridSize));
+        return new(gridOffset.X.Map(0, mapSize.Width, 0, mapSize.CanvasWidth), gridOffset.Y.Map(0, mapSize.Height, 0, mapSize.CanvasHeight));
     }
 }

@@ -20,21 +20,19 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 {
     private DrawingButton _selectedDrawingButton = DrawingButton.Black;
     private ITokenLinker _tokenLinker;
-    private int _gridSize;
 
     public DrawingControllerViewModel()
     {
         Initialize();
     }
 
-    public DrawingControllerViewModel(ICanvasSize canvasSize, ITokenLinker tokenLinker, int gridSize) : base(canvasSize)
+    public DrawingControllerViewModel(IMapSize mapSize, ITokenLinker tokenLinker) : base(mapSize)
     {
         Initialize();
 
         _tokenLinker = tokenLinker;
-        _gridSize = gridSize;
 
-        _canvasSize.OnCanvasSizeChanged += OnCanvasSizeChanged;
+        _mapSize.OnCanvasSizeChanged += OnCanvasSizeChanged;
     }
 
     private void Initialize()
@@ -46,7 +44,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         EraserButtonBitmapSource = BitmapTools.CreateEraserButton(false).ToBitmapImage();
         ShapeCollection = new();
         ShapeCollection.OnRenderShapes += (_, _) => NotifyDrawingShapesUpdated();
-        ActiveShape = new StrokeDrawingShape(ApplyActiveShape, _tokenLinker, _canvasSize, _gridSize);
+        ActiveShape = new StrokeDrawingShape(ApplyActiveShape, _tokenLinker, _mapSize);
         MouseCanvas = new MouseCanvasViewModel();
         MouseCanvas.OnLeftButtonDown += LeftButtonDown;
         MouseCanvas.OnLeftButtonUp += LeftButtonUp;
@@ -120,9 +118,9 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public override void Move(ArrowDirection direction, int movementCount)
     {
         var matrix = new Matrix();
-        double gridSize = _gridSize * movementCount;
-        var distanceX = gridSize.Map(0, Constants.BitmapSize.Width, 0, _canvasSize.Width);
-        var distanceY = gridSize.Map(0, Constants.BitmapSize.Height, 0, _canvasSize.Height);
+        double gridSize = _mapSize.GridSize * movementCount;
+        var distanceX = gridSize.Map(0, _mapSize.Width, 0, _mapSize.CanvasWidth);
+        var distanceY = gridSize.Map(0, _mapSize.Height, 0, _mapSize.CanvasHeight);
 
         switch (direction)
         {
@@ -169,13 +167,13 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
         foreach (var shape in saveFile.DrawingShapes)
         {
-            shape.SetProperties(ApplyActiveShape, _tokenLinker, _canvasSize, _gridSize);
+            shape.SetProperties(ApplyActiveShape, _tokenLinker, _mapSize);
             ShapeCollection.Add(shape);
         }
 
-        if (!saveFile.CanvasSize.Equals(_canvasSize.GetSize()) && saveFile.CanvasSize.Width != 0)
+        if (!saveFile.CanvasSize.Equals(_mapSize.GetCanvasSize()) && saveFile.CanvasSize.Width != 0)
         {
-            var zoomFactor = _canvasSize.Width / saveFile.CanvasSize.Width;
+            var zoomFactor = _mapSize.CanvasWidth / saveFile.CanvasSize.Width;
             var matrix = new Matrix();
             matrix.Scale(zoomFactor, zoomFactor);
             ShapeCollection.Transform(matrix);
@@ -217,26 +215,16 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public override void Zoom(double zoomFactor)
     {
         var matrix = new Matrix();
-        matrix.Translate(-(_canvasSize.Width / 2), -(_canvasSize.Height / 2));
+        matrix.Translate(-(_mapSize.CanvasWidth / 2), -(_mapSize.CanvasHeight / 2));
         matrix.Scale(zoomFactor, zoomFactor);
-        matrix.Translate((_canvasSize.Width / 2), (_canvasSize.Height / 2));
+        matrix.Translate((_mapSize.CanvasWidth / 2), (_mapSize.CanvasHeight / 2));
         ShapeCollection.Transform(matrix);
-    }
-
-    public void UpdateGridSize(int gridSize)
-    {
-        _gridSize = gridSize;
-        foreach (var shape in ShapeCollection.GetShapes())
-        {
-            shape.UpdateGridSize(gridSize);
-        }
-        ActiveShape.UpdateGridSize(gridSize);
     }
 
     public System.Drawing.Bitmap GetDrawingBitmap()
     {
         var bitmap = BitmapTools.CreateEmptyBitmap();
-        BitmapTools.DrawShapes(bitmap, ShapeCollection.GetShapes().ToList(), _canvasSize.GetSize());
+        BitmapTools.DrawShapes(bitmap, ShapeCollection.GetShapes().ToList(), _mapSize.GetCanvasSize());
         return bitmap;
     }
 
@@ -292,7 +280,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         IsDrawShapeActive = false;
         IsEditShapeActive = false;
 
-        ActiveShape = new EraserDrawingShape(ShapeCollection, _canvasSize)
+        ActiveShape = new EraserDrawingShape(ShapeCollection, _mapSize)
         {
             PenSize = ActiveShape.PenSize
         };
@@ -403,7 +391,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private DrawingShape CreateStrokeDrawingShape()
     {
-        return new StrokeDrawingShape(ApplyActiveShape, _tokenLinker, _canvasSize, _gridSize)
+        return new StrokeDrawingShape(ApplyActiveShape, _tokenLinker, _mapSize)
         {
             Color = ActiveShape.Color,
             PenSize = ActiveShape.PenSize,
@@ -449,7 +437,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void DrawRectangleShape()
     {
-        ActiveShape = new RectangleDrawingShape(ApplyActiveShape, _tokenLinker, _canvasSize, _gridSize)
+        ActiveShape = new RectangleDrawingShape(ApplyActiveShape, _tokenLinker, _mapSize)
         {
             Color = ActiveShape.Color,
             PenSize = ActiveShape.PenSize
@@ -458,7 +446,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void DrawCircleShape()
     {
-        ActiveShape = new CircleDrawingShape(ApplyActiveShape, _tokenLinker, _canvasSize, _gridSize)
+        ActiveShape = new CircleDrawingShape(ApplyActiveShape, _tokenLinker, _mapSize)
         {
             Color = ActiveShape.Color,
             PenSize = ActiveShape.PenSize
@@ -467,7 +455,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void DrawConeShape()
     {
-        ActiveShape = new ConeDrawingShape(ApplyActiveShape, _tokenLinker, _canvasSize, _gridSize)
+        ActiveShape = new ConeDrawingShape(ApplyActiveShape, _tokenLinker, _mapSize)
         {
             Color = ActiveShape.Color,
             PenSize = ActiveShape.PenSize
@@ -476,7 +464,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void LineConeShape()
     {
-        ActiveShape = new LineDrawingShape(ApplyActiveShape, _tokenLinker, _canvasSize, _gridSize)
+        ActiveShape = new LineDrawingShape(ApplyActiveShape, _tokenLinker, _mapSize)
         {
             Color = ActiveShape.Color,
             PenSize = ActiveShape.PenSize

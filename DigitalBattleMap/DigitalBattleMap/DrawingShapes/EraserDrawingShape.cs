@@ -13,7 +13,7 @@ public class EraserDrawingShape : DrawingShape
 {
     private DrawingShapeCollection _drawingShapeCollection;
 
-    public EraserDrawingShape(DrawingShapeCollection drawingShapeCollection, ICanvasSize canvasSize) : base(() => { }, null, canvasSize, 1)
+    public EraserDrawingShape(DrawingShapeCollection drawingShapeCollection, IMapSize mapSize) : base(() => { }, null, mapSize)
     {
         _drawingShapeCollection = drawingShapeCollection;
     }
@@ -86,7 +86,7 @@ public class EraserDrawingShape : DrawingShape
     {
         var pointIndex = shape.Points.IndexOf(point);
 
-        var newShape = new StrokeDrawingShape(() => { }, null, _canvasSize, 1)
+        var newShape = new StrokeDrawingShape(() => { }, null, _mapSize)
         {
             PenSize = shape.PenSize,
             Color = shape.Color,

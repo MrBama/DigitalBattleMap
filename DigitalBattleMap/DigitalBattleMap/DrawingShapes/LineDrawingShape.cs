@@ -10,14 +10,14 @@ public class LineDrawingShape : DrawingShape
     private Point<double> _startPosition;
     private Point<double> _previousMovePosition;
 
-    public LineDrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, ICanvasSize canvasSize, int gridSize) : base(applyShapeCallback, tokenLinker, canvasSize, gridSize)
+    public LineDrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize) : base(applyShapeCallback, tokenLinker, mapSize)
     {
         Name = "Line";
     }
 
     protected override void ButtonDown(Point<double> position)
     {
-        _startPosition = Mathematics.SnapPointToCanvasGrid(position, _canvasSize, _gridSize, _gridSize / 2);
+        _startPosition = Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2);
         Points.Add(position);
     }
 
@@ -30,7 +30,7 @@ public class LineDrawingShape : DrawingShape
     {
         if (buttonDown)
         {
-            var snappedPosition = Mathematics.SnapPointToCanvasGrid(position, _canvasSize, _gridSize, _gridSize / 2);
+            var snappedPosition = Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2);
             if (snappedPosition != _previousMovePosition)
             {
                 _previousMovePosition = snappedPosition;
@@ -42,8 +42,7 @@ public class LineDrawingShape : DrawingShape
                 var lineAngle = Math.Atan2(distanceY, distanceX);
                 var lineAngleInDegrees = lineAngle / Math.PI * 180;
 
-                var halfGridSizeCanvas = (double)_gridSize;
-                halfGridSizeCanvas = halfGridSizeCanvas.Map(0, Constants.BitmapSize.Width, 0, _canvasSize.Width) / 2;
+                var halfGridSizeCanvas = _mapSize.CanvasGridSize / 2;
 
                 // Add a point on the line that will be rotated to the corners
                 var startPosition = new Point<double>(_startPosition.X + halfGridSizeCanvas, _startPosition.Y);

@@ -9,7 +9,7 @@ namespace DigitalBattleMap.DrawingShapes;
 
 public class StrokeDrawingShape : DrawingShape
 {
-    public StrokeDrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, ICanvasSize canvasSize, int gridSize) : base(applyShapeCallback, tokenLinker, canvasSize, gridSize)
+    public StrokeDrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize) : base(applyShapeCallback, tokenLinker, mapSize)
     {
     }
 
@@ -24,7 +24,7 @@ public class StrokeDrawingShape : DrawingShape
     {
         if (SnapToGrid)
         {
-            var snappedPoints = Mathematics.SnapPointsToCanvasGrid(Points.ToList(), _canvasSize, _gridSize);
+            var snappedPoints = Mathematics.SnapPointsToCanvasGrid(Points.ToList(), _mapSize);
             Points = new ObservableCollection<Point<double>>(snappedPoints);
         }
         ApplyShape();
