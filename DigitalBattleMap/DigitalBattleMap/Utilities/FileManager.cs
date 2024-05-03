@@ -25,7 +25,7 @@ public static class FileManager
         return true;
     }
 
-    public static bool OpenFile<T, T2>(string path, CustomJsonConverter<T2> jsonConverter, out T data)
+    public static bool OpenFile<T>(string path, out T data, params JsonConverter[] jsonConverters)
     {
         string text;
         try
@@ -38,7 +38,7 @@ public static class FileManager
             return false;
         }
 
-        data = JsonConvert.DeserializeObject<T>(text, jsonConverter);
+        data = JsonConvert.DeserializeObject<T>(text, jsonConverters);
         return true;
     }
 

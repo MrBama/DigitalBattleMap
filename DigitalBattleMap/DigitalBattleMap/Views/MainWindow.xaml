@@ -24,7 +24,7 @@
             <i:InvokeCommandAction Command="{Binding WindowClosingCommand}" />
         </i:EventTrigger>
         <i:EventTrigger EventName="ContentRendered">
-            <i:InvokeCommandAction Command="{Binding InkCanvasSizeOnStartupCommand}" CommandParameter="{Binding ElementName=MapCanvas, Path=ActualWidth}"/>
+            <i:InvokeCommandAction Command="{Binding CanvasSizeOnStartupCommand}" CommandParameter="{Binding ElementName=MapCanvas, Path=ActualWidth}"/>
         </i:EventTrigger>
         <i:EventTrigger EventName="KeyDown">
             <i:InvokeCommandAction Command="{Binding KeyDownCommand}" PassEventArgsToCommand="True"/>
@@ -94,42 +94,34 @@
                         <Grid x:Name="MapCanvas">
                             <i:Interaction.Triggers>
                                 <i:EventTrigger EventName="SizeChanged">
-                                    <i:InvokeCommandAction Command="{Binding InkCanvasSizeChangedCommand}" PassEventArgsToCommand="True"/>
+                                    <i:InvokeCommandAction Command="{Binding CanvasSizeChangedCommand}" PassEventArgsToCommand="True"/>
                                 </i:EventTrigger>
                             </i:Interaction.Triggers>
                             <Image Source="{Binding BackgroundController.BackgroundBitmapSource}"/>
                             <Image Source="{Binding BackgroundController.FogOfWarBitmapSource}" Opacity="0.5"/>
                             <Image x:Name="GridLayer" Source="{Binding BackgroundController.GridBitmapSource}"/>
-                            <uielements:InkCanvasControl Background="{Binding DrawingController.InkCanvasBackgroundBitmapSource}" 
-                                            DefaultDrawingAttributes="{Binding DrawingController.InkCanvasDrawingAttributes}" 
-                                            Width="{Binding ElementName=GridLayer, Path=ActualWidth}" 
-                                            Height="{Binding ElementName=GridLayer, Path=ActualHeight}"
-                                            EditingMode="{Binding DrawingController.EditingMode}"
-                                            EraserShape="{Binding DrawingController.EraserShape}"
-                                            Strokes="{Binding DrawingController.Strokes, Mode=TwoWay}"
-                                            Visibility="{Binding InkCanvasVisibility}"
-                                            Panel.ZIndex="{Binding InkCanvasZIndex}">
-                            </uielements:InkCanvasControl>
+                            <uielements:DrawingCanvas
+                                Background="Transparent" 
+                                ActiveShape="{Binding DrawingController.ActiveShape}" 
+                                ShapeCollection="{Binding DrawingController.ShapeCollection}" 
+                                Cursor="{Binding DrawingController.ActiveShape.Cursor}"
+                                Visibility="{Binding DrawingCanvasVisibility}"
+                                Panel.ZIndex="{Binding DrawingCanvasZIndex}"
+                                Width="{Binding ElementName=GridLayer, Path=ActualWidth}" 
+                                Height="{Binding ElementName=GridLayer, Path=ActualHeight}">
+                            </uielements:DrawingCanvas>
                             <Image Source="{Binding TokenController.TokenBitmapSource}" Visibility="{Binding TokenVisibility}"/>
                             <Image Source="{Binding TokenController.TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
-                            <Canvas Visibility="{Binding MouseInputCanvasVisibility}" Background="Transparent" Cursor="Hand">
-                                <i:Interaction.Behaviors>
-                                    <uielements:MouseBehavior MouseX="{Binding MouseCanvas.MouseX, Mode=OneWayToSource}" MouseY="{Binding MouseCanvas.MouseY, Mode=OneWayToSource}"/>
-                                </i:Interaction.Behaviors>
-                                <i:Interaction.Triggers>
-                                    <i:EventTrigger EventName="MouseLeftButtonDown">
-                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.LeftButtonDownCommand}" />
-                                    </i:EventTrigger>
-                                    <i:EventTrigger EventName="MouseLeftButtonUp">
-                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.LeftButtonUpCommand}" />
-                                    </i:EventTrigger>
-                                    <i:EventTrigger EventName="MouseRightButtonDown">
-                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.RightButtonDownCommand}" />
-                                    </i:EventTrigger>
-                                    <i:EventTrigger EventName="MouseMove">
-                                        <i:InvokeCommandAction Command="{Binding MouseCanvas.MoveCommand}" IsEnabled="{Binding MouseCanvas.IsSelectionStarted}" />
-                                    </i:EventTrigger>
-                                </i:Interaction.Triggers>
+                            <uielements:MouseCanvas 
+                                Visibility="{Binding MouseInputCanvasVisibility}" 
+                                Background="Transparent" 
+                                Cursor="{Binding MouseCanvas.Cursor}" 
+                                Panel.ZIndex="5"
+                                LeftButtonDownCommand="{Binding MouseCanvas.LeftButtonDownCommand}"
+                                LeftButtonUpCommand="{Binding MouseCanvas.LeftButtonUpCommand}"
+                                RightButtonDownCommand="{Binding MouseCanvas.RightButtonDownCommand}"
+                                RightButtonUpCommand="{Binding MouseCanvas.RightButtonUpCommand}"
+                                MouseMoveCommand="{Binding MouseCanvas.MouseMoveCommand}">
                                 <Rectangle 
                                     Width="{Binding MouseCanvas.SelectionWidth}" 
                                     Height="{Binding MouseCanvas.SelectionHeight}" 
@@ -143,7 +135,7 @@
                                     Visibility="{Binding MouseCanvas.IsSelectionAreaVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
                                     Fill="#32B8D4F0"
                                     Stroke="#0078D7"/>
-                            </Canvas>
+                            </uielements:MouseCanvas>
                         </Grid>
                     </Border>
                 </TabItem>

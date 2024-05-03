@@ -20,13 +20,11 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 {
     private IWindowService _windowService;
     private IWebCommunication _webCommunication;
-    private IMouseCanvas _mouseCanvas;
     private Bitmap _tokenBitmap;
     private IMonsterTokens _monsterTokens;
     private IPlayers _players;
     private Settings _settings;
     private static object _lock = new();
-    private int _gridSize;
     private bool _changingInitiative = false;
     private TokenListItemMultiActions _tokenListItemMultiActions;
 
@@ -37,22 +35,19 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         Initialize();
     }
 
-    public TokenControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, ICanvasSize canvasSize, IMouseCanvas mouseCanvas, IMonsterTokens monsterTokens, IPlayers players, Settings settings, int gridSize) : base(canvasSize)
+    public TokenControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, IMapSize mapSize, IMonsterTokens monsterTokens, IPlayers players, Settings settings) : base(mapSize)
     {
         Initialize();
         _windowService = windowService;
         _webCommunication = webCommunication;
-        _mouseCanvas = mouseCanvas;
         _monsterTokens = monsterTokens;
         _players = players;
-        _gridSize = gridSize;
         _webCommunication.OnMoveToken += MoveToken;
         _webCommunication.OnToggleCondition += ToggleCondition;
         _webCommunication.OnGetConditions += GetConditions;
-        _mouseCanvas.SubscribeLeftButtonDown(TabIndex.Tokens, MouseLeftButtonDown);
-        _mouseCanvas.SubscribeRightButtonDown(TabIndex.Tokens, MouseRightButtonDown);
         _settings = settings;
         _settings.OnSettingChanged += SettingChanged;
+        _mapSize.OnGridSizeChanged += OnGridSizeChanged;
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
     }
 
@@ -62,6 +57,9 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         TokenSelectionBitmapSource = BitmapTools.CreateEmptyBitmap().ToBitmapImage();
         _tokenListItemMultiActions = new TokenListItemMultiActions(() => SelectedTokens);
         _tokenListItemMultiActions.OnConditionsChanged += TokenConditionsChanged;
+        MouseCanvas = new MouseCanvasViewModel();
+        MouseCanvas.OnLeftButtonDown += MouseLeftButtonDown;
+        MouseCanvas.OnRightButtonDown += MouseRightButtonDown;
     }
 
     protected override void InitializeCommands()
@@ -102,6 +100,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
     public BitmapSource UndoBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.UndoIcon.png")).ToBitmapImage(); }
     public BitmapSource RedoBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.RedoIcon.png")).ToBitmapImage(); }
+    public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
 
     public ICommand AddTokenCommand { get; set; }
     public ICommand RemoveTokenCommand { get; set; }
@@ -252,11 +251,10 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    public void UpdateGridSize(int gridSize)
+    private void OnGridSizeChanged(object? sender, EventArgs e)
     {
         lock (_lock)
         {
-            _gridSize = gridSize;
             if (TokenList.Count > 0)
             {
                 CreateTokenBitmap();
@@ -268,7 +266,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            var distance = _gridSize * movementCount;
+            var distance = _mapSize.GridSize * movementCount;
             foreach (var tokenListItem in TokenList)
             {
                 switch (direction)
@@ -299,13 +297,13 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             saveFile.TokenList = TokenList.ToList();
             foreach ((var token, var index) in TokenList.WithIndex())
             {
-                if (token.IsLinked())
+                if (token.LinkableObject.IsLinked())
                 {
                     var objectLink = new ObjectLink
                     {
                         LinkableObjectType = typeof(TokenListItem),
                         Index = index,
-                        TokenIndentifier = token.GetLinkIdentifier()
+                        TokenIndentifier = token.LinkableObject.GetLinkIdentifier()
                     };
                     saveFile.ObjectLinks.Add(objectLink);
                 }
@@ -374,8 +372,8 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                     double newX = tokenListItem.Position.X;
                     double newY = tokenListItem.Position.Y;
 
-                    double halfWidth = Constants.BitmapSize.Width / 2;
-                    double halfHeight = Constants.BitmapSize.Height / 2;
+                    double halfWidth = _mapSize.Width / 2;
+                    double halfHeight = _mapSize.Height / 2;
 
                     newX -= halfWidth;
                     newX *= zoomFactor;
@@ -409,10 +407,10 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
         if (listSelectionWindowViewModel.Success)
         {
-            if (listSelectionWindowViewModel.SelectedItem != linkableObject)
+            if (listSelectionWindowViewModel.SelectedItem.LinkableObject != linkableObject)
             {
-                linkableObject.Link(listSelectionWindowViewModel.SelectedItem);
-                listSelectionWindowViewModel.SelectedItem.LinkedObjects.Add(linkableObject);
+                linkableObject.LinkableObject.Link(listSelectionWindowViewModel.SelectedItem);
+                listSelectionWindowViewModel.SelectedItem.LinkedObjects.Add(linkableObject.LinkableObject);
             }
         }
     }
@@ -422,12 +420,12 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         var tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(tokenIndentifier));
         if (tokenListItem != null)
         {
-            linkableObject.Link(tokenListItem);
-            tokenListItem.LinkedObjects.Add(linkableObject);
+            linkableObject.LinkableObject.Link(tokenListItem);
+            tokenListItem.LinkedObjects.Add(linkableObject.LinkableObject);
         }
     }
 
-    private void MouseLeftButtonDown(Point<double> point)
+    private void MouseLeftButtonDown(object? sender, MouseButtonDataEventArgs e)
     {
         lock (_lock)
         {
@@ -435,18 +433,19 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             {
                 var newPosition = new Point<double>
                 {
-                    X = point.X.Map(0, _canvasSize.Width, 0, Constants.BitmapSize.Width),
-                    Y = point.Y.Map(0, _canvasSize.Height, 0, Constants.BitmapSize.Height)
+                    X = e.Position.X.Map(0, _mapSize.CanvasWidth, 0, _mapSize.Width),
+                    Y = e.Position.Y.Map(0, _mapSize.CanvasHeight, 0, _mapSize.Height)
                 };
 
-                var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(_gridSize));
-                var cellX = Math.Floor((SelectedToken.Position.X - gridOffset.X) / _gridSize);
-                var cellY = Math.Floor((SelectedToken.Position.Y - gridOffset.Y) / _gridSize);
-                var newCellX = Math.Floor((newPosition.X - gridOffset.X) / _gridSize);
-                var newCellY = Math.Floor((newPosition.Y - gridOffset.Y) / _gridSize);
+                var gridSize = _mapSize.GridSize;
+                var gridOffset = Point<double>.Create(Mathematics.CalculateGridOffset(gridSize));
+                var cellX = Math.Floor((SelectedToken.Position.X - gridOffset.X) / gridSize);
+                var cellY = Math.Floor((SelectedToken.Position.Y - gridOffset.Y) / gridSize);
+                var newCellX = Math.Floor((newPosition.X - gridOffset.X) / gridSize);
+                var newCellY = Math.Floor((newPosition.Y - gridOffset.Y) / gridSize);
 
                 var cellOffset = new Point<double>(newCellX - cellX, newCellY - cellY);
-                var offset = new Point<double>(cellOffset.X * _gridSize, cellOffset.Y * _gridSize);
+                var offset = new Point<double>(cellOffset.X * gridSize, cellOffset.Y * gridSize);
                 foreach (var linkedObject in SelectedToken.LinkedObjects)
                 {
                     linkedObject.UpdatePosition(Point<int>.Create(offset));
@@ -468,21 +467,22 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    private void MouseRightButtonDown(Point<double> point)
+    private void MouseRightButtonDown(object? sender, MouseButtonDataEventArgs e)
     {
         lock (_lock)
         {
             var position = new Point<double>
             {
-                X = point.X.Map(0, _canvasSize.Width, 0, Constants.BitmapSize.Width),
-                Y = point.Y.Map(0, _canvasSize.Height, 0, Constants.BitmapSize.Height)
+                X = e.Position.X.Map(0, _mapSize.CanvasWidth, 0, _mapSize.Width),
+                Y = e.Position.Y.Map(0, _mapSize.CanvasHeight, 0, _mapSize.Height)
             };
 
-            var gridOffset = Point<double>.Create(BitmapTools.CalculateGridOffset(_gridSize));
+            var gridSize = _mapSize.GridSize;
+            var gridOffset = Point<double>.Create(Mathematics.CalculateGridOffset(gridSize));
             var bottomRight = new Point<double>
             {
-                X = position.X + _gridSize - ((position.X - gridOffset.X) % _gridSize),
-                Y = position.Y + _gridSize - ((position.Y - gridOffset.Y) % _gridSize)
+                X = position.X + gridSize - ((position.X - gridOffset.X) % gridSize),
+                Y = position.Y + gridSize - ((position.Y - gridOffset.Y) % gridSize)
             };
 
             var foundTokens = new List<TokenListItem>();
@@ -490,7 +490,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             foreach (var tokenListItem in TokenList)
             {
                 var sizeFactor = Math.Max(1, tokenListItem.Token.GetSizeFactor());
-                var topLeft = new Point<double>(bottomRight.X - (sizeFactor * _gridSize), bottomRight.Y - (sizeFactor * _gridSize));
+                var topLeft = new Point<double>(bottomRight.X - (sizeFactor * gridSize), bottomRight.Y - (sizeFactor * gridSize));
 
                 if ((tokenListItem.Position.X > topLeft.X && tokenListItem.Position.X < bottomRight.X) &&
                     (tokenListItem.Position.Y > topLeft.Y && tokenListItem.Position.Y < bottomRight.Y))
@@ -514,35 +514,36 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             if (tokenListItem != null)
             {
                 var offset = new Point<int>();
+                var gridSize = _mapSize.GridSize;
                 switch (e.Direction)
                 {
                     case Direction.North:
-                        offset.Y -= _gridSize;
+                        offset.Y -= gridSize;
                         break;
                     case Direction.NorthEast:
-                        offset.X += _gridSize;
-                        offset.Y -= _gridSize;
+                        offset.X += gridSize;
+                        offset.Y -= gridSize;
                         break;
                     case Direction.East:
-                        offset.X += _gridSize;
+                        offset.X += gridSize;
                         break;
                     case Direction.SouthEast:
-                        offset.X += _gridSize;
-                        offset.Y += _gridSize;
+                        offset.X += gridSize;
+                        offset.Y += gridSize;
                         break;
                     case Direction.South:
-                        offset.Y += _gridSize;
+                        offset.Y += gridSize;
                         break;
                     case Direction.SouthWest:
-                        offset.X -= _gridSize;
-                        offset.Y += _gridSize;
+                        offset.X -= gridSize;
+                        offset.Y += gridSize;
                         break;
                     case Direction.West:
-                        offset.X -= _gridSize;
+                        offset.X -= gridSize;
                         break;
                     case Direction.NorthWest:
-                        offset.X -= _gridSize;
-                        offset.Y -= _gridSize;
+                        offset.X -= gridSize;
+                        offset.Y -= gridSize;
                         break;
                     default:
                         throw new ArgumentOutOfRangeException($"Unknown direction: {e.Direction}");
@@ -562,7 +563,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 tokenListItem.Position.X += offset.X;
                 tokenListItem.Position.Y += offset.Y;
 
-                TokenMoveHistory.Enqueue(new TokenMoveCommand(tokenListItem.GetTokenIndentifier(), new Point<int>(offset.X / _gridSize, offset.Y / _gridSize)));
+                TokenMoveHistory.Enqueue(new TokenMoveCommand(tokenListItem.GetTokenIndentifier(), new Point<int>(offset.X / gridSize, offset.Y / gridSize)));
                 CreateTokenBitmap();
                 uiThread.Release();
                 Task.WaitAll(tasks.ToArray());
@@ -603,19 +604,20 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
     private Point<int> CalculateStartPosition(int index)
     {
-        var position = new Point<int>(Constants.BitmapSize.Width / 2, Constants.BitmapSize.Height / 2);
-        var maxGridCellsX = position.X + (_gridSize / 2);
-        maxGridCellsX /= _gridSize;
-        var maxGridCellsY = position.Y + (_gridSize / 2);
-        maxGridCellsY /= _gridSize;
+        var position = new Point<int>(_mapSize.Width / 2, _mapSize.Height / 2);
+        var gridSize = _mapSize.GridSize;
+        var maxGridCellsX = position.X + (gridSize / 2);
+        maxGridCellsX /= gridSize;
+        var maxGridCellsY = position.Y + (gridSize / 2);
+        maxGridCellsY /= gridSize;
 
         if (index < maxGridCellsX * maxGridCellsY)
         {
             var gridCellsY = index / maxGridCellsX;
             var gridcellsX = index - (gridCellsY * maxGridCellsX);
 
-            position.X += gridcellsX * _gridSize;
-            position.Y += gridCellsY * _gridSize;
+            position.X += gridcellsX * gridSize;
+            position.Y += gridCellsY * gridSize;
         }
 
         return position;
@@ -647,7 +649,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 {
                     if (tokenListItem.Visible)
                     {
-                        BitmapTools.DrawToken(bitmap, tokenListItem, GetTokenIdString(tokenListItem), _gridSize);
+                        BitmapTools.DrawToken(bitmap, tokenListItem, GetTokenIdString(tokenListItem), _mapSize.GridSize);
                     }
                 }
                 UpdateTokenSelection();
@@ -696,7 +698,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             {
                 foreach (var tokenListItem in SelectedTokens)
                 {
-                    BitmapTools.DrawTokenSelection(bitmap, tokenListItem.Token.GetSizeFactor(), tokenListItem.Position, _gridSize);
+                    BitmapTools.DrawTokenSelection(bitmap, tokenListItem.Token.GetSizeFactor(), tokenListItem.Position, _mapSize.GridSize);
                 }
             }
 
@@ -761,7 +763,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         var tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(tokenIndentifier));
         if (tokenListItem != null)
         {
-            var offset = new Point<int>(cellOffset.X * _gridSize, cellOffset.Y * _gridSize);
+            var offset = new Point<int>(cellOffset.X * _mapSize.GridSize, cellOffset.Y * _mapSize.GridSize);
 
             foreach (var linkedObject in tokenListItem.LinkedObjects)
             {

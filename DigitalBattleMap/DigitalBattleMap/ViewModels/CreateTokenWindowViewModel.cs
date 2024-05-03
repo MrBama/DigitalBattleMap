@@ -121,7 +121,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
     private void InitializeProperties()
     {
         SelectedTokenSize = TokenSize.Medium;
-        SelectedTokenOrientation = TokenOrientation.East;
+        SelectedTokenOrientation = TokenOrientation.West;
         NameBorderBrush = System.Windows.Media.Brushes.Transparent;
         OptionalButtonText = "Show optional";
     }

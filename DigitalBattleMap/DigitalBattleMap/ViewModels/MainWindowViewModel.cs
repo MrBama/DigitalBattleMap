@@ -12,7 +12,7 @@ using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.ViewModels;
 
-public class MainWindowViewModel : ViewModelBase, ICanvasSize
+public class MainWindowViewModel : ViewModelBase, IMapSize
 {
     private IWindowService _windowService;
     private MapWindowViewModel _mapWindowViewModel;
@@ -40,11 +40,12 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         InitializeProperties();
     }
 
+    public event EventHandler OnGridSizeChanged;
     public event EventHandler<CanvasSizeChangedEventArgs> OnCanvasSizeChanged;
 
     public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
     public int SelectedMapTabIndex { get => Get<int>(); set => Set(value); }
-    public int InkCanvasZIndex { get => Get<int>(); set => Set(value); }
+    public int DrawingCanvasZIndex { get => Get<int>(); set => Set(value); }
     public int MultiMoveCount { get => Get<int>(); set => Set(value); }
     public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, IsShowMapLockedChanged); }
     public bool ServerConnectionButtonEnabled { get => Get<bool>(); set => Set(value); }
@@ -53,12 +54,12 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     public bool HideDungeonMasterFeatures { get => Get<bool>(); set => Set(value); }
     public string ServerConnectionButtonText { get => Get<string>(); set => Set(value); }
     public string ServerConnectionStatus { get => Get<string>(); set => Set(value); }
-    public Visibility InkCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
+    public Visibility DrawingCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
     public Visibility MouseInputCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
     public Visibility TokenVisibility { get => Get<Visibility>(); set => Set(value); }
     public System.Windows.Media.Brush ServerConnectionStatusColor { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
+    public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); set => Set(value); }
 
-    public MouseCanvasViewModel MouseCanvas { get; set; }
     public CampaignControllerViewModel CampaignController { get; set; }
     public BackgroundControllerViewModel BackgroundController { get; set; }
     public DrawingControllerViewModel DrawingController { get; set; }
@@ -74,13 +75,17 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     public BitmapSource DrawingEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.DrawingEmblem.png")).ToBitmapImage(); }
     public BitmapSource TokenEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.TokenEmblem.png")).ToBitmapImage(); }
 
-    double ICanvasSize.Width => _canvasSize.Width;
-    double ICanvasSize.Height => _canvasSize.Height;
+    int IMapSize.Width => Constants.MapSize.Width;
+    int IMapSize.Height => Constants.MapSize.Height;
+    int IMapSize.GridSize => BackgroundController.GridSize;
+    double IMapSize.CanvasWidth => _canvasSize.Width;
+    double IMapSize.CanvasHeight => _canvasSize.Height;
+    double IMapSize.CanvasGridSize => CalculateCanvasGridSize();
 
     public ICommand ShowMapCommand { get; set; }
     public ICommand WindowClosingCommand { get; set; }
-    public ICommand InkCanvasSizeOnStartupCommand { get; set; }
-    public ICommand InkCanvasSizeChangedCommand { get; set; }
+    public ICommand CanvasSizeOnStartupCommand { get; set; }
+    public ICommand CanvasSizeChangedCommand { get; set; }
     public ICommand ClearAllCommand { get; set; }
     public ICommand SettingsCommand { get; set; }
     public ICommand MoveMapArrowCommand { get; set; }
@@ -104,19 +109,19 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
         MouseCanvas = new();
         CampaignController = new CampaignControllerViewModel(_windowService, _connectionManager, _monsterTokens, _settings);
-        BackgroundController = new BackgroundControllerViewModel(_windowService, this, MouseCanvas, _settings);
-        BackgroundController.OnGridSizeChanged += OnGridSizeChanged;
+        BackgroundController = new BackgroundControllerViewModel(_windowService, this, _settings);
+        BackgroundController.OnGridSizeChanged += OnBackgroundGridSizeChanged;
         BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
-        TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, MouseCanvas, _monsterTokens, CampaignController, _settings, BackgroundController.GridSize);
+        TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, _monsterTokens, CampaignController, _settings);
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
-        DrawingController = new DrawingControllerViewModel(this, TokenController, BackgroundController.GridSize);
-        DrawingController.OnDrawingStrokesUpdated += DrawingStrokesUpdated;
+        DrawingController = new DrawingControllerViewModel(this, TokenController);
+        DrawingController.OnDrawingShapesUpdated += DrawingShapesUpdated;
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
     }
 
     private void InitializeProperties()
     {
-        InkCanvasVisibility = Visibility.Hidden;
+        DrawingCanvasVisibility = Visibility.Hidden;
         MouseInputCanvasVisibility = Visibility.Hidden;
         TokenVisibility = Visibility.Hidden;
         ServerConnectionButtonText = "Connect";
@@ -129,8 +134,8 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
     {
         ShowMapCommand = new RelayCommand(p => ShowMap());
         WindowClosingCommand = new RelayCommand(p => WindowClosing());
-        InkCanvasSizeOnStartupCommand = new RelayCommand(p => SetInkCanvasSize((double)p));
-        InkCanvasSizeChangedCommand = new RelayCommand(p => InkCanvasSizeChanged((SizeChangedEventArgs)p));
+        CanvasSizeOnStartupCommand = new RelayCommand(p => SetCanvasSize((double)p));
+        CanvasSizeChangedCommand = new RelayCommand(p => CanvasSizeChanged((SizeChangedEventArgs)p));
         ClearAllCommand = new RelayCommand(p => ClearMap());
         SettingsCommand = new RelayCommand(p => OpenSettings());
         MoveMapArrowCommand = new RelayCommand(p => MoveMap((string)p));
@@ -144,10 +149,9 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         KeyUpCommand = new RelayCommand(p => KeyUp((KeyEventArgs)p));
     }
 
-    private void OnGridSizeChanged(object? sender, GridSizeChangedEventArgs e)
+    private void OnBackgroundGridSizeChanged(object? sender, GridSizeChangedEventArgs e)
     {
-        DrawingController.UpdateGridSize(e.NewGridSize);
-        TokenController.UpdateGridSize(e.NewGridSize);
+        OnGridSizeChanged?.Invoke(this, new EventArgs());
         UpdateMap(DrawLayer.GridAndStrokes);
     }
 
@@ -156,7 +160,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         UpdateMap(DrawLayer.Background);
     }
 
-    private void DrawingStrokesUpdated(object? sender, EventArgs e)
+    private void DrawingShapesUpdated(object? sender, EventArgs e)
     {
         UpdateMap(DrawLayer.GridAndStrokes);
     }
@@ -209,7 +213,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
 
     private Bitmap CreateGridAndDrawingBitmap()
     {
-        return BitmapTools.CreateGridAndStrokesBitmap(BackgroundController.GetGridBitmap(), DrawingController.Strokes, Size<int>.Create(_canvasSize));
+        return BitmapTools.MergeBitmaps(new() { BackgroundController.GetGridBitmap(), DrawingController.GetDrawingBitmap() });
     }
 
     private void WindowClosing()
@@ -218,7 +222,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         _windowService.CloseAllWindows();
     }
 
-    private void SetInkCanvasSize(double width)
+    private void SetCanvasSize(double width)
     {
         var sizeChangedEventArgs = new CanvasSizeChangedEventArgs
         {
@@ -236,9 +240,9 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         OnCanvasSizeChanged?.Invoke(this, sizeChangedEventArgs);
     }
 
-    private void InkCanvasSizeChanged(SizeChangedEventArgs eventArgs)
+    private void CanvasSizeChanged(SizeChangedEventArgs eventArgs)
     {
-        SetInkCanvasSize(eventArgs.NewSize.Width);
+        SetCanvasSize(eventArgs.NewSize.Width);
     }
 
     private void ClearMap()
@@ -274,37 +278,43 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
 
     public void SelectedTabChanged()
     {
-        MouseCanvas.SetSelectedTabIndex(SelectedTabIndex);
-        BackgroundController.ConfigureMouseCanvas(SelectedTabIndex == TabIndex.Background);
         switch (SelectedTabIndex)
         {
             case TabIndex.Campaign:
                 MouseInputCanvasVisibility = Visibility.Hidden;
-                InkCanvasVisibility = Visibility.Visible;
+                DrawingCanvasVisibility = Visibility.Visible;
                 TokenVisibility = Visibility.Visible;
-                InkCanvasZIndex = 0;
+                DrawingCanvasZIndex = 0;
                 break;
             case TabIndex.Background:
-                InkCanvasVisibility = Visibility.Hidden;
+                DrawingCanvasVisibility = Visibility.Hidden;
                 MouseInputCanvasVisibility = Visibility.Visible;
+                MouseCanvas = BackgroundController.MouseCanvas;
                 TokenVisibility = Visibility.Hidden;
                 break;
             case TabIndex.Drawing:
-                InkCanvasVisibility = Visibility.Visible;
-                MouseInputCanvasVisibility = Visibility.Hidden;
+                DrawingCanvasVisibility = Visibility.Visible;
+                MouseInputCanvasVisibility = Visibility.Visible;
+                MouseCanvas = DrawingController.MouseCanvas;
                 TokenVisibility = Visibility.Visible;
-                InkCanvasZIndex = 1;
+                DrawingCanvasZIndex = 1;
                 break;
             case TabIndex.Tokens:
-                InkCanvasVisibility = Visibility.Visible;
+                DrawingCanvasVisibility = Visibility.Visible;
                 MouseInputCanvasVisibility = Visibility.Visible;
+                MouseCanvas = TokenController.MouseCanvas;
                 TokenVisibility = Visibility.Visible;
-                InkCanvasZIndex = 0;
+                DrawingCanvasZIndex = 0;
                 break;
         }
     }
 
-    public Size<double> GetSize()
+    public Size<int> GetSize()
+    {
+        return Constants.MapSize;
+    }
+
+    public Size<double> GetCanvasSize()
     {
         return _canvasSize;
     }
@@ -335,6 +345,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         if (_windowService.ShowSaveFileDialog(out string path, filter: "(*.dbm)|*.dbm"))
         {
             var saveFile = new SaveFile();
+            saveFile.CanvasSize = GetCanvasSize();
             BackgroundController.AddToSaveFile(saveFile);
             DrawingController.AddToSaveFile(saveFile);
             TokenController.AddToSaveFile(saveFile);
@@ -443,7 +454,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         ServerConnectionStatus = "Disconnected";
         ServerConnectionStatusColor = System.Windows.Media.Brushes.Red;
 
-        if(e.IsConnectionLost)
+        if (e.IsConnectionLost)
         {
             var confirmationWindowViewModel = new ConfirmationWindowViewModel
             {
@@ -453,7 +464,7 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
                 IsMiddleButtonVisible = true
             };
 
-            Application.Current.Dispatcher.Invoke(() => 
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 _windowService.ShowWindowDialog<ConfirmationWindow>(confirmationWindowViewModel);
             });
@@ -517,5 +528,11 @@ public class MainWindowViewModel : ViewModelBase, ICanvasSize
         {
             HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
         }
+    }
+
+    private double CalculateCanvasGridSize()
+    {
+        var gridSize = (double)BackgroundController.GridSize;
+        return gridSize.Map(0.0, Constants.MapSize.Width, 0.0, _canvasSize.Width);
     }
 }

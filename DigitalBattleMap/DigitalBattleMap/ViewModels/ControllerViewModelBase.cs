@@ -4,16 +4,16 @@ using DigitalBattleMap.Interfaces;
 namespace DigitalBattleMap.ViewModels;
 public abstract class ControllerViewModelBase : ViewModelBase
 {
-    protected ICanvasSize _canvasSize;
+    protected IMapSize _mapSize;
 
 
     public ControllerViewModelBase()
     {
     }
 
-    public ControllerViewModelBase(ICanvasSize canvasSize)
+    public ControllerViewModelBase(IMapSize mapSize)
     {
-        _canvasSize = canvasSize;
+        _mapSize = mapSize;
     }
 
     public abstract void AddToSaveFile(SaveFile saveFile);

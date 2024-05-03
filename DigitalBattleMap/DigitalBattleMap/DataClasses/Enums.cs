@@ -69,3 +69,11 @@ public enum WebViewPageType
     Uri,
     Html
 }
+
+public enum CollectionChangedAction
+{
+    Add,
+    Insert,
+    Remove,
+    Clear
+}

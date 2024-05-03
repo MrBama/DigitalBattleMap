@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Controls;
+using System.Windows.Input;
 using DigitalBattleMap.Common;
+using DigitalBattleMap.DrawingShapes;
 
 namespace DigitalBattleMap.DataClasses;
 
@@ -63,4 +65,29 @@ public class DisconnectedEventArgs : EventArgs
 public class SettingChangedEventArgs : EventArgs
 {
     public string SettingName { get; set; }
+}
+
+public class DrawingShapeCollectionChangedEventArgs : EventArgs
+{
+    public DrawingShape ChangedShape { get; set; }
+    public CollectionChangedAction Action { get; set; }
+    public int Index { get; set; }
+}
+
+public class MouseDataEventArgs : EventArgs
+{
+    public MouseEventArgs MouseEventArgs { get; set; }
+    public Point<double> Position { get; set; } = new ();
+}
+
+public class MouseButtonDataEventArgs : EventArgs
+{
+    public Point<double> Position { get; set; } = new();
+}
+
+public class MouseMoveDataEventArgs : EventArgs
+{
+    public Point<double> Position { get; set; } = new();
+    public bool LeftButtonDown { get; set; }
+    public bool RightButtonDown { get; set; }
 }

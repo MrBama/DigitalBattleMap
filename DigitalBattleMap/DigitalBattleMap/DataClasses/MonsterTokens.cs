@@ -1,7 +1,6 @@
 ﻿using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -40,7 +39,7 @@ public class MonsterTokens : IMonsterTokens
                 {
                     Name = tokenName,
                     Size = ConvertSize(monsterToken.Size),
-                    Orientation = TokenOrientation.East,
+                    Orientation = TokenOrientation.West,
                     ImagePath = file,
                     Statblock = new SourceStatblock(tokenName, monsterToken.Source),
                     Hp = monsterToken.Hp != 0 ? monsterToken.Hp : null
