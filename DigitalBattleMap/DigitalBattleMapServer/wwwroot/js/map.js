@@ -1,17 +1,42 @@
- "use strict";
+"use strict";
 
 const backgroundUrl = "/Map/Get?layer=Background";
 const gridAndStrokesUrl = "/Map/Get?layer=GridAndStrokes";
 const tokensUrl = "/Map/Get?layer=Tokens";
 
-let fullscreen = false;
+let controlsPositionLeft = true;
 
-const connection = new signalR.HubConnectionBuilder()
+const connectionMap = new signalR.HubConnectionBuilder()
     .withUrl("/MapHub")
     .withAutomaticReconnect()
     .build();
 
-connection.on("UpdateMap", function (drawLayer) {
+function openFullscreen() {
+    var elem = document.getElementById("mapContainer");
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+    }
+    else if (elem.webkitRequestFullscreen) /* Safari */ {
+        elem.webkitRequestFullscreen();
+    }
+    else if (elem.msRequestFullscreen) /* IE11 */ {
+        elem.msRequestFullscreen();
+    }
+}
+
+function closeFullscreen() {
+    if (document.exitFullscreen) {
+        document.exitFullscreen();
+    }
+    else if (document.webkitExitFullscreen) /* Safari */ {
+        document.webkitExitFullscreen();
+    }
+    else if (document.msExitFullscreen) /* IE11 */ {
+        document.msExitFullscreen();
+    }
+}
+
+connectionMap.on("UpdateMap", function (drawLayer) {
     console.log(drawLayer);
 
     switch (drawLayer) {
@@ -30,29 +55,64 @@ connection.on("UpdateMap", function (drawLayer) {
             $('#tokenImage').attr('src', tokensUrl + '&t=' + new Date().getTime());
             break;
     }
-    
+
 });
 
 async function start() {
     try {
-        await connection.start();
+        await connectionMap.start();
     } catch (error) {
         console.log(error);
     }
 };
 
+$(document).on('fullscreenchange', function () {
+    if (document.fullscreenElement == null) {
+        $('#btnContainer').appendTo('#mapView');
+        $('#controlsOverlay').appendTo('#mapView');
+    }
+});
+
 start();
 
-$(document).ready(function() {
-    $(".btn-fullscreen").click(function() {
-        if(fullscreen) {
-            $('.fullscreen').removeClass('fullscreen');
+$(document).ready(function () {
+    $.ajax({
+        url: "Map/GetCharacterNavigationViewComponent",
+        type: "GET",
+        success: function (result) {
+            $("#controlsBody").html(result);
+        },
+    })
+
+    $("#btnFullscreen").click(function () {
+        if (document.fullscreenElement == null) {
+            openFullscreen();
+            $('#btnContainer').appendTo('#mapContainer');
+            $('#controlsOverlay').appendTo('#mapContainer');
         }
         else {
-            $('.map-container').addClass('fullscreen');
-            $('.map-image').addClass('fullscreen');
+            closeFullscreen();
+        }        
+    });
+
+    $("#btnControls").click(function () {
+        $('#controlsOverlay').toggle();
+    });
+
+    $("#btnMoveControls").click(function () {
+        if (controlsPositionLeft) {
+            $('.controls-overlay').css('left', '0');
+            $('.controls-overlay').css('right', '');
+            $('.controls-position-buttons').css('justify-content', 'start');
+            document.getElementById("btnMoveControls").className = "btn btn-secondary fa fa-caret-right";
         }
-        
-        fullscreen = !fullscreen;
+        else {
+            $('.controls-overlay').css('left', '');
+            $('.controls-overlay').css('right', '0');
+            $('.controls-position-buttons').css('justify-content', 'end');
+            document.getElementById("btnMoveControls").className = "btn btn-secondary fa fa-caret-left";
+        }
+
+        controlsPositionLeft = !controlsPositionLeft;
     });
 })
