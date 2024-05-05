@@ -391,11 +391,13 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private DrawingShape CreateStrokeDrawingShape()
     {
+        var strokeDrawingShapes = ShapeCollection.GetShapes().OfType<StrokeDrawingShape>();
+
         return new StrokeDrawingShape(ApplyActiveShape, _tokenLinker, _mapSize)
         {
             Color = ActiveShape.Color,
             PenSize = ActiveShape.PenSize,
-            SnapToGrid = ActiveShape.SnapToGrid
+            SnapToGrid = strokeDrawingShapes.Any() && strokeDrawingShapes.Last().SnapToGrid
         };
     }
 

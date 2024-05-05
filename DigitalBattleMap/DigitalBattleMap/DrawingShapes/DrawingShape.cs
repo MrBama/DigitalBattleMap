@@ -32,6 +32,7 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
         PenSize = 5;
         Points = new();
         Name = "DrawingShape";
+        Size = "0";
         LinkableObject = new LinkableObject(UpdatePosition);
 
         LinkToTokenCommand = new RelayCommand(p => LinkToDifferentToken());
@@ -46,6 +47,7 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     public Brush ColorBrush { get => new SolidColorBrush(Color); }
     public double PenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100)); } // This is map size instead of canvas size because of UI reasons.
     public double PenSizeCanvas { get => PenSize.Map(0, _mapSize.Width, 0, _mapSize.CanvasWidth); }
+    public string Size { get => Get<string>(); set => Set(value); }
     public bool IsEditing { get => Get<bool>(); set => Set(value); }
     public bool SnapToGrid { get => Get<bool>(); set => Set(value); }
     public string Name { get => Get<string>(); protected set => Set(value); }
@@ -111,12 +113,13 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     {
         if (IsEditing)
         {
-            var position = e.Position;
+            var position = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(e.Position, _mapSize, _mapSize.CanvasGridSize / 2) : e.Position;
 
-            var minX = Points.Min(p => p.X);
-            var minY = Points.Min(p => p.Y);
-            var maxX = Points.Max(p => p.X);
-            var maxY = Points.Max(p => p.Y);
+            var margin = 0.001; // This is required for floating point comparison
+            var minX = Points.Min(p => p.X) - margin;
+            var minY = Points.Min(p => p.Y) - margin;
+            var maxX = Points.Max(p => p.X) + margin;
+            var maxY = Points.Max(p => p.Y) + margin;
 
             if (position.X >= minX && position.X <= maxX && position.Y >= minY && position.Y <= maxY)
             {
@@ -130,7 +133,7 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     {
         if (IsEditing && _isMoving)
         {
-            var position = e.Position;
+            var position = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(e.Position, _mapSize, _mapSize.CanvasGridSize / 2) : e.Position;
             if (position != _previousMovePosition)
             {
                 var distanceX = position.X - _previousMovePosition.X;
@@ -152,7 +155,7 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
 
         if(e.RightButtonDown && IsEditing && _isMoving)
         {
-            var position = e.Position;
+            var position = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(e.Position, _mapSize, _mapSize.CanvasGridSize / 2) : e.Position;
             if (position != _previousMovePosition)
             {
                 var distanceX = position.X - _previousMovePosition.X;

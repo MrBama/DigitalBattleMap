@@ -13,11 +13,12 @@ internal class CircleDrawingShape : DrawingShape
     public CircleDrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize) : base(applyShapeCallback, tokenLinker, mapSize)
     {
         Name = "Circle";
+        SnapToGrid = true;
     }
 
     protected override void ButtonDown(Point<double> position)
     {
-        _startPosition = Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2);
+        _startPosition = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2) : position;
         Points.Add(position);
     }
 
@@ -31,8 +32,8 @@ internal class CircleDrawingShape : DrawingShape
     {
         if(buttonDown)
         {
-            var snappedPosition = Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2);
-            if(snappedPosition != _previousMovePosition)
+            var snappedPosition = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2) : position;
+            if (snappedPosition != _previousMovePosition)
             {
                 _previousMovePosition = snappedPosition;
                 Points.Clear();
@@ -44,7 +45,16 @@ internal class CircleDrawingShape : DrawingShape
                 }
 
                 Points.Insert(0, _startPosition); // Draw middle
+                CalculateSize();
             }
         }
+    }
+
+    private void CalculateSize()
+    {
+        var distance = new Point<double>(_startPosition.X - _previousMovePosition.X, _startPosition.Y - _previousMovePosition.Y);
+        var radius = Math.Sqrt(Math.Pow(distance.X, 2) + Math.Pow(distance.Y, 2));
+        var gridCells = radius * 2 / _mapSize.CanvasGridSize;
+        Size = $"{Math.Round(gridCells * Constants.FeetPerGridCell)}";
     }
 }
