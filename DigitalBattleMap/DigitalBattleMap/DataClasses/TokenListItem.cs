@@ -48,8 +48,6 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
 
         Health.OnHpChanged += HealthChanged;
         Health.OnMaxHpChanged += MaxHealthChanged;
-        Token.OnSizeChanged += TokenSizeChanged;
-        Token.OnOrientationChanged += TokenOrientationChanged;
     }
 
     public event EventHandler OnTokenChanged;
@@ -109,8 +107,6 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         _players = players;
         _multiActions = multiActions;
 
-        Token.OnSizeChanged += TokenSizeChanged;
-        Token.OnOrientationChanged += TokenOrientationChanged;
         Health.OnHpChanged += HealthChanged;
         Health.OnMaxHpChanged += MaxHealthChanged;
     }
@@ -172,11 +168,15 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     private void TokenSizeChanged(string size)
     {
         Token.Size = Enum.Parse<TokenSize>(size);
+        _multiActions.TokenSizeChanged(this);
+        NotifyTokenChanged();
     }
 
     private void TokenOrientationChanged(string orientation)
     {
         Token.Orientation = Enum.Parse<TokenOrientation>(orientation);
+        _multiActions.TokenOrientationChanged(this);
+        NotifyTokenChanged();
     }
 
     private void ConditionChanged(string conditionString)
@@ -246,16 +246,6 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     {
         AreConditionsVisible = !AreConditionsVisible;
     }
-
-    private void TokenSizeChanged(object? sender, EventArgs e)
-    {
-        _multiActions.TokenSizeChanged(this);
-    }
-    private void TokenOrientationChanged(object? sender, EventArgs e)
-    {
-        _multiActions.TokenOrientationChanged(this);
-    }
-
 
     private void HealthChanged(object? sender, EventArgs e)
     {

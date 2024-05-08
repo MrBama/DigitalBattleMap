@@ -63,7 +63,7 @@ public class TokenListItemMultiActions : ITokenListItemMultiActions
     {
         Execute(tokenListItem, (TokenListItem selectedTokenListItem) =>
         {
-            selectedTokenListItem.Token.SetSizeWithoutNotification(tokenListItem.Token.Size);
+            selectedTokenListItem.Token.Size = tokenListItem.Token.Size;
         });
     }
 
@@ -71,7 +71,7 @@ public class TokenListItemMultiActions : ITokenListItemMultiActions
     {
         Execute(tokenListItem, (TokenListItem selectedTokenListItem) =>
         {
-            selectedTokenListItem.Token.SetOrientationWithoutNotification(tokenListItem.Token.Orientation);
+            selectedTokenListItem.Token.Orientation = tokenListItem.Token.Orientation;
         });
     }
 

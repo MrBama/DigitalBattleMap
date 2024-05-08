@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Windows.Controls;
 using System.Windows.Input;
 using DigitalBattleMap.Common;
 using DigitalBattleMap.DrawingShapes;
@@ -17,12 +16,6 @@ public class ToggleConditionEventArgs : EventArgs
 {
     public TokenIndentifier TokenIndentifier { get; set; } = new();
     public Condition Condition { get; set; }
-}
-
-public class SetOrientationEventArgs : EventArgs
-{
-    public TokenIndentifier TokenIndentifier { get; set; } = new();
-    public Orientation Orientation { get; set; }
 }
 
 public class ZLevelChangedEventArgs : EventArgs

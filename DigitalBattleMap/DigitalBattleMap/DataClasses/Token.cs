@@ -6,13 +6,9 @@ namespace DigitalBattleMap.DataClasses;
 
 public class Token : PropertyHandler, ICloneable
 {
-    public event EventHandler OnSizeChanged;
-    public event EventHandler OnOrientationChanged;
-    public event EventHandler OnRequestRedraw;
-
     public string Name { get; set; } = "";
-    public TokenSize Size { get => Get<TokenSize>(); set => Set(value, NotifySizeChanged); }
-    public TokenOrientation Orientation { get => Get<TokenOrientation>(); set => Set(value, NotifyOrientationChanged); }
+    public TokenSize Size { get => Get<TokenSize>(); set => Set(value); }
+    public TokenOrientation Orientation { get => Get<TokenOrientation>(); set => Set(value); }
     public string ImagePath { get; set; } = "";
     public Statblock? Statblock { get; set; }
     public int? Hp { get; set; }
@@ -51,31 +47,9 @@ public class Token : PropertyHandler, ICloneable
         }
     }
 
-    public void SetSizeWithoutNotification(TokenSize size)
-    {
-        Set(size, nameof(Size));
-    }
-
-    public void SetOrientationWithoutNotification(TokenOrientation orientation)
-    {
-        Set(orientation, nameof(Orientation));
-    }
-
     public override string ToString()
     {
         return Name;
-    }
-
-    private void NotifySizeChanged()
-    {
-        OnSizeChanged?.Invoke(this, new EventArgs());
-        OnRequestRedraw?.Invoke(this, new EventArgs());
-    }
-
-    private void NotifyOrientationChanged()
-    {
-        OnOrientationChanged?.Invoke(this, new EventArgs());
-        OnRequestRedraw?.Invoke(this, new EventArgs());
     }
 
     internal RotateFlipType GetOrientation()
