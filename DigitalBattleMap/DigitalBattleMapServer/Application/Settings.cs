@@ -1,4 +1,6 @@
-﻿namespace DigitalBattleMapServer.Application;
+﻿using DigitalBattleMap.Common;
+
+namespace DigitalBattleMapServer.Application;
 
 public class Settings
 {

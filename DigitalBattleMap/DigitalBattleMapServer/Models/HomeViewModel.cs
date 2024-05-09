@@ -1,4 +1,5 @@
-﻿using DigitalBattleMapServer.Application;
+﻿using DigitalBattleMap.Common;
+using DigitalBattleMapServer.Application;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace DigitalBattleMapServer.Models;

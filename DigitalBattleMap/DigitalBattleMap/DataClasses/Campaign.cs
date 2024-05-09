@@ -1,4 +1,5 @@
-﻿using DigitalBattleMap.Utilities;
+﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.ObjectModel;
 
@@ -60,6 +61,7 @@ public class Player : IEquatable<Player>, ICloneable
     }
 
     public string Name { get; set; } = "";
+    public Orientation Orientation { get; set; }
     public ObservableCollection<TokenIndentifier> TokenIdentifiers { get; set; } = new();
 
     public object Clone()

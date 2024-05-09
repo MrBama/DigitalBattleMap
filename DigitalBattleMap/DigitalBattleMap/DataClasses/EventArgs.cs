@@ -45,6 +45,12 @@ public class GetTokensEventArgs : EventArgs
     public string Player { get; set; } = "";
 }
 
+public class SetOrientationEventArgs : EventArgs
+{
+    public string Player { get; set; } = "";
+    public Orientation Orientation { get; set; }
+}
+
 public class GridSizeChangedEventArgs : EventArgs
 {
     public int NewGridSize { get; set; }
@@ -83,4 +89,10 @@ public class MouseMoveDataEventArgs : EventArgs
     public Point<double> Position { get; set; } = new();
     public bool LeftButtonDown { get; set; }
     public bool RightButtonDown { get; set; }
+}
+
+public class TokensOrientationChangedEventArgs : EventArgs
+{
+    public List<TokenIndentifier> TokenIndentifiers { get; set; } = new();
+    public TokenOrientation Orientation { get; set; }
 }

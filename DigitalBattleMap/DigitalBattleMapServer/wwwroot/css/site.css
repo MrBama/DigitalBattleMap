@@ -187,6 +187,7 @@ i.direction.SouthEast {
   width: 370px;
   height: 640px;
   min-width: 19%;
+  display: none;
 }
 
 .map-buttons-container {

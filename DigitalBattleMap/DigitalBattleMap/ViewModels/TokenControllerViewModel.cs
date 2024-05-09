@@ -42,12 +42,13 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         _webCommunication = webCommunication;
         _monsterTokens = monsterTokens;
         _players = players;
+        _players.OnOrientationChanged += TokensOrientationChanged;
         _webCommunication.OnMoveToken += MoveToken;
         _webCommunication.OnToggleCondition += ToggleCondition;
         _webCommunication.OnGetConditions += GetConditions;
         _settings = settings;
         _settings.OnSettingChanged += SettingChanged;
-        _mapSize.OnGridSizeChanged += OnGridSizeChanged;
+        _mapSize.OnGridSizeChanged += GridSizeChanged;
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
     }
 
@@ -146,12 +147,8 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                     tokenListItem.OnZLevelChanged += ZLevelChanged;
                     tokenListItem.Id = GetUniqueId(token.Name);
                     tokenListItem.Position = CalculateStartPosition(index);
-
-                    if (_players.IsTokenControlledByPlayer(tokenListItem.GetTokenIndentifier()))
-                    {
-                        _webCommunication.SendMessage(new ConditionsMessage { TokenIndentifier = tokenListItem.GetTokenIndentifier() });
-                    }
-
+                    
+                    SetPlayerProperties(tokenListItem);
                     TokenList.Add(tokenListItem);
                     StatblocksViewModel.AddToken(tokenListItem);
                 }
@@ -250,7 +247,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    private void OnGridSizeChanged(object? sender, EventArgs e)
+    private void GridSizeChanged(object? sender, EventArgs e)
     {
         lock (_lock)
         {
@@ -323,11 +320,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 tokenListItem.OnZLevelChanged += ZLevelChanged;
                 tokenListItem.Health.InitializeEditorHp();
 
-                if (_players.IsTokenControlledByPlayer(tokenListItem.GetTokenIndentifier()))
-                {
-                    _webCommunication.SendMessage(new ConditionsMessage { TokenIndentifier = tokenListItem.GetTokenIndentifier(), Conditions = tokenListItem.Conditions });
-                }
-
+                SetPlayerProperties(tokenListItem);
                 TokenList.Add(tokenListItem);
                 StatblocksViewModel.AddToken(tokenListItem);
             }
@@ -808,6 +801,38 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         if (e.SettingName == nameof(Settings.HideDungeonMasterFeatures))
         {
             HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
+        }
+    }
+
+    private void TokensOrientationChanged(object? sender, TokensOrientationChangedEventArgs e)
+    {
+        var tokensAreUpdated = false;
+        foreach (var tokenIdentifier in e.TokenIndentifiers)
+        {
+            var tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(tokenIdentifier));
+            if (tokenListItem != null)
+            {
+                tokenListItem.Token.Orientation = e.Orientation;
+                tokensAreUpdated = true;
+            }
+        }
+
+        if(tokensAreUpdated)
+        {
+            CreateTokenBitmap();
+        }
+    }
+
+    private void SetPlayerProperties(TokenListItem tokenListItem)
+    {
+        var identifier = tokenListItem.GetTokenIndentifier();
+        if (_players.IsTokenControlledByPlayer(identifier))
+        {
+            if (_players.TryGetOrientation(identifier, out var orientation))
+            {
+                tokenListItem.Token.Orientation = orientation;
+            }
+            _webCommunication.SendMessage(new ConditionsMessage { TokenIndentifier = identifier, Conditions = tokenListItem.Conditions });
         }
     }
 }

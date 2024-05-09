@@ -31,6 +31,7 @@ public class ConnectionManager : IWebCommunication
     public event EventHandler<ToggleConditionEventArgs> OnToggleCondition;
     public event EventHandler<GetConditionsEventArgs> OnGetConditions;
     public event EventHandler<GetTokensEventArgs> OnGetTokens;
+    public event EventHandler<SetOrientationEventArgs> OnSetOrientation;
 
     private bool _isConnected;
     private Queue<MapUpdate> _mapUpdateQueue = new();
@@ -118,6 +119,12 @@ public class ConnectionManager : IWebCommunication
         return Task.CompletedTask;
     }
 
+    public Task SetOrientation(string player, Orientation orientation)
+    {
+        OnSetOrientation?.Invoke(this, new SetOrientationEventArgs { Player = player, Orientation = orientation });
+        return Task.CompletedTask;
+    }
+
     public void SendMapUpdate(MapUpdate mapUpdate)
     {
         if (!_isConnected)
@@ -179,6 +186,7 @@ public class ConnectionManager : IWebCommunication
         _webHubConnection.On<string, Condition>(nameof(ToggleCondition), ToggleCondition);
         _webHubConnection.On<string>(nameof(GetConditions), GetConditions);
         _webHubConnection.On<string>(nameof(GetTokens), GetTokens);
+        _webHubConnection.On<string, Orientation>(nameof(SetOrientation), SetOrientation);
     }
 
     private void SendMessages()

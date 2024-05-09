@@ -1,11 +1,14 @@
-﻿using DigitalBattleMap.DataClasses;
+﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.Tracing;
 using System.Linq;
+using System.Numerics;
 using System.Windows.Input;
 
 namespace DigitalBattleMap.ViewModels;
@@ -30,6 +33,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
         _settings = settings;
         _webCommunication.OnConnected += OnWebCommunicationConnected;
         _webCommunication.OnGetTokens += OnGetTokens;
+        _webCommunication.OnSetOrientation += SetOrientation;
         Campaigns = new(settings.Campaigns.Clone().OrderBy(c => c.Name));
         SetCurrentCampaign(Campaigns.SingleOrDefault(c => string.Equals(c.Name, settings.CurrentCampaignName, StringComparison.CurrentCultureIgnoreCase)));
         ExpandCurrentCampaign();
@@ -47,6 +51,8 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
         AddTokenCommand = new RelayCommand(p => AddToken());
         SaveCampaignsCommand = new RelayCommand(p => SaveCampaigns());
     }
+
+    public event EventHandler<TokensOrientationChangedEventArgs> OnOrientationChanged;
 
     public ObservableCollection<Campaign> Campaigns { get; set; } = new();
     public Campaign CurrentCampaign { get => Get<Campaign>(); set => Set(value, CurrentCampaignChanged); }
@@ -91,6 +97,23 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
                 {
                     return true;
                 }
+            }
+        }
+
+        return false;
+    }
+
+    public bool TryGetOrientation(TokenIndentifier tokenIndentifier, out TokenOrientation orientation)
+    {
+        orientation = TokenOrientation.West;
+
+        if (CurrentCampaign != null)
+        {
+            if(IsTokenControlledBySinglePlayer(tokenIndentifier))
+            {
+                var player = CurrentCampaign.Players.Single(p => p.TokenIdentifiers.Contains(tokenIndentifier));
+                orientation = ConvertToTokenOrientation(player.Orientation);
+                return true;
             }
         }
 
@@ -343,11 +366,23 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
     {
         if (CurrentCampaign != null)
         {
-            foreach (var player in CurrentCampaign.Players)
+            if(TryGetPlayer(e.Player, out var player))
             {
-                if (string.Equals(e.Player, player.Name, StringComparison.CurrentCultureIgnoreCase))
+                _webCommunication.SendMessage(new TokensMessage { Player = e.Player, Tokens = player.TokenIdentifiers.ToStringList() });
+            }
+        }
+    }
+
+    public void SetOrientation(object? sender, SetOrientationEventArgs e)
+    {
+        if (CurrentCampaign != null)
+        {
+            if (TryGetPlayer(e.Player, out var player))
+            {
+                if(player.Orientation != e.Orientation)
                 {
-                    _webCommunication.SendMessage(new TokensMessage { Player = e.Player, Tokens = player.TokenIdentifiers.ToStringList() });
+                    player.Orientation = e.Orientation;
+                    InvokeOrientationUpdate(player);
                 }
             }
         }
@@ -367,5 +402,62 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
                 }
             }
         }
+    }
+
+    private bool TryGetPlayer(string playerName, out Player player)
+    {
+        foreach (var p in CurrentCampaign.Players)
+        {
+            if (string.Equals(playerName, p.Name, StringComparison.CurrentCultureIgnoreCase))
+            {
+                player = p;
+                return true;
+            }
+        }
+
+        player = null;
+        return false;
+    }
+
+    private void InvokeOrientationUpdate(Player player)
+    {
+        var eventArgs = new TokensOrientationChangedEventArgs();
+
+        foreach (var tokenIdentifier in player.TokenIdentifiers)
+        {
+            if(IsTokenControlledBySinglePlayer(tokenIdentifier))
+            {
+                eventArgs.TokenIndentifiers.Add(tokenIdentifier);
+            }
+        }
+
+        if(eventArgs.TokenIndentifiers.Any())
+        {
+            eventArgs.Orientation = ConvertToTokenOrientation(player.Orientation);
+            OnOrientationChanged?.Invoke(this, eventArgs);
+        }
+    }
+
+    private TokenOrientation ConvertToTokenOrientation(Orientation orientation)
+    {
+        switch (orientation)
+        {
+            case Orientation.Up:
+                return TokenOrientation.North;
+            case Orientation.Left:
+                return TokenOrientation.East; 
+            case Orientation.Down:
+                return TokenOrientation.South; 
+            case Orientation.Right:
+                return TokenOrientation.West;
+            default:
+                throw new NotImplementedException();
+        }
+    }
+
+    private bool IsTokenControlledBySinglePlayer(TokenIndentifier tokenIndentifier)
+    {
+        var players = CurrentCampaign.Players.Where(p => p.TokenIdentifiers.Contains(tokenIndentifier));
+        return players.Count() == 1;
     }
 }

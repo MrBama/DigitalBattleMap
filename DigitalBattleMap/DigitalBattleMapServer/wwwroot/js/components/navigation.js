@@ -26,6 +26,8 @@
     "btnUnconcious"
 ]
 
+let isInitialized = false;
+
 const connection = new signalR.HubConnectionBuilder()
     .withUrl("/WebHub")
     .withAutomaticReconnect()
@@ -59,6 +61,39 @@ function getConditions() {
     })
 }
 
+function updateOrientation() {
+    let settings = getSettings();
+    if (settings == null) {
+        return "fa-arrow-circle-up";
+    }
+    console.log(settings.Orientation);
+
+    if (settings.Orientation == "0") {
+        return "fa-arrow-circle-left";
+    }
+    else if (settings.Orientation == "1") {
+        return "fa-arrow-circle-down";
+    }
+    else if (settings.Orientation == "2") {
+        return "fa-arrow-circle-right";
+    }
+    else {
+        currentOrientation = "Up";
+        return "fa-arrow-circle-up";
+    }
+}
+
+function initializeServerConnection() {
+    if (!isInitialized) {
+        isInitialized = true;
+
+        $.ajax({
+            url: "Navigation/SetOrientation",
+            type: "POST"
+        })
+    }
+}
+
 connection.on("SetConditions", function (character, conditions) {
     let selectedCharacter = $("#tokens").val();
 
@@ -77,6 +112,8 @@ connection.on("SetTokens", function (player, tokens) {
     let settings = getSettings();
 
     if (settings != null && settings.Name.localeCompare(player, undefined, { sensitivity: 'accent' }) === 0) {
+        initializeServerConnection();
+
         let select = document.getElementById("tokens");
 
         while (select.options.length > 0) {
@@ -99,6 +136,8 @@ connection.on("SetCampaign", function (players) {
         return;
     }
 
+    initializeServerConnection();
+
     let select = document.getElementById("tokens");
     while (select.options.length > 0) {
         select.remove(0);
@@ -117,27 +156,6 @@ connection.on("SetCampaign", function (players) {
 });
 
 $(document).ready(function () {
-    let currentOrientation = $(".btn-orientation").attr('orientation');
-
-    function UpdateOrientation() {
-        if (currentOrientation == "Up") {
-            currentOrientation = "Left";
-            return "fa-arrow-circle-left";
-        }
-        else if (currentOrientation == "Left") {
-            currentOrientation = "Down";
-            return "fa-arrow-circle-down";
-        }
-        else if (currentOrientation == "Down") {
-            currentOrientation = "Right";
-            return "fa-arrow-circle-right";
-        }
-        else {
-            currentOrientation = "Up";
-            return "fa-arrow-circle-up";
-        }
-    }
-
     $(".btn-direction").click(function() {
         let character = $("#tokens").val();
         let direction = $(this).attr('direction');
@@ -194,12 +212,12 @@ $(document).ready(function () {
         // Collapse conditions
         $('.collapsible-conditions-content').hide();
 
-        document.getElementById("btnOrientation").className = "fa fa-2x " + UpdateOrientation();
+        document.getElementById("btnOrientation").className = "fa fa-2x " + updateOrientation();
 
         $.ajax({
             url: "Navigation/ChangeOrientation",
             type: "POST"
-        })
+        })        
     })
 });
 
@@ -215,7 +233,11 @@ async function start() {
                 type: "POST",
                 data: { 'player': settings.Name }
             })
-        }   
+        }
+        else {
+            $("#navigationMain").empty();
+            $("#navigationMain").append("<p><b>No settings found!</b></p><p>Please go to settings and enter your name.</p>");
+        }
     } catch (error) {
         console.log(error);
     }
