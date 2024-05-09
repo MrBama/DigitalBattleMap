@@ -154,7 +154,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
                 {
                     LinkableObjectType = typeof(DrawingShape),
                     Index = index,
-                    TokenIndentifier = shape.LinkableObject.GetLinkIdentifier()
+                    TokenIdentifier = shape.LinkableObject.GetLinkIdentifier()
                 };
                 saveFile.ObjectLinks.Add(objectLink);
             }
@@ -207,7 +207,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         {
             if (objectLink.LinkableObjectType == typeof(DrawingShape))
             {
-                _tokenLinker.LinkToToken(ShapeCollection.ElementAt(objectLink.Index), objectLink.TokenIndentifier);
+                _tokenLinker.LinkToToken(ShapeCollection.ElementAt(objectLink.Index), objectLink.TokenIdentifier);
             }
         }
     }

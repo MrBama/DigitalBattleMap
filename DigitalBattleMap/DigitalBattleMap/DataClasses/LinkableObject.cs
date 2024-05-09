@@ -42,9 +42,9 @@ public class LinkableObject : PropertyHandler, IDisposable
         RefreshLinkToTokenButtonText();
     }
 
-    public TokenIndentifier GetLinkIdentifier()
+    public TokenIdentifier GetLinkIdentifier()
     {
-        return _tokenLink.GetTokenIndentifier();
+        return _tokenLink.GetTokenIdentifier();
     }
 
     public void Dispose()

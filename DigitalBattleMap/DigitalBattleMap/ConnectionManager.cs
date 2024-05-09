@@ -91,7 +91,7 @@ public class ConnectionManager : IWebCommunication
     {
         if (_playerControlAllowed)
         {
-            OnMoveToken?.Invoke(this, new MoveTokenEventArgs { TokenIndentifier = new TokenIndentifier(character), Direction = direction });
+            OnMoveToken?.Invoke(this, new MoveTokenEventArgs { TokenIdentifier = new TokenIdentifier(character), Direction = direction });
         }
 
         return Task.CompletedTask;
@@ -101,7 +101,7 @@ public class ConnectionManager : IWebCommunication
     {
         if (_playerControlAllowed)
         {
-            OnToggleCondition?.Invoke(this, new ToggleConditionEventArgs { TokenIndentifier = new TokenIndentifier(character), Condition = condition });
+            OnToggleCondition?.Invoke(this, new ToggleConditionEventArgs { TokenIdentifier = new TokenIdentifier(character), Condition = condition });
         }
 
         return Task.CompletedTask;
@@ -109,7 +109,7 @@ public class ConnectionManager : IWebCommunication
 
     public Task GetConditions(string character)
     {
-        OnGetConditions?.Invoke(this, new GetConditionsEventArgs { TokenIndentifier = new TokenIndentifier(character) });
+        OnGetConditions?.Invoke(this, new GetConditionsEventArgs { TokenIdentifier = new TokenIdentifier(character) });
         return Task.CompletedTask;
     }
 

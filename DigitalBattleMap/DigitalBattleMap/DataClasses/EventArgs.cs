@@ -8,13 +8,13 @@ namespace DigitalBattleMap.DataClasses;
 
 public class MoveTokenEventArgs : EventArgs
 {
-    public TokenIndentifier TokenIndentifier { get; set; } = new();
+    public TokenIdentifier TokenIdentifier { get; set; } = new();
     public Direction Direction { get; set; }
 }
 
 public class ToggleConditionEventArgs : EventArgs
 {
-    public TokenIndentifier TokenIndentifier { get; set; } = new();
+    public TokenIdentifier TokenIdentifier { get; set; } = new();
     public Condition Condition { get; set; }
 }
 
@@ -25,13 +25,13 @@ public class ZLevelChangedEventArgs : EventArgs
 
 public class ConditionsChangedEventArgs : EventArgs
 {
-    public TokenIndentifier TokenIndentifier { get; set; } = new();
+    public TokenIdentifier TokenIdentifier { get; set; } = new();
     public List<Condition> NewConditions { get; set; } = new();
 }
 
 public class GetConditionsEventArgs : EventArgs
 {
-    public TokenIndentifier TokenIndentifier { get; set; } = new();
+    public TokenIdentifier TokenIdentifier { get; set; } = new();
 }
 
 public class CanvasSizeChangedEventArgs : EventArgs
@@ -93,6 +93,6 @@ public class MouseMoveDataEventArgs : EventArgs
 
 public class TokensOrientationChangedEventArgs : EventArgs
 {
-    public List<TokenIndentifier> TokenIndentifiers { get; set; } = new();
+    public List<TokenIdentifier> TokenIdentifiers { get; set; } = new();
     public TokenOrientation Orientation { get; set; }
 }

@@ -7,7 +7,7 @@ public interface IPlayers
 {
     event EventHandler<TokensOrientationChangedEventArgs> OnOrientationChanged;
 
-    void AddTokenToPlayer(TokenIndentifier tokenIndentifier);
-    bool IsTokenControlledByPlayer(TokenIndentifier tokenIndentifier);
-    bool TryGetOrientation(TokenIndentifier tokenIndentifier, out TokenOrientation orientation);
+    void AddTokenToPlayer(TokenIdentifier tokenIdentifier);
+    bool IsTokenControlledByPlayer(TokenIdentifier tokenIdentifier);
+    bool TryGetOrientation(TokenIdentifier tokenIdentifier, out TokenOrientation orientation);
 }

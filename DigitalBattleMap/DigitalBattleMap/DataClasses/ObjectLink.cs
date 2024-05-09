@@ -5,5 +5,5 @@ public class ObjectLink
 {
     public Type LinkableObjectType { get; set; }
     public int Index { get; set; }
-    public TokenIndentifier TokenIndentifier { get; set; }
+    public TokenIdentifier TokenIdentifier { get; set; }
 }

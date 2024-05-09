@@ -29,7 +29,7 @@ public class TokenListItemMultiActions : ITokenListItemMultiActions
             }
 
             selectedTokenListItem.Conditions = conditions;
-            OnConditionsChanged?.Invoke(this, new ConditionsChangedEventArgs { TokenIndentifier = selectedTokenListItem.GetTokenIndentifier(), NewConditions = conditions });
+            OnConditionsChanged?.Invoke(this, new ConditionsChangedEventArgs { TokenIdentifier = selectedTokenListItem.GetTokenIdentifier(), NewConditions = conditions });
         });
     }
 

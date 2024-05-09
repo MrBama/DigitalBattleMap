@@ -134,9 +134,9 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         LinkedObjects.Remove(linkableObject);
     }
 
-    public TokenIndentifier GetTokenIndentifier()
+    public TokenIdentifier GetTokenIdentifier()
     {
-        return new TokenIndentifier(Token.Name, Id);
+        return new TokenIdentifier(Token.Name, Id);
     }
 
     public void Dispose()
@@ -205,7 +205,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
 
     private void NotifyConditionsChanged()
     {
-        OnConditionsChanged?.Invoke(this, new ConditionsChangedEventArgs { TokenIndentifier = GetTokenIndentifier(), NewConditions = Conditions });
+        OnConditionsChanged?.Invoke(this, new ConditionsChangedEventArgs { TokenIdentifier = GetTokenIdentifier(), NewConditions = Conditions });
     }
 
     private void ToggleTokenVisibility()
@@ -239,7 +239,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
 
     private void AddToPlayer()
     {
-        _players.AddTokenToPlayer(GetTokenIndentifier());
+        _players.AddTokenToPlayer(GetTokenIdentifier());
     }
 
     private void ExpandConditions()

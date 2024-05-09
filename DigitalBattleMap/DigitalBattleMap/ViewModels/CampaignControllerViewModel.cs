@@ -58,7 +58,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
     public Campaign CurrentCampaign { get => Get<Campaign>(); set => Set(value, CurrentCampaignChanged); }
     public Campaign SelectedCampaign { get => Get<Campaign>(); set => Set(value); }
     public Player SelectedPlayer { get => Get<Player>(); set => Set(value); }
-    public TokenIndentifier SelectedToken { get => Get<TokenIndentifier>(); set => Set(value); }
+    public TokenIdentifier SelectedToken { get => Get<TokenIdentifier>(); set => Set(value); }
     public bool CampaignListUpdated { get => Get<bool>(); set => Set(value); }
 
     public ICommand RemoveCampaignCommand { get; set; }
@@ -71,7 +71,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
     public ICommand AddTokenCommand { get; set; }
     public ICommand SaveCampaignsCommand { get; set; }
 
-    public void AddTokenToPlayer(TokenIndentifier tokenIndentifier)
+    public void AddTokenToPlayer(TokenIdentifier tokenIdentifier)
     {
         if (CurrentCampaign != null)
         {
@@ -80,20 +80,20 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
             if (listSelectionWindowViewModel.Success)
             {
                 var player = listSelectionWindowViewModel.SelectedItem;
-                player.TokenIdentifiers.Add(tokenIndentifier);
+                player.TokenIdentifiers.Add(tokenIdentifier);
                 _webCommunication.SendMessage(new TokensMessage { Player = player.Name, Tokens = player.TokenIdentifiers.ToStringList() });
                 CampaignListChanged();
             }
         }
     }
 
-    public bool IsTokenControlledByPlayer(TokenIndentifier tokenIndentifier)
+    public bool IsTokenControlledByPlayer(TokenIdentifier tokenIdentifier)
     {
         if (CurrentCampaign != null)
         {
             foreach (var player in CurrentCampaign.Players)
             {
-                if (player.TokenIdentifiers.Contains(tokenIndentifier))
+                if (player.TokenIdentifiers.Contains(tokenIdentifier))
                 {
                     return true;
                 }
@@ -103,15 +103,15 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
         return false;
     }
 
-    public bool TryGetOrientation(TokenIndentifier tokenIndentifier, out TokenOrientation orientation)
+    public bool TryGetOrientation(TokenIdentifier tokenIdentifier, out TokenOrientation orientation)
     {
         orientation = TokenOrientation.West;
 
         if (CurrentCampaign != null)
         {
-            if(IsTokenControlledBySinglePlayer(tokenIndentifier))
+            if(IsTokenControlledBySinglePlayer(tokenIdentifier))
             {
-                var player = CurrentCampaign.Players.Single(p => p.TokenIdentifiers.Contains(tokenIndentifier));
+                var player = CurrentCampaign.Players.Single(p => p.TokenIdentifiers.Contains(tokenIdentifier));
                 orientation = ConvertToTokenOrientation(player.Orientation);
                 return true;
             }
@@ -310,7 +310,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
         if (selectTokenWindowViewModel.AddedTokens.Count == 1)
         {
             var token = selectTokenWindowViewModel.AddedTokens.First();
-            var tokenIdentifier = new TokenIndentifier(token.Name);
+            var tokenIdentifier = new TokenIdentifier(token.Name);
             SelectedPlayer.TokenIdentifiers.Add(tokenIdentifier);
             SelectedToken = tokenIdentifier;
             if (SelectedCampaign == CurrentCampaign)
@@ -427,11 +427,11 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
         {
             if(IsTokenControlledBySinglePlayer(tokenIdentifier))
             {
-                eventArgs.TokenIndentifiers.Add(tokenIdentifier);
+                eventArgs.TokenIdentifiers.Add(tokenIdentifier);
             }
         }
 
-        if(eventArgs.TokenIndentifiers.Any())
+        if(eventArgs.TokenIdentifiers.Any())
         {
             eventArgs.Orientation = ConvertToTokenOrientation(player.Orientation);
             OnOrientationChanged?.Invoke(this, eventArgs);
@@ -455,9 +455,9 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
         }
     }
 
-    private bool IsTokenControlledBySinglePlayer(TokenIndentifier tokenIndentifier)
+    private bool IsTokenControlledBySinglePlayer(TokenIdentifier tokenIdentifier)
     {
-        var players = CurrentCampaign.Players.Where(p => p.TokenIdentifiers.Contains(tokenIndentifier));
+        var players = CurrentCampaign.Players.Where(p => p.TokenIdentifiers.Contains(tokenIdentifier));
         return players.Count() == 1;
     }
 }

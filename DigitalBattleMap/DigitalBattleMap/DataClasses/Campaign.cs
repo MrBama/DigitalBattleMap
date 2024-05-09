@@ -62,7 +62,7 @@ public class Player : IEquatable<Player>, ICloneable
 
     public string Name { get; set; } = "";
     public Orientation Orientation { get; set; }
-    public ObservableCollection<TokenIndentifier> TokenIdentifiers { get; set; } = new();
+    public ObservableCollection<TokenIdentifier> TokenIdentifiers { get; set; } = new();
 
     public object Clone()
     {
