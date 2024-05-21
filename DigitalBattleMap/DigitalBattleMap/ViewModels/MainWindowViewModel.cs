@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.DrawingShapes;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
@@ -59,6 +60,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public Visibility TokenVisibility { get => Get<Visibility>(); set => Set(value); }
     public System.Windows.Media.Brush ServerConnectionStatusColor { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); set => Set(value); }
+    public MouseCanvasViewModel CropMouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
 
     public CampaignControllerViewModel CampaignController { get; set; }
     public BackgroundControllerViewModel BackgroundController { get; set; }
@@ -70,6 +72,8 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public BitmapSource MapArrowRightBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Right).ToBitmapImage(); }
     public BitmapSource MapZoomInBitmapSource { get => BitmapTools.CreateZoomButton(true).ToBitmapImage(); }
     public BitmapSource MapZoomOutBitmapSource { get => BitmapTools.CreateZoomButton(false).ToBitmapImage(); }
+    public BitmapSource MapCropBitmapSource { get => BitmapTools.CreateCropButton().ToBitmapImage(); }
+    public BitmapSource MapReturnBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.UndoIcon.png")).ToBitmapImage(); }
     public BitmapSource CampaignEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.CampaignEmblem.png")).ToBitmapImage(); }
     public BitmapSource BackgroundEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.BackgroundEmblem.png")).ToBitmapImage(); }
     public BitmapSource DrawingEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.DrawingEmblem.png")).ToBitmapImage(); }
@@ -94,6 +98,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public ICommand ServerConnectionCommand { get; set; }
     public ICommand MapZoomInCommand { get; set; }
     public ICommand MapZoomOutCommand { get; set; }
+    public ICommand MapCropCommand { get; set; }
     public ICommand HideConfigurationCommand { get; set; }
     public ICommand KeyDownCommand { get; set; }
     public ICommand KeyUpCommand { get; set; }
@@ -108,6 +113,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         _connectionManager.OnConnected += ConnectionManagerConnected;
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
         MouseCanvas = new();
+        test();
         CampaignController = new CampaignControllerViewModel(_windowService, _connectionManager, _monsterTokens, _settings);
         BackgroundController = new BackgroundControllerViewModel(_windowService, this, _settings);
         BackgroundController.OnGridSizeChanged += OnBackgroundGridSizeChanged;
@@ -118,6 +124,82 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         DrawingController.OnDrawingShapesUpdated += DrawingShapesUpdated;
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
     }
+
+    private void test()
+    {
+        CropMouseCanvas = new MouseCanvasViewModel();
+        CropMouseCanvas.OnLeftButtonDown += LeftButtonDown;
+        CropMouseCanvas.OnLeftButtonUp += LeftButtonUp;
+        CropMouseCanvas.OnRightButtonDown += RightButtonDown;
+        CropMouseCanvas.OnRightButtonUp += RightButtonUp;
+        CropMouseCanvas.OnMouseMove += MouseMove;
+        CropMouseCanvas.Cursor = ActiveShape.Cursor;
+    }
+
+    private void LeftButtonDown(object? sender, MouseButtonDataEventArgs e)
+    {
+        ActiveShape.LeftButtonDown(e);
+    }
+
+    private void LeftButtonUp(object? sender, MouseButtonDataEventArgs e)
+    {
+        ActiveShape.LeftButtonUp(e);
+    }
+
+    private void RightButtonDown(object? sender, MouseButtonDataEventArgs e)
+    {
+        ActiveShape.RightButtonDown(e);
+    }
+
+    private void RightButtonUp(object? sender, MouseButtonDataEventArgs e)
+    {
+        ActiveShape.RightButtonUp(e);
+    }
+
+    private void MouseMove(object? sender, MouseMoveDataEventArgs e)
+    {
+        ActiveShape.MouseMove(e);
+    }
+
+    public DrawingShape ActiveShape
+    {
+        get => Get<DrawingShape>();
+        set
+        {
+            var oldValue = Get<DrawingShape>();
+            if (oldValue != null)
+            {
+                oldValue.PropertyChanged -= ActiveShapePropertyChanged;
+                oldValue.OnRenderChanged -= OnActiveShapeRenderChanged;
+            }
+
+            Set(value);
+
+            if (value != null)
+            {
+                value.PropertyChanged += ActiveShapePropertyChanged;
+                value.OnRenderChanged += OnActiveShapeRenderChanged;
+            }
+        }
+    }
+
+    private void ActiveShapePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(DrawingShape.Cursor))
+        {
+            MouseCanvas.Cursor = ActiveShape.Cursor;
+        }
+    }
+
+    private void OnActiveShapeRenderChanged(object? sender, EventArgs e)
+    {
+        NotifyDrawingShapesUpdated();
+    }
+    private void NotifyDrawingShapesUpdated()
+    {
+        OnDrawingShapesUpdated?.Invoke(this, new EventArgs());
+    }
+    public event EventHandler OnDrawingShapesUpdated; //change to background image size?
 
     private void InitializeProperties()
     {
@@ -144,6 +226,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         ServerConnectionCommand = new RelayCommand(p => ServerConnectionButton());
         MapZoomInCommand = new RelayCommand(p => ZoomIn());
         MapZoomOutCommand = new RelayCommand(p => ZoomOut());
+        MapCropCommand = new RelayCommand(p => ZoomOut());
         HideConfigurationCommand = new RelayCommand(p => { IsConfigurationMenuExpanded = false; });
         KeyDownCommand = new RelayCommand(p => KeyDown((KeyEventArgs)p));
         KeyUpCommand = new RelayCommand(p => KeyUp((KeyEventArgs)p));

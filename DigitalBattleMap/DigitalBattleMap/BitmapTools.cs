@@ -104,6 +104,17 @@ public static class BitmapTools
         return bitmap;
     }
 
+    public static Bitmap CreateCropButton()
+    {
+        var bitmap = new Bitmap(70, 70);
+
+        using var graphics = Graphics.FromImage(bitmap);
+        var brush = new SolidBrush(Color.Black);
+        graphics.FillRectangle(brush, 25, 25, 40, 40);
+
+        return bitmap;
+    }
+
     public static Bitmap CropBitmap(Bitmap bitmap, Rectangle rectangle)
     {
         var croppedBitmap = new Bitmap(rectangle.Width, rectangle.Height);
