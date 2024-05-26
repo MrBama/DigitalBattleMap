@@ -11,6 +11,7 @@ public interface IWebCommunication
     public event EventHandler<ToggleConditionEventArgs> OnToggleCondition;
     public event EventHandler<GetConditionsEventArgs> OnGetConditions;
     public event EventHandler<GetTokensEventArgs> OnGetTokens;
+    public event EventHandler<SetOrientationEventArgs> OnSetOrientation;
 
     public void SendMessage(IWebMessage webMessage);
 }

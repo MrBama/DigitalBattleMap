@@ -64,4 +64,9 @@ public class MapController : Controller
         
         return Ok();
     }
+
+    public IActionResult GetCharacterNavigationViewComponent(string uid)
+    {
+        return ViewComponent("CharacterNavigation");
+    }
 }

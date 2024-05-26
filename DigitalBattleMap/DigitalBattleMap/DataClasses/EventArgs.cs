@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Windows.Controls;
 using System.Windows.Input;
 using DigitalBattleMap.Common;
 using DigitalBattleMap.DrawingShapes;
@@ -9,20 +8,14 @@ namespace DigitalBattleMap.DataClasses;
 
 public class MoveTokenEventArgs : EventArgs
 {
-    public TokenIndentifier TokenIndentifier { get; set; } = new();
+    public TokenIdentifier TokenIdentifier { get; set; } = new();
     public Direction Direction { get; set; }
 }
 
 public class ToggleConditionEventArgs : EventArgs
 {
-    public TokenIndentifier TokenIndentifier { get; set; } = new();
+    public TokenIdentifier TokenIdentifier { get; set; } = new();
     public Condition Condition { get; set; }
-}
-
-public class SetOrientationEventArgs : EventArgs
-{
-    public TokenIndentifier TokenIndentifier { get; set; } = new();
-    public Orientation Orientation { get; set; }
 }
 
 public class ZLevelChangedEventArgs : EventArgs
@@ -32,13 +25,13 @@ public class ZLevelChangedEventArgs : EventArgs
 
 public class ConditionsChangedEventArgs : EventArgs
 {
-    public TokenIndentifier TokenIndentifier { get; set; } = new();
+    public TokenIdentifier TokenIdentifier { get; set; } = new();
     public List<Condition> NewConditions { get; set; } = new();
 }
 
 public class GetConditionsEventArgs : EventArgs
 {
-    public TokenIndentifier TokenIndentifier { get; set; } = new();
+    public TokenIdentifier TokenIdentifier { get; set; } = new();
 }
 
 public class CanvasSizeChangedEventArgs : EventArgs
@@ -50,6 +43,12 @@ public class CanvasSizeChangedEventArgs : EventArgs
 public class GetTokensEventArgs : EventArgs
 {
     public string Player { get; set; } = "";
+}
+
+public class SetOrientationEventArgs : EventArgs
+{
+    public string Player { get; set; } = "";
+    public Orientation Orientation { get; set; }
 }
 
 public class GridSizeChangedEventArgs : EventArgs
@@ -90,4 +89,10 @@ public class MouseMoveDataEventArgs : EventArgs
     public Point<double> Position { get; set; } = new();
     public bool LeftButtonDown { get; set; }
     public bool RightButtonDown { get; set; }
+}
+
+public class TokensOrientationChangedEventArgs : EventArgs
+{
+    public List<TokenIdentifier> TokenIdentifiers { get; set; } = new();
+    public TokenOrientation Orientation { get; set; }
 }

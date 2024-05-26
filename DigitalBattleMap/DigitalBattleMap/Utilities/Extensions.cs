@@ -115,9 +115,9 @@ public static class Extensions
         return lhs.All(rhs.Contains) && lhs.Count() == rhs.Count();
     }
 
-    public static List<string> ToStringList(this IList<TokenIndentifier> tokenIndentifiers)
+    public static List<string> ToStringList(this IList<TokenIdentifier> tokenIdentifiers)
     {
-        return tokenIndentifiers.Select(t => t.GetCombinedString()).ToList();
+        return tokenIdentifiers.Select(t => t.GetCombinedString()).ToList();
     }
 
     public static System.Drawing.Brush ToDrawingBrush(this System.Windows.Media.Color color)

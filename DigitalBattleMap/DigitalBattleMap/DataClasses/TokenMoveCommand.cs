@@ -5,16 +5,16 @@ namespace DigitalBattleMap.DataClasses;
 
 public class TokenMoveCommand
 {
-    public TokenMoveCommand(TokenIndentifier tokenIndentifier, Point<int> offset) : this(new List<TokenIndentifier> { tokenIndentifier }, offset)
+    public TokenMoveCommand(TokenIdentifier tokenIdentifier, Point<int> offset) : this(new List<TokenIdentifier> { tokenIdentifier }, offset)
     {
     }
 
-    public TokenMoveCommand(List<TokenIndentifier> tokenIndentifiers, Point<int> offset)
+    public TokenMoveCommand(List<TokenIdentifier> tokenIdentifiers, Point<int> offset)
     {
-        TokenIndentifiers = new List<TokenIndentifier>(tokenIndentifiers.Clone());
+        TokenIdentifiers = new List<TokenIdentifier>(tokenIdentifiers.Clone());
         Offset = offset;
     }
 
-    public List<TokenIndentifier> TokenIndentifiers { get; set; } = new();
+    public List<TokenIdentifier> TokenIdentifiers { get; set; } = new();
     public Point<int> Offset { get; set; }
 }

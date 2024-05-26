@@ -10,17 +10,7 @@
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
         </div>
-        
-        <div class="row form-group">
-            <div class="col">
-                <label class="control-label" asp-for="Orientation"></label>
-                <div class="input-group">
-                    <div class="input-group-text"><i class="fa @OrientationHelper.GetAwesomeFontIconByOrientation(Model.Orientation)"></i></div>
-                    <select class="form-control" asp-for="Orientation" asp-items="Html.GetEnumSelectList<Orientation>()" orientationSelect></select>
-                </div>
-            </div>
-        </div>
-                
+                       
         <div class="row form-group">
             <div class="col mt-3">
                 <button class="btn btn-primary float-end" type="submit">Opslaan</button>    
