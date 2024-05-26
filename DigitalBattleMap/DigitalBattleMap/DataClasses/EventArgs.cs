@@ -57,6 +57,15 @@ public class GridSizeChangedEventArgs : EventArgs
     public int NewGridSize { get; set; }
 }
 
+public class GridSizeZoomAndEnhanceEventArgs : EventArgs
+{
+    public int stepsX { get; set; }
+    public int stepsY { get; set; }
+    public ArrowDirection directionX { get; set; }
+    public ArrowDirection directionY { get; set; }
+    public int zoomSize { get; set; }
+}
+
 public class DisconnectedEventArgs : EventArgs
 {
     public bool IsConnectionLost { get; set; }

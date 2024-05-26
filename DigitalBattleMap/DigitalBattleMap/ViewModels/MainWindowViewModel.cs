@@ -60,7 +60,6 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public Visibility TokenVisibility { get => Get<Visibility>(); set => Set(value); }
     public System.Windows.Media.Brush ServerConnectionStatusColor { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); set => Set(value); }
-    public MouseCanvasViewModel CropMouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
 
     public CampaignControllerViewModel CampaignController { get; set; }
     public BackgroundControllerViewModel BackgroundController { get; set; }
@@ -99,6 +98,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public ICommand MapZoomInCommand { get; set; }
     public ICommand MapZoomOutCommand { get; set; }
     public ICommand MapCropCommand { get; set; }
+    public ICommand MapZoomReturnCommand { get; set; }
     public ICommand HideConfigurationCommand { get; set; }
     public ICommand KeyDownCommand { get; set; }
     public ICommand KeyUpCommand { get; set; }
@@ -112,28 +112,16 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         _connectionManager = new ConnectionManager();
         _connectionManager.OnConnected += ConnectionManagerConnected;
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
-        MouseCanvas = new();
-        test();
         CampaignController = new CampaignControllerViewModel(_windowService, _connectionManager, _monsterTokens, _settings);
         BackgroundController = new BackgroundControllerViewModel(_windowService, this, _settings);
         BackgroundController.OnGridSizeChanged += OnBackgroundGridSizeChanged;
+        BackgroundController.OnGridSizeZoomAndEnhance += OnBackgroundGridSizeZoomAndEnhance;
         BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
         TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, _monsterTokens, CampaignController, _settings);
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
         DrawingController = new DrawingControllerViewModel(this, TokenController);
         DrawingController.OnDrawingShapesUpdated += DrawingShapesUpdated;
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
-    }
-
-    private void test()
-    {
-        CropMouseCanvas = new MouseCanvasViewModel();
-        CropMouseCanvas.OnLeftButtonDown += LeftButtonDown;
-        CropMouseCanvas.OnLeftButtonUp += LeftButtonUp;
-        CropMouseCanvas.OnRightButtonDown += RightButtonDown;
-        CropMouseCanvas.OnRightButtonUp += RightButtonUp;
-        CropMouseCanvas.OnMouseMove += MouseMove;
-        CropMouseCanvas.Cursor = ActiveShape.Cursor;
     }
 
     private void LeftButtonDown(object? sender, MouseButtonDataEventArgs e)
@@ -200,6 +188,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         OnDrawingShapesUpdated?.Invoke(this, new EventArgs());
     }
     public event EventHandler OnDrawingShapesUpdated; //change to background image size?
+    public event EventHandler OnGridSizeZoomAndEnhance;
 
     private void InitializeProperties()
     {
@@ -227,6 +216,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         MapZoomInCommand = new RelayCommand(p => ZoomIn());
         MapZoomOutCommand = new RelayCommand(p => ZoomOut());
         MapCropCommand = new RelayCommand(p => ZoomOut());
+        MapZoomReturnCommand = new RelayCommand(p => ZoomReturn());
         HideConfigurationCommand = new RelayCommand(p => { IsConfigurationMenuExpanded = false; });
         KeyDownCommand = new RelayCommand(p => KeyDown((KeyEventArgs)p));
         KeyUpCommand = new RelayCommand(p => KeyUp((KeyEventArgs)p));
@@ -236,6 +226,18 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     {
         OnGridSizeChanged?.Invoke(this, new EventArgs());
         UpdateMap(DrawLayer.GridAndStrokes);
+    }
+
+    private void OnBackgroundGridSizeZoomAndEnhance(object? sender, GridSizeZoomAndEnhanceEventArgs e)
+    {
+        BackgroundController.Move(e.directionX, e.stepsX);
+        BackgroundController.Move(e.directionY, e.stepsY);
+        DrawingController.Move(e.directionX, e.stepsX);
+        DrawingController.Move(e.directionY, e.stepsY);
+        TokenController.Move(e.directionX, e.stepsX);
+        TokenController.Move(e.directionY, e.stepsY);
+
+        Zoom(e.zoomSize);
     }
 
     private void OnBackgroundUpdated(object? sender, EventArgs e)
@@ -488,6 +490,12 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 Zoom(-BackgroundController.ZoomSize * MultiMoveCount);
             };
         }
+    }
+
+    private void ZoomReturn()
+    {
+        var gridSizeChange = 65 - BackgroundController.GridSize;
+        Zoom(gridSizeChange);
     }
 
     private void Zoom(int gridSizeChange)

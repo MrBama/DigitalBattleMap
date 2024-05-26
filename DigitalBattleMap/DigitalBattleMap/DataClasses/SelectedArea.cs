@@ -2,7 +2,7 @@
 
 namespace DigitalBattleMap.DataClasses;
 
-public class FogOfWarArea
+public class SelectedArea
 {
     public List<Point<double>> Points { get; set; } = new();
 }

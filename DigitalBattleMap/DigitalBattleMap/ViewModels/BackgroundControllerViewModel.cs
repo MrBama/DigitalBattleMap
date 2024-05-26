@@ -1,10 +1,12 @@
-﻿using DigitalBattleMap.DataClasses;
+﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
@@ -19,11 +21,11 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     private Bitmap _gridBitmap;
     private BitmapSource _backgroundAndFogOfWarBitmapSource;
     private Rectangle _area;
-    private FogOfWarArea _selectedFogOfWarArea;
+    private SelectedArea _selectedArea;
     private IWindowService _windowService;
     private Point<double> _mouseDownPosition;
     private bool _mouseDown;
-    private List<FogOfWarArea> _fogOfWarAreas = new();
+    private List<SelectedArea> _fogOfWarAreas = new();
     private Settings _settings;
 
     public BackgroundControllerViewModel()
@@ -59,7 +61,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         MouseCanvas = new MouseCanvasViewModel();
         MouseCanvas.OnLeftButtonDown += MouseDown;
         MouseCanvas.OnLeftButtonUp += MouseUp;
-        MouseCanvas.OnRectangleAreaSelected += FogOfWarRectangleAreaSelected;
+        MouseCanvas.OnRectangleAreaSelected += RectangleAreaSelected;
         MouseCanvas.OnPolygonAreaSelected += FogOfWarPolygonAreaSelected;
     }
 
@@ -70,7 +72,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         BackgroundZoomInCommand = new RelayCommand(p => ZoomIn(BackgroundZoomPercentage));
         BackgroundZoomOutCommand = new RelayCommand(p => ZoomOut(BackgroundZoomPercentage));
         FitBackgroundToGridCommand = new RelayCommand(p => FitToGrid());
-        ApplyFogRemovalCommand = new RelayCommand(p => ApplyFogRemoval());
+        ApplyFogOfWarCommand = new RelayCommand(p => ApplyFogRemoval());
+        ApplyZoomCommand = new RelayCommand(p => ApplyZoomAndEnhance());
         CancelFogRemovalCommand = new RelayCommand(p => CancelFogRemoval());
         ClearFogCommand = new RelayCommand(p => ClearFog());
         GridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
@@ -78,11 +81,14 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     public event EventHandler OnBackgroundUpdated;
     public event EventHandler<GridSizeChangedEventArgs> OnGridSizeChanged;
+    public event EventHandler<GridSizeZoomAndEnhanceEventArgs> OnGridSizeZoomAndEnhance;
 
     public bool IsBackgroundEditingAllowed { get => HasOpenedBackground && !IsFogOfWarEnabled; }
     public bool HasOpenedBackground { get => Get<bool>(); set => Set(value); }
     public bool IsFogOfWarEnabled { get => Get<bool>(); set => Set(value, IsFogOfWarEnabledChanged); }
+    public bool IsZoomEnabled { get => Get<bool>(); set => Set(value, IsZoomEnabledChanged); }
     public bool IsFogOfWarAreaSelected { get => Get<bool>(); set => Set(value); }
+    public bool IsZoomSelected { get => Get<bool>(); set => Set(value); }
     public bool FogRemovalRectangleShape { get => Get<bool>(); set => Set(value, FogRemovalShapeChanged); }
     public bool FogRemovalPolygonShape { get => Get<bool>(); set => Set(value); }
     public bool IsGridShown { get => Get<bool>(); set => Set(value, GridShownChanged); }
@@ -104,7 +110,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public ICommand BackgroundZoomOutCommand { get; set; }
     public ICommand FitBackgroundToGridCommand { get; set; }
     public ICommand CancelFogRemovalCommand { get; set; }
-    public ICommand ApplyFogRemovalCommand { get; set; }
+    public ICommand ApplyFogOfWarCommand { get; set; }
+    public ICommand ApplyZoomCommand { get; set; }
     public ICommand ClearFogCommand { get; set; }
     public ICommand GridSizeEnterCommand { get; set; }
 
@@ -204,6 +211,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
             FeetPerGridCell = Constants.FeetPerGridCell;
             HasOpenedBackground = true;
             IsFogOfWarEnabled = false;
+            IsZoomEnabled = false;
             _fogOfWarAreas.Clear();
             CreateBackground();
         }
@@ -226,6 +234,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         FeetPerGridCell = Constants.FeetPerGridCell;
         HasOpenedBackground = false;
         IsFogOfWarEnabled = false;
+        IsZoomEnabled = false;
         FogRemovalRectangleShape = true;
         FogRemovalPolygonShape = false;
         ZoomSize = Constants.DefaultZoomSize;
@@ -399,6 +408,11 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         OnGridSizeChanged?.Invoke(this, new GridSizeChangedEventArgs() { NewGridSize = newGridSize });
     }
 
+    private void NotifyGridSizeMoved(int stepsX, int stepsY, ArrowDirection directionX, ArrowDirection directionY, int zoomSize)
+    {
+        OnGridSizeZoomAndEnhance?.Invoke(this, new GridSizeZoomAndEnhanceEventArgs() { stepsX = stepsX, stepsY = stepsY, directionX = directionX, directionY = directionY, zoomSize = zoomSize });
+    }
+
     private void NotifyBackgroundUpdated()
     {
         OnBackgroundUpdated?.Invoke(this, new EventArgs());
@@ -412,7 +426,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
             BackgroundBitmap = BitmapTools.ResizeBitmap(croppedBitmap);
         }
 
-        if (IsFogOfWarEnabled)
+        if (IsFogOfWarEnabled && !IsZoomEnabled)
         {
             var fogOfWarBitMap = BitmapTools.CreateFogOfWarBitmap(_area, _fogOfWarAreas);
             FogOfWarBitmap = BitmapTools.ResizeBitmap(fogOfWarBitMap);
@@ -474,12 +488,61 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         CreateBackground();
     }
 
+    private void IsZoomEnabledChanged()
+    {
+        if (IsZoomEnabled)
+        {
+            MouseCanvas.SetMode(MouseCanvasMode.RectangleSelection);
+        }
+        else
+        {
+            FogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
+            CancelFogRemoval();
+            MouseCanvas.SetMode(MouseCanvasMode.Click);
+        }
+        CreateBackground();
+    }
+
     private void ApplyFogRemoval()
     {
-        _fogOfWarAreas.Add(_selectedFogOfWarArea);
+        _fogOfWarAreas.Add(_selectedArea);
         IsFogOfWarAreaSelected = false;
         MouseCanvas.ResetSelection();
         CreateBackground();
+    }
+
+    private void ApplyZoomAndEnhance()
+    {
+        //CreateBackground();
+        ZoomAndEnhance();
+        IsZoomSelected = false;
+        IsZoomEnabled = false;
+        MouseCanvas.ResetSelection();
+    }
+
+    private void ZoomAndEnhance()
+    {
+        if (IsZoomEnabled && IsZoomSelected)
+        {
+            // Move to the Middle of the selected area (in steps of Gridsize)
+            var middleOfScreenX = _area.X + _area.Width / 2;
+            var middleOfScreenY = _area.Y + _area.Height / 2;
+            var selectedWidth = _selectedArea.Points[1].X - _selectedArea.Points[0].X;
+            var middleOfSelectionX = _selectedArea.Points[0].X + (selectedWidth / 2);
+            var selectedHeight = _selectedArea.Points[3].Y - _selectedArea.Points[0].Y;
+            var middleOfSelectionY = _selectedArea.Points[0].Y + (selectedHeight / 2);
+            var stepsX = (int)Math.Round((middleOfSelectionX - middleOfScreenX) / _mapSize.CanvasGridSize);
+            var stepsY = (int)Math.Round((middleOfSelectionY - middleOfScreenY) / _mapSize.CanvasGridSize);
+            var directionX = stepsX > 0 ? ArrowDirection.Right : ArrowDirection.Left;
+            var directionY = stepsY > 0 ? ArrowDirection.Down : ArrowDirection.Up;
+
+            // Zoom
+            var ratio = _area.Width / selectedWidth;
+            var newGridSize = (int)Math.Round(GridSize * ratio);
+            var zoomSize = newGridSize - GridSize;
+
+            NotifyGridSizeMoved(Math.Abs(stepsX), Math.Abs(stepsY), directionX, directionY, zoomSize);
+        }
     }
 
     private void CancelFogRemoval()
@@ -495,29 +558,34 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         CreateBackground();
     }
 
-    private void FogOfWarRectangleAreaSelected(object? sender, RectangleF rectangle)
+    private void RectangleAreaSelected(object? sender, RectangleF rectangle)
     {
-        IsFogOfWarAreaSelected = true;
+        IsFogOfWarAreaSelected = IsFogOfWarEnabled;
+        IsZoomSelected = IsZoomEnabled;
+        if (IsZoomSelected)
+        {
+            MouseCanvas.SelectionHeight = MouseCanvas.SelectionWidth/16*9; //conform to 16:9 aspect ratio
+        }
 
         var x = ((double)rectangle.X).Map(0, _mapSize.CanvasWidth, _area.X, _area.X + _area.Width);
         var y = ((double)rectangle.Y).Map(0, _mapSize.CanvasHeight, _area.Y, _area.Y + _area.Height);
         var width = ((double)rectangle.Width).Map(0, _mapSize.CanvasWidth, 0, _area.Width);
         var height = ((double)rectangle.Height).Map(0, _mapSize.CanvasHeight, 0, _area.Height);
 
-        var fogOfWarArea = new FogOfWarArea();
+        var fogOfWarArea = new SelectedArea();
         fogOfWarArea.Points.Add(new Point<double>(x, y));
         fogOfWarArea.Points.Add(new Point<double>(x + width, y));
         fogOfWarArea.Points.Add(new Point<double>(x + width, y + height));
         fogOfWarArea.Points.Add(new Point<double>(x, y + height));
 
-        _selectedFogOfWarArea = fogOfWarArea;
+        _selectedArea = fogOfWarArea;
     }
 
     private void FogOfWarPolygonAreaSelected(object? sender, Polygon polygon)
     {
         IsFogOfWarAreaSelected = true;
 
-        var fogOfWarArea = new FogOfWarArea();
+        var fogOfWarArea = new SelectedArea();
         foreach (var point in polygon.Points)
         {
             var mappedPoint = new Point<double>(
@@ -525,7 +593,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
                 point.Y.Map(0, _mapSize.CanvasHeight, _area.Y, _area.Y + _area.Height));
             fogOfWarArea.Points.Add(mappedPoint);
         }
-        _selectedFogOfWarArea = fogOfWarArea;
+        _selectedArea = fogOfWarArea;
     }
 
     private void FogRemovalShapeChanged()

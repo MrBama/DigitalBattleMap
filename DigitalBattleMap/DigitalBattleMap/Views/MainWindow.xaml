@@ -189,7 +189,7 @@
                             <Button x:Name="CropButton" Grid.Row="1" Grid.Column="1" Margin="5 0 0 5" Command="{Binding MapCropCommand}" CommandParameter="Up" Width="{Binding ElementName=CropButton,Path=ActualHeight}">
                                 <Image Source="{Binding MapCropBitmapSource}"/>
                             </Button>
-                            <Button x:Name="ReturnButton" Grid.Row="2" Grid.Column="1" Margin="5 5 0 0" Command="{Binding MapZoomOutCommand}" CommandParameter="Up" Width="{Binding ElementName=ZoomOutButton,Path=ActualHeight}">
+                            <Button x:Name="ReturnButton" Grid.Row="2" Grid.Column="1" Margin="5 5 0 0" Command="{Binding MapZoomReturnCommand}" CommandParameter="Up" Width="{Binding ElementName=ZoomOutButton,Path=ActualHeight}">
                                 <Image Source="{Binding MapReturnBitmapSource}"/>
                             </Button>
                         </Grid>

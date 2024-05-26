@@ -221,7 +221,7 @@ public static class BitmapTools
         }
     }
 
-    public static Bitmap CreateFogOfWarBitmap(Rectangle area, List<FogOfWarArea> removedAreas)
+    public static Bitmap CreateFogOfWarBitmap(Rectangle area, List<SelectedArea> removedAreas)
     {
         var bitmap = new Bitmap(area.Width, area.Height);
 

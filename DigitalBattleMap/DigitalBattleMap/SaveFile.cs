@@ -36,7 +36,7 @@ public class SaveFile
 
     public List<ObjectLink> ObjectLinks { get; set; } = new();
 
-    public List<FogOfWarArea> FogOfWarAreas { get; set; } = new();
+    public List<SelectedArea> FogOfWarAreas { get; set; } = new();
 
     [JsonIgnore]
     public Bitmap FullBackground { get; set; }
