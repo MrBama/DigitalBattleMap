@@ -13,11 +13,12 @@ public class LineDrawingShape : DrawingShape
     public LineDrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize) : base(applyShapeCallback, tokenLinker, mapSize)
     {
         Name = "Line";
+        SnapToGrid = true;
     }
 
     protected override void ButtonDown(Point<double> position)
     {
-        _startPosition = Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2);
+        _startPosition = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2) : position;
         Points.Add(position);
     }
 
@@ -30,7 +31,7 @@ public class LineDrawingShape : DrawingShape
     {
         if (buttonDown)
         {
-            var snappedPosition = Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2);
+            var snappedPosition = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2) : position;
             if (snappedPosition != _previousMovePosition)
             {
                 _previousMovePosition = snappedPosition;
@@ -54,8 +55,18 @@ public class LineDrawingShape : DrawingShape
                 Points.Add(endPosition.Rotate(snappedPosition, lineAngleInDegrees - 90));
                 Points.Add(endPosition.Rotate(snappedPosition, lineAngleInDegrees + 90));
                 Points.Add(startPosition.Rotate(_startPosition, lineAngleInDegrees + 90));
+
+                CalculateSize();
             }
 
         }
+    }
+
+    private void CalculateSize()
+    {
+        var distance = new Point<double>(_startPosition.X - _previousMovePosition.X, _startPosition.Y - _previousMovePosition.Y);
+        var radius = Math.Sqrt(Math.Pow(distance.X, 2) + Math.Pow(distance.Y, 2));
+        var gridCells = radius / _mapSize.CanvasGridSize;
+        Size = $"{Math.Round(gridCells * Constants.FeetPerGridCell)}";
     }
 }
