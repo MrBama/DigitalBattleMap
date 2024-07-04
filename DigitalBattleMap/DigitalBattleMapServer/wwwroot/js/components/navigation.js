@@ -123,6 +123,7 @@ connection.on("SetTokens", function (player, tokens) {
         for (const token of tokens) {
             let option = document.createElement("option");
             option.text = token;
+            option.value = token;
             select.add(option);
         }
 
