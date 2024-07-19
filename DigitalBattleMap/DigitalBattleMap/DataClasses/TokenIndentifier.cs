@@ -2,13 +2,13 @@
 
 namespace DigitalBattleMap.DataClasses;
 
-public class TokenIndentifier : IEquatable<TokenIndentifier>, ICloneable
+public class TokenIdentifier : IEquatable<TokenIdentifier>, ICloneable
 {
-    public TokenIndentifier()
+    public TokenIdentifier()
     {
     }
 
-    public TokenIndentifier(string name)
+    public TokenIdentifier(string name)
     {
         Name = name;
 
@@ -23,7 +23,7 @@ public class TokenIndentifier : IEquatable<TokenIndentifier>, ICloneable
         }
     }
 
-    public TokenIndentifier(string name, int id)
+    public TokenIdentifier(string name, int id)
     {
         Name = name;
         Id = id;
@@ -34,17 +34,17 @@ public class TokenIndentifier : IEquatable<TokenIndentifier>, ICloneable
 
     public object Clone()
     {
-        return new TokenIndentifier(Name, Id);
+        return new TokenIdentifier(Name, Id);
     }
 
-    public bool Equals(TokenIndentifier? other)
+    public bool Equals(TokenIdentifier? other)
     {
         return other != null && string.Equals(other.Name, Name, StringComparison.CurrentCultureIgnoreCase) && other.Id.Equals(Id);
     }
 
     public override bool Equals(object? obj)
     {
-        return obj is TokenIndentifier other && Equals(other);
+        return obj is TokenIdentifier other && Equals(other);
     }
 
     public override int GetHashCode()

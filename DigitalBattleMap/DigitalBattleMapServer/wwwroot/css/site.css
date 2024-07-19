@@ -159,35 +159,47 @@ i.direction.SouthEast {
 }
 
 /* Map css */
+.map-view {
+  background-color: white;
+}
+
 .map-image {
   position: absolute;
   top: 0;
   left: 0;
 }
 
-.map-image.fullscreen {
-  position: absolute !important;
-  height: 100vh !important;
-  left: 50% !important;
-  transform: translateX(-50%);
-}
-
-.map-container:not(.fullscreen) {
+.map-container {
   position: relative;
-}
-
-.map-container.fullscreen {
+  background-color: white;
 }
 
 .map-image.fullscreen.backdrop {
   width: 100vw;
   height: 100vh;
-  background-color: white;
 }
 
-.btn-fullscreen {
-  z-index: 100;
+.controls-overlay {
+  position: absolute;
+  right: 0;
+  z-index: 101;
+  overflow-y: auto;
+  width: 370px;
+  height: 640px;
+  min-width: 19%;
+  display: none;
+}
+
+.map-buttons-container {
   position: absolute;
   bottom: 0;
   right: 0;
+}
+
+.controls-position-buttons {
+    display: flex;
+    display: flex;
+    justify-content: end;
+    padding-left: 5px;
+    padding-right: 5px;
 }

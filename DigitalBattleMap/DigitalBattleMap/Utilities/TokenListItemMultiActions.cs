@@ -29,7 +29,7 @@ public class TokenListItemMultiActions : ITokenListItemMultiActions
             }
 
             selectedTokenListItem.Conditions = conditions;
-            OnConditionsChanged?.Invoke(this, new ConditionsChangedEventArgs { TokenIndentifier = selectedTokenListItem.GetTokenIndentifier(), NewConditions = conditions });
+            OnConditionsChanged?.Invoke(this, new ConditionsChangedEventArgs { TokenIdentifier = selectedTokenListItem.GetTokenIdentifier(), NewConditions = conditions });
         });
     }
 
@@ -63,7 +63,7 @@ public class TokenListItemMultiActions : ITokenListItemMultiActions
     {
         Execute(tokenListItem, (TokenListItem selectedTokenListItem) =>
         {
-            selectedTokenListItem.Token.SetSizeWithoutNotification(tokenListItem.Token.Size);
+            selectedTokenListItem.Token.Size = tokenListItem.Token.Size;
         });
     }
 
@@ -71,7 +71,7 @@ public class TokenListItemMultiActions : ITokenListItemMultiActions
     {
         Execute(tokenListItem, (TokenListItem selectedTokenListItem) =>
         {
-            selectedTokenListItem.Token.SetOrientationWithoutNotification(tokenListItem.Token.Orientation);
+            selectedTokenListItem.Token.Orientation = tokenListItem.Token.Orientation;
         });
     }
 

@@ -1,4 +1,4 @@
-﻿namespace DigitalBattleMapServer.Application;
+﻿namespace DigitalBattleMap.Common;
 
 public enum Orientation
 {

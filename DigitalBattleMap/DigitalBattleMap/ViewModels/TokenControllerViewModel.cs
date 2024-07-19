@@ -42,12 +42,13 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         _webCommunication = webCommunication;
         _monsterTokens = monsterTokens;
         _players = players;
+        _players.OnOrientationChanged += TokensOrientationChanged;
         _webCommunication.OnMoveToken += MoveToken;
         _webCommunication.OnToggleCondition += ToggleCondition;
         _webCommunication.OnGetConditions += GetConditions;
         _settings = settings;
         _settings.OnSettingChanged += SettingChanged;
-        _mapSize.OnGridSizeChanged += OnGridSizeChanged;
+        _mapSize.OnGridSizeChanged += GridSizeChanged;
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
     }
 
@@ -141,18 +142,13 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 foreach (var (token, index) in selectTokenWindowViewModel.AddedTokens.WithIndex())
                 {
                     var tokenListItem = new TokenListItem(token, this, _players, _tokenListItemMultiActions);
-                    tokenListItem.Token.OnRequestRedraw += TokenChanged;
                     tokenListItem.OnTokenChanged += TokenChanged;
                     tokenListItem.OnConditionsChanged += TokenConditionsChanged;
                     tokenListItem.OnZLevelChanged += ZLevelChanged;
                     tokenListItem.Id = GetUniqueId(token.Name);
                     tokenListItem.Position = CalculateStartPosition(index);
-
-                    if (_players.IsTokenControlledByPlayer(tokenListItem.GetTokenIndentifier()))
-                    {
-                        _webCommunication.SendMessage(new ConditionsMessage { TokenIndentifier = tokenListItem.GetTokenIndentifier() });
-                    }
-
+                    
+                    SetPlayerProperties(tokenListItem);
                     TokenList.Add(tokenListItem);
                     StatblocksViewModel.AddToken(tokenListItem);
                 }
@@ -251,7 +247,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    private void OnGridSizeChanged(object? sender, EventArgs e)
+    private void GridSizeChanged(object? sender, EventArgs e)
     {
         lock (_lock)
         {
@@ -303,7 +299,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                     {
                         LinkableObjectType = typeof(TokenListItem),
                         Index = index,
-                        TokenIndentifier = token.LinkableObject.GetLinkIdentifier()
+                        TokenIdentifier = token.LinkableObject.GetLinkIdentifier()
                     };
                     saveFile.ObjectLinks.Add(objectLink);
                 }
@@ -319,17 +315,12 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             foreach (var tokenListItem in saveFile.TokenList)
             {
                 tokenListItem.SetInterfaces(this, _players, _tokenListItemMultiActions);
-                tokenListItem.Token.OnRequestRedraw += TokenChanged;
                 tokenListItem.OnTokenChanged += TokenChanged;
                 tokenListItem.OnConditionsChanged += TokenConditionsChanged;
                 tokenListItem.OnZLevelChanged += ZLevelChanged;
                 tokenListItem.Health.InitializeEditorHp();
 
-                if (_players.IsTokenControlledByPlayer(tokenListItem.GetTokenIndentifier()))
-                {
-                    _webCommunication.SendMessage(new ConditionsMessage { TokenIndentifier = tokenListItem.GetTokenIndentifier(), Conditions = tokenListItem.Conditions });
-                }
-
+                SetPlayerProperties(tokenListItem);
                 TokenList.Add(tokenListItem);
                 StatblocksViewModel.AddToken(tokenListItem);
             }
@@ -346,7 +337,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             {
                 if (objectLink.LinkableObjectType == typeof(TokenListItem))
                 {
-                    LinkToToken(TokenList[objectLink.Index], objectLink.TokenIndentifier);
+                    LinkToToken(TokenList[objectLink.Index], objectLink.TokenIdentifier);
                 }
             }
         }
@@ -415,9 +406,9 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    public void LinkToToken(ILinkableObject linkableObject, TokenIndentifier tokenIndentifier)
+    public void LinkToToken(ILinkableObject linkableObject, TokenIdentifier tokenIdentifier)
     {
-        var tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(tokenIndentifier));
+        var tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIdentifier().Equals(tokenIdentifier));
         if (tokenListItem != null)
         {
             linkableObject.LinkableObject.Link(tokenListItem);
@@ -460,7 +451,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                     }
                 }
 
-                TokenMoveHistory.Enqueue(new TokenMoveCommand(SelectedTokens.Select(t => t.GetTokenIndentifier()).ToList(), Point<int>.Create(cellOffset)));
+                TokenMoveHistory.Enqueue(new TokenMoveCommand(SelectedTokens.Select(t => t.GetTokenIdentifier()).ToList(), Point<int>.Create(cellOffset)));
                 SelectedToken.Position = Point<int>.Create(newPosition);
                 CreateTokenBitmap();
             }
@@ -510,7 +501,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier));
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIdentifier().Equals(e.TokenIdentifier));
             if (tokenListItem != null)
             {
                 var offset = new Point<int>();
@@ -563,7 +554,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 tokenListItem.Position.X += offset.X;
                 tokenListItem.Position.Y += offset.Y;
 
-                TokenMoveHistory.Enqueue(new TokenMoveCommand(tokenListItem.GetTokenIndentifier(), new Point<int>(offset.X / gridSize, offset.Y / gridSize)));
+                TokenMoveHistory.Enqueue(new TokenMoveCommand(tokenListItem.GetTokenIdentifier(), new Point<int>(offset.X / gridSize, offset.Y / gridSize)));
                 CreateTokenBitmap();
                 uiThread.Release();
                 Task.WaitAll(tasks.ToArray());
@@ -575,11 +566,11 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier));
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIdentifier().Equals(e.TokenIdentifier));
             if (tokenListItem != null)
             {
                 tokenListItem.ToggleCondition(e.Condition);
-                _webCommunication.SendMessage(new ConditionsMessage { TokenIndentifier = e.TokenIndentifier, Conditions = tokenListItem.Conditions });
+                _webCommunication.SendMessage(new ConditionsMessage { TokenIdentifier = e.TokenIdentifier, Conditions = tokenListItem.Conditions });
                 CreateTokenBitmap();
             }
         }
@@ -589,10 +580,10 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier));
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIdentifier().Equals(e.TokenIdentifier));
             if (tokenListItem != null && tokenListItem.Conditions.Count > 0)
             {
-                _webCommunication.SendMessage(new ConditionsMessage { TokenIndentifier = e.TokenIndentifier, Conditions = tokenListItem.Conditions });
+                _webCommunication.SendMessage(new ConditionsMessage { TokenIdentifier = e.TokenIdentifier, Conditions = tokenListItem.Conditions });
             }
         }
     }
@@ -682,10 +673,10 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
     private void TokenConditionsChanged(object? sender, ConditionsChangedEventArgs e)
     {
-        var tokenListItem = TokenList.Single(t => t.GetTokenIndentifier().Equals(e.TokenIndentifier));
-        if (_players.IsTokenControlledByPlayer(tokenListItem.GetTokenIndentifier()))
+        var tokenListItem = TokenList.Single(t => t.GetTokenIdentifier().Equals(e.TokenIdentifier));
+        if (_players.IsTokenControlledByPlayer(tokenListItem.GetTokenIdentifier()))
         {
-            _webCommunication.SendMessage(new ConditionsMessage { TokenIndentifier = e.TokenIndentifier, Conditions = e.NewConditions });
+            _webCommunication.SendMessage(new ConditionsMessage { TokenIdentifier = e.TokenIdentifier, Conditions = e.NewConditions });
         }
     }
 
@@ -735,7 +726,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             if (TokenMoveHistory.TryDequeuePreviousCommand(out var tokenMoveCommand))
             {
                 var offset = new Point<int>(-tokenMoveCommand.Offset.X, -tokenMoveCommand.Offset.Y);
-                foreach (var tokenIdentifier in tokenMoveCommand.TokenIndentifiers)
+                foreach (var tokenIdentifier in tokenMoveCommand.TokenIdentifiers)
                 {
                     MoveTokenWithCellOffset(tokenIdentifier, offset);
                 }
@@ -750,7 +741,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             if (TokenMoveHistory.TryDequeueNextCommand(out var tokenMoveCommand))
             {
                 var offset = new Point<int>(tokenMoveCommand.Offset);
-                foreach (var tokenIdentifier in tokenMoveCommand.TokenIndentifiers)
+                foreach (var tokenIdentifier in tokenMoveCommand.TokenIdentifiers)
                 {
                     MoveTokenWithCellOffset(tokenIdentifier, offset);
                 }
@@ -758,9 +749,9 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    private void MoveTokenWithCellOffset(TokenIndentifier tokenIndentifier, Point<int> cellOffset)
+    private void MoveTokenWithCellOffset(TokenIdentifier tokenIdentifier, Point<int> cellOffset)
     {
-        var tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIndentifier().Equals(tokenIndentifier));
+        var tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIdentifier().Equals(tokenIdentifier));
         if (tokenListItem != null)
         {
             var offset = new Point<int>(cellOffset.X * _mapSize.GridSize, cellOffset.Y * _mapSize.GridSize);
@@ -780,7 +771,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         foreach (var tokenListItem in TokenList)
         {
-            if (SelectedToken == null || !SelectedToken.GetTokenIndentifier().Equals(tokenListItem.GetTokenIndentifier()))
+            if (SelectedToken == null || !SelectedToken.GetTokenIdentifier().Equals(tokenListItem.GetTokenIdentifier()))
             {
                 tokenListItem.AreConditionsVisible = false;
             }
@@ -810,6 +801,38 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         if (e.SettingName == nameof(Settings.HideDungeonMasterFeatures))
         {
             HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
+        }
+    }
+
+    private void TokensOrientationChanged(object? sender, TokensOrientationChangedEventArgs e)
+    {
+        var tokensAreUpdated = false;
+        foreach (var tokenIdentifier in e.TokenIdentifiers)
+        {
+            var tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIdentifier().Equals(tokenIdentifier));
+            if (tokenListItem != null)
+            {
+                tokenListItem.Token.Orientation = e.Orientation;
+                tokensAreUpdated = true;
+            }
+        }
+
+        if(tokensAreUpdated)
+        {
+            CreateTokenBitmap();
+        }
+    }
+
+    private void SetPlayerProperties(TokenListItem tokenListItem)
+    {
+        var identifier = tokenListItem.GetTokenIdentifier();
+        if (_players.IsTokenControlledByPlayer(identifier))
+        {
+            if (_players.TryGetOrientation(identifier, out var orientation))
+            {
+                tokenListItem.Token.Orientation = orientation;
+            }
+            _webCommunication.SendMessage(new ConditionsMessage { TokenIdentifier = identifier, Conditions = tokenListItem.Conditions });
         }
     }
 }

@@ -31,6 +31,7 @@ public class ConnectionManager : IWebCommunication
     public event EventHandler<ToggleConditionEventArgs> OnToggleCondition;
     public event EventHandler<GetConditionsEventArgs> OnGetConditions;
     public event EventHandler<GetTokensEventArgs> OnGetTokens;
+    public event EventHandler<SetOrientationEventArgs> OnSetOrientation;
 
     private bool _isConnected;
     private Queue<MapUpdate> _mapUpdateQueue = new();
@@ -90,7 +91,7 @@ public class ConnectionManager : IWebCommunication
     {
         if (_playerControlAllowed)
         {
-            OnMoveToken?.Invoke(this, new MoveTokenEventArgs { TokenIndentifier = new TokenIndentifier(character), Direction = direction });
+            OnMoveToken?.Invoke(this, new MoveTokenEventArgs { TokenIdentifier = new TokenIdentifier(character), Direction = direction });
         }
 
         return Task.CompletedTask;
@@ -100,7 +101,7 @@ public class ConnectionManager : IWebCommunication
     {
         if (_playerControlAllowed)
         {
-            OnToggleCondition?.Invoke(this, new ToggleConditionEventArgs { TokenIndentifier = new TokenIndentifier(character), Condition = condition });
+            OnToggleCondition?.Invoke(this, new ToggleConditionEventArgs { TokenIdentifier = new TokenIdentifier(character), Condition = condition });
         }
 
         return Task.CompletedTask;
@@ -108,13 +109,19 @@ public class ConnectionManager : IWebCommunication
 
     public Task GetConditions(string character)
     {
-        OnGetConditions?.Invoke(this, new GetConditionsEventArgs { TokenIndentifier = new TokenIndentifier(character) });
+        OnGetConditions?.Invoke(this, new GetConditionsEventArgs { TokenIdentifier = new TokenIdentifier(character) });
         return Task.CompletedTask;
     }
 
     public Task GetTokens(string player)
     {
         OnGetTokens?.Invoke(this, new GetTokensEventArgs { Player = player });
+        return Task.CompletedTask;
+    }
+
+    public Task SetOrientation(string player, Orientation orientation)
+    {
+        OnSetOrientation?.Invoke(this, new SetOrientationEventArgs { Player = player, Orientation = orientation });
         return Task.CompletedTask;
     }
 
@@ -179,6 +186,7 @@ public class ConnectionManager : IWebCommunication
         _webHubConnection.On<string, Condition>(nameof(ToggleCondition), ToggleCondition);
         _webHubConnection.On<string>(nameof(GetConditions), GetConditions);
         _webHubConnection.On<string>(nameof(GetTokens), GetTokens);
+        _webHubConnection.On<string, Orientation>(nameof(SetOrientation), SetOrientation);
     }
 
     private void SendMessages()

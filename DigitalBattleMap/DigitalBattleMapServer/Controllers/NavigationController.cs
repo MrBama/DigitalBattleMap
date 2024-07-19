@@ -13,30 +13,49 @@ public class NavigationController : Controller
 {
     private readonly IHubContext<WebHub, IWebHub> _webHub;
     private readonly IState<Settings> _settings;
-    
+
     public NavigationController(IHubContext<WebHub, IWebHub> webHub, IState<Settings> settings)
     {
         _webHub = webHub;
         _settings = settings;
     }
-    
+
     [HttpPost]
     public IActionResult Move(string character, Direction direction)
     {
         _webHub.Clients.All.MoveToken(character, direction.GetOrientatedDirection(_settings.Get().Orientation));
-        return Ok();        
+        return Ok();
     }
 
     [HttpPost]
     public IActionResult ChangeOrientation()
     {
         var settings = _settings.Get();
+
         settings.Orientation++;
-        if((int)settings.Orientation > Enum.GetValues<Orientation>().Length - 1)
+        if ((int)settings.Orientation > Enum.GetValues<Orientation>().Length - 1)
         {
             settings.Orientation = 0;
         }
         _settings.Set(settings);
+
+        if(settings.Name != null && settings.Name != "")
+        {
+            _webHub.Clients.All.SetOrientation(settings.Name, settings.Orientation);
+        }
+
+        return Ok();
+    }
+
+    [HttpPost]
+    public IActionResult SetOrientation()
+    {
+        var settings = _settings.Get();
+        if (settings.Name != null && settings.Name != "")
+        {
+            _webHub.Clients.All.SetOrientation(settings.Name, settings.Orientation);
+        }
+
         return Ok();
     }
 
@@ -87,9 +106,9 @@ public class NavigationController : Controller
         int maxValue = Enum.GetValues(typeof(Direction)).Cast<int>().Max();
 
 
-        
-        
-        
+
+
+
         return Direction.North;
     }
 }

@@ -1,11 +1,23 @@
-﻿<div id="mapContainer" class="container map-container">
-    <img class="img-fluid map-image backdrop"/>
-    <img id="backgroundImage" class="img-fluid map-image" src="/Map/Get?layer=Background" alt=""/>
-    <img id="gridAndStrokesImage" class="img-fluid map-image" src="/Map/Get?layer=GridAndStrokes" alt=""/>
-    <img id="tokenImage" class="img-fluid map-image" src="/Map/Get?layer=Tokens" alt=""/>
-</div>
+﻿<div id="mapView" class="map-view">
+    <div id="mapContainer" class="container map-container">
+        <img class="img-fluid map-image backdrop"/>
+        <img id="backgroundImage" class="img-fluid map-image" src="/Map/Get?layer=Background" alt=""/>
+        <img id="gridAndStrokesImage" class="img-fluid map-image" src="/Map/Get?layer=GridAndStrokes" alt=""/>
+        <img id="tokenImage" class="img-fluid map-image" src="/Map/Get?layer=Tokens" alt=""/>
+    </div>
 
-<input class="btn btn-secondary btn-fullscreen" type="button" value="Fullscreen"></input>
+    <div id="btnContainer" class="map-buttons-container">
+        <input id="btnControls" class="btn btn-secondary" type="button" value="Controls" />
+        <input id="btnFullscreen" class="btn btn-secondary" type="button" value="Fullscreen" />
+    </div>
+
+    <div id="controlsOverlay" class="controls-overlay">
+        <div class="controls-position-buttons">
+            <button id="btnMoveControls" class="btn btn-secondary fa fa-caret-left"/>
+        </div>
+        <div id="controlsBody"/>
+    </div>
+</div>
 
 <script src="~/js/signalr/dist/browser/signalr.js"></script>
 <script src="~/js/map.js"></script>
