@@ -177,8 +177,8 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         MoveToMiddle(selectedArea);
 
         // Zoom
-        var currentGridSize = BackgroundController.GridSize;
-        var ratio = GetSize().Width / selectedArea.Width;
+        var currentGridSize = (int)CalculateCanvasGridSize();
+        var ratio = _canvasSize.Width / selectedArea.Width;
         var newGridSize = (int)Math.Round(currentGridSize * ratio);
         var zoomSize = newGridSize - currentGridSize;
 
@@ -191,10 +191,14 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void MoveToMiddle(RectangleF selectedArea)
     {
-        var middleOfScreenX = GetSize().Width / 2.0;
-        var middleOfScreenY = GetSize().Height / 2.0;
+        var middleOfScreenX = _canvasSize.Width / 2.0;
+        var middleOfScreenY = _canvasSize.Height / 2.0;
         var middleOfSelectionX = selectedArea.X + (selectedArea.Width / 2.0);
         var middleOfSelectionY = selectedArea.Y + (selectedArea.Height / 2.0);
+
+        var test = CalculateCanvasGridSize();
+        var test1 = BackgroundController.GridCellsWidth;
+        var test2 = BackgroundController.GridCellsHeight;
 
         var stepsX = (int)Math.Round((middleOfSelectionX - middleOfScreenX) / CalculateCanvasGridSize());
         var stepsY = (int)Math.Round((middleOfSelectionY - middleOfScreenY) / CalculateCanvasGridSize());
@@ -203,6 +207,12 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         MoveMap(stepsX, stepsY);
     }
+
+    //private double CalculateCanvasGridSize()
+    //{
+    //    var gridSize = (double)BackgroundController.GridSize;
+    //    return gridSize.Map(0.0, Constants.MapSize.Width, 0.0, _canvasSize.Width);
+    //}
 
     private void OnBackgroundUpdated(object? sender, EventArgs e)
     {
@@ -504,7 +514,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         MoveMap((int)_returnStepsX, (int)_returnStepsY);
 
-        var zoomSize = _returnGridSize - BackgroundController.GridSize;
+        var zoomSize = _returnGridSize - CalculateCanvasGridSize();
         Zoom((int)zoomSize);
 
         _returnGridSize = null;
