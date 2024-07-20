@@ -1,6 +1,5 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.DataClasses;
-using DigitalBattleMap.DrawingShapes;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
@@ -10,6 +9,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace DigitalBattleMap.ViewModels;
 
@@ -22,6 +22,9 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     private Size<double> _canvasSize;
     private Action _multiMoveAction;
     private MonsterTokens _monsterTokens = new();
+    private int? _returnStepsX;
+    private int? _returnStepsY;
+    private int? _returnGridSize;
 
     public MainWindowViewModel(IWindowService windowService)
     {
@@ -42,7 +45,9 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     }
 
     public event EventHandler OnGridSizeChanged;
+    public event EventHandler OnGridSizeZoomAndEnhance;
     public event EventHandler<CanvasSizeChangedEventArgs> OnCanvasSizeChanged;
+
 
     public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
     public int SelectedMapTabIndex { get => Get<int>(); set => Set(value); }
@@ -72,7 +77,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public BitmapSource MapZoomInBitmapSource { get => BitmapTools.CreateZoomButton(true).ToBitmapImage(); }
     public BitmapSource MapZoomOutBitmapSource { get => BitmapTools.CreateZoomButton(false).ToBitmapImage(); }
     public BitmapSource MapCropBitmapSource { get => BitmapTools.CreateCropButton().ToBitmapImage(); }
-    public BitmapSource MapReturnBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.UndoIcon.png")).ToBitmapImage(); }
+    public BitmapSource MapZoomBackgroundBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.UndoIcon.png")).ToBitmapImage(); }
     public BitmapSource CampaignEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.CampaignEmblem.png")).ToBitmapImage(); }
     public BitmapSource BackgroundEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.BackgroundEmblem.png")).ToBitmapImage(); }
     public BitmapSource DrawingEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.DrawingEmblem.png")).ToBitmapImage(); }
@@ -98,7 +103,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public ICommand MapZoomInCommand { get; set; }
     public ICommand MapZoomOutCommand { get; set; }
     public ICommand MapCropCommand { get; set; }
-    public ICommand MapZoomReturnCommand { get; set; }
+    public ICommand MapZoomBackgroundCommand { get; set; }
     public ICommand HideConfigurationCommand { get; set; }
     public ICommand KeyDownCommand { get; set; }
     public ICommand KeyUpCommand { get; set; }
@@ -118,77 +123,13 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         BackgroundController.OnGridSizeZoomAndEnhance += OnBackgroundGridSizeZoomAndEnhance;
         BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
         TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, _monsterTokens, CampaignController, _settings);
+        TokenController.OnGridSizeZoomAndEnhance += OnBackgroundGridSizeZoomAndEnhance;
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
         DrawingController = new DrawingControllerViewModel(this, TokenController);
+        DrawingController.OnGridSizeZoomAndEnhance += OnBackgroundGridSizeZoomAndEnhance;
         DrawingController.OnDrawingShapesUpdated += DrawingShapesUpdated;
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
     }
-
-    private void LeftButtonDown(object? sender, MouseButtonDataEventArgs e)
-    {
-        ActiveShape.LeftButtonDown(e);
-    }
-
-    private void LeftButtonUp(object? sender, MouseButtonDataEventArgs e)
-    {
-        ActiveShape.LeftButtonUp(e);
-    }
-
-    private void RightButtonDown(object? sender, MouseButtonDataEventArgs e)
-    {
-        ActiveShape.RightButtonDown(e);
-    }
-
-    private void RightButtonUp(object? sender, MouseButtonDataEventArgs e)
-    {
-        ActiveShape.RightButtonUp(e);
-    }
-
-    private void MouseMove(object? sender, MouseMoveDataEventArgs e)
-    {
-        ActiveShape.MouseMove(e);
-    }
-
-    public DrawingShape ActiveShape
-    {
-        get => Get<DrawingShape>();
-        set
-        {
-            var oldValue = Get<DrawingShape>();
-            if (oldValue != null)
-            {
-                oldValue.PropertyChanged -= ActiveShapePropertyChanged;
-                oldValue.OnRenderChanged -= OnActiveShapeRenderChanged;
-            }
-
-            Set(value);
-
-            if (value != null)
-            {
-                value.PropertyChanged += ActiveShapePropertyChanged;
-                value.OnRenderChanged += OnActiveShapeRenderChanged;
-            }
-        }
-    }
-
-    private void ActiveShapePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(DrawingShape.Cursor))
-        {
-            MouseCanvas.Cursor = ActiveShape.Cursor;
-        }
-    }
-
-    private void OnActiveShapeRenderChanged(object? sender, EventArgs e)
-    {
-        NotifyDrawingShapesUpdated();
-    }
-    private void NotifyDrawingShapesUpdated()
-    {
-        OnDrawingShapesUpdated?.Invoke(this, new EventArgs());
-    }
-    public event EventHandler OnDrawingShapesUpdated; //change to background image size?
-    public event EventHandler OnGridSizeZoomAndEnhance;
 
     private void InitializeProperties()
     {
@@ -215,8 +156,8 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         ServerConnectionCommand = new RelayCommand(p => ServerConnectionButton());
         MapZoomInCommand = new RelayCommand(p => ZoomIn());
         MapZoomOutCommand = new RelayCommand(p => ZoomOut());
-        MapCropCommand = new RelayCommand(p => ZoomOut());
-        MapZoomReturnCommand = new RelayCommand(p => ZoomReturn());
+        MapCropCommand = new RelayCommand(p => SetCropMode());
+        MapZoomBackgroundCommand = new RelayCommand(p => ZoomBackground());
         HideConfigurationCommand = new RelayCommand(p => { IsConfigurationMenuExpanded = false; });
         KeyDownCommand = new RelayCommand(p => KeyDown((KeyEventArgs)p));
         KeyUpCommand = new RelayCommand(p => KeyUp((KeyEventArgs)p));
@@ -230,14 +171,37 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void OnBackgroundGridSizeZoomAndEnhance(object? sender, GridSizeZoomAndEnhanceEventArgs e)
     {
-        BackgroundController.Move(e.directionX, e.stepsX);
-        BackgroundController.Move(e.directionY, e.stepsY);
-        DrawingController.Move(e.directionX, e.stepsX);
-        DrawingController.Move(e.directionY, e.stepsY);
-        TokenController.Move(e.directionX, e.stepsX);
-        TokenController.Move(e.directionY, e.stepsY);
+        var selectedArea = e.rectangle;
 
-        Zoom(e.zoomSize);
+        // Move to the Middle of the selected area (in steps of Gridsize)
+        MoveToMiddle(selectedArea);
+
+        // Zoom
+        var currentGridSize = BackgroundController.GridSize;
+        var ratio = GetSize().Width / selectedArea.Width;
+        var newGridSize = (int)Math.Round(currentGridSize * ratio);
+        var zoomSize = newGridSize - currentGridSize;
+
+        _returnGridSize = currentGridSize;
+        Zoom(zoomSize);
+
+        MouseCanvas.ResetSelection();
+        MouseCanvas.ResetMode();
+    }
+
+    private void MoveToMiddle(RectangleF selectedArea)
+    {
+        var middleOfScreenX = GetSize().Width / 2.0;
+        var middleOfScreenY = GetSize().Height / 2.0;
+        var middleOfSelectionX = selectedArea.X + (selectedArea.Width / 2.0);
+        var middleOfSelectionY = selectedArea.Y + (selectedArea.Height / 2.0);
+
+        var stepsX = (int)Math.Round((middleOfSelectionX - middleOfScreenX) / CalculateCanvasGridSize());
+        var stepsY = (int)Math.Round((middleOfSelectionY - middleOfScreenY) / CalculateCanvasGridSize());
+        _returnStepsX = -stepsX;
+        _returnStepsY = -stepsY;
+
+        MoveMap(stepsX, stepsY);
     }
 
     private void OnBackgroundUpdated(object? sender, EventArgs e)
@@ -407,6 +371,11 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     private void MoveMap(string direction)
     {
         var arrowDirection = Enum.Parse<ArrowDirection>(direction);
+        MoveMap(arrowDirection);
+    }
+
+    private void MoveMap(ArrowDirection arrowDirection)
+    {
         if (!IsMultiMove)
         {
             BackgroundController.Move(arrowDirection, 1);
@@ -423,6 +392,21 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 TokenController.Move(arrowDirection, MultiMoveCount);
             };
         }
+    }
+
+    private void MoveMap(int stepsX, int stepsY)
+    {
+        var directionX = stepsX > 0 ? ArrowDirection.Right : ArrowDirection.Left;
+        var directionY = stepsY > 0 ? ArrowDirection.Down : ArrowDirection.Up;
+        stepsX = Math.Abs(stepsX);
+        stepsY = Math.Abs(stepsY);
+
+        BackgroundController.Move(directionX, stepsX);
+        BackgroundController.Move(directionY, stepsY);
+        DrawingController.Move(directionX, stepsX);
+        DrawingController.Move(directionY, stepsY);
+        TokenController.Move(directionX, stepsX);
+        TokenController.Move(directionY, stepsY);
     }
 
     private void SaveMap()
@@ -492,10 +476,40 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         }
     }
 
-    private void ZoomReturn()
+    private void SetCropMode()
     {
-        var gridSizeChange = 65 - BackgroundController.GridSize;
-        Zoom(gridSizeChange);
+        if (BackgroundController.GetFullBackgroundBitmap() != null)
+        {
+            if (MouseCanvas.GetMode() != MouseCanvasMode.FixedRatioRectangleSelection)
+            {
+                MouseCanvas.SetMode(MouseCanvasMode.FixedRatioRectangleSelection);
+            }
+            else
+            {
+                MouseCanvas.ResetSelection();
+            }
+        }
+    }
+
+    // TODO: improve by showing full background image
+    private void ZoomBackground()
+    {
+        if (BackgroundController.GetFullBackgroundBitmap() == null
+            || _returnGridSize == null
+            || _returnStepsX == null
+            || _returnStepsY == null)
+        {
+            return;
+        }
+
+        MoveMap((int)_returnStepsX, (int)_returnStepsY);
+
+        var zoomSize = _returnGridSize - BackgroundController.GridSize;
+        Zoom((int)zoomSize);
+
+        _returnGridSize = null;
+        _returnStepsX = null;
+        _returnStepsY = null;
     }
 
     private void Zoom(int gridSizeChange)

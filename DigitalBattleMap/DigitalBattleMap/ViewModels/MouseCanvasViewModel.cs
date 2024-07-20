@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
+using DigitalBattleMap.UIElements;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Drawing;
@@ -12,6 +13,7 @@ namespace DigitalBattleMap.ViewModels;
 public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
 {
     private MouseCanvasMode _mode;
+    private MouseCanvasMode _previousMode;
     private Point<double> _selectionStartPosition = new();
     MouseButtonState _previousLeftButtonState;
     MouseButtonState _previousRightButtonState;
@@ -37,6 +39,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     public event EventHandler<MouseButtonDataEventArgs> OnRightButtonUp;
     public event EventHandler<MouseMoveDataEventArgs> OnMouseMove;
     public event EventHandler<RectangleF> OnRectangleAreaSelected;
+    public event EventHandler<RectangleF> OnFixRatioRectangleAreaSelected;
     public event EventHandler<Polygon> OnPolygonAreaSelected;
 
     public double SelectionWidth { get => Get<double>(); set => Set(value); }
@@ -54,8 +57,14 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     public ICommand RightButtonDownCommand { get; set; }
     public ICommand RightButtonUpCommand { get; set; }
 
+    public MouseCanvasMode GetMode()
+    {
+        return _mode;
+    }
+
     public void SetMode(MouseCanvasMode mode)
     {
+        _previousMode = _mode;
         _mode = mode;
         ResetSelection();
 
@@ -69,6 +78,10 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
             case MouseCanvasMode.PolygonSelection:
                 IsSelectionAreaVisible = true;
                 break;
+            case MouseCanvasMode.FixedRatioRectangleSelection:
+                Cursor = Cursors.SizeAll;
+                IsSelectionAreaVisible = true;
+                break;
         }
     }
 
@@ -78,6 +91,12 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         SelectionHeight = 0;
         IsSelectionStarted = false;
         PolygonSelectionPoints = new();
+        Cursor = Cursors.Arrow;
+    }
+
+    public void ResetMode()
+    {
+        SetMode(_previousMode);
     }
 
     private void LeftButtonDown(MouseDataEventArgs e)
@@ -88,6 +107,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
                 LeftButtonDownClick(e);
                 return;
             case MouseCanvasMode.RectangleSelection:
+            case MouseCanvasMode.FixedRatioRectangleSelection:
                 MouseDownRectangleSelection(e);
                 return;
             case MouseCanvasMode.PolygonSelection:
@@ -104,10 +124,13 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
                 LeftButtonUpClick(e);
                 return;
             case MouseCanvasMode.RectangleSelection:
-                MouseUpRectangleSelection();
+                MouseUpRectangleSelection(OnRectangleAreaSelected);
                 return;
             case MouseCanvasMode.PolygonSelection:
                 MouseUpPolygonSelection();
+                return;
+            case MouseCanvasMode.FixedRatioRectangleSelection:
+                MouseUpRectangleSelection(OnFixRatioRectangleAreaSelected);
                 return;
         }
     }
@@ -148,10 +171,13 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
                 MouseMoveClick(e);
                 return;
             case MouseCanvasMode.RectangleSelection:
-                MouseMoveRectangleSelection(e);
+                MouseMoveRectangleSelection(e, false);
                 return;
             case MouseCanvasMode.PolygonSelection:
                 MouseMovePolygonSelection(e);
+                return;
+            case MouseCanvasMode.FixedRatioRectangleSelection:
+                MouseMoveRectangleSelection(e, true);
                 return;
         }
     }
@@ -165,37 +191,49 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         SelectionY = point.Y;
     }
 
-    private void MouseMoveRectangleSelection(MouseDataEventArgs e)
+    private void MouseMoveRectangleSelection(MouseDataEventArgs e, bool fixedRatio)
     {
+
         if (IsSelectionStarted)
         {
             var point = e.Position;
 
-            var distanceX = point.X - _selectionStartPosition.X;
-            var distanceY = point.Y - _selectionStartPosition.Y;
+            SelectionX = Math.Min(_selectionStartPosition.X, point.X);
+            SelectionY = Math.Min(_selectionStartPosition.Y, point.Y);
 
-            SelectionWidth = distanceX;
-            SelectionHeight = distanceY;
+            SelectionWidth = Math.Max(_selectionStartPosition.X, point.X) - SelectionX;
+            SelectionHeight = Math.Max(_selectionStartPosition.Y, point.Y) - SelectionY;
 
-            if (point.X < _selectionStartPosition.X)
+            if (fixedRatio)
             {
-                SelectionX = point.X;
-                SelectionWidth *= -1;
-            }
+                var widthRatio = 0.5625;
+                var heightRatio = 1.77777777778;
+                if (SelectionHeight * widthRatio <= SelectionWidth)
+                {
+                    SelectionWidth = SelectionHeight / widthRatio;
+                }
+                else if (SelectionWidth * heightRatio <= SelectionHeight)
+                {
+                    SelectionHeight = SelectionWidth / heightRatio;
+                }
 
-            if (point.Y < _selectionStartPosition.Y)
-            {
-                SelectionY = point.Y;
-                SelectionHeight *= -1;
+                if(SelectionX < _selectionStartPosition.X)
+                {
+                    SelectionX = _selectionStartPosition.X-SelectionWidth;
+                }
+                if (SelectionY < _selectionStartPosition.Y)
+                {
+                    SelectionY = _selectionStartPosition.Y - SelectionHeight;
+                }
             }
         }
     }
 
-    private void MouseUpRectangleSelection()
+    private void MouseUpRectangleSelection(EventHandler<RectangleF> handler)
     {
         IsSelectionStarted = false;
         var area = new RectangleF((float)SelectionX, (float)SelectionY, (float)SelectionWidth, (float)SelectionHeight);
-        OnRectangleAreaSelected?.Invoke(this, area);
+        handler?.Invoke(this, area);
     }
 
     private void MouseDownPolygonSelection(MouseDataEventArgs e)

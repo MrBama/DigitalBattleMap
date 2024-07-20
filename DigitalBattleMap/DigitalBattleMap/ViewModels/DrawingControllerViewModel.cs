@@ -5,6 +5,7 @@ using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using Color = System.Windows.Media.Color;
 
 namespace DigitalBattleMap.ViewModels;
 
@@ -52,6 +54,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         MouseCanvas.OnRightButtonUp += RightButtonUp;
         MouseCanvas.OnMouseMove += MouseMove;
         MouseCanvas.Cursor = ActiveShape.Cursor;
+        MouseCanvas.OnFixRatioRectangleAreaSelected += FixRatioRectangleAreaSelected;
     }
 
     protected override void InitializeCommands()
@@ -70,6 +73,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     }
 
     public event EventHandler OnDrawingShapesUpdated;
+    public event EventHandler<GridSizeZoomAndEnhanceEventArgs> OnGridSizeZoomAndEnhance;
 
     public BitmapSource BlackButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource RedButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
@@ -547,5 +551,10 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     private void OnActiveShapeRenderChanged(object? sender, EventArgs e)
     {
         NotifyDrawingShapesUpdated();
+    }
+
+    private void FixRatioRectangleAreaSelected(object? sender, RectangleF rectangle)
+    {
+        OnGridSizeZoomAndEnhance?.Invoke(this, new GridSizeZoomAndEnhanceEventArgs() { rectangle = rectangle });
     }
 }

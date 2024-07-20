@@ -180,17 +180,17 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Button x:Name="ZoomInButton" Grid.Row="1" Grid.Column="0" Margin="0 0 5 5" Command="{Binding MapZoomInCommand}" CommandParameter="Up" Width="{Binding ElementName=ZoomInButton,Path=ActualHeight}">
+                            <Button x:Name="ZoomInButton" Grid.Row="1" Grid.Column="0" Margin="0 0 5 5" Command="{Binding MapZoomInCommand}" Width="{Binding ElementName=ZoomInButton,Path=ActualHeight}">
                                 <Image Source="{Binding MapZoomInBitmapSource}"/>
                             </Button>
-                            <Button x:Name="ZoomOutButton" Grid.Row="2" Grid.Column="0" Margin="0 5 5 0" Command="{Binding MapZoomOutCommand}" CommandParameter="Up" Width="{Binding ElementName=ZoomOutButton,Path=ActualHeight}">
+                            <Button x:Name="ZoomOutButton" Grid.Row="2" Grid.Column="0" Margin="0 5 5 0" Command="{Binding MapZoomOutCommand}" Width="{Binding ElementName=ZoomOutButton,Path=ActualHeight}">
                                 <Image Source="{Binding MapZoomOutBitmapSource}"/>
                             </Button>
-                            <Button x:Name="CropButton" Grid.Row="1" Grid.Column="1" Margin="5 0 0 5" Command="{Binding MapCropCommand}" CommandParameter="Up" Width="{Binding ElementName=CropButton,Path=ActualHeight}">
+                            <Button x:Name="CropButton" Grid.Row="1" Grid.Column="1" Margin="5 0 0 5" Command="{Binding MapCropCommand}" Width="{Binding ElementName=CropButton,Path=ActualHeight}">
                                 <Image Source="{Binding MapCropBitmapSource}"/>
                             </Button>
-                            <Button x:Name="ReturnButton" Grid.Row="2" Grid.Column="1" Margin="5 5 0 0" Command="{Binding MapZoomReturnCommand}" CommandParameter="Up" Width="{Binding ElementName=ZoomOutButton,Path=ActualHeight}">
-                                <Image Source="{Binding MapReturnBitmapSource}"/>
+                            <Button x:Name="ZoomBackgroundButton" Grid.Row="2" Grid.Column="1" Margin="5 5 0 0" Command="{Binding MapZoomBackgroundCommand}" Width="{Binding ElementName=ZoomBackgroundButton,Path=ActualHeight}">
+                                <Image Source="{Binding MapZoomBackgroundBitmapSource}"/>
                             </Button>
                         </Grid>
 

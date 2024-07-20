@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Windows.Input;
 using DigitalBattleMap.Common;
 using DigitalBattleMap.DrawingShapes;
@@ -58,11 +59,7 @@ public class GridSizeChangedEventArgs : EventArgs
 
 public class GridSizeZoomAndEnhanceEventArgs : EventArgs
 {
-    public int stepsX { get; set; }
-    public int stepsY { get; set; }
-    public ArrowDirection directionX { get; set; }
-    public ArrowDirection directionY { get; set; }
-    public int zoomSize { get; set; }
+    public RectangleF rectangle { get; set; }
 }
 
 public class DisconnectedEventArgs : EventArgs

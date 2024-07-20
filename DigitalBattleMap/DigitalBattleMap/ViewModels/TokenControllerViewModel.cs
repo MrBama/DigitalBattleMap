@@ -61,6 +61,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         MouseCanvas = new MouseCanvasViewModel();
         MouseCanvas.OnLeftButtonDown += MouseLeftButtonDown;
         MouseCanvas.OnRightButtonDown += MouseRightButtonDown;
+        MouseCanvas.OnFixRatioRectangleAreaSelected += FixRatioRectangleAreaSelected;
     }
 
     protected override void InitializeCommands()
@@ -78,6 +79,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     }
 
     public event EventHandler OnTokenBitmapUpdated;
+    public event EventHandler<GridSizeZoomAndEnhanceEventArgs> OnGridSizeZoomAndEnhance;
 
     public StatblocksViewModel StatblocksViewModel { get; set; } = new();
     public CommandHistory<TokenMoveCommand> TokenMoveHistory { get; set; } = new(30);
@@ -834,5 +836,10 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             }
             _webCommunication.SendMessage(new ConditionsMessage { TokenIdentifier = identifier, Conditions = tokenListItem.Conditions });
         }
+    }
+
+    private void FixRatioRectangleAreaSelected(object? sender, RectangleF rectangle)
+    {
+        OnGridSizeZoomAndEnhance?.Invoke(this, new GridSizeZoomAndEnhanceEventArgs() { rectangle = rectangle });
     }
 }

@@ -6,9 +6,7 @@ using DigitalBattleMap.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics.Tracing;
 using System.Linq;
-using System.Numerics;
 using System.Windows.Input;
 
 namespace DigitalBattleMap.ViewModels;
