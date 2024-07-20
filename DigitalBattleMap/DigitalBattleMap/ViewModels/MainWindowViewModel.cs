@@ -177,9 +177,9 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         MoveToMiddle(selectedArea);
 
         // Zoom
-        var currentGridSize = (int)CalculateCanvasGridSize();
+        var currentGridSize = BackgroundController.GridSize;
         var ratio = _canvasSize.Width / selectedArea.Width;
-        var newGridSize = (int)Math.Round(currentGridSize * ratio);
+        var newGridSize = (int)Math.Round(CalculateCanvasGridSize() * ratio, 0);
         var zoomSize = newGridSize - currentGridSize;
 
         _returnGridSize = currentGridSize;
@@ -514,7 +514,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         MoveMap((int)_returnStepsX, (int)_returnStepsY);
 
-        var zoomSize = _returnGridSize - CalculateCanvasGridSize();
+        var zoomSize = _returnGridSize - BackgroundController.GridSize;
         Zoom((int)zoomSize);
 
         _returnGridSize = null;
