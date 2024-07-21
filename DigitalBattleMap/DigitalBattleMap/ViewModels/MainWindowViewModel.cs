@@ -196,10 +196,6 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         var middleOfSelectionX = selectedArea.X + (selectedArea.Width / 2.0);
         var middleOfSelectionY = selectedArea.Y + (selectedArea.Height / 2.0);
 
-        var test = CalculateCanvasGridSize();
-        var test1 = BackgroundController.GridCellsWidth;
-        var test2 = BackgroundController.GridCellsHeight;
-
         var stepsX = (int)Math.Round((middleOfSelectionX - middleOfScreenX) / CalculateCanvasGridSize());
         var stepsY = (int)Math.Round((middleOfSelectionY - middleOfScreenY) / CalculateCanvasGridSize());
         _returnStepsX = -stepsX;
@@ -207,12 +203,6 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         MoveMap(stepsX, stepsY);
     }
-
-    //private double CalculateCanvasGridSize()
-    //{
-    //    var gridSize = (double)BackgroundController.GridSize;
-    //    return gridSize.Map(0.0, Constants.MapSize.Width, 0.0, _canvasSize.Width);
-    //}
 
     private void OnBackgroundUpdated(object? sender, EventArgs e)
     {
