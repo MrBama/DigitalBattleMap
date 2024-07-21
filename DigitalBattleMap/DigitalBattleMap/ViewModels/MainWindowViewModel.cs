@@ -7,9 +7,14 @@ using System;
 using System.Drawing;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using static System.Windows.Forms.MonthCalendar;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
+using Application = System.Windows.Application;
+using ArrowDirection = DigitalBattleMap.DataClasses.ArrowDirection;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace DigitalBattleMap.ViewModels;
 
@@ -176,31 +181,32 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         // Move to the Middle of the selected area (in steps of Gridsize)
         MoveToMiddle(selectedArea);
 
-        // Zoom
-        var currentGridSize = BackgroundController.GridSize;
+        // Zoom to new grid size
         var ratio = _canvasSize.Width / selectedArea.Width;
         var newGridSize = (int)Math.Round(CalculateCanvasGridSize() * ratio, 0);
-        var zoomSize = newGridSize - currentGridSize;
 
-        _returnGridSize = currentGridSize;
-        Zoom(zoomSize);
+        _returnGridSize = BackgroundController.GridSize;
+        ZoomToGridSize(newGridSize);
 
+        // Reset mouse canvas
         MouseCanvas.ResetSelection();
         MouseCanvas.ResetMode();
     }
 
     private void MoveToMiddle(RectangleF selectedArea)
     {
+        // find center of screen and selection
         var middleOfScreenX = _canvasSize.Width / 2.0;
         var middleOfScreenY = _canvasSize.Height / 2.0;
         var middleOfSelectionX = selectedArea.X + (selectedArea.Width / 2.0);
         var middleOfSelectionY = selectedArea.Y + (selectedArea.Height / 2.0);
 
+        // find number of positive or negative steps need to reach the center of selection
         var stepsX = (int)Math.Round((middleOfSelectionX - middleOfScreenX) / CalculateCanvasGridSize());
         var stepsY = (int)Math.Round((middleOfSelectionY - middleOfScreenY) / CalculateCanvasGridSize());
+
         _returnStepsX = -stepsX;
         _returnStepsY = -stepsY;
-
         MoveMap(stepsX, stepsY);
     }
 
@@ -491,25 +497,72 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         }
     }
 
-    // TODO: improve by showing full background image
     private void ZoomBackground()
     {
-        if (BackgroundController.GetFullBackgroundBitmap() == null
-            || _returnGridSize == null
-            || _returnStepsX == null
-            || _returnStepsY == null)
+        if (BackgroundController.GetFullBackgroundBitmap() != null
+            && _returnGridSize != null
+            && _returnStepsX != null
+            && _returnStepsY != null)
         {
-            return;
+            MoveMap((int)_returnStepsX, (int)_returnStepsY);
+            ZoomToGridSize((int)_returnGridSize);
+
+            _returnGridSize = null;
+            _returnStepsX = null;
+            _returnStepsY = null;
         }
+        else
+        {
+            ReturnToCenterOfFullBackground();
+            ReturnToZoomOfFullBackground();
+        }
+    }
 
-        MoveMap((int)_returnStepsX, (int)_returnStepsY);
+    private void ReturnToCenterOfFullBackground()
+    {
+        // find center of canvas area (background)
+        var background = BackgroundController.GetArea();
+        var middleOfScreenX = background.X + (background.Width / 2.0);
+        var middleOfScreenY = background.Y + (background.Height / 2.0);
+        // find center of background full
+        var backgroundFull = BackgroundController.GetFullBackgroundBitmap();
+        var middleOfCanvasX = backgroundFull.Width / 2.0;
+        var middleOfCanvasY = backgroundFull.Height / 2.0;
 
-        var zoomSize = _returnGridSize - BackgroundController.GridSize;
-        Zoom((int)zoomSize);
+        double preciseGridSize = BackgroundController.GridSize;
+        var mapSizeWidth = Constants.MapSize.Width;
+        var mapSizeHeight = Constants.MapSize.Height;
+        var areaWidth = background.Width;
+        var areaHeight = background.Height;
+        var distanceX = (int)Math.Round(preciseGridSize.Map(0, mapSizeWidth, 0, areaWidth));
+        var distanceY = (int)Math.Round(preciseGridSize.Map(0, mapSizeHeight, 0, areaHeight));
 
-        _returnGridSize = null;
-        _returnStepsX = null;
-        _returnStepsY = null;
+        var stepsX = (int)Math.Round((middleOfCanvasX - middleOfScreenX) / distanceX);
+        var stepsY = (int)Math.Round((middleOfCanvasY - middleOfScreenY) / distanceY);
+        MoveMap(stepsX, stepsY);
+    }
+
+    private void ReturnToZoomOfFullBackground()
+    {
+        double ratio = 0.0;
+        var background = BackgroundController.GetArea();
+        var backgroundFull = BackgroundController.GetFullBackgroundBitmap();
+        if (backgroundFull.Width / backgroundFull.Height >= 1.78)
+        {
+            ratio = background.Width / backgroundFull.Width;
+        }
+        else
+        {
+            ratio = background.Height / backgroundFull.Height;
+        }
+        var newGridSize = (int)Math.Round(CalculateCanvasGridSize() * ratio, 0);
+        ZoomToGridSize(newGridSize);
+    }
+
+    private void ZoomToGridSize(int newGridSize)
+    {
+        var gridSizeChange = newGridSize - BackgroundController.GridSize;
+        Zoom(gridSizeChange);
     }
 
     private void Zoom(int gridSizeChange)
