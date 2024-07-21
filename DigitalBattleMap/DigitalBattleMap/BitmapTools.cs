@@ -130,6 +130,11 @@ public static class BitmapTools
         return ResizeBitmap(bitmap, Constants.MapSize);
     }
 
+    public static Bitmap ResizeToBitmap(Bitmap bitmap, Bitmap bitmapTo)
+    {
+        return ResizeBitmap(bitmap, new(bitmapTo.Width, bitmapTo.Height));
+    }
+
     public static Bitmap ResizeBitmap(Bitmap bitmap, Size<int> size)
     {
         var destinationRectangle = new Rectangle(0, 0, size.Width, size.Height);

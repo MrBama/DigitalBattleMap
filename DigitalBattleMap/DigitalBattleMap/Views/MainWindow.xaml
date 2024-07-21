@@ -98,6 +98,7 @@
                                 </i:EventTrigger>
                             </i:Interaction.Triggers>
                             <Image Source="{Binding BackgroundController.BackgroundBitmapSource}"/>
+                            <Image Source="{Binding BackgroundController.GMOverlayBitmapSource}" Opacity="0.5"/>
                             <Image Source="{Binding BackgroundController.FogOfWarBitmapSource}" Opacity="0.5"/>
                             <Image x:Name="GridLayer" Source="{Binding BackgroundController.GridBitmapSource}"/>
                             <uielements:DrawingCanvas

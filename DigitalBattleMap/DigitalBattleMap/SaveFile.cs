@@ -13,6 +13,7 @@ public class SaveFile
 {
     private static string _saveFilePath = Path.Combine(Constants.TempDirectoryPath, "SaveFile.json");
     private static string _fullBackgrondFilePath = Path.Combine(Constants.TempDirectoryPath, "FullBackground.png");
+    private static string _gmOverlayFilePath = Path.Combine(Constants.TempDirectoryPath, "GMOverlay.png");
 
     public int GridSize { get; set; }
 
@@ -41,12 +42,16 @@ public class SaveFile
     [JsonIgnore]
     public Bitmap FullBackground { get; set; }
 
+    [JsonIgnore]
+    public Bitmap GMOverlay { get; set; }
+
     public void Save(string path)
     {
         using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
         FileManager.SaveFile(this, _saveFilePath);
 
         FullBackground?.Save(_fullBackgrondFilePath);
+        GMOverlay?.Save(_gmOverlayFilePath);
 
         for (int i = 0; i < TokenList.Count; i++)
         {
@@ -84,6 +89,11 @@ public class SaveFile
         if (IO.File.Exists(_fullBackgrondFilePath))
         {
             saveFile.FullBackground = IO.File.LoadBitmap(_fullBackgrondFilePath);
+        }
+
+        if (IO.File.Exists(_gmOverlayFilePath))
+        {
+            saveFile.GMOverlay = IO.File.LoadBitmap(_gmOverlayFilePath);
         }
 
         for (int i = 0; i < saveFile.TokenList.Count; i++)

@@ -13,6 +13,7 @@ namespace DigitalBattleMap.ViewModels;
 public class BackgroundControllerViewModel : ControllerViewModelBase
 {
     private Bitmap _backgroundBitmap;
+    private Bitmap _gmOverlayBitmap;
     private Bitmap _fogOfWarBitMap;
     private Bitmap _backgroundAndFogOfWarBitmap;
     private Bitmap _fullBackgroundBitmap;
@@ -49,6 +50,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         GridBitmap = BitmapTools.CreateGrid(GridSize);
         BackgroundBitmap = BitmapTools.CreateEmptyBitmap();
         FogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
+        GMOverlayBitmap = BitmapTools.CreateEmptyBitmap();
         BackgroundAndFogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
         BackgroundZoomPercentage = 10;
         GridCellsWidth = 10;
@@ -67,6 +69,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     protected override void InitializeCommands()
     {
         OpenBackgroundCommand = new RelayCommand(p => OpenBackground());
+        OpenGMOverlayCommand = new RelayCommand(p => OpenGMOverlay());
         ClearBackgroundCommand = new RelayCommand(p => ClearBackground());
         BackgroundZoomInCommand = new RelayCommand(p => ZoomIn(BackgroundZoomPercentage));
         BackgroundZoomOutCommand = new RelayCommand(p => ZoomOut(BackgroundZoomPercentage));
@@ -84,6 +87,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public bool IsBackgroundEditingAllowed { get => HasOpenedBackground && !IsFogOfWarEnabled; }
     public bool HasOpenedBackground { get => Get<bool>(); set => Set(value); }
     public bool IsFogOfWarEnabled { get => Get<bool>(); set => Set(value, IsFogOfWarEnabledChanged); }
+    public bool HasOpenGMOverlay { get => Get<bool>(); set => Set(value); }
     public bool IsFogOfWarAreaSelected { get => Get<bool>(); set => Set(value); }
     public bool FogRemovalRectangleShape { get => Get<bool>(); set => Set(value, FogRemovalShapeChanged); }
     public bool FogRemovalPolygonShape { get => Get<bool>(); set => Set(value); }
@@ -95,12 +99,14 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public int ZoomSize { get => Get<int>(); set => Set(value); }
     public double BackgroundZoomPercentage { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(BackgroundZoomPercentageLabel))); }
     public BitmapSource BackgroundBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
+    public BitmapSource GMOverlayBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public BitmapSource FogOfWarBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public BitmapSource GridBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public string BackgroundZoomPercentageLabel { get => $"{BackgroundZoomPercentage}%"; }
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
 
     public ICommand OpenBackgroundCommand { get; set; }
+    public ICommand OpenGMOverlayCommand { get; set; }
     public ICommand ClearBackgroundCommand { get; set; }
     public ICommand BackgroundZoomInCommand { get; set; }
     public ICommand BackgroundZoomOutCommand { get; set; }
@@ -119,6 +125,18 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
             {
                 _backgroundBitmap = value;
                 BackgroundBitmapSource = value.ToBitmapImage();
+            }
+        }
+    }
+
+    private Bitmap GMOverlayBitmap
+    {
+        get => _gmOverlayBitmap;
+        set
+        {
+            if (value != _gmOverlayBitmap)
+            {
+                GMOverlayBitmapSource = value.ToBitmapImage();
             }
         }
     }
@@ -221,6 +239,16 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         }
     }
 
+    public void OpenGMOverlay()
+    {
+        if (_windowService.ShowOpenFileDialog(out string path))
+        {
+            _gmOverlayBitmap = IO.File.LoadBitmap(path);
+            HasOpenGMOverlay = true;
+            CreateBackground();
+        }
+    }
+
     public void ClearBackground()
     {
         IsGridShown = true;
@@ -228,15 +256,18 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         GridSizeChanged();
 
         _fullBackgroundBitmap = null;
+        _gmOverlayBitmap = null;
         _area = new Rectangle(0, 0, _mapSize.Width, _mapSize.Height);
         BackgroundBitmap = BitmapTools.CreateEmptyBitmap();
         FogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
+        GMOverlayBitmap = BitmapTools.CreateEmptyBitmap();
         BackgroundAndFogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
         _fogOfWarAreas.Clear();
         GridCellsWidth = 10;
         GridCellsHeight = 10;
         FeetPerGridCell = Constants.FeetPerGridCell;
         HasOpenedBackground = false;
+        HasOpenGMOverlay = false;
         IsFogOfWarEnabled = false;
         FogRemovalRectangleShape = true;
         FogRemovalPolygonShape = false;
@@ -292,6 +323,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         saveFile.IsGridShown = IsGridShown;
         saveFile.GridSize = GridSize;
         saveFile.FullBackground = _fullBackgroundBitmap;
+        saveFile.GMOverlay = _gmOverlayBitmap;
         saveFile.BackgroundArea = _area;
         saveFile.GridCellsWidth = GridCellsWidth;
         saveFile.GridCellsHeight = GridCellsHeight;
@@ -320,6 +352,12 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
             _area = saveFile.BackgroundArea;
             HasOpenedBackground = true;
         }
+
+        if (saveFile.GMOverlay != null)
+        {
+            _gmOverlayBitmap = saveFile.GMOverlay;
+            HasOpenGMOverlay = true;
+        } 
 
         CreateBackground();
     }
@@ -422,6 +460,14 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         {
             var croppedBitmap = BitmapTools.CropBitmap(_fullBackgroundBitmap, _area);
             BackgroundBitmap = BitmapTools.ResizeBitmap(croppedBitmap);
+
+            if (HasOpenGMOverlay)
+            {
+                // resize to fullbackground
+                var gmOverlayResizedBitmap = BitmapTools.ResizeToBitmap(_gmOverlayBitmap, _fullBackgroundBitmap);
+                var gmOverlayBitmap = BitmapTools.CropBitmap(gmOverlayResizedBitmap, _area);
+                GMOverlayBitmap = BitmapTools.ResizeBitmap(gmOverlayBitmap);
+            }
         }
 
         if (IsFogOfWarEnabled)
