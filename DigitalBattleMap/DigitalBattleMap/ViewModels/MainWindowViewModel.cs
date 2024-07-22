@@ -180,7 +180,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         // Zoom to new grid size
         var ratio = _canvasSize.Width / selectedArea.Width;
-        var newGridSize = (int)Math.Round(CalculateCanvasGridSize() * ratio, 0);
+        var newGridSize = (int)Math.Round((double)BackgroundController.GridSize * ratio, 0);
 
         _returnGridSize = BackgroundController.GridSize;
         ZoomToGridSize(newGridSize);
@@ -549,10 +549,10 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             ratio = background.Width / backgroundFull.Width;
         }
         else
-        {
+        { 
             ratio = background.Height / backgroundFull.Height;
         }
-        var newGridSize = (int)Math.Round(CalculateCanvasGridSize() * ratio, 0);
+        var newGridSize = (int)Math.Round((double)BackgroundController.GridSize * ratio, 0);
         ZoomToGridSize(newGridSize);
     }
 
