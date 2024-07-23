@@ -22,6 +22,7 @@ public class SettingsWindowViewModel : ViewModelBase
         SelectedMonitorPosition = _settings.MonitorPosition;
         ShowMapWindow = _settings.ShowMapWindow;
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
+        HasBlackBackground = _settings.HasBlackBackground;
 
         foreach (var screenPosition in ScreenWrapper.GetScreenPositions())
         {
@@ -46,6 +47,7 @@ public class SettingsWindowViewModel : ViewModelBase
     public ScreenPosition SelectedMonitorPosition { get => Get<ScreenPosition>(); set => Set(value); }
     public bool ShowMapWindow { get => Get<bool>(); set => Set(value); }
     public bool HideDungeonMasterFeatures { get => Get<bool>(); set => Set(value); }
+    public bool HasBlackBackground { get => Get<bool>(); set => Set(value); }
 
     private void SaveButtonClicked()
     {
@@ -54,6 +56,7 @@ public class SettingsWindowViewModel : ViewModelBase
         _settings.MonitorPosition = SelectedMonitorPosition;
         _settings.ShowMapWindow = ShowMapWindow;
         _settings.HideDungeonMasterFeatures = HideDungeonMasterFeatures;
+        _settings.HasBlackBackground = HasBlackBackground;
 
         _settings.Save();
     }

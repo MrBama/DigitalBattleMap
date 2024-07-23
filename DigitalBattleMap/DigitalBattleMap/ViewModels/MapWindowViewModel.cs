@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.ViewModels;
@@ -10,7 +11,7 @@ public class MapWindowViewModel : ViewModelBase
     public BitmapSource BackgroundBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource GridBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource TokenBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
-
+    public Brush BackgroundColor { get => Get<Brush>(); set => Set(value); }
     public void ChangeWindowPosition(int x)
     {
         WindowState = WindowState.Normal;
@@ -20,5 +21,6 @@ public class MapWindowViewModel : ViewModelBase
 
     protected override void InitializeCommands()
     {
+        BackgroundColor = Brushes.White;
     }
 }

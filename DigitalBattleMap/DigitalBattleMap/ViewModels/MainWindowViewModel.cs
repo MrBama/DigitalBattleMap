@@ -683,6 +683,17 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         {
             HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
         }
+        else if (e.SettingName == nameof(Settings.HasBlackBackground))
+        {
+            if (_settings.HasBlackBackground)
+            {
+                _mapWindowViewModel.BackgroundColor = System.Windows.Media.Brushes.Black;
+            }
+            else
+            {
+                _mapWindowViewModel.BackgroundColor = System.Windows.Media.Brushes.White;
+            }
+        }
     }
 
     private double CalculateCanvasGridSize()

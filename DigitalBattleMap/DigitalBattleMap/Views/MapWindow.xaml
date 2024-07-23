@@ -10,6 +10,7 @@
         WindowStyle="None"
         AllowsTransparency="True"
         ResizeMode="CanResizeWithGrip"
+        Background="{Binding BackgroundColor}"
         Left="{Binding Left, Mode=TwoWay}"
         WindowState="{Binding WindowState, Mode=TwoWay}">
     <Window.DataContext>
