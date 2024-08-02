@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Windows.Media.Media3D;
 
 namespace DigitalBattleMap;
 
@@ -24,6 +25,17 @@ public static class BitmapTools
     public static Bitmap CreateEmptyBitmap()
     {
         return new(Constants.MapSize.Width, Constants.MapSize.Height);
+    }
+
+    public static Bitmap CreateBlackBitmap()
+    {
+        var bitmap = new Bitmap(Constants.MapSize.Width, Constants.MapSize.Height);
+        using (Graphics gfx = Graphics.FromImage(bitmap))
+        using (SolidBrush brush = new SolidBrush(Color.Black))
+        {
+            gfx.FillRectangle(brush, 0, 0, Constants.MapSize.Width, Constants.MapSize.Height);
+        }
+        return bitmap;
     }
 
     public static Bitmap CreateColorButton(Brush brush, bool addSelectionIndicator)

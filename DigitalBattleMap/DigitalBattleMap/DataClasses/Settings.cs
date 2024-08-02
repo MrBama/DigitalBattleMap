@@ -19,7 +19,7 @@ public class Settings
     public bool IsSoftwareInstalled { get; set; }
     public bool ShowMapWindow { get; set; } = true;
     public bool HideDungeonMasterFeatures { get; set; }
-    public bool HasBlackBackground { get; set; }
+    public bool HasBlackBackground { get; set; } = true;
     public string ServerAddress { get; set; } = "http://localhost:8000";
     public string CurrentCampaignName { get; set; } = "";
     public List<Token> CustomTokens { get; set; } = new();

@@ -4,6 +4,7 @@ using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection;
 using System.Windows;
@@ -61,6 +62,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public bool IsConfigurationMenuExpanded { get => Get<bool>(); set => Set(value); }
     public bool IsMultiMove { get => Get<bool>(); set => Set(value); }
     public bool HideDungeonMasterFeatures { get => Get<bool>(); set => Set(value); }
+    public bool HasBlackBackground { get => Get<bool>(); set => Set(value); }
     public string ServerConnectionButtonText { get => Get<string>(); set => Set(value); }
     public string ServerConnectionStatus { get => Get<string>(); set => Set(value); }
     public Visibility DrawingCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
@@ -133,6 +135,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         DrawingController.OnGridSizeZoomAndEnhance += OnBackgroundGridSizeZoomAndEnhance;
         DrawingController.OnDrawingShapesUpdated += DrawingShapesUpdated;
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
+        HasBlackBackground = _settings.HasBlackBackground;
         CropColor = System.Windows.Media.Brushes.LightGray;
     }
 
@@ -245,16 +248,16 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         {
             case DrawLayer.All:
                 var gridAndTokenBitmapAll = CreateGridAndDrawingBitmap();
-                _mapWindowViewModel.BackgroundBitmapSource = BackgroundController.GetBackGroundBitmapSource();
+                _mapWindowViewModel.BackgroundBitmapSource = GetBackgroundBitmapSource(); 
                 _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
                 _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(BackgroundController.GetBackgroundBitmap()) });
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(GetBackgroundBitmap()) });
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmapAll) });
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
                 break;
             case DrawLayer.Background:
-                _mapWindowViewModel.BackgroundBitmapSource = BackgroundController.GetBackGroundBitmapSource();
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(BackgroundController.GetBackgroundBitmap()) });
+                _mapWindowViewModel.BackgroundBitmapSource = GetBackgroundBitmapSource();
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(GetBackgroundBitmap()) });
                 break;
             case DrawLayer.GridAndStrokes:
                 var gridAndTokenBitmap = CreateGridAndDrawingBitmap();
@@ -266,6 +269,24 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
                 break;
         }
+    }
+
+    private BitmapSource GetBackgroundBitmapSource()
+    {
+        if (HasBlackBackground)
+        {
+            return BitmapTools.MergeBitmaps(new List<Bitmap> { BitmapTools.CreateBlackBitmap(), BackgroundController.GetBackgroundBitmap() }).ToBitmapImage();
+        }
+        return BackgroundController.GetBackgroundBitmapSource();
+    }
+
+    private Bitmap GetBackgroundBitmap()
+    {
+        if (HasBlackBackground)
+        {
+            return BitmapTools.MergeBitmaps(new List<Bitmap> { BitmapTools.CreateBlackBitmap(), BackgroundController.GetBackgroundBitmap() });
+        }
+        return BackgroundController.GetBackgroundBitmap();
     }
 
     private Bitmap CreateGridAndDrawingBitmap()
@@ -692,14 +713,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         }
         else if (e.SettingName == nameof(Settings.HasBlackBackground))
         {
-            if (_settings.HasBlackBackground)
-            {
-                _mapWindowViewModel.BackgroundColor = System.Windows.Media.Brushes.Black;
-            }
-            else
-            {
-                _mapWindowViewModel.BackgroundColor = System.Windows.Media.Brushes.White;
-            }
+            HasBlackBackground = _settings.HasBlackBackground;
         }
     }
 

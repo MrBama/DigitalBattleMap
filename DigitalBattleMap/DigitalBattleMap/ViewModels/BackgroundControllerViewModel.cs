@@ -192,7 +192,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         }
     }
 
-    public BitmapSource GetBackGroundBitmapSource()
+    public BitmapSource GetBackgroundBitmapSource()
     {
         if (IsFogOfWarEnabled)
         {
