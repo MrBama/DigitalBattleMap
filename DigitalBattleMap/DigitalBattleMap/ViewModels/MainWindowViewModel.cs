@@ -67,6 +67,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public Visibility MouseInputCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
     public Visibility TokenVisibility { get => Get<Visibility>(); set => Set(value); }
     public System.Windows.Media.Brush ServerConnectionStatusColor { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
+    public System.Windows.Media.Brush CropColor { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); set => Set(value); }
 
     public CampaignControllerViewModel CampaignController { get; set; }
@@ -132,6 +133,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         DrawingController.OnGridSizeZoomAndEnhance += OnBackgroundGridSizeZoomAndEnhance;
         DrawingController.OnDrawingShapesUpdated += DrawingShapesUpdated;
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
+        CropColor = System.Windows.Media.Brushes.LightGray;
     }
 
     private void InitializeProperties()
@@ -189,6 +191,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         // Reset mouse canvas
         MouseCanvas.ResetSelection();
         MouseCanvas.ResetMode();
+        CropColor = System.Windows.Media.Brushes.LightGray;
     }
 
     private void MoveToMiddle(RectangleF selectedArea)
@@ -488,10 +491,12 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             if (MouseCanvas.GetMode() != MouseCanvasMode.FixedRatioRectangleSelection)
             {
                 MouseCanvas.SetMode(MouseCanvasMode.FixedRatioRectangleSelection);
+                CropColor = System.Windows.Media.Brushes.LightBlue;
             }
             else
             {
                 MouseCanvas.ResetSelection();
+                CropColor = System.Windows.Media.Brushes.LightGray;
             }
         }
     }

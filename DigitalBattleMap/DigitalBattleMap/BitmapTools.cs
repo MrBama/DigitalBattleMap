@@ -110,7 +110,7 @@ public static class BitmapTools
 
         using var graphics = Graphics.FromImage(bitmap);
         var brush = new SolidBrush(Color.Black);
-        graphics.FillRectangle(brush, 25, 25, 40, 40);
+        graphics.FillRectangle(brush, 25, 35, 40, 30);
 
         return bitmap;
     }
