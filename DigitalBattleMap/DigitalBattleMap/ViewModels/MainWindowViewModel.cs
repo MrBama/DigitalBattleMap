@@ -56,6 +56,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public int DrawingCanvasZIndex { get => Get<int>(); set => Set(value); }
     public int MultiMoveCount { get => Get<int>(); set => Set(value); }
     public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, IsShowMapLockedChanged); }
+    public bool IsBackgroundOpen { get => Get<bool>(); set => Set(value); }
     public bool ServerConnectionButtonEnabled { get => Get<bool>(); set => Set(value); }
     public bool IsConfigurationMenuExpanded { get => Get<bool>(); set => Set(value); }
     public bool IsMultiMove { get => Get<bool>(); set => Set(value); }
@@ -209,6 +210,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void OnBackgroundUpdated(object? sender, EventArgs e)
     {
+        IsBackgroundOpen = BackgroundController.HasOpenedBackground;
         UpdateMap(DrawLayer.Background);
     }
 
