@@ -71,6 +71,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         OpenBackgroundCommand = new RelayCommand(p => OpenBackground());
         OpenGMOverlayCommand = new RelayCommand(p => OpenGMOverlay());
         ClearBackgroundCommand = new RelayCommand(p => ClearBackground());
+        ClearGMOverlayCommand = new RelayCommand(p => ClearGMOverlay()); 
         BackgroundZoomInCommand = new RelayCommand(p => ZoomIn(BackgroundZoomPercentage));
         BackgroundZoomOutCommand = new RelayCommand(p => ZoomOut(BackgroundZoomPercentage));
         FitBackgroundToGridCommand = new RelayCommand(p => FitToGrid());
@@ -108,6 +109,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public ICommand OpenBackgroundCommand { get; set; }
     public ICommand OpenGMOverlayCommand { get; set; }
     public ICommand ClearBackgroundCommand { get; set; }
+    public ICommand ClearGMOverlayCommand { get; set; }
     public ICommand BackgroundZoomInCommand { get; set; }
     public ICommand BackgroundZoomOutCommand { get; set; }
     public ICommand FitBackgroundToGridCommand { get; set; }
@@ -273,6 +275,13 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         FogRemovalPolygonShape = false;
         ZoomSize = Constants.DefaultZoomSize;
         NotifyBackgroundUpdated();
+    }
+
+    public void ClearGMOverlay()
+    {
+        _gmOverlayBitmap = null;
+        GMOverlayBitmap = BitmapTools.CreateEmptyBitmap();
+        HasOpenGMOverlay = false;
     }
 
     public void UpdateGridSize(int gridSizeChange)
