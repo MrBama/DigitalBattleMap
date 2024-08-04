@@ -1,10 +1,7 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.Utilities;
-using Markdig.Parsers;
-using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Numerics;
 using System.Reflection;
 
 namespace DigitalBattleMap.DataClasses;

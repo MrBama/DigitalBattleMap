@@ -1,6 +1,5 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
-using DigitalBattleMap.UIElements;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Drawing;
@@ -217,9 +216,9 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
                     SelectionHeight = SelectionWidth / heightRatio;
                 }
 
-                if(SelectionX < _selectionStartPosition.X)
+                if (SelectionX < _selectionStartPosition.X)
                 {
-                    SelectionX = _selectionStartPosition.X-SelectionWidth;
+                    SelectionX = _selectionStartPosition.X - SelectionWidth;
                 }
                 if (SelectionY < _selectionStartPosition.Y)
                 {

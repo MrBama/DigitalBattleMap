@@ -153,7 +153,7 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     {
         MouseMove(e.Position, e.LeftButtonDown);
 
-        if(e.RightButtonDown && IsEditing && _isMoving)
+        if (e.RightButtonDown && IsEditing && _isMoving)
         {
             var position = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(e.Position, _mapSize, _mapSize.CanvasGridSize / 2) : e.Position;
             if (position != _previousMovePosition)

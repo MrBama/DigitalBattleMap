@@ -18,7 +18,7 @@ public class MapController : Controller
         _hubContext = hubContext;
         _memoryCacheHandler = memoryCacheHandler;
     }
-    
+
     [HttpGet]
     public IActionResult Index()
     {
@@ -31,7 +31,7 @@ public class MapController : Controller
         byte[] data = _memoryCacheHandler.Get(layer.ToString());
         if (data?.Any() == false)
             return NotFound();
-        
+
         return File(data, "image/png");
     }
 
@@ -61,7 +61,7 @@ public class MapController : Controller
             _memoryCacheHandler.Delete(layer.ToString());
             _hubContext.Clients.All.UpdateMap(layer);
         }
-        
+
         return Ok();
     }
 

@@ -11,25 +11,25 @@ public class MouseBehavior : Behavior<FrameworkElement>
 
     public double MouseX
     {
-        get 
-        { 
-            return (double)GetValue(MouseXProperty); 
+        get
+        {
+            return (double)GetValue(MouseXProperty);
         }
-        set 
-        { 
-            SetValue(MouseXProperty, value); 
+        set
+        {
+            SetValue(MouseXProperty, value);
         }
     }
 
     public double MouseY
     {
-        get 
-        { 
-            return (double)GetValue(MouseYProperty); 
+        get
+        {
+            return (double)GetValue(MouseYProperty);
         }
-        set 
-        { 
-            SetValue(MouseYProperty, value); 
+        set
+        {
+            SetValue(MouseYProperty, value);
         }
     }
 

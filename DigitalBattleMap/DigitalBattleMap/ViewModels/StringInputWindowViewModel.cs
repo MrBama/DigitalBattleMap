@@ -20,7 +20,7 @@ public class StringInputWindowViewModel : ViewModelBase
     public StringInputWindowViewModel(string header, string input, ValidateStringInputDelegate validator)
     {
         _validator = validator;
-        Header = header;            
+        Header = header;
         Input = input;
         ErrorMessage = "";
     }
@@ -46,7 +46,7 @@ public class StringInputWindowViewModel : ViewModelBase
 
     private void OnInputChange()
     {
-        if(_validator != null)
+        if (_validator != null)
         {
             IsOkEnabled = _validator(Input, out var errorMessage);
             if (IsOkEnabled)

@@ -39,5 +39,5 @@ public class StrokeDrawingShape : DrawingShape
                 Points.Add(position);
             }
         }
-    }    
+    }
 }

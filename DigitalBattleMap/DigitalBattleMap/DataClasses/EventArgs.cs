@@ -1,9 +1,9 @@
-﻿using System;
+﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.DrawingShapes;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Input;
-using DigitalBattleMap.Common;
-using DigitalBattleMap.DrawingShapes;
 
 namespace DigitalBattleMap.DataClasses;
 
@@ -82,7 +82,7 @@ public class DrawingShapeCollectionChangedEventArgs : EventArgs
 public class MouseDataEventArgs : EventArgs
 {
     public MouseEventArgs MouseEventArgs { get; set; }
-    public Point<double> Position { get; set; } = new ();
+    public Point<double> Position { get; set; } = new();
 }
 
 public class MouseButtonDataEventArgs : EventArgs

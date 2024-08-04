@@ -11,9 +11,9 @@ public class RoutedEventTrigger : EventTriggerBase<DependencyObject>
     public RoutedEvent RoutedEvent
     {
         get => _routedEvent;
-        set 
-        { 
-            _routedEvent = value; 
+        set
+        {
+            _routedEvent = value;
         }
     }
 

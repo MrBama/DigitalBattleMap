@@ -42,7 +42,7 @@ class TokensMessage : IWebMessage
 
     public HttpRequestMessage CreateHttpRequestMessage()
     {
-        var dto = new TokensDto { Player = Player, Tokens = Tokens};
+        var dto = new TokensDto { Player = Player, Tokens = Tokens };
         string json = JsonSerializer.Serialize(dto);
 
         StringContent content = new(json);

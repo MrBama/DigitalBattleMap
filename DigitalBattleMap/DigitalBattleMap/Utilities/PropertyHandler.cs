@@ -51,7 +51,7 @@ public class PropertyHandler : INotifyPropertyChanged
     {
         foreach (var watcher in _propertyChangedWatchers)
         {
-            if(watcher.WatchedProperties.Contains(propertyName))
+            if (watcher.WatchedProperties.Contains(propertyName))
             {
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(watcher.PropertyName));
             }

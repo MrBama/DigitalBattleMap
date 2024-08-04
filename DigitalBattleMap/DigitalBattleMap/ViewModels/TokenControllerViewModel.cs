@@ -149,7 +149,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                     tokenListItem.OnZLevelChanged += ZLevelChanged;
                     tokenListItem.Id = GetUniqueId(token.Name);
                     tokenListItem.Position = CalculateStartPosition(index);
-                    
+
                     SetPlayerProperties(tokenListItem);
                     TokenList.Add(tokenListItem);
                     StatblocksViewModel.AddToken(tokenListItem);
@@ -819,7 +819,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             }
         }
 
-        if(tokensAreUpdated)
+        if (tokensAreUpdated)
         {
             CreateTokenBitmap();
         }

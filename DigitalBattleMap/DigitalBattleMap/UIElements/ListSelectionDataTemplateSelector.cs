@@ -11,7 +11,7 @@ public class ListSelectionDataTemplateSelector : DataTemplateSelector
 
     public override DataTemplate SelectTemplate(object item, DependencyObject container)
     {
-        if(item is TokenListItem)
+        if (item is TokenListItem)
         {
             return TokenListItem;
         }

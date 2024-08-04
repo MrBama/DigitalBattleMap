@@ -30,7 +30,7 @@ internal class CircleDrawingShape : DrawingShape
 
     protected override void MouseMove(Point<double> position, bool buttonDown)
     {
-        if(buttonDown)
+        if (buttonDown)
         {
             var snappedPosition = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2) : position;
             if (snappedPosition != _previousMovePosition)

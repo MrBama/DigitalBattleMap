@@ -46,7 +46,7 @@ public class EraserDrawingShape : DrawingShape
             {
                 foreach (var point in shape.Points.ToList())
                 {
-                    if(DoesPointOverlapWithEraser(point, shape.PenSizeCanvas, position))
+                    if (DoesPointOverlapWithEraser(point, shape.PenSizeCanvas, position))
                     {
                         RemovePointFromShape(shape, point, out var isSplit);
                         if (isSplit)

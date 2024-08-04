@@ -107,7 +107,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
 
         if (CurrentCampaign != null)
         {
-            if(IsTokenControlledBySinglePlayer(tokenIdentifier))
+            if (IsTokenControlledBySinglePlayer(tokenIdentifier))
             {
                 var player = CurrentCampaign.Players.Single(p => p.TokenIdentifiers.Contains(tokenIdentifier));
                 orientation = ConvertToTokenOrientation(player.Orientation);
@@ -364,7 +364,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
     {
         if (CurrentCampaign != null)
         {
-            if(TryGetPlayer(e.Player, out var player))
+            if (TryGetPlayer(e.Player, out var player))
             {
                 _webCommunication.SendMessage(new TokensMessage { Player = e.Player, Tokens = player.TokenIdentifiers.ToStringList() });
             }
@@ -377,7 +377,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
         {
             if (TryGetPlayer(e.Player, out var player))
             {
-                if(player.Orientation != e.Orientation)
+                if (player.Orientation != e.Orientation)
                 {
                     player.Orientation = e.Orientation;
                     InvokeOrientationUpdate(player);
@@ -423,13 +423,13 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
 
         foreach (var tokenIdentifier in player.TokenIdentifiers)
         {
-            if(IsTokenControlledBySinglePlayer(tokenIdentifier))
+            if (IsTokenControlledBySinglePlayer(tokenIdentifier))
             {
                 eventArgs.TokenIdentifiers.Add(tokenIdentifier);
             }
         }
 
-        if(eventArgs.TokenIdentifiers.Any())
+        if (eventArgs.TokenIdentifiers.Any())
         {
             eventArgs.Orientation = ConvertToTokenOrientation(player.Orientation);
             OnOrientationChanged?.Invoke(this, eventArgs);
@@ -443,9 +443,9 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
             case Orientation.Up:
                 return TokenOrientation.North;
             case Orientation.Left:
-                return TokenOrientation.East; 
+                return TokenOrientation.East;
             case Orientation.Down:
-                return TokenOrientation.South; 
+                return TokenOrientation.South;
             case Orientation.Right:
                 return TokenOrientation.West;
             default:

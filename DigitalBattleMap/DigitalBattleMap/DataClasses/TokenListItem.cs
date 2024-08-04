@@ -1,11 +1,11 @@
-﻿using DigitalBattleMap.Interfaces;
+﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Input;
-using System;
-using Newtonsoft.Json;
-using DigitalBattleMap.Common;
 
 namespace DigitalBattleMap.DataClasses;
 
@@ -199,7 +199,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         var height = Condition.Height;
         if (Height != 0)
         {
-            if (!Conditions.Contains(height)) 
+            if (!Conditions.Contains(height))
             {
                 Conditions.Add(height);
             }

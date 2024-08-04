@@ -71,7 +71,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         OpenBackgroundCommand = new RelayCommand(p => OpenBackground());
         OpenGMOverlayCommand = new RelayCommand(p => OpenGMOverlay());
         ClearBackgroundCommand = new RelayCommand(p => ClearBackground());
-        ClearGMOverlayCommand = new RelayCommand(p => ClearGMOverlay()); 
+        ClearGMOverlayCommand = new RelayCommand(p => ClearGMOverlay());
         BackgroundZoomInCommand = new RelayCommand(p => ZoomIn(BackgroundZoomPercentage));
         BackgroundZoomOutCommand = new RelayCommand(p => ZoomOut(BackgroundZoomPercentage));
         FitBackgroundToGridCommand = new RelayCommand(p => FitToGrid());
@@ -217,8 +217,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     }
 
     public RectangleF GetArea()
-    { 
-        return _area; 
+    {
+        return _area;
     }
 
     public void OpenBackground()
@@ -366,7 +366,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         {
             _gmOverlayBitmap = saveFile.GMOverlay;
             HasOpenGMOverlay = true;
-        } 
+        }
 
         CreateBackground();
     }

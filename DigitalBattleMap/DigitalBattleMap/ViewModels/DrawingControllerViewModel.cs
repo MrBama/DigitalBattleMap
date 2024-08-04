@@ -275,7 +275,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void SelectEraser()
     {
-        if(IsEditShapeActive)
+        if (IsEditShapeActive)
         {
             ActiveShape.CancelEditShape();
             NotifyDrawingShapesUpdated();
@@ -346,7 +346,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private DrawingButton GetDrawingButton(Color color)
     {
-        if(color == Color.FromArgb(255, 0, 0, 0))
+        if (color == Color.FromArgb(255, 0, 0, 0))
         {
             return DrawingButton.Black;
         }

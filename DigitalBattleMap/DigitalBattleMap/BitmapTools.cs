@@ -243,7 +243,7 @@ public static class BitmapTools
     {
         int width = 0;
         int height = 0;
-        foreach(var map in bitmaps)
+        foreach (var map in bitmaps)
         {
             width = Math.Max(width, map.Width);
             height = Math.Max(height, map.Height);
@@ -283,7 +283,7 @@ public static class BitmapTools
                 var widthPadding2 = width / 5;
                 return index == 0 ? -widthPadding2 : widthPadding2;
             case 3:
-                if(index == 1)
+                if (index == 1)
                 {
                     return 0;
                 }
@@ -323,7 +323,7 @@ public static class BitmapTools
 
     public static void DrawShapes(Bitmap bitmap, List<DrawingShape> shapes, Size<double> canvasSize)
     {
-        using var graphics = Graphics.FromImage(bitmap);        
+        using var graphics = Graphics.FromImage(bitmap);
         foreach (var shape in shapes)
         {
             var points = new List<Point<float>>();
@@ -388,7 +388,7 @@ public static class BitmapTools
 
             drawingPositionId.X += tokenSize.Width / 2.0 - idSize.Width / 2.0;
             drawingPositionId.Y += tokenSize.Height / 2.0 - idSize.Height / 2.0;
-            
+
             DrawImageOnBitmap(bitmap, resizedConditionImage, Point<int>.Create(drawingPositionId));
         }
     }
@@ -407,9 +407,9 @@ public static class BitmapTools
         var conditionPositions = new List<Point<double>>()
         {
             new Point<double>(0.5, 1.0),
-            new Point<double>(0.0, 0.5), 
-            new Point<double>(1.0, 0.5), 
-            new Point<double>(0.5, 0.0) 
+            new Point<double>(0.0, 0.5),
+            new Point<double>(1.0, 0.5),
+            new Point<double>(0.5, 0.0)
         };
 
         int orientationAngle = tokenListItem.Token.GetOrientationAngle();
@@ -419,7 +419,7 @@ public static class BitmapTools
         var conditionSize = new Size<double>(tokenSize.Width / 2.5, tokenSize.Height / 2.5);
 
         // Only draw conditions when size is atleast 1
-        if(conditionSize.Width >= 1 && conditionSize.Height >= 1)
+        if (conditionSize.Width >= 1 && conditionSize.Height >= 1)
         {
             for (int i = 0; i < 4 && i < tokenListItem.Conditions.Count; i++)
             {

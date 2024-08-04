@@ -1,14 +1,14 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.DrawingShapes;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
-using System;
 using System.Windows.Controls;
-using System.Windows.Input;
-using DigitalBattleMap.DrawingShapes;
 using System.Windows.Ink;
+using System.Windows.Input;
 
 namespace DigitalBattleMap.UIElements;
 
@@ -110,7 +110,7 @@ public class DrawingCanvas : InkCanvas
         {
             if (properties.Contains(e.PropertyName))
             {
-                if(_strokes.ContainsKey(shape))
+                if (_strokes.ContainsKey(shape))
                 {
                     var index = Strokes.IndexOf(_strokes[shape]);
                     EraseShape(shape);
@@ -238,7 +238,7 @@ public class DrawingCanvas : InkCanvas
         stroke.DrawingAttributes.Height = shape.PenSizeCanvas;
         stroke.DrawingAttributes.Color = shape.Color;
         stroke.DrawingAttributes.IgnorePressure = true;
-        
+
         return stroke;
     }
 

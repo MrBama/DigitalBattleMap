@@ -248,7 +248,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         {
             case DrawLayer.All:
                 var gridAndTokenBitmapAll = CreateGridAndDrawingBitmap();
-                _mapWindowViewModel.BackgroundBitmapSource = GetBackgroundBitmapSource(); 
+                _mapWindowViewModel.BackgroundBitmapSource = GetBackgroundBitmapSource();
                 _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
                 _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(GetBackgroundBitmap()) });
@@ -577,7 +577,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             ratio = background.Width / backgroundFull.Width;
         }
         else
-        { 
+        {
             ratio = background.Height / backgroundFull.Height;
         }
         var newGridSize = (int)Math.Round((double)BackgroundController.GridSize * ratio, 0);

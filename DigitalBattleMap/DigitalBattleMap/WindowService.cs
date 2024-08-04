@@ -29,7 +29,7 @@ public class WindowService : IWindowService
 
     public void HideWindow(object dataContext)
     {
-        if(_windows.ContainsKey(dataContext))
+        if (_windows.ContainsKey(dataContext))
         {
             _windows[dataContext].Hide();
         }

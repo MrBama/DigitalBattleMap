@@ -24,14 +24,14 @@ public class Startup
 
         services.AddMemoryCache();
         services.AddSignalR();
-        
+
         services.AddHttpContextAccessor();
         services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
         // Session and state
         services.AddScoped<ICookieHandler, CookieHandler>();
         services.AddScoped<IState<Settings>, CookieState<Settings>>();
-        
+
         // Singletons
         services.AddSingleton<IMemoryCacheHandler, MemoryCacheHandler>();
     }
@@ -42,7 +42,7 @@ public class Startup
         {
             application.UseDeveloperExceptionPage();
         }
-        
+
         application.UseStaticFiles();
         application.UseSession();
         application.UseRouting();

@@ -12,7 +12,7 @@ public class TokenSizeToBoolConverter : IValueConverter
         var tokenSize = (TokenSize)value;
         var parameterSize = Enum.Parse<TokenSize>((string)parameter);
 
-        if(tokenSize == parameterSize)
+        if (tokenSize == parameterSize)
         {
             return true;
         }

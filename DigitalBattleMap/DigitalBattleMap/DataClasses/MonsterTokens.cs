@@ -33,7 +33,7 @@ public class MonsterTokens : IMonsterTokens
         {
             var tokenName = Path.GetFileNameWithoutExtension(file);
             var monsterToken = rawData.Tokens.SingleOrDefault(t => t.Name == tokenName);
-            if(monsterToken != null)
+            if (monsterToken != null)
             {
                 var token = new Token
                 {
@@ -57,7 +57,7 @@ public class MonsterTokens : IMonsterTokens
 
     private static TokenSize ConvertSize(string size)
     {
-        switch(size)
+        switch (size)
         {
             case "T":
                 return TokenSize.Tiny;

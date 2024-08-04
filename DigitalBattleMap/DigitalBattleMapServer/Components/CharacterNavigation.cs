@@ -3,7 +3,6 @@ using DigitalBattleMapServer.Application;
 using DigitalBattleMapServer.Models;
 using DigitalBattleMapServer.Utility;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace DigitalBattleMapServer.Components;
 

@@ -61,7 +61,7 @@ public static class FileManager
     {
         public override T? ReadJson(JsonReader reader, Type objectType, T? existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            if(reader.TokenType != JsonToken.Null)
+            if (reader.TokenType != JsonToken.Null)
             {
                 var jObject = JObject.Load(reader);
                 var type = jObject["Type"]!.ToObject<Type>();

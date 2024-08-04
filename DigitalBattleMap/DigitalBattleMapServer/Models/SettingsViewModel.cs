@@ -1,5 +1,4 @@
 ﻿using DigitalBattleMap.Common;
-using DigitalBattleMapServer.Application;
 using DigitalBattleMapServer.Properties;
 using System.ComponentModel.DataAnnotations;
 

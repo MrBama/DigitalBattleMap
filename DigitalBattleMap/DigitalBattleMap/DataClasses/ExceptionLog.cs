@@ -19,5 +19,5 @@ public class ExceptionLog
     public string Type { get; set; }
     public string Source { get; set; }
     public string Message { get; set; }
-    public IEnumerable<string> StackTrace { get; set;}
+    public IEnumerable<string> StackTrace { get; set; }
 }

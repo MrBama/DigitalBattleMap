@@ -33,7 +33,7 @@ public class MemoryCacheHandler : IMemoryCacheHandler
     private void ValidateKey(string key)
     {
         // Make sure the key is of a valid size otherwise attackers could inject giant keys and crash the server!
-        if(string.IsNullOrEmpty(key) || key.Length > 32)
+        if (string.IsNullOrEmpty(key) || key.Length > 32)
             throw new ArgumentException("Key cannot be greater than 32");
     }
 }

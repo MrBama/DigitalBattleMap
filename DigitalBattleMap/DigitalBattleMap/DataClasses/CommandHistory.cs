@@ -33,7 +33,7 @@ public class CommandHistory<T> : PropertyHandler
 
     public void Enqueue(T command)
     {
-        while(_commands.Count != 0 && Index < _commands.Count)
+        while (_commands.Count != 0 && Index < _commands.Count)
         {
             _commands.RemoveAt(Index);
         }

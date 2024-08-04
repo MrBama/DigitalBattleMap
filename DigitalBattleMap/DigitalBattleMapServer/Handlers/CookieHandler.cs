@@ -8,7 +8,7 @@ public class CookieHandler : ICookieHandler
 
     private HttpRequest Request => _httpContextAccessor.HttpContext.Request;
     private HttpResponse Response => _httpContextAccessor.HttpContext.Response;
-    
+
     public CookieHandler(IHttpContextAccessor httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
@@ -27,7 +27,7 @@ public class CookieHandler : ICookieHandler
         string json = string.Empty;
         if (!EqualityComparer<T>.Default.Equals(value, default))
             json = JsonSerializer.Serialize(value);
-        
+
         if (HasKey(key))
             Delete(key);
 

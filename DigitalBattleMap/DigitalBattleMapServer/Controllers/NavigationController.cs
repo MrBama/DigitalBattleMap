@@ -39,7 +39,7 @@ public class NavigationController : Controller
         }
         _settings.Set(settings);
 
-        if(settings.Name != null && settings.Name != "")
+        if (settings.Name != null && settings.Name != "")
         {
             _webHub.Clients.All.SetOrientation(settings.Name, settings.Orientation);
         }

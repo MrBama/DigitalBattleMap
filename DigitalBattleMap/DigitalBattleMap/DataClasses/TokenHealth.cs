@@ -110,7 +110,7 @@ public class TokenHealth : PropertyHandler
         EditorHp = Hp;
         SetHpColor();
 
-        if(previousHp != Hp)
+        if (previousHp != Hp)
         {
             var hpChange = int.Parse(Hp) - int.Parse(previousHp);
             _hpHistory.Enqueue(hpChange);
@@ -255,7 +255,7 @@ public class TokenHealth : PropertyHandler
 
     private void UndoHpChange()
     {
-        if(_hpHistory.TryDequeuePreviousCommand(out var hpChange))
+        if (_hpHistory.TryDequeuePreviousCommand(out var hpChange))
         {
             var newHp = int.Parse(Hp) - hpChange;
             Hp = newHp.ToString();

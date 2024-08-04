@@ -12,7 +12,7 @@ public class TokenOrientationToBoolConverter : IValueConverter
         var tokenOrientation = (TokenOrientation)value;
         var parameterSize = Enum.Parse<TokenOrientation>((string)parameter);
 
-        if(tokenOrientation == parameterSize)
+        if (tokenOrientation == parameterSize)
         {
             return true;
         }

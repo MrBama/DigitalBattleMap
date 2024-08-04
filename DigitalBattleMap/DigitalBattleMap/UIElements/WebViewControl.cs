@@ -10,11 +10,11 @@ public class WebViewControl : WebView2
     {
         Loaded += async (sender, e) =>
         {
-            if(Page != null && Page.Type == WebViewPageType.Html)
+            if (Page != null && Page.Type == WebViewPageType.Html)
             {
                 await EnsureCoreWebView2Async().ConfigureAwait(true);
                 NavigateToString(Page.Html);
-            }            
+            }
         };
     }
 
@@ -31,17 +31,17 @@ public class WebViewControl : WebView2
             SetValue(PageProperty, value);
         }
     }
-    
+
     private static void OnPagePropertyChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)
     {
         var webViewControl = (WebViewControl)dependencyObject;
         var webViewPage = (WebViewPage)eventArgs.NewValue;
 
-        if(webViewPage.Type == WebViewPageType.Uri)
+        if (webViewPage.Type == WebViewPageType.Uri)
         {
             webViewControl.Source = webViewPage.Uri;
         }
-        else if(webViewPage.Type == WebViewPageType.Html && webViewControl.IsLoaded)
+        else if (webViewPage.Type == WebViewPageType.Html && webViewControl.IsLoaded)
         {
             webViewControl.NavigateToString(webViewPage.Html);
         }

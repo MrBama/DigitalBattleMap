@@ -38,7 +38,7 @@ public static class Startup
             var extensionKey = Registry.ClassesRoot.CreateSubKey(".dbm", true);
             var defaultIconKey = extensionKey.CreateSubKey("DefaultIcon", true);
             defaultIconKey.SetValue("", saveFileIconFilePath);
-            
+
             // Refresh icon cache
             // HChangeNotifyEventID.SHCNE_ASSOCCHANGED, HChangeNotifyFlags.SHCNF_IDLIST
             SHChangeNotify(0x08000000, 0x0000, IntPtr.Zero, IntPtr.Zero);

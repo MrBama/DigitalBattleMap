@@ -23,7 +23,7 @@ public class SettingsController : Controller
     {
         Settings settings = _settingsState.Get();
         SettingsViewModel viewModel = _mapper.Map<SettingsViewModel>(settings) ?? new SettingsViewModel();
-        
+
         return View(viewModel);
     }
 
@@ -32,7 +32,7 @@ public class SettingsController : Controller
     {
         Settings settings = _mapper.Map<Settings>(viewModel);
         _settingsState.Set(settings);
-        
+
         return RedirectToAction(nameof(Index));
     }
 }

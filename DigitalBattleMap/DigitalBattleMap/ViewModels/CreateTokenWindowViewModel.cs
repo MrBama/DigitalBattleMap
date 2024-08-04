@@ -54,7 +54,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
 
         if (_statblock != null)
         {
-            if(_statblock is MarkdownStatblock markdownStatblock)
+            if (_statblock is MarkdownStatblock markdownStatblock)
             {
                 _originalMarkdownStatblockPath = markdownStatblock.MarkdownPath;
                 markdownStatblock.GetMarkdown(); // Make sure the existing markdown is cached in memory
@@ -250,6 +250,6 @@ public class CreateTokenWindowViewModel : ViewModelBase
             IsStatblockEditable = false;
             ShowStatblockCopyName = true;
             StatblockCopyName = sourceStatblock.SourceName;
-        }        
+        }
     }
 }
