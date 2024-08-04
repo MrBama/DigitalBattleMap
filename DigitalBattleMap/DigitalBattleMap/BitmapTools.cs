@@ -239,7 +239,7 @@ public static class BitmapTools
         }
     }
 
-    public static Bitmap ConcateBitmaps(List<Bitmap> bitmaps)
+    public static Bitmap ConcateDigitBitmaps(List<Bitmap> bitmaps)
     {
         int width = 0;
         int height = 0;
@@ -251,23 +251,23 @@ public static class BitmapTools
 
         Bitmap bitmap = new Bitmap(width, height);
         bitmap.MakeTransparent(Color.White);
+
+        // Add 20% clearance for the image
+        var widthPadding = bitmap.Width / 5;
+        var heightPadding = bitmap.Height / 5;
+
+        var imageWidth = bitmap.Width - (2 * widthPadding);
+        var imageHeight = bitmap.Height - (2 * heightPadding);
+
         using (Graphics g = Graphics.FromImage(bitmap))
         {
-            width = 0;
+            // Add white background
             g.FillEllipse(Brushes.White, 0, 0, bitmap.Width, bitmap.Height);
+
             for (int i = 0; i < bitmaps.Count; i++)
             {
-                var map = bitmaps[i];
-                // Add 20% clearance for the image
-                var widthPadding = bitmap.Width / 5;
-                var heightPadding = bitmap.Height / 5;
-
-                var imageWidth = bitmap.Width - (2 * widthPadding);
-                var imageHeight = bitmap.Height - (2 * heightPadding);
-
-                var multipleDigitPadding = DigitPadding(bitmaps.Count, i, bitmap.Width);
-
-                g.DrawImage(map, width + widthPadding + multipleDigitPadding, heightPadding, imageWidth, imageHeight);
+                var digitPadding = DigitPadding(bitmaps.Count, i, bitmap.Width);
+                g.DrawImage(bitmaps[i], widthPadding + digitPadding, heightPadding, imageWidth, imageHeight);
             }
         }
         return bitmap;

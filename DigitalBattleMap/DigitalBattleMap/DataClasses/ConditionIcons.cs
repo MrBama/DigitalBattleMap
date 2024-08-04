@@ -187,7 +187,7 @@ public class ConditionIcons
         {
             bitmaps.Add(GetDigitIcon(digits[i]));
         }
-        return BitmapTools.ConcateBitmaps(bitmaps);
+        return BitmapTools.ConcateDigitBitmaps(bitmaps);
     }
 
     public Bitmap GetDigitIcon(int digit)
