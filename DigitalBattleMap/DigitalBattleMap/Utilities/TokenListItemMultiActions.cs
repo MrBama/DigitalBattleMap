@@ -41,6 +41,15 @@ public class TokenListItemMultiActions : ITokenListItemMultiActions
         });
     }
 
+    public void HeightChanged(TokenListItem tokenListItem)
+    {
+        Execute(tokenListItem, (TokenListItem selectedTokenListItem) =>
+        {
+            tokenListItem.Height = Math.Min(tokenListItem.Height, 999);
+            selectedTokenListItem.Height = tokenListItem.Height;
+        });
+    }
+
     public void HealthChanged(TokenListItem tokenListItem)
     {
         Execute(tokenListItem, (TokenListItem selectedTokenListItem) =>

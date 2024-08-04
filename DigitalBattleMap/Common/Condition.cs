@@ -26,5 +26,6 @@ public enum Condition
     Restrained,
     Stabilized,
     Stunned,
-    Unconcious
+    Unconcious,
+    Height
 }

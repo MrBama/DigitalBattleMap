@@ -5,6 +5,7 @@ namespace DigitalBattleMap.Interfaces;
 public interface ITokenListItemMultiActions
 {
     void InitiativeChanged(TokenListItem tokenListItem);
+    void HeightChanged(TokenListItem tokenListItem);
     void VisibilityChanged(TokenListItem tokenListItem);
     void ConditionsChanged(TokenListItem tokenListItem);
     void TokenSizeChanged(TokenListItem tokenListItem);

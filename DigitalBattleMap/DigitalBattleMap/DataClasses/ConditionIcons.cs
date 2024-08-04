@@ -1,6 +1,10 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.Utilities;
+using Markdig.Parsers;
+using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Numerics;
 using System.Reflection;
 
 namespace DigitalBattleMap.DataClasses;
@@ -8,6 +12,7 @@ namespace DigitalBattleMap.DataClasses;
 public class ConditionIcons
 {
     private const string _iconResourcePath = "DigitalBattleMap.Resources.ConditionIcons";
+    private const string _digitResourcePath = "DigitalBattleMap.Resources.Digits";
 
     private Bitmap _baned;
     private Bitmap _blessed;
@@ -34,6 +39,17 @@ public class ConditionIcons
     private Bitmap _stabilized;
     private Bitmap _stunned;
     private Bitmap _unconcious;
+
+    private Bitmap _0;
+    private Bitmap _1;
+    private Bitmap _2;
+    private Bitmap _3;
+    private Bitmap _4;
+    private Bitmap _5;
+    private Bitmap _6;
+    private Bitmap _7;
+    private Bitmap _8;
+    private Bitmap _9;
 
     public ConditionIcons()
     {
@@ -62,6 +78,17 @@ public class ConditionIcons
         _stabilized = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Stabilized.png"));
         _stunned = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Stunned.png"));
         _unconcious = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Unconcious.png"));
+
+        _0 = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_digitResourcePath}.0.png"));
+        _1 = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_digitResourcePath}.1.png"));
+        _2 = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_digitResourcePath}.2.png"));
+        _3 = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_digitResourcePath}.3.png"));
+        _4 = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_digitResourcePath}.4.png"));
+        _5 = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_digitResourcePath}.5.png"));
+        _6 = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_digitResourcePath}.6.png"));
+        _7 = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_digitResourcePath}.7.png"));
+        _8 = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_digitResourcePath}.8.png"));
+        _9 = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_digitResourcePath}.9.png"));
     }
 
     public Bitmap GetConditionIcon(Condition condition)
@@ -121,5 +148,51 @@ public class ConditionIcons
             default:
                 return new(100, 100);
         }
+    }
+
+    public Bitmap GetDigitIcon(char digit)
+    {
+        switch (digit)
+        {
+            case '0':
+                return _0;
+            case '1':
+                return _1;
+            case '2':
+                return _2;
+            case '3':
+                return _3;
+            case '4':
+                return _4;
+            case '5':
+                return _5;
+            case '6':
+                return _6;
+            case '7':
+                return _7;
+            case '8':
+                return _8;
+            case '9':
+                return _9;
+            default:
+                return new(100, 100);
+        }
+    }
+
+    public Bitmap GetDigitIcon(string heightString)
+    {
+        var bitmaps = new List<Bitmap>();
+        char[] digits = heightString.ToCharArray();
+        for (int i = 0; i < heightString.Length; i++)
+        {
+            bitmaps.Add(GetDigitIcon(digits[i]));
+        }
+        return BitmapTools.ConcateBitmaps(bitmaps);
+    }
+
+    public Bitmap GetDigitIcon(int digit)
+    {
+        var heightString = digit.ToString();
+        return GetDigitIcon(heightString);
     }
 }

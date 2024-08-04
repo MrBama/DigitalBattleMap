@@ -20,11 +20,13 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     {
         Conditions = new List<Condition>();
         Visible = true;
+        Height = 0;
         LinkableObject = new LinkableObject(UpdatePosition);
 
         TokenSizeChangedCommand = new RelayCommand(p => TokenSizeChanged((string)p));
         TokenOrientationChangedCommand = new RelayCommand(p => TokenOrientationChanged((string)p));
         ConditionChangedCommand = new RelayCommand(p => ConditionChanged((string)p));
+        ConditionHeightCommand = new RelayCommand(p => ConditionHeight());
         ClearAllConditionsCommand = new RelayCommand(p => ClearAllConditions());
         TokenVisibilityCommand = new RelayCommand(p => ToggleTokenVisibility());
         MoveToFrontCommand = new RelayCommand(p => MoveToFront());
@@ -61,6 +63,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     public bool Visible { get => Get<bool>(); set => Set(value); }
     public int ZLevel { get; set; }
     public int Initiative { get => Get<int>(); set => Set(value, () => _multiActions?.InitiativeChanged(this)); }
+    public int Height { get => Get<int>(); set => Set(value, () => _multiActions?.HeightChanged(this)); }
     public TokenHealth Health { get; set; } = new TokenHealth();
 
     [JsonIgnore]
@@ -76,6 +79,8 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     public ICommand TokenOrientationChangedCommand { get; set; }
     [JsonIgnore]
     public ICommand ConditionChangedCommand { get; set; }
+    [JsonIgnore]
+    public ICommand ConditionHeightCommand { get; set; }
     [JsonIgnore]
     public ICommand ClearAllConditionsCommand { get; set; }
     [JsonIgnore]
@@ -183,6 +188,30 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     {
         var condition = Enum.Parse<Condition>(conditionString);
         ToggleCondition(condition);
+
+        _multiActions.ConditionsChanged(this);
+        NotifyConditionsChanged();
+        NotifyTokenChanged();
+    }
+
+    private void ConditionHeight()
+    {
+        var height = Condition.Height;
+        if (Height != 0)
+        {
+            if (!Conditions.Contains(height)) 
+            {
+                Conditions.Add(height);
+            }
+        }
+        else
+        {
+            if (Conditions.Contains(height))
+            {
+                Conditions.Remove(height);
+            }
+        }
+        NotifyPropertyChange(nameof(Conditions));
 
         _multiActions.ConditionsChanged(this);
         NotifyConditionsChanged();

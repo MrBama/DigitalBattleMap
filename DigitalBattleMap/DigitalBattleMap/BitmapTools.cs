@@ -1,4 +1,5 @@
-﻿using DigitalBattleMap.DataClasses;
+﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.DrawingShapes;
 using DigitalBattleMap.Utilities;
 using System;
@@ -7,7 +8,6 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Linq;
-using System.Windows.Media.Media3D;
 
 namespace DigitalBattleMap;
 
@@ -180,8 +180,9 @@ public static class BitmapTools
             var resizedTokenImage = ResizeBitmap(tokenListItem.GetBitmap(), tokenSize);
             resizedTokenImage.RotateFlip(tokenListItem.Token.GetOrientation());
             DrawImageOnBitmap(bitmap, resizedTokenImage, drawingPosition);
+            AddTokenHeightCondition(tokenListItem);
             DrawTokenConditions(bitmap, tokenListItem, drawingPosition, tokenSize);
-            DrawTokenId(bitmap, tokenId, drawingPosition, tokenSize);
+            DrawTokenId(bitmap, tokenId, tokenListItem, drawingPosition, tokenSize);
         }
     }
 
@@ -235,6 +236,61 @@ public static class BitmapTools
         else
         {
             return CreateEmptyBitmap();
+        }
+    }
+
+    public static Bitmap ConcateBitmaps(List<Bitmap> bitmaps)
+    {
+        int width = 0;
+        int height = 0;
+        foreach(var map in bitmaps)
+        {
+            width = Math.Max(width, map.Width);
+            height = Math.Max(height, map.Height);
+        }
+
+        Bitmap bitmap = new Bitmap(width, height);
+        bitmap.MakeTransparent(Color.White);
+        using (Graphics g = Graphics.FromImage(bitmap))
+        {
+            width = 0;
+            g.FillEllipse(Brushes.White, 0, 0, bitmap.Width, bitmap.Height);
+            for (int i = 0; i < bitmaps.Count; i++)
+            {
+                var map = bitmaps[i];
+                // Add 20% clearance for the image
+                var widthPadding = bitmap.Width / 5;
+                var heightPadding = bitmap.Height / 5;
+
+                var imageWidth = bitmap.Width - (2 * widthPadding);
+                var imageHeight = bitmap.Height - (2 * heightPadding);
+
+                var multipleDigitPadding = DigitPadding(bitmaps.Count, i, bitmap.Width);
+
+                g.DrawImage(map, width + widthPadding + multipleDigitPadding, heightPadding, imageWidth, imageHeight);
+            }
+        }
+        return bitmap;
+    }
+
+    private static int DigitPadding(int maps, int index, int width)
+    {
+        switch (maps)
+        {
+            case 1:
+                return 0;
+            case 2:
+                var widthPadding2 = width / 5;
+                return index == 0 ? -widthPadding2 : widthPadding2;
+            case 3:
+                if(index == 1)
+                {
+                    return 0;
+                }
+                var widthPadding3 = width / 3;
+                return index == 0 ? -widthPadding3 : widthPadding3;
+            default:
+                return 0;
         }
     }
 
@@ -317,42 +373,23 @@ public static class BitmapTools
         return isVisible;
     }
 
-    private static void DrawTokenId(Bitmap bitmap, string tokenId, Point<int> drawingPosition, Size<int> tokenSize)
+    private static void DrawTokenId(Bitmap bitmap, string tokenId, TokenListItem tokenListItem, Point<int> drawingPosition, Size<int> tokenSize)
     {
         if (tokenId != null && tokenId != "")
         {
-            using var graphics = Graphics.FromImage(bitmap);
-            var textSize = Math.Max(tokenSize.Width / 6, 1);
+            var idSize = new Size<double>(Math.Max(tokenSize.Width / 5, 1), Math.Max(tokenSize.Height / 5, 1));
 
-            StringFormat stringFormat = new()
-            {
-                LineAlignment = StringAlignment.Center,
-                Alignment = StringAlignment.Center
-            };
+            var idBitmap = _conditionIcons.GetDigitIcon(tokenId);
 
-            var drawingPositionDouble = Point<float>.Create(drawingPosition);
-            var tokenSizeDouble = Size<float>.Create(tokenSize);
+            var resizedConditionImage = ResizeBitmap(idBitmap, Size<int>.Create(idSize));
+            resizedConditionImage.RotateFlip(tokenListItem.Token.GetOrientation());
 
-            var textPosition = new Point<float>
-            {
-                X = drawingPositionDouble.X + tokenSizeDouble.Width / 2,
-                Y = drawingPositionDouble.Y + tokenSizeDouble.Height / 2
-            };
+            var drawingPositionId = Point<double>.Create(drawingPosition);
 
-            // Text and background require a aligned offset
-            const float alignedTextSize = 100; //Set GridSize to 610
-            const float alignedEllipseOffset = 15;
-            const float alignedTextOffset = 6;
-
-            // Draw ellipse background
-            var ellipseOffset = (textSize * alignedEllipseOffset) / alignedTextSize;
-            var x = textPosition.X - (textSize / 2) - ellipseOffset;
-            var y = textPosition.Y - textSize / 2 - ellipseOffset;
-            graphics.FillEllipse(Brushes.White, x, y, textSize + (ellipseOffset * 2), textSize + (ellipseOffset * 2));
-
-            // Draw text
-            var textOffset = (textSize * alignedTextOffset) / alignedTextSize;
-            graphics.DrawString(tokenId, new Font("", textSize, System.Drawing.FontStyle.Bold, GraphicsUnit.Pixel), Brushes.Black, textPosition.X, textPosition.Y + textOffset, stringFormat);
+            drawingPositionId.X += tokenSize.Width / 2.0 - idSize.Width / 2.0;
+            drawingPositionId.Y += tokenSize.Height / 2.0 - idSize.Height / 2.0;
+            
+            DrawImageOnBitmap(bitmap, resizedConditionImage, Point<int>.Create(drawingPositionId));
         }
     }
 
@@ -386,14 +423,37 @@ public static class BitmapTools
         {
             for (int i = 0; i < 4 && i < tokenListItem.Conditions.Count; i++)
             {
-                var resizedConditionImage = ResizeBitmap(_conditionIcons.GetConditionIcon(tokenListItem.Conditions[i]), Size<int>.Create(conditionSize));
+                var condition = tokenListItem.Conditions[i];
+                Bitmap conditionBitmap;
+                if (condition == Condition.Height)
+                {
+                    conditionBitmap = _conditionIcons.GetDigitIcon(tokenListItem.Height);
+                }
+                else
+                {
+                    conditionBitmap = _conditionIcons.GetConditionIcon(condition);
+                }
+                var resizedConditionImage = ResizeBitmap(conditionBitmap, Size<int>.Create(conditionSize));
                 resizedConditionImage.RotateFlip(tokenListItem.Token.GetOrientation());
+
                 var drawingPosition = Point<double>.Create(tokenDrawingPosition);
 
                 drawingPosition.X += (tokenSize.Width * conditionPositions[i].X) - (conditionSize.Width * conditionPositions[i].X);
                 drawingPosition.Y += (tokenSize.Height * conditionPositions[i].Y) - (conditionSize.Height * conditionPositions[i].Y);
 
                 DrawImageOnBitmap(bitmap, resizedConditionImage, Point<int>.Create(drawingPosition));
+            }
+        }
+    }
+
+    private static void AddTokenHeightCondition(TokenListItem tokenListItem)
+    {
+        if (tokenListItem.Conditions.Contains(Condition.Height))
+        {
+            tokenListItem.Conditions.Remove(Condition.Height);
+            if (tokenListItem.Height != 0)
+            {
+                tokenListItem.Conditions.Insert(0, Condition.Height);
             }
         }
     }
