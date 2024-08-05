@@ -119,7 +119,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
     }
 
-    public override void Move(ArrowDirection direction, int movementCount)
+    public override void Move(ArrowDirection direction, int movementCount, bool update = true)
     {
         var matrix = new Matrix();
         double gridSize = _mapSize.GridSize * movementCount;

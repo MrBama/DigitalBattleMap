@@ -299,7 +299,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         }
     }
 
-    public override void Move(ArrowDirection direction, int movementCount)
+    public override void Move(ArrowDirection direction, int movementCount, bool update = true)
     {
         if (_fullBackgroundBitmap != null)
         {
@@ -323,7 +323,10 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
                     break;
             }
 
-            CreateBackground();
+            if (update)
+            {
+                CreateBackground();
+            }
         }
     }
 

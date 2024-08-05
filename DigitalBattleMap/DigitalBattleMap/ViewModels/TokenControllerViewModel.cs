@@ -260,7 +260,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    public override void Move(ArrowDirection direction, int movementCount)
+    public override void Move(ArrowDirection direction, int movementCount, bool update = true)
     {
         lock (_lock)
         {
@@ -284,7 +284,10 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 }
             }
 
-            CreateTokenBitmap();
+            if (update)
+            {
+                CreateTokenBitmap();
+            }
         }
     }
 

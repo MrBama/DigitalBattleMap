@@ -5,6 +5,7 @@ using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Reflection;
 using System.Windows;
@@ -430,12 +431,12 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         stepsX = Math.Abs(stepsX);
         stepsY = Math.Abs(stepsY);
 
-        BackgroundController.Move(directionX, stepsX);
-        BackgroundController.Move(directionY, stepsY);
-        DrawingController.Move(directionX, stepsX);
-        DrawingController.Move(directionY, stepsY);
-        TokenController.Move(directionX, stepsX);
-        TokenController.Move(directionY, stepsY);
+        BackgroundController.Move(directionX, stepsX, false);
+        BackgroundController.Move(directionY, stepsY, false);
+        DrawingController.Move(directionX, stepsX, false);
+        DrawingController.Move(directionY, stepsY, false);
+        TokenController.Move(directionX, stepsX, false);
+        TokenController.Move(directionY, stepsY, false);
     }
 
     private void SaveMap()

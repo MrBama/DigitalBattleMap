@@ -22,5 +22,5 @@ public abstract class ControllerViewModelBase : ViewModelBase
 
     public abstract void Zoom(double zoomFactor);
 
-    public abstract void Move(ArrowDirection arrowDirection, int movementCount);
+    public abstract void Move(ArrowDirection arrowDirection, int movementCount, bool update = true);
 }
