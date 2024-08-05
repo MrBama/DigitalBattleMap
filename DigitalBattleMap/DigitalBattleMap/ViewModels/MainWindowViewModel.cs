@@ -588,15 +588,15 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     private void ZoomToGridSize(int newGridSize)
     {
         var gridSizeChange = newGridSize - BackgroundController.GridSize;
-        Zoom(gridSizeChange);
+        Zoom(gridSizeChange, false);
     }
 
-    private void Zoom(int gridSizeChange)
+    private void Zoom(int gridSizeChange, bool update = true)
     {
         var oldGridSize = BackgroundController.GridSize;
         var currentIsShowMapLocked = IsShowMapLocked;
         IsShowMapLocked = false;
-        BackgroundController.UpdateGridSize(gridSizeChange);
+        BackgroundController.UpdateGridSize(gridSizeChange, update);
 
         var zoomFactor = (double)BackgroundController.GridSize / (double)oldGridSize;
         BackgroundController.Zoom(zoomFactor);

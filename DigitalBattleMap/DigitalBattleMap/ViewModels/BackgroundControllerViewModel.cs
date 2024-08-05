@@ -284,10 +284,10 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         HasOpenGMOverlay = false;
     }
 
-    public void UpdateGridSize(int gridSizeChange)
+    public void UpdateGridSize(int gridSizeChange, bool update)
     {
         GridSize = Math.Max(GridSize + gridSizeChange, Constants.MinimalZoomGridSize);
-        GridSizeChanged();
+        GridSizeChanged(update);
     }
 
     public override void Zoom(double zoomFactor)
@@ -620,11 +620,14 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         }
     }
 
-    private void GridSizeChanged()
+    private void GridSizeChanged(bool update = true)
     {
         GridSize = Math.Max(GridSize, Constants.MinimalZoomGridSize);
         GridBitmap = IsGridShown ? BitmapTools.CreateGrid(GridSize) : BitmapTools.CreateEmptyBitmap();
-        NotifyGridSizeChanged(GridSize);
+        if (update)
+        {
+            NotifyGridSizeChanged(GridSize);
+        }
     }
 
     private void GridShownChanged()
