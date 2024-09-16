@@ -706,7 +706,17 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         var changedItems = new List<TokenListItem>();
         foreach (var tokenListItem in SelectedTokens)
         {
-            changedItems.Add(tokenListItem);
+            var similarTokens = TokenList.ToList()
+                .Where(item => item.Token.Name == tokenListItem.Token.Name 
+                && item.Visible).ToList();
+            if(similarTokens.Count == 2 && similarTokens.Contains(tokenListItem))
+            {
+                changedItems.AddRange(similarTokens);
+            }
+            else
+            {
+                changedItems.Add(tokenListItem);
+            }
         }
         CreateTokenBitmap(changedItems);
     }
