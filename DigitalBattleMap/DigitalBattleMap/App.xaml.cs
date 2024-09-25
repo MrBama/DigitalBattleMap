@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
+using DigitalBattleMap.ViewModels;
 using DigitalBattleMap.Views;
 using System.Windows;
 
@@ -30,5 +31,13 @@ public partial class App : Application
     {
         MainWindow = new MainWindow(_windowService);
         MainWindow.Show();
+        MainWindow.ContentRendered += OnContentRendered;
+    }
+
+    private void OnContentRendered(object? sender, System.EventArgs e)
+    {
+#if DEBUG
+        DebugOptions.Load((MainWindowViewModel)MainWindow.DataContext);
+#endif
     }
 }

@@ -49,9 +49,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     }
 
     public event EventHandler OnGridSizeChanged;
-    public event EventHandler OnGridSizeZoomAndEnhance;
     public event EventHandler<CanvasSizeChangedEventArgs> OnCanvasSizeChanged;
-
 
     public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
     public int SelectedMapTabIndex { get => Get<int>(); set => Set(value); }
@@ -456,22 +454,27 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     {
         if (_windowService.ShowOpenFileDialog(out string path, "(*.dbm)|*.dbm"))
         {
-            var currentIsShowMapLocked = IsShowMapLocked;
-            IsShowMapLocked = false;
-
-            var saveFile = SaveFile.Open(path);
-            BackgroundController.OpenSaveFile(saveFile);
-            DrawingController.OpenSaveFile(saveFile);
-            TokenController.OpenSaveFile(saveFile);
-
-            DrawingController.OpenObjectLinks(saveFile.ObjectLinks);
-            TokenController.OpenObjectLinks(saveFile.ObjectLinks);
-
-            SelectedTabIndex = TabIndex.Tokens;
-            SelectedMapTabIndex = 0;
-
-            IsShowMapLocked = currentIsShowMapLocked;
+            OpenMap(path);
         }
+    }
+
+    private void OpenMap(string path)
+    {
+        var currentIsShowMapLocked = IsShowMapLocked;
+        IsShowMapLocked = false;
+
+        var saveFile = SaveFile.Open(path);
+        BackgroundController.OpenSaveFile(saveFile);
+        DrawingController.OpenSaveFile(saveFile);
+        TokenController.OpenSaveFile(saveFile);
+
+        DrawingController.OpenObjectLinks(saveFile.ObjectLinks);
+        TokenController.OpenObjectLinks(saveFile.ObjectLinks);
+
+        SelectedTabIndex = TabIndex.Tokens;
+        SelectedMapTabIndex = 0;
+
+        IsShowMapLocked = currentIsShowMapLocked;
     }
 
     private void ZoomIn()

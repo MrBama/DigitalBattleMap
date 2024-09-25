@@ -6,7 +6,6 @@ namespace DigitalBattleMap.Interfaces;
 public interface IMapSize
 {
     event EventHandler OnGridSizeChanged;
-    event EventHandler OnGridSizeZoomAndEnhance;
     event EventHandler<CanvasSizeChangedEventArgs> OnCanvasSizeChanged;
 
     public int Width { get; }
