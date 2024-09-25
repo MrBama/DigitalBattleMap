@@ -2,6 +2,8 @@
 using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.DrawingShapes;
 using DigitalBattleMap.Utilities;
+using OpenCvSharp;
+using OpenCvSharp.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -149,25 +151,7 @@ public static class BitmapTools
 
     public static Bitmap ResizeBitmap(Bitmap bitmap, Size<int> size)
     {
-        var destinationRectangle = new Rectangle(0, 0, size.Width, size.Height);
-        var resizedBitmap = new Bitmap(size.Width, size.Height);
-
-        resizedBitmap.SetResolution(bitmap.HorizontalResolution, bitmap.VerticalResolution);
-
-        using (var graphics = Graphics.FromImage(resizedBitmap))
-        {
-            graphics.CompositingMode = CompositingMode.SourceCopy;
-            graphics.CompositingQuality = CompositingQuality.HighQuality;
-            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            graphics.SmoothingMode = SmoothingMode.HighQuality;
-            graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-            using var wrapMode = new ImageAttributes();
-            wrapMode.SetWrapMode(WrapMode.TileFlipXY);
-            graphics.DrawImage(bitmap, destinationRectangle, 0, 0, bitmap.Width, bitmap.Height, GraphicsUnit.Pixel, wrapMode);
-        }
-
-        return resizedBitmap;
+        return OpenCV.Resize(bitmap, size);
     }
 
     public static void DrawToken(Bitmap bitmap, TokenListItem tokenListItem, string tokenId, int gridSize)
@@ -250,7 +234,6 @@ public static class BitmapTools
         }
 
         Bitmap bitmap = new Bitmap(width, height);
-        bitmap.MakeTransparent(Color.White);
 
         // Add 20% clearance for the image
         var widthPadding = bitmap.Width / 5;
