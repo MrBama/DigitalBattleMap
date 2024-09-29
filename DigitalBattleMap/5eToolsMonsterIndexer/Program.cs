@@ -6,20 +6,20 @@ namespace MonsterIndexer
 {
     internal class Program
     {
-        private static string _path = @"C:\RepositoryRoot\img";
+        private static string _path = @"C:\RepositoryRoot\bestiary\tokens";
 
         /* How to use:
          * 
-         * 1. Download 5eTools github repository https://github.com/5etools-mirror-1/5etools-mirror-1.github.io
-         * 2. Extract repository and go to \img
-         * 3. Change _path to \img path
+         * 1. Download 5eTools github repository https://github.com/5etools-mirror-3/5etools-2014-src/tree/main
+         * 2. Extract repository and go to /bestiary/tokens
+         * 3. Change _path to .../bestiary/tokens path
          * 4. Run this application
-         * 5. A "MonsterTokens.json" file will be created in \img
+         * 5. A "MonsterTokens.json" file will be created in /bestiary/tokens
          */
         static void Main()
         {
             using var httpClient = new HttpClient();
-            var json = httpClient.GetStringAsync("https://raw.githubusercontent.com/5etools-mirror-1/5etools-mirror-1.github.io/master/data/bestiary/index.json").Result;
+            var json = httpClient.GetStringAsync("https://raw.githubusercontent.com/5etools-mirror-3/5etools-2014-src/refs/heads/main/data/bestiary/index.json").Result;
             var parsedJson = Regex.Replace(json, @"[^0-9a-zA-Z:,-.]+", "");
 
             // Gather different books
@@ -38,7 +38,7 @@ namespace MonsterIndexer
             // Gather monsters from bestiary
             foreach (var book in books)
             {
-                json = httpClient.GetStringAsync($"https://raw.githubusercontent.com/5etools-mirror-1/5etools-mirror-1.github.io/master/data/bestiary/{book.Json}").Result;
+                json = httpClient.GetStringAsync($"https://raw.githubusercontent.com/5etools-mirror-3/5etools-2014-src/refs/heads/main/data/bestiary/{book.Json}").Result;
                 var monsterRoot = JsonConvert.DeserializeObject<MonsterData>(json);
                 foreach (var monster in monsterRoot!.Monster)
                 {
@@ -63,7 +63,7 @@ namespace MonsterIndexer
                 {
                     var name = Path.GetFileNameWithoutExtension(file);
 
-                    if (file.EndsWith(".png") && monsterDictionary.ContainsKey(name) && !data.ContainsToken(name))
+                    if (file.EndsWith(".webp") && monsterDictionary.ContainsKey(name) && !data.ContainsToken(name))
                     {
                         var source = Path.GetFileName(directory);
 
@@ -75,7 +75,7 @@ namespace MonsterIndexer
                                 Size = monsterDictionary[name].Size,
                                 Source = monsterDictionary[name].Source,
                                 Hp = monsterDictionary[name].Hp,
-                                TokenUrl = $"https://github.com/5etools-mirror-1/5etools-mirror-1.github.io/blob/master/img/{source}/{Uri.EscapeDataString(name)}.png?raw=true"
+                                TokenUrl = $"https://github.com/5etools-mirror-3/5etools-img/blob/main/bestiary/tokens/{source}/{Uri.EscapeDataString(name)}.webp?raw=true"
                             });
                         }
                     }
