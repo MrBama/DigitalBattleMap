@@ -1,4 +1,6 @@
 ﻿using DigitalBattleMap.Interfaces;
+using ImageMagick;
+using System;
 using System.Drawing;
 using System.IO;
 
@@ -65,8 +67,20 @@ public class File : IFile
 
     public Bitmap LoadBitmap(string path)
     {
-        using var tempBitmap = new Bitmap(path);
-        return new(tempBitmap);
+        try
+        {
+            using var tempBitmap = new Bitmap(path);
+            return new(tempBitmap);
+        }
+        catch (Exception)
+        {
+            // use 'MagickImage()' if you want just the 1st frame of an animated image. 
+            using var magickImages = new MagickImage(path);
+            var ms = new MemoryStream();
+            magickImages.Write(ms, MagickFormat.Png);
+            using var tempBitmap = new Bitmap(ms);
+            return new(tempBitmap);
+        }
     }
 
     public Bitmap LoadBitmap(Stream stream)
