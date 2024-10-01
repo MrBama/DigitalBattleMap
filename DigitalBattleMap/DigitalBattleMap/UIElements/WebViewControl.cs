@@ -35,6 +35,7 @@ public class WebViewControl : WebView2
     private static void OnPagePropertyChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)
     {
         var webViewControl = (WebViewControl)dependencyObject;
+        webViewControl.ZoomFactor = 0.9;
         var webViewPage = (WebViewPage)eventArgs.NewValue;
 
         if (webViewPage.Type == WebViewPageType.Uri)
