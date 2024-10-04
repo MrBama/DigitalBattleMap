@@ -16,6 +16,7 @@ public abstract class Statblock : PropertyHandler, ICloneable
 
     public string Name { get; set; }
     public Type Type { get => GetType(); }
+    public bool IsDisposing { get => Get<bool>(); set => Set(value); }
 
     [JsonIgnore]
     public WebViewPage WebViewPage { get => GetWebViewPage(); }
@@ -24,6 +25,11 @@ public abstract class Statblock : PropertyHandler, ICloneable
 
     public abstract void Persist(string name);
     public abstract object Clone();
+    public void Dispose()
+    {
+        IsDisposing = true;
+    }
+
     protected abstract WebViewPage GetWebViewPage();
 }
 

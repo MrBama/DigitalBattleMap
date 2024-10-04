@@ -37,6 +37,7 @@ public class StatblocksViewModel : ViewModelBase
             var existingStatblock = Statblocks.SingleOrDefault(s => s.Name == tokenListItem.Token.Name);
             if (existingStatblock != null)
             {
+                existingStatblock.Dispose();
                 Statblocks.Remove(existingStatblock);
             }
         }
@@ -44,6 +45,10 @@ public class StatblocksViewModel : ViewModelBase
 
     public void Clear()
     {
+        foreach (var statblock in Statblocks)
+        {
+            statblock.Dispose();
+        }
         Statblocks.Clear();
     }
 
