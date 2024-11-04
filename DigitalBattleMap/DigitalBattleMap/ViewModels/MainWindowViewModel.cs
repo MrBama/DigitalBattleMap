@@ -5,7 +5,6 @@ using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Reflection;
 using System.Windows;

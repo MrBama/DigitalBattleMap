@@ -25,6 +25,7 @@ public class Settings
     public List<Token> CustomTokens { get; set; } = new();
     public List<TokenGroup> TokenGroups { get; set; } = new();
     public List<Campaign> Campaigns { get; set; } = new();
+    public Dictionary<string, string> WebExtensionVersions { get; set; } = new();
 
     public static Settings Load()
     {

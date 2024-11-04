@@ -9,6 +9,7 @@ public interface IDirectory
     public bool Exists(string? path);
     public DirectoryInfo CreateDirectory(string path);
     public void Delete(string path, bool recursive);
+    public void Copy(string sourceDir, string destinationDir, bool recursive);
 }
 
 public interface IFile

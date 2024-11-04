@@ -22,7 +22,8 @@ public static class Startup
             var saveFileIconFileName = "SaveFileIcon.ico";
             var saveFileIconFilePath = Path.Combine(dataDirectoryPath, saveFileIconFileName);
 
-            // Create token directories
+            // Create directories
+            IO.Directory.CreateDirectory(Constants.WebExtensionsPath);
             IO.Directory.CreateDirectory(Constants.MonsterTokensPath);
             IO.Directory.CreateDirectory(Constants.CustomTokensPath);
 

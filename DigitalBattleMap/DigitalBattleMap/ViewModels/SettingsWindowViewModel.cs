@@ -34,6 +34,7 @@ public class SettingsWindowViewModel : ViewModelBase
     {
         SaveCommand = new RelayCommand(p => SaveButtonClicked());
         DownloadMonsterTokensCommand = new RelayCommand(p => DownloadMonsterTokens());
+        WebExtensionsCommand = new RelayCommand(p => ManageWebExtensions());
     }
 
     public ObservableCollection<ScreenPosition> MonitorPositions { get; private set; } = new ObservableCollection<ScreenPosition>();
@@ -41,6 +42,7 @@ public class SettingsWindowViewModel : ViewModelBase
 
     public ICommand SaveCommand { get; set; }
     public ICommand DownloadMonsterTokensCommand { get; set; }
+    public ICommand WebExtensionsCommand { get; set; }
 
     public int DefaultGridSize { get => Get<int>(); set => Set(value); }
     public string ServerAddress { get => Get<string>(); set => Set(value); }
@@ -67,5 +69,15 @@ public class SettingsWindowViewModel : ViewModelBase
         downloadWindowViewModel.StartDownload();
         _windowService.ShowWindowDialog<DownloadWindow>(downloadWindowViewModel);
         MonsterTokensDownloaded = true;
+    }
+
+    private void ManageWebExtensions()
+    {
+        var webExtensionsViewModel = new WebExtensionsViewModel(_settings.WebExtensionVersions, _windowService);
+        _windowService.ShowWindowDialog<WebExtensionsWindow>(webExtensionsViewModel);
+        if(webExtensionsViewModel.InstalledOrUpdatedExtension)
+        {
+            _settings.Save();
+        }
     }
 }
