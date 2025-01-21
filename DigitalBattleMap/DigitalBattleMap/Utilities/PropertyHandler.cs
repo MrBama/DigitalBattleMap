@@ -37,6 +37,17 @@ public class PropertyHandler : INotifyPropertyChanged
         NotifyPropertyChangedWatchers(propertyName);
     }
 
+    protected void SetWhenChanged<T>(T value, Action action, [CallerMemberName] string propertyName = "") where T : IEquatable<T>
+    {
+        if (!_properties.ContainsKey(propertyName) || !_properties[propertyName].Equals(value))
+        {
+            _properties[propertyName] = value;
+            NotifyPropertyChange(propertyName);
+            action();
+            NotifyPropertyChangedWatchers(propertyName);
+        }
+    }
+
     protected void NotifyPropertyChange([CallerMemberName] string propertyName = "")
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

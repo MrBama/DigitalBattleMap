@@ -87,7 +87,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     public bool IsBackgroundEditingAllowed { get => HasOpenedBackground && !IsFogOfWarEnabled; }
     public bool HasOpenedBackground { get => Get<bool>(); set => Set(value); }
-    public bool IsFogOfWarEnabled { get => Get<bool>(); set => Set(value, IsFogOfWarEnabledChanged); }
+    public bool IsFogOfWarEnabled { get => Get<bool>(); set => SetWhenChanged(value, IsFogOfWarEnabledChanged); }
     public bool HasOpenGMOverlay { get => Get<bool>(); set => Set(value); }
     public bool IsFogOfWarAreaSelected { get => Get<bool>(); set => Set(value); }
     public bool FogRemovalRectangleShape { get => Get<bool>(); set => Set(value, FogRemovalShapeChanged); }
