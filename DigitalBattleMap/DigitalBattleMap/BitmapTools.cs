@@ -1,6 +1,7 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.DrawingShapes;
+using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
@@ -15,9 +16,10 @@ public static class BitmapTools
 
     public static Bitmap CreateGrid(int gridSize)
     {
-        var gridBitMap = CreateEmptyBitmap();
-        DrawGrid(gridBitMap, gridSize);
-        return gridBitMap;
+        var gridBitmap = CreateEmptyBitmap();
+        var gridOrigin = new Point<int>(Constants.MapSize.Width / 2, Constants.MapSize.Height / 2);
+        DrawGrid(gridBitmap, gridSize, gridOrigin);
+        return gridBitmap;
     }
 
     public static Bitmap CreateEmptyBitmap()
@@ -328,6 +330,46 @@ public static class BitmapTools
         }
     }
 
+    public static void DrawGrid(Bitmap bitmap, int gridSize, Point<int> gridOrigin)
+    {
+        var gridOffset = Mathematics.CalculateGridOffset(gridSize, gridOrigin);
+
+        using var graphics = Graphics.FromImage(bitmap);
+        Pen blackPen = new(Color.Black, 1);
+
+        for (int x = gridOffset.X; x < bitmap.Width; x += gridSize)
+        {
+            graphics.DrawLine(blackPen, x, 0, x, bitmap.Height);
+        }
+
+        for (int y = gridOffset.Y; y < bitmap.Height; y += gridSize)
+        {
+            graphics.DrawLine(blackPen, 0, y, bitmap.Width, y);
+        }
+    }
+
+    public static Bitmap CreateTokenOverviewBitmap(Dictionary<TokenListItem, Point<int>> tokenListWithNormilizedPositions, int gridSize)
+    {
+        var halfGridSize = gridSize / 2;
+        var minTokenPositionX = tokenListWithNormilizedPositions.Values.Min(t => t.X) - halfGridSize;
+        var maxTokenPositionX = tokenListWithNormilizedPositions.Values.Max(t => t.X) + halfGridSize;
+        var minTokenPositionY = tokenListWithNormilizedPositions.Values.Min(t => t.Y) - halfGridSize;
+        var maxTokenPositionY = tokenListWithNormilizedPositions.Values.Max(t => t.Y) + halfGridSize;
+
+        var bitmap = new Bitmap(maxTokenPositionX - minTokenPositionX, maxTokenPositionY - minTokenPositionY);
+        using Graphics graph = Graphics.FromImage(bitmap);
+
+        foreach (var token in tokenListWithNormilizedPositions)
+        {
+            var zeroBasedPosition = new Point<int>(token.Value.X - minTokenPositionX, token.Value.Y - minTokenPositionY);
+            var topLeftCorner = new Point<int>(zeroBasedPosition.X - halfGridSize, zeroBasedPosition.Y - halfGridSize);
+            var tokenImage = ResizeBitmap(token.Key.GetBitmap(), new Size<int>(gridSize, gridSize));
+            graph.DrawImage(tokenImage, topLeftCorner.X, topLeftCorner.Y);
+        }
+
+        return bitmap;
+    }
+
     private static bool IsTokenVisible(Point<int> drawingPosition, int gridSize)
     {
         var isVisible = true;
@@ -477,24 +519,6 @@ public static class BitmapTools
     {
         using var graphics = Graphics.FromImage(bitmap);
         graphics.DrawImage(image, position.X, position.Y);
-    }
-
-    private static void DrawGrid(Bitmap bitmap, int gridSize)
-    {
-        var gridOffset = Mathematics.CalculateGridOffset(gridSize);
-
-        using var graphics = Graphics.FromImage(bitmap);
-        Pen blackPen = new(Color.Black, 1);
-
-        for (int x = gridOffset.X; x < Constants.MapSize.Width; x += gridSize)
-        {
-            graphics.DrawLine(blackPen, x, 0, x, Constants.MapSize.Height);
-        }
-
-        for (int y = gridOffset.Y; y < Constants.MapSize.Height; y += gridSize)
-        {
-            graphics.DrawLine(blackPen, 0, y, Constants.MapSize.Width, y);
-        }
     }
 
     private static void SmoothLine(List<Point<float>> points, float penSize)

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace DigitalBattleMap.ViewModels;
 
@@ -688,6 +689,55 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             TokenBitmap = tokenBitmap;
             NotifyTokenBitmapUpdated();
         }
+    }
+
+    public bool GetOverviewBitmap(double zoomFactor, out OverviewBitmap overviewBitmap)
+    {
+        lock (_lock)
+        {
+            overviewBitmap = new OverviewBitmap();
+            if (TokenList.Count > 0)
+            {
+                var gridOffset = Mathematics.CalculateGridOffset(_mapSize.GridSize);
+                var gridSize = (double)_mapSize.GridSize;
+
+                var tokenListWithNormilizedPositions = new Dictionary<TokenListItem, Point<int>>();
+
+                foreach (var tokenListItem in TokenList.OrderBy(t => t.ZLevel))
+                {
+                    tokenListWithNormilizedPositions[tokenListItem] = NormilizePositionToGrid(tokenListItem.Position, _mapSize.GridSize);
+                }
+
+                var minTokenPositionX = tokenListWithNormilizedPositions.Values.Min(t => t.X) - (_mapSize.GridSize / 2);
+                var minTokenPositionY = tokenListWithNormilizedPositions.Values.Min(t => t.Y) - (_mapSize.GridSize / 2);
+
+                overviewBitmap.Bitmap = BitmapTools.CreateTokenOverviewBitmap(tokenListWithNormilizedPositions, _mapSize.GridSize);
+                overviewBitmap.OffsetFromOrigin = new Point<int>(minTokenPositionX, minTokenPositionY);
+                overviewBitmap.Resize(zoomFactor);
+
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    public Point<int> NormilizePositionToGrid(Point<int> position, int gridSize)
+    {
+        // A position of a token can be anywhere in a grid cell. 
+        // This function calculates the position of the center
+        // of the grid cell that the token is positioned in.
+
+        var normilizedPosition = new Point<int>();
+        var gridOffset = Mathematics.CalculateGridOffset(gridSize);
+
+        var distanceToGridCellBorderX = Mathematics.Modulo<int>(position.X - gridOffset.X, gridSize);
+        var distanceToGridCellBorderY = Mathematics.Modulo<int>(position.Y - gridOffset.Y, gridSize);
+
+        normilizedPosition.X = position.X - distanceToGridCellBorderX + (gridSize / 2);
+        normilizedPosition.Y = position.Y - distanceToGridCellBorderY + (gridSize / 2);
+
+        return normilizedPosition;
     }
 
     private string GetTokenIdString(TokenListItem tokenListItem)

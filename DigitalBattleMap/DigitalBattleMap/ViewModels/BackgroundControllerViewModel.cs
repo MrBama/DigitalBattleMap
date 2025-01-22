@@ -221,6 +221,20 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         return _area;
     }
 
+    public bool GetOverviewBitmap(out OverviewBitmap overviewBitmap)
+    {
+        overviewBitmap = new OverviewBitmap();
+
+        if(_fullBackgroundBitmap != null)
+        {
+            overviewBitmap.Bitmap = new Bitmap(_fullBackgroundBitmap);
+            overviewBitmap.OffsetFromOrigin = new Point<int>(-_area.X, -_area.Y);
+            return true;
+        }
+
+        return false;
+    }
+
     public void OpenBackground()
     {
         if (_windowService.ShowOpenFileDialog(out string path))
@@ -372,6 +386,11 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         }
 
         CreateBackground();
+    }
+
+    public double GetZoomFactor()
+    {
+        return _area.Width / (double)_mapSize.Width;
     }
 
     private void MouseDown(object? sender, MouseButtonDataEventArgs e)
