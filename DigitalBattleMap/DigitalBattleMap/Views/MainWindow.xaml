@@ -140,6 +140,15 @@
                         </Grid>
                     </Border>
                 </TabItem>
+                <TabItem>
+                    <TabItem.Header>
+                        <TextBlock Text="Overview" FontSize="20" FontWeight="Bold"/>
+                    </TabItem.Header>
+
+                    <Border BorderThickness="3" BorderBrush="Black" Width="{Binding ElementName=MapBorder, Path=ActualWidth}" Height="{Binding ElementName=MapBorder, Path=ActualHeight}">
+                        <views:MapOverviewView DataContext="{Binding MapOverview}"/>
+                    </Border>
+                </TabItem>
                 <TabItem Visibility="{Binding HideDungeonMasterFeatures, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}">
                     <TabItem.Header>
                         <TextBlock Text="Statblocks" FontSize="20" FontWeight="Bold"/>

@@ -67,18 +67,6 @@ public static class Mathematics
 
     public static Point<int> CalculateGridOffset(int gridSize)
     {
-        //var middleGridCellX = (Constants.MapSize.Width / 2) - (gridSize / 2);
-        //var middleGridCellY = (Constants.MapSize.Height / 2) - (gridSize / 2);
-
-        //var xModulo = middleGridCellX % gridSize;
-        //var yModulo = middleGridCellY % gridSize;
-
-        //var startX = xModulo == 0 ? 0 : xModulo;
-        //var startY = yModulo == 0 ? 0 : yModulo;
-
-        //return new(startX, startY);
-
-
         var gridOrigin = new Point<int>(Constants.MapSize.Width / 2, Constants.MapSize.Height / 2);
         return CalculateGridOffset(gridSize, gridOrigin);
     }

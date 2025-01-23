@@ -6,11 +6,9 @@ using DigitalBattleMap.Views;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Application = System.Windows.Application;
 using ArrowDirection = DigitalBattleMap.DataClasses.ArrowDirection;
@@ -53,7 +51,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public event EventHandler<CanvasSizeChangedEventArgs> OnCanvasSizeChanged;
 
     public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
-    public int SelectedMapTabIndex { get => Get<int>(); set => Set(value); }
+    public int SelectedMapTabIndex { get => Get<int>(); set => SetWhenChanged(value, SelectedMapTabChanged); }
     public int DrawingCanvasZIndex { get => Get<int>(); set => Set(value); }
     public int MultiMoveCount { get => Get<int>(); set => Set(value); }
     public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, IsShowMapLockedChanged); }
@@ -76,6 +74,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public BackgroundControllerViewModel BackgroundController { get; set; }
     public DrawingControllerViewModel DrawingController { get; set; }
     public TokenControllerViewModel TokenController { get; set; }
+    public MapOverviewViewModel MapOverview { get; set; }
     public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToBitmapImage(); }
     public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
     public BitmapSource MapArrowLeftBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Left).ToBitmapImage(); }
@@ -123,6 +122,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         _connectionManager = new ConnectionManager();
         _connectionManager.OnConnected += ConnectionManagerConnected;
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
+        MapOverview = new MapOverviewViewModel(this);
         CampaignController = new CampaignControllerViewModel(_windowService, _connectionManager, _monsterTokens, _settings);
         BackgroundController = new BackgroundControllerViewModel(_windowService, this, _settings);
         BackgroundController.OnGridSizeChanged += OnBackgroundGridSizeChanged;
@@ -275,7 +275,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     {
         if (HasBlackBackground)
         {
-            return BitmapTools.MergeBitmaps(new List<Bitmap> { BitmapTools.CreateBlackBitmap(), BackgroundController.GetBackgroundBitmap() }).ToBitmapImage();
+            return BitmapTools.MergeBitmaps(BitmapTools.CreateBlackBitmap(), BackgroundController.GetBackgroundBitmap()).ToBitmapImage();
         }
         return BackgroundController.GetBackgroundBitmapSource();
     }
@@ -284,14 +284,14 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     {
         if (HasBlackBackground)
         {
-            return BitmapTools.MergeBitmaps(new List<Bitmap> { BitmapTools.CreateBlackBitmap(), BackgroundController.GetBackgroundBitmap() });
+            return BitmapTools.MergeBitmaps(BitmapTools.CreateBlackBitmap(), BackgroundController.GetBackgroundBitmap());
         }
         return BackgroundController.GetBackgroundBitmap();
     }
 
     private Bitmap CreateGridAndDrawingBitmap()
     {
-        return BitmapTools.MergeBitmaps(new() { BackgroundController.GetGridBitmap(), DrawingController.GetDrawingBitmap() });
+        return BitmapTools.MergeBitmaps(BackgroundController.GetGridBitmap(), DrawingController.GetDrawingBitmap());
     }
 
     private void WindowClosing()
@@ -354,7 +354,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         }
     }
 
-    public void SelectedTabChanged()
+    private void SelectedTabChanged()
     {
         switch (SelectedTabIndex)
         {
@@ -493,7 +493,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         //    };
         //}
 
-        Test();
+        MapOverview.Zoom();
     }
 
     private void ZoomOut()
@@ -730,151 +730,29 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         return gridSize.Map(0.0, Constants.MapSize.Width, 0.0, _canvasSize.Width);
     }
 
-    //private void Test()
-    //{
-    //    var zoomFactor = BackgroundController.GetZoomFactor();
-    //    var backgroundOverview = BackgroundController.GetOverviewBitmap();
-    //    var drawingOverview = DrawingController.GetOverviewBitmap(zoomFactor);
-    //    var tokenOverview = TokenController.GetOverviewBitmap(zoomFactor);
-
-    //    var minX = Max(Math.Abs(backgroundOverview.PlayerAreaOffset.X), Math.Abs(drawingOverview.PlayerAreaOffset.X), Math.Abs(tokenOverview.PlayerAreaOffset.X));
-    //    var minY = Max(Math.Abs(backgroundOverview.PlayerAreaOffset.Y), Math.Abs(drawingOverview.PlayerAreaOffset.Y), Math.Abs(tokenOverview.PlayerAreaOffset.Y));
-    //    var maxX = Max(Math.Abs(backgroundOverview.Bitmap.Width - backgroundOverview.PlayerAreaOffset.X), Math.Abs(drawingOverview.Bitmap.Width - drawingOverview.PlayerAreaOffset.X), Math.Abs(tokenOverview.Bitmap.Width - tokenOverview.PlayerAreaOffset.X));
-    //    var maxY = Max(Math.Abs(backgroundOverview.Bitmap.Height - backgroundOverview.PlayerAreaOffset.Y), Math.Abs(drawingOverview.Bitmap.Height - drawingOverview.PlayerAreaOffset.Y), Math.Abs(tokenOverview.Bitmap.Height - tokenOverview.PlayerAreaOffset.Y));
-
-    //    var playerAreaOffset = new Point<int>(minX, minY);
-    //    var bitmap = new Bitmap(maxX + minX, maxY + minY);
-
-    //    var backgroundBitmapOffsetX = 0 + playerAreaOffset.X - backgroundOverview.PlayerAreaOffset.X;
-    //    var backgroundBitmapOffsetY = 0 + playerAreaOffset.Y - backgroundOverview.PlayerAreaOffset.Y;
-    //    var drawingBitmapOffsetX = 0 + playerAreaOffset.X - drawingOverview.PlayerAreaOffset.X;
-    //    var drawingBitmapOffsetY = 0 + playerAreaOffset.Y - drawingOverview.PlayerAreaOffset.Y;
-    //    var tokenBitmapOffsetX = 0 + playerAreaOffset.X - tokenOverview.PlayerAreaOffset.X;
-    //    var tokenBitmapOffsetY = 0 + playerAreaOffset.Y - tokenOverview.PlayerAreaOffset.Y;
-
-    //    using (Graphics graph = Graphics.FromImage(bitmap))
-    //    {
-    //        graph.DrawImage(backgroundOverview.Bitmap, backgroundBitmapOffsetX, backgroundBitmapOffsetY);
-    //        graph.DrawImage(drawingOverview.Bitmap, drawingBitmapOffsetX, drawingBitmapOffsetY);
-    //        graph.DrawImage(tokenOverview.Bitmap, tokenBitmapOffsetX, tokenBitmapOffsetY);
-    //    }
-
-    //    var gridOrigin = new Point<int>(
-    //        (int)Math.Round(Constants.MapSize.Width / 2 * zoomFactor),
-    //        (int)Math.Round(Constants.MapSize.Height / 2 * zoomFactor));
-    //    gridOrigin.X += playerAreaOffset.X;
-    //    gridOrigin.Y += playerAreaOffset.Y;
-    //    BitmapTools.DrawGrid(bitmap, (int)Math.Round(BackgroundController.GridSize * zoomFactor), gridOrigin);
-
-    //    ImageTester.ShowImage(bitmap, "");
-    //    bitmap.Save(@"C:\Git\DigitalBattleMap\DigitalBattleMap\test.png");
-
-    //}
-
-    private void Test()
+    private void SelectedMapTabChanged()
     {
-        var zoomFactor = BackgroundController.GetZoomFactor();
-
-        var layers = new List<OverviewBitmap>();
-        if(BackgroundController.GetOverviewBitmap(out var backgroundOverview))
+        if(SelectedMapTabIndex == TabMapIndex.Overview)
         {
-            layers.Add(backgroundOverview);
+            var zoomFactor = BackgroundController.GetZoomFactor();
+            var containsBackgroundOverview = false;
+
+            var overviewBitmaps = new List<OverviewBitmap>();
+            if (BackgroundController.GetOverviewBitmap(out var backgroundOverview))
+            {
+                containsBackgroundOverview = true;
+                overviewBitmaps.Add(backgroundOverview);
+            }
+            if (DrawingController.GetOverviewBitmap(zoomFactor, out var drawingOverview))
+            {
+                overviewBitmaps.Add(drawingOverview);
+            }
+            if (TokenController.GetOverviewBitmap(zoomFactor, out var tokenOverview))
+            {
+                overviewBitmaps.Add(tokenOverview);
+            }
+
+            MapOverview.CreateOverview(overviewBitmaps, zoomFactor, containsBackgroundOverview, BackgroundController.IsGridShown);
         }
-        if (DrawingController.GetOverviewBitmap(zoomFactor, out var drawingOverview))
-        {
-            layers.Add(drawingOverview);
-        }
-        if (TokenController.GetOverviewBitmap(zoomFactor, out var tokenOverview))
-        {
-            layers.Add(tokenOverview);
-        }
-
-        if(layers.Count == 0)
-        {
-            //create empty bitmap
-        }
-
-        var playerVisibilityOverview = new OverviewBitmap { Bitmap = BitmapTools.CreateEmptyBitmap(), OffsetFromOrigin = new Point<int>() };
-        layers.Add(playerVisibilityOverview);
-
-        using var graphics = System.Drawing.Graphics.FromImage(playerVisibilityOverview.Bitmap);
-        graphics.DrawRectangle(new System.Drawing.Pen(System.Drawing.Color.Magenta, 15), 0, 0, playerVisibilityOverview.Bitmap.Width, playerVisibilityOverview.Bitmap.Height);
-
-        var zoomedSize = new Size<int>(
-                    (int)Math.Round(playerVisibilityOverview.Bitmap.Width * zoomFactor),
-                    (int)Math.Round(playerVisibilityOverview.Bitmap.Height * zoomFactor));
-        playerVisibilityOverview.Bitmap = BitmapTools.ResizeBitmap(playerVisibilityOverview.Bitmap, zoomedSize);
-
-
-        // Origin equals top left of player area
-        var minX = Min(layers.Select(l => l.OffsetFromOrigin.X));
-        var minY = Min(layers.Select(l => l.OffsetFromOrigin.Y));
-        var maxX = Max(layers.Select(l => l.OffsetFromOrigin.X + l.Bitmap.Width));
-        var maxY = Max(layers.Select(l => l.OffsetFromOrigin.Y + l.Bitmap.Height));
-
-        var bitmap = new Bitmap(Math.Abs(maxX - minX), Math.Abs(maxY - minY));
-        var bitmapToOrigin = new Point<int>(-minX, -minY);
-
-        var backgroundBitmapOffsetX = bitmapToOrigin.X + backgroundOverview.OffsetFromOrigin.X;
-        var backgroundBitmapOffsetY = bitmapToOrigin.Y + backgroundOverview.OffsetFromOrigin.Y;
-        var drawingBitmapOffsetX = bitmapToOrigin.X + drawingOverview.OffsetFromOrigin.X;
-        var drawingBitmapOffsetY = bitmapToOrigin.Y + drawingOverview.OffsetFromOrigin.Y;
-        var tokenBitmapOffsetX = bitmapToOrigin.X + tokenOverview.OffsetFromOrigin.X;
-        var tokenBitmapOffsetY = bitmapToOrigin.Y + tokenOverview.OffsetFromOrigin.Y;
-        var playerVisibilityOffsetX = bitmapToOrigin.X + playerVisibilityOverview.OffsetFromOrigin.X;
-        var playerVisibilityOffsetY = bitmapToOrigin.Y + playerVisibilityOverview.OffsetFromOrigin.Y;
-
-        using (Graphics graph = Graphics.FromImage(bitmap))
-        {
-            graph.DrawImage(backgroundOverview.Bitmap, backgroundBitmapOffsetX, backgroundBitmapOffsetY);
-            graph.DrawImage(drawingOverview.Bitmap, drawingBitmapOffsetX, drawingBitmapOffsetY);
-            graph.DrawImage(tokenOverview.Bitmap, tokenBitmapOffsetX, tokenBitmapOffsetY);
-            graph.DrawImage(playerVisibilityOverview.Bitmap, playerVisibilityOffsetX, playerVisibilityOffsetY);
-        }
-
-        var gridOrigin = new Point<int>(
-            (int)Math.Round(Constants.MapSize.Width / 2 * zoomFactor),
-            (int)Math.Round(Constants.MapSize.Height / 2 * zoomFactor));
-        gridOrigin.X += bitmapToOrigin.X;
-        gridOrigin.Y += bitmapToOrigin.Y;
-        BitmapTools.DrawGrid(bitmap, (int)Math.Round(BackgroundController.GridSize * zoomFactor), gridOrigin);
-
-        ImageTester.ShowImage(bitmap, "");
-        bitmap.Save(@"C:\Git\DigitalBattleMap\DigitalBattleMap\test.png");
-
-    }
-
-    private int Min(IEnumerable<int> values)
-    {
-        if (values.Count() == 0)
-        {
-            throw new ArgumentException("There should be atleast 1 number");
-        }
-
-        var min = values.First();
-
-        for (int i = 1; i < values.Count(); i++)
-        {
-            min = Math.Min(min, values.ElementAt(i));
-        }
-
-        return min;
-    }
-
-    private int Max(IEnumerable<int> values)
-    {
-        if (values.Count() == 0)
-        {
-            throw new ArgumentException("There should be atleast 1 number");
-        }
-
-        var max = values.First();
-
-        for (int i = 1; i < values.Count(); i++)
-        {
-            max = Math.Max(max, values.ElementAt(i));
-        }
-
-        return max;
     }
 }

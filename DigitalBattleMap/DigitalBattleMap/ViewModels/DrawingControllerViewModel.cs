@@ -2,7 +2,6 @@
 using DigitalBattleMap.DrawingShapes;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
-using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -14,8 +13,6 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Media.Media3D;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 using Color = System.Windows.Media.Color;
 
@@ -228,7 +225,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         ShapeCollection.Transform(matrix);
     }
 
-    public System.Drawing.Bitmap GetDrawingBitmap()
+    public Bitmap GetDrawingBitmap()
     {
         var bitmap = BitmapTools.CreateEmptyBitmap();
         BitmapTools.DrawShapes(bitmap, ShapeCollection.GetShapes().ToList(), _mapSize.GetCanvasSize());
@@ -245,84 +242,28 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
             foreach (var shape in shapes)
             {
-                var points = new List<Point<float>>();
-                var brush = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(shape.Color.A, shape.Color.R, shape.Color.G, shape.Color.B));
-                var penSizeF = (float)shape.PenSize;
-
-                foreach (var point in shape.Points)
-                {
-                    var resizedX = (float)point.X.Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width);
-                    var resizedY = (float)point.Y.Map(0, _mapSize.CanvasHeight, 0, Constants.MapSize.Height);
-                    points.Add(new Point<float>(resizedX, resizedY));
-                }
-
-                //SmoothLine(points, penSizeF);
-                var halfPenSize = penSizeF / 2;
-                var shapeMinX = (int)Math.Round(points.Min(t => t.X) - halfPenSize);
-                var shapeMaxX = (int)Math.Round(points.Max(t => t.X) + halfPenSize);
-                var shapeMinY = (int)Math.Round(points.Min(t => t.Y) - halfPenSize);
-                var shapeMaxY = (int)Math.Round(points.Max(t => t.Y) + halfPenSize);
-
-                var shapeBitmap = new System.Drawing.Bitmap(shapeMaxX - shapeMinX, shapeMaxY - shapeMinY);
-
-
-                using var shapeGraphics = System.Drawing.Graphics.FromImage(shapeBitmap);
-
-
-                //shapeGraphics.FillRectangle(System.Drawing.Brushes.Black, 0, 0, shapeBitmap.Width, shapeBitmap.Height);
-
-
-
-                var ImageSize = new System.Drawing.Rectangle(0, 0, shapeBitmap.Width, shapeBitmap.Height);
-                foreach (var point in points)
-                {
-                    shapeGraphics.FillEllipse(brush, point.X - shapeMinX - halfPenSize, point.Y - shapeMinY - halfPenSize, penSizeF, penSizeF);
-                }
-
-                //bitmap.Save(@"C:\Git\DigitalBattleMap\DigitalBattleMap\test.png");
-                //ImageTester.ShowImage(bitmap, "drawing");
-
                 var shapeOverviewBitmap = new OverviewBitmap();
-                shapeOverviewBitmap.Bitmap = shapeBitmap;
-                shapeOverviewBitmap.OffsetFromOrigin = new Point<int>(shapeMinX, shapeMinY);
+                shapeOverviewBitmap.Bitmap = BitmapTools.CreateShapeOverviewBitmap(shape, _mapSize.GetCanvasSize());
+
+                var shapeMinX = shape.Points.Min(t => t.X).Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width);
+                var shapeMinY = shape.Points.Min(t => t.Y).Map(0, _mapSize.CanvasHeight, 0, Constants.MapSize.Height);
+                shapeMinX -= (shape.PenSize / 2);
+                shapeMinY -= (shape.PenSize / 2);
+                shapeOverviewBitmap.OffsetFromOrigin = new Point<int>((int)Math.Round(shapeMinX), (int)Math.Round(shapeMinY));
+
                 shapeOverviewBitmaps.Add(shapeOverviewBitmap);
-
-
-
             }
 
+            overviewBitmap.Bitmap = BitmapTools.CreateShapesOverviewBitmap(shapeOverviewBitmaps);
+
+            // OffsetFromOrigin = top left of player view to top left of shapes bounding box
+            // Shape positions are always relative to top left of the player view (=origin)
             var minX = Mathematics.Min(shapeOverviewBitmaps.Select(l => l.OffsetFromOrigin.X));
             var minY = Mathematics.Min(shapeOverviewBitmaps.Select(l => l.OffsetFromOrigin.Y));
-            var maxX = Mathematics.Max(shapeOverviewBitmaps.Select(l => l.OffsetFromOrigin.X + l.Bitmap.Width));
-            var maxY = Mathematics.Max(shapeOverviewBitmaps.Select(l => l.OffsetFromOrigin.Y + l.Bitmap.Height));
+            overviewBitmap.OffsetFromOrigin = new Point<int>(minX, minY);
 
-            var bitmap = new Bitmap(Math.Abs(maxX - minX), Math.Abs(maxY - minY));
-            var bitmapToOrigin = new Point<int>(-minX, -minY);
-            using var graphics = System.Drawing.Graphics.FromImage(bitmap);
-
-            graphics.FillRectangle(System.Drawing.Brushes.Black, 0, 0, bitmap.Width, bitmap.Height);
-
-            foreach (var shapeOverviewBitmap in shapeOverviewBitmaps)
-            {
-                var offsetX = bitmapToOrigin.X + shapeOverviewBitmap.OffsetFromOrigin.X;
-                var offsetY = bitmapToOrigin.Y + shapeOverviewBitmap.OffsetFromOrigin.Y;
-                graphics.DrawImage(shapeOverviewBitmap.Bitmap, offsetX, offsetY);
-            }
-
-            var zoomedSize = new Size<int>(
-                (int)Math.Round(bitmap.Width * zoomFactor),
-                (int)Math.Round(bitmap.Height * zoomFactor));
-            overviewBitmap.Bitmap = BitmapTools.ResizeBitmap(bitmap, zoomedSize);
-            overviewBitmap.OffsetFromOrigin = new Point<int>(
-                (int)Math.Round(minX * zoomFactor),
-                (int)Math.Round(minY * zoomFactor));
-
-            //overviewBitmap.Bitmap = bitmap;
-            //overviewBitmap.OffsetFromOrigin = new Point<int>(
-            //    minX,
-            //    minY);
-
-
+            // Everything is calculated relative to the player view, however the player view might be zoomed in or out
+            overviewBitmap.Resize(zoomFactor);
             return true;
         }
 

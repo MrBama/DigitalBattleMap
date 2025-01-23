@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace DigitalBattleMap.ViewModels;
 
@@ -671,12 +670,12 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 }
 
                 // Create token bitmap
-                List<Bitmap> tokenBitmaps = new List<Bitmap>();
+                var tokenBitmaps = new List<Bitmap>();
                 foreach (var tokenListItem in TokenList.Where(t => t.Visible).OrderBy(t => t.ZLevel))
                 {
                     tokenBitmaps.Add(_tokenDictionary[tokenListItem]);
                 }
-                tokenBitmap = BitmapTools.MergeBitmaps(tokenBitmaps);
+                tokenBitmap = BitmapTools.MergeBitmaps(tokenBitmaps.ToArray());
 
                 UpdateTokenSelection();
             }
@@ -708,11 +707,15 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                     tokenListWithNormilizedPositions[tokenListItem] = NormilizePositionToGrid(tokenListItem.Position, _mapSize.GridSize);
                 }
 
+                overviewBitmap.Bitmap = BitmapTools.CreateTokenOverviewBitmap(tokenListWithNormilizedPositions, _mapSize.GridSize);
+
+                // OffsetFromOrigin = top left of player view to top left of token bounding box
+                // Token positions are always relative to top left of the player view (=origin)
                 var minTokenPositionX = tokenListWithNormilizedPositions.Values.Min(t => t.X) - (_mapSize.GridSize / 2);
                 var minTokenPositionY = tokenListWithNormilizedPositions.Values.Min(t => t.Y) - (_mapSize.GridSize / 2);
-
-                overviewBitmap.Bitmap = BitmapTools.CreateTokenOverviewBitmap(tokenListWithNormilizedPositions, _mapSize.GridSize);
                 overviewBitmap.OffsetFromOrigin = new Point<int>(minTokenPositionX, minTokenPositionY);
+                
+                // Everything is calculated relative to the player view, however the player view might be zoomed in or out
                 overviewBitmap.Resize(zoomFactor);
 
                 return true;

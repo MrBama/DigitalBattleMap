@@ -1,7 +1,6 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.DrawingShapes;
-using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
@@ -18,7 +17,7 @@ public static class BitmapTools
     {
         var gridBitmap = CreateEmptyBitmap();
         var gridOrigin = new Point<int>(Constants.MapSize.Width / 2, Constants.MapSize.Height / 2);
-        DrawGrid(gridBitmap, gridSize, gridOrigin);
+        DrawGrid(gridBitmap, gridSize, gridOrigin, 1);
         return gridBitmap;
     }
 
@@ -204,12 +203,12 @@ public static class BitmapTools
         return bitmap;
     }
 
-    public static Bitmap MergeBitmaps(List<Bitmap> bitmaps)
+    public static Bitmap MergeBitmaps(params Bitmap[] bitmaps)
     {
-        if (bitmaps.Count > 0)
+        if (bitmaps.Count() > 0)
         {
             var bitmap = new Bitmap(bitmaps.First());
-            for (int i = 1; i < bitmaps.Count; i++)
+            for (int i = 1; i < bitmaps.Count(); i++)
             {
                 DrawImageOnBitmap(bitmap, bitmaps[i], new Point<int>());
             }
@@ -308,7 +307,7 @@ public static class BitmapTools
         foreach (var shape in shapes)
         {
             var points = new List<Point<float>>();
-            var brush = new SolidBrush(Color.FromArgb(shape.Color.A, shape.Color.R, shape.Color.G, shape.Color.B));
+            var brush = shape.Color.ToDrawingBrush();
             var penSizeF = (float)shape.PenSize;
 
             foreach (var point in shape.Points)
@@ -330,12 +329,12 @@ public static class BitmapTools
         }
     }
 
-    public static void DrawGrid(Bitmap bitmap, int gridSize, Point<int> gridOrigin)
+    public static void DrawGrid(Bitmap bitmap, int gridSize, Point<int> gridOrigin, int penSize)
     {
         var gridOffset = Mathematics.CalculateGridOffset(gridSize, gridOrigin);
 
         using var graphics = Graphics.FromImage(bitmap);
-        Pen blackPen = new(Color.Black, 1);
+        Pen blackPen = new(Color.Black, penSize);
 
         for (int x = gridOffset.X; x < bitmap.Width; x += gridSize)
         {
@@ -350,6 +349,7 @@ public static class BitmapTools
 
     public static Bitmap CreateTokenOverviewBitmap(Dictionary<TokenListItem, Point<int>> tokenListWithNormilizedPositions, int gridSize)
     {
+        // Calculate the bounding box around the tokens
         var halfGridSize = gridSize / 2;
         var minTokenPositionX = tokenListWithNormilizedPositions.Values.Min(t => t.X) - halfGridSize;
         var maxTokenPositionX = tokenListWithNormilizedPositions.Values.Max(t => t.X) + halfGridSize;
@@ -361,6 +361,7 @@ public static class BitmapTools
 
         foreach (var token in tokenListWithNormilizedPositions)
         {
+            // Tokens positions can be negative but bitmap positions always start at 0
             var zeroBasedPosition = new Point<int>(token.Value.X - minTokenPositionX, token.Value.Y - minTokenPositionY);
             var topLeftCorner = new Point<int>(zeroBasedPosition.X - halfGridSize, zeroBasedPosition.Y - halfGridSize);
             var tokenImage = ResizeBitmap(token.Key.GetBitmap(), new Size<int>(gridSize, gridSize));
@@ -369,6 +370,86 @@ public static class BitmapTools
 
         return bitmap;
     }
+
+    public static Bitmap CreateShapeOverviewBitmap(DrawingShape shape, Size<double> canvasSize)
+    {
+        var points = new List<Point<float>>();
+        var penSizeF = (float)shape.PenSize;
+
+        foreach (var point in shape.Points)
+        {
+            var resizedX = (float)point.X.Map(0, canvasSize.Width, 0, Constants.MapSize.Width);
+            var resizedY = (float)point.Y.Map(0, canvasSize.Height, 0, Constants.MapSize.Height);
+            points.Add(new Point<float>(resizedX, resizedY));
+        }
+
+        SmoothLine(points, penSizeF);
+
+        // Calculate the bounding box around the shape
+        var halfPenSize = penSizeF / 2;
+        var minX = (int)Math.Round(points.Min(t => t.X) - halfPenSize);
+        var maxX = (int)Math.Round(points.Max(t => t.X) + halfPenSize);
+        var minY = (int)Math.Round(points.Min(t => t.Y) - halfPenSize);
+        var maxY = (int)Math.Round(points.Max(t => t.Y) + halfPenSize);
+
+        var bitmap = new Bitmap(maxX - minX, maxY - minY);
+        using var shapeGraphics = Graphics.FromImage(bitmap);
+        var brush = shape.Color.ToDrawingBrush();
+
+        foreach (var point in points)
+        {
+            shapeGraphics.FillEllipse(brush, point.X - minX - halfPenSize, point.Y - minY - halfPenSize, penSizeF, penSizeF);
+        }
+
+        return bitmap;
+    }
+
+    public static Bitmap CreateShapesOverviewBitmap(List<OverviewBitmap> overviewBitmaps)
+    {
+        // Calculate the bounding box around all shapes
+        var minX = Mathematics.Min(overviewBitmaps.Select(l => l.OffsetFromOrigin.X));
+        var minY = Mathematics.Min(overviewBitmaps.Select(l => l.OffsetFromOrigin.Y));
+        var maxX = Mathematics.Max(overviewBitmaps.Select(l => l.OffsetFromOrigin.X + l.Bitmap.Width));
+        var maxY = Mathematics.Max(overviewBitmaps.Select(l => l.OffsetFromOrigin.Y + l.Bitmap.Height));
+
+        var bitmap = new Bitmap(Math.Abs(maxX - minX), Math.Abs(maxY - minY));
+        using var graphics = Graphics.FromImage(bitmap);
+
+        // Shape points can be negative but bitmap positions always start at 0
+        var bitmapToOrigin = new Point<int>(-minX, -minY);
+
+        foreach (var shapeOverviewBitmap in overviewBitmaps)
+        {
+            // Offset = shift from player view origin to bitmap origin + offset from player view origin to shape
+            var offsetX = bitmapToOrigin.X + shapeOverviewBitmap.OffsetFromOrigin.X;
+            var offsetY = bitmapToOrigin.Y + shapeOverviewBitmap.OffsetFromOrigin.Y;
+            graphics.DrawImage(shapeOverviewBitmap.Bitmap, offsetX, offsetY);
+        }
+
+        return bitmap;
+    }
+
+    public static Bitmap CreateMapOverview(List<OverviewBitmap> overviewBitmaps, Size<int> overviewSize, Point<int> bitmapToOrigin)
+    {
+        var bitmap = new Bitmap(overviewSize.Width, overviewSize.Height);
+        using Graphics graph = Graphics.FromImage(bitmap);
+        
+        foreach (var overviewBitmap in overviewBitmaps)
+        {
+            var offsetX = bitmapToOrigin.X + overviewBitmap.OffsetFromOrigin.X;
+            var offsetY = bitmapToOrigin.Y + overviewBitmap.OffsetFromOrigin.Y;
+            graph.DrawImage(overviewBitmap.Bitmap, offsetX, offsetY);
+        }
+
+        return bitmap;
+    }
+
+    public static void DrawPlayerViewIndicator(Bitmap bitmap, int penSize)
+    {
+        using var graphics = Graphics.FromImage(bitmap);
+        graphics.DrawRectangle(new System.Drawing.Pen(System.Drawing.Color.DarkOrange, penSize), 0, 0, bitmap.Width, bitmap.Height);
+    }
+
 
     private static bool IsTokenVisible(Point<int> drawingPosition, int gridSize)
     {

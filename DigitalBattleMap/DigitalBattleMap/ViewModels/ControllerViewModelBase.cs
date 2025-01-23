@@ -6,7 +6,6 @@ public abstract class ControllerViewModelBase : ViewModelBase
 {
     protected IMapSize _mapSize;
 
-
     public ControllerViewModelBase()
     {
     }

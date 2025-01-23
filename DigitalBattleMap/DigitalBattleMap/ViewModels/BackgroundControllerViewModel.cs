@@ -505,7 +505,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         {
             var fogOfWarBitMap = BitmapTools.CreateFogOfWarBitmap(_area, _fogOfWarAreas);
             FogOfWarBitmap = BitmapTools.ResizeBitmap(fogOfWarBitMap);
-            BackgroundAndFogOfWarBitmap = BitmapTools.MergeBitmaps(new List<Bitmap> { BackgroundBitmap, FogOfWarBitmap });
+            BackgroundAndFogOfWarBitmap = BitmapTools.MergeBitmaps(BackgroundBitmap, FogOfWarBitmap);
         }
 
         NotifyBackgroundUpdated();
