@@ -51,7 +51,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public event EventHandler<CanvasSizeChangedEventArgs> OnCanvasSizeChanged;
 
     public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
-    public int SelectedMapTabIndex { get => Get<int>(); set => SetWhenChanged(value, SelectedMapTabChanged); }
+    public int SelectedMapTabIndex { get => Get<int>(); set => SetWhenChanged(value, GenerateMapOverview); }
     public int DrawingCanvasZIndex { get => Get<int>(); set => Set(value); }
     public int MultiMoveCount { get => Get<int>(); set => Set(value); }
     public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, IsShowMapLockedChanged); }
@@ -339,6 +339,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             DrawingController.ClearDrawings();
             TokenController.ClearTokens();
 
+            GenerateMapOverview();
             _connectionManager.ClearMap();
         }
     }
@@ -480,20 +481,18 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void ZoomIn()
     {
-        //if (!IsMultiMove)
-        //{
-        //    Zoom(BackgroundController.ZoomSize);
-        //}
-        //else
-        //{
-        //    MultiMoveCount++;
-        //    _multiMoveAction = () =>
-        //    {
-        //        Zoom(BackgroundController.ZoomSize * MultiMoveCount);
-        //    };
-        //}
-
-        MapOverview.Zoom();
+        if (!IsMultiMove)
+        {
+            Zoom(BackgroundController.ZoomSize);
+        }
+        else
+        {
+            MultiMoveCount++;
+            _multiMoveAction = () =>
+            {
+                Zoom(BackgroundController.ZoomSize * MultiMoveCount);
+            };
+        }
     }
 
     private void ZoomOut()
@@ -730,7 +729,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         return gridSize.Map(0.0, Constants.MapSize.Width, 0.0, _canvasSize.Width);
     }
 
-    private void SelectedMapTabChanged()
+    private void GenerateMapOverview()
     {
         if(SelectedMapTabIndex == TabMapIndex.Overview)
         {

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
@@ -13,27 +14,44 @@ public class MapOverviewViewModel : ViewModelBase
 {
     const double _gridLineWidth = 2.0;
     const double _playerAreaIndicatorLineWidth = 15.0;
+    const double _zoomFactor = 1.5;
 
     protected IMapSize _mapSize;
     private Bitmap _overviewBitmap;
-    private Rectangle _area = new Rectangle();
+    private Bitmap _fullOverviewBitmap;
+    private Rectangle _area = new();
+    private Rectangle _boudingBox = new();
+    private Point<double> _mouseDownPosition = new();
+    private bool _mouseDown;
 
     public MapOverviewViewModel()
     {
-        OverviewBitmap = BitmapTools.CreateEmptyBitmap();
+        Initialize();
     }
 
     public MapOverviewViewModel(IMapSize mapSize)
     {
         _mapSize = mapSize;
+        Initialize();
+    }
+
+    private void Initialize()
+    {
         OverviewBitmap = BitmapTools.CreateEmptyBitmap();
+        MouseCanvas = new MouseCanvasViewModel();
+        MouseCanvas.OnLeftButtonDown += MouseDown;
+        MouseCanvas.OnLeftButtonUp += MouseUp;
+        MouseCanvas.OnMouseWheel += MouseScroll;
     }
 
     protected override void InitializeCommands()
     {
+        ResetCommand = new RelayCommand(p => ResetView());
     }
 
     public BitmapSource OverviewBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
+    public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); set => Set(value); }
+    public ICommand ResetCommand { get; set; }
 
     private Bitmap OverviewBitmap
     {
@@ -72,25 +90,9 @@ public class MapOverviewViewModel : ViewModelBase
 
         BitmapTools.DrawPlayerViewIndicator(playerViewOverview.Bitmap, (int)Math.Round(lineFactor * _playerAreaIndicatorLineWidth));
 
-        OverviewBitmap = BitmapTools.CreateMapOverview(overviewBitmaps, overviewSize, bitmapToOrigin);
+        _fullOverviewBitmap = BitmapTools.CreateMapOverview(overviewBitmaps, overviewSize, bitmapToOrigin);
+        OverviewBitmap = _fullOverviewBitmap;
         CalculateBoundingBox(overviewSize);
-    }
-
-    public void Zoom()
-    {
-        var zoomFactor = 1.5;
-        var newWidth = _area.Width / zoomFactor;
-        var newHeight = _area.Height / zoomFactor;
-        _area.X += (int)Math.Round((_area.Width - newWidth) / 2);
-        _area.Y += (int)Math.Round((_area.Height - newHeight) / 2);
-        _area.Width = (int)Math.Round(newWidth);
-        _area.Height = (int)Math.Round(newHeight);
-
-        OverviewBitmap = BitmapTools.CropBitmap(OverviewBitmap, _area);
-
-        // After cropping the bitmap is equal to _area and thus the offset can be set to 0,0
-        _area.X = 0;
-        _area.Y = 0;
     }
 
     private double CalculateLineFactor(Size<int> overviewSize)
@@ -120,33 +122,108 @@ public class MapOverviewViewModel : ViewModelBase
         if ((overviewSize.Width / 16.0 * 9.0) > overviewSize.Height)
         {
             // This means that width is the limiting factor, so height needs to be adjusted
-
-            //var b = new Bitmap(overviewSize.Width, (int)Math.Round((double)overviewSize.Width / 16 * 9));
-
-            //using var graphics = Graphics.FromImage(b);
-            //graphics.DrawImage(OverviewBitmap, (b.Width / 2) - (OverviewBitmap.Width / 2), (b.Height / 2) - (OverviewBitmap.Height / 2));
-            //graphics.DrawRectangle(new System.Drawing.Pen(System.Drawing.Color.DarkOrange, 20), 0, 0, b.Width, b.Height);
-
-            //ImageTester.ShowImage(b, "");
-
-            _area.Width = overviewSize.Width;
-            _area.Height = (int)Math.Round((double)overviewSize.Width / 16 * 9);
-
+            _boudingBox.Width = overviewSize.Width;
+            _boudingBox.Height = (int)Math.Round((double)overviewSize.Width / 16 * 9);
         }
         else
         {
             // This means that height is the limiting factor, so width needs to be adjusted
-
-            //var b = new Bitmap((int)Math.Round((double)overviewSize.Height / 9 * 16), overviewSize.Height);
-            //using var graphics = Graphics.FromImage(b);
-            //graphics.DrawImage(OverviewBitmap, (b.Width / 2) - (OverviewBitmap.Width / 2), (b.Height / 2) - (OverviewBitmap.Height / 2));
-            //graphics.DrawRectangle(new System.Drawing.Pen(System.Drawing.Color.DarkOrange, 20), 0, 0, b.Width, b.Height);
-
-            _area.Width = (int)Math.Round((double)overviewSize.Height / 9 * 16);
-            _area.Height = overviewSize.Height;
+            _boudingBox.Width = (int)Math.Round((double)overviewSize.Height / 9 * 16);
+            _boudingBox.Height = overviewSize.Height;
         }
 
-        _area.X = (int)Math.Round((_area.Width - overviewSize.Width) / 2.0 * -1.0);
-        _area.Y = (int)Math.Round((_area.Height - overviewSize.Height) / 2.0 * -1.0);
+        _boudingBox.X = (int)Math.Round((_boudingBox.Width - overviewSize.Width) / 2.0 * -1.0);
+        _boudingBox.Y = (int)Math.Round((_boudingBox.Height - overviewSize.Height) / 2.0 * -1.0);
+
+        _area = _boudingBox;
+    }
+
+    private void MouseDown(object? sender, MouseButtonDataEventArgs e)
+    {
+        _mouseDownPosition = e.Position;
+        _mouseDown = true;
+    }
+
+    private void MouseUp(object? sender, MouseButtonDataEventArgs e)
+    {
+        if (_fullOverviewBitmap != null && _mouseDown)
+        {
+            var distanceX = _mouseDownPosition.X - e.Position.X;
+            distanceX = distanceX.Map(0, _mapSize.CanvasWidth, 0, _area.Width);
+            _area.X += (int)distanceX;
+
+            var distanceY = _mouseDownPosition.Y - e.Position.Y;
+            distanceY = distanceY.Map(0, _mapSize.CanvasHeight, 0, _area.Height);
+            _area.Y += (int)distanceY;
+
+            ClampArea();
+
+            OverviewBitmap = BitmapTools.CropBitmap(_fullOverviewBitmap, _area);
+        }
+    }
+
+    private void MouseScroll(object? sender, MouseWheelDataEventArgs e)
+    {
+        // Do nothing when zooming out and the image is already max zoomed out 
+        if(e.Delta < 0 && _area.Width == _boudingBox.Width && _area.Height == _boudingBox.Height)
+        {
+            return;
+        }
+
+        // Move mouse point towards center of screen
+        var distanceX = e.Position.X.Map(0, _mapSize.CanvasWidth, 0, _area.Width);
+        distanceX -= _area.Width / 2.0;
+        _area.X = (int)(_area.X + distanceX);
+
+        var distanceY = e.Position.Y.Map(0, _mapSize.CanvasHeight, 0, _area.Height);
+        distanceY -= _area.Height / 2.0;
+        _area.Y = (int)(_area.Y + distanceY);
+
+        // Calculate new size and zoom factor
+        var zoomFactor = e.Delta > 0 ? _zoomFactor : 1 / _zoomFactor;
+        var newWidth = _area.Width / zoomFactor;
+        var newHeight = _area.Height / zoomFactor;
+
+        // Clamp size to maximum size of zoomed image
+        if (newWidth > _boudingBox.Width || newHeight > _boudingBox.Height)
+        {
+            newWidth = _boudingBox.Width;
+            newHeight = _boudingBox.Height;
+            zoomFactor = _boudingBox.Width / _area.Width;
+        }
+        
+        // Zoom in
+        _area.X += (int)Math.Round((_area.Width - newWidth) / 2);
+        _area.Y += (int)Math.Round((_area.Height - newHeight) / 2);
+        _area.Width = (int)Math.Round(newWidth);
+        _area.Height = (int)Math.Round(newHeight);
+
+        // Move area back towards mouse point
+        _area.X = (int)(_area.X - distanceX / zoomFactor);
+        _area.Y = (int)(_area.Y - distanceY / zoomFactor);
+
+        ClampArea();
+
+        OverviewBitmap = BitmapTools.CropBitmap(_fullOverviewBitmap, _area);
+    }
+
+    // This function makes sure that atleast part of the image is visible
+    private void ClampArea()
+    {
+        const double percentage = 50;
+
+        var bitmapWidth = (double)_area.Width / _boudingBox.Width  * _fullOverviewBitmap.Width;
+        var bitmapHeight = (double)_area.Height / _boudingBox.Height  * _fullOverviewBitmap.Height;
+        var marginX = (int)Math.Round(bitmapWidth / 100 * percentage);
+        var marginY = (int)Math.Round(bitmapHeight / 100 * percentage);
+
+        _area.X = Math.Clamp(_area.X, -_area.Width + marginX, 0 + _fullOverviewBitmap.Width - marginX);
+        _area.Y = Math.Clamp(_area.Y, -_area.Height + marginY, 0 + _fullOverviewBitmap.Height - marginY);
+    }
+
+    private void ResetView()
+    {
+        OverviewBitmap = _fullOverviewBitmap;
+        CalculateBoundingBox(new Size<int>(_fullOverviewBitmap.Width, _fullOverviewBitmap.Height));
     }
 }

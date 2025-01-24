@@ -9,7 +9,7 @@ using System.Windows.Media;
 
 namespace DigitalBattleMap.ViewModels;
 
-public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
+public class MouseCanvasViewModel : ViewModelBase
 {
     private MouseCanvasMode _mode;
     private MouseCanvasMode _previousMode;
@@ -30,6 +30,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
         RightButtonDownCommand = new RelayCommand(p => RightButtonDown((MouseDataEventArgs)p));
         RightButtonUpCommand = new RelayCommand(p => RightButtonUp((MouseDataEventArgs)p));
         MouseMoveCommand = new RelayCommand(p => Move((MouseDataEventArgs)p));
+        MouseWheelCommand = new RelayCommand(p => MouseWheel((MouseWheelDataEventArgs)p));
     }
 
     public event EventHandler<MouseButtonDataEventArgs> OnLeftButtonDown;
@@ -37,6 +38,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     public event EventHandler<MouseButtonDataEventArgs> OnRightButtonDown;
     public event EventHandler<MouseButtonDataEventArgs> OnRightButtonUp;
     public event EventHandler<MouseMoveDataEventArgs> OnMouseMove;
+    public event EventHandler<MouseWheelDataEventArgs> OnMouseWheel;
     public event EventHandler<RectangleF> OnRectangleAreaSelected;
     public event EventHandler<RectangleF> OnFixRatioRectangleAreaSelected;
     public event EventHandler<Polygon> OnPolygonAreaSelected;
@@ -55,6 +57,7 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
     public ICommand MouseMoveCommand { get; set; }
     public ICommand RightButtonDownCommand { get; set; }
     public ICommand RightButtonUpCommand { get; set; }
+    public ICommand MouseWheelCommand { get; set; }
 
     public MouseCanvasMode GetMode()
     {
@@ -179,6 +182,11 @@ public class MouseCanvasViewModel : ViewModelBase, IMouseCanvas
                 MouseMoveRectangleSelection(e, true);
                 return;
         }
+    }
+
+    private void MouseWheel(MouseWheelDataEventArgs e)
+    {
+        OnMouseWheel?.Invoke(this, e);
     }
 
     private void MouseDownRectangleSelection(MouseDataEventArgs e)

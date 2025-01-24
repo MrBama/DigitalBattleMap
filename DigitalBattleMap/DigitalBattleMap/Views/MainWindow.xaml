@@ -122,7 +122,8 @@
                                 LeftButtonUpCommand="{Binding MouseCanvas.LeftButtonUpCommand}"
                                 RightButtonDownCommand="{Binding MouseCanvas.RightButtonDownCommand}"
                                 RightButtonUpCommand="{Binding MouseCanvas.RightButtonUpCommand}"
-                                MouseMoveCommand="{Binding MouseCanvas.MouseMoveCommand}">
+                                MouseMoveCommand="{Binding MouseCanvas.MouseMoveCommand}"
+                                MouseWheelCommand="{Binding MouseCanvas.MouseWheelCommand}">
                                 <Rectangle 
                                     Width="{Binding MouseCanvas.SelectionWidth}" 
                                     Height="{Binding MouseCanvas.SelectionHeight}" 
