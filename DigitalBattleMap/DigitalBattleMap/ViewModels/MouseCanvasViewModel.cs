@@ -93,7 +93,7 @@ public class MouseCanvasViewModel : ViewModelBase
         SelectionHeight = 0;
         IsSelectionStarted = false;
         PolygonSelectionPoints = new();
-        Cursor = Cursors.Arrow;
+        Cursor = Cursors.Hand;
     }
 
     public void ResetMode()

@@ -23,6 +23,8 @@ public class MapOverviewViewModel : ViewModelBase
     private Rectangle _boudingBox = new();
     private Point<double> _mouseDownPosition = new();
     private bool _mouseDown;
+    private Point<int> _bitmapToOrigin;
+    private Size<int> _playerViewSize;
 
     public MapOverviewViewModel()
     {
@@ -42,12 +44,15 @@ public class MapOverviewViewModel : ViewModelBase
         MouseCanvas.OnLeftButtonDown += MouseDown;
         MouseCanvas.OnLeftButtonUp += MouseUp;
         MouseCanvas.OnMouseWheel += MouseScroll;
+        MouseCanvas.OnFixRatioRectangleAreaSelected += FixRatioRectangleAreaSelected;
     }
 
     protected override void InitializeCommands()
     {
         ResetCommand = new RelayCommand(p => ResetView());
     }
+
+    public event EventHandler<GridSizeZoomAndEnhanceEventArgs> OnGridSizeZoomAndEnhance;
 
     public BitmapSource OverviewBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); set => Set(value); }
@@ -71,6 +76,7 @@ public class MapOverviewViewModel : ViewModelBase
         var playerViewOverview = new OverviewBitmap { Bitmap = BitmapTools.CreateEmptyBitmap(), OffsetFromOrigin = new Point<int>() };
         playerViewOverview.Resize(zoomFactor);
         overviewBitmaps.Add(playerViewOverview);
+        _playerViewSize = new Size<int>(playerViewOverview.Bitmap.Width, playerViewOverview.Bitmap.Height);
 
         // Origin equals top left of player view
         var minX = Mathematics.Min(overviewBitmaps.Select(l => l.OffsetFromOrigin.X));
@@ -78,19 +84,19 @@ public class MapOverviewViewModel : ViewModelBase
         var maxX = Mathematics.Max(overviewBitmaps.Select(l => l.OffsetFromOrigin.X + l.Bitmap.Width));
         var maxY = Mathematics.Max(overviewBitmaps.Select(l => l.OffsetFromOrigin.Y + l.Bitmap.Height));
         var overviewSize = new Size<int>(Math.Abs(maxX - minX), Math.Abs(maxY - minY));
-        var bitmapToOrigin = new Point<int>(-minX, -minY);
+        _bitmapToOrigin = new Point<int>(-minX, -minY);
         var lineFactor = CalculateLineFactor(overviewSize);
 
         if(isGridShown)
         {
-            var gridOverviewBitmap = CreateGridOverviewBitmap(overviewSize, bitmapToOrigin, lineFactor, zoomFactor);
+            var gridOverviewBitmap = CreateGridOverviewBitmap(overviewSize, _bitmapToOrigin, lineFactor, zoomFactor);
             var gridOverviewIndex = containsBackgroundOverview ? 1 : 0;
             overviewBitmaps.Insert(gridOverviewIndex, gridOverviewBitmap);
         }
 
         BitmapTools.DrawPlayerViewIndicator(playerViewOverview.Bitmap, (int)Math.Round(lineFactor * _playerAreaIndicatorLineWidth));
 
-        _fullOverviewBitmap = BitmapTools.CreateMapOverview(overviewBitmaps, overviewSize, bitmapToOrigin);
+        _fullOverviewBitmap = BitmapTools.CreateMapOverview(overviewBitmaps, overviewSize, _bitmapToOrigin);
         OverviewBitmap = _fullOverviewBitmap;
         CalculateBoundingBox(overviewSize);
     }
@@ -225,5 +231,32 @@ public class MapOverviewViewModel : ViewModelBase
     {
         OverviewBitmap = _fullOverviewBitmap;
         CalculateBoundingBox(new Size<int>(_fullOverviewBitmap.Width, _fullOverviewBitmap.Height));
+    }
+
+    private void FixRatioRectangleAreaSelected(object? sender, RectangleF rectangle)
+    {
+        // 1. Convert from canvas to working area
+        // 2. Shift origin from top left of area to top left of image
+        // 3. Shift origin from top left of image to top left of player view
+        var x = rectangle.X.Map(0, (float)_mapSize.CanvasWidth, 0, _area.Width);
+        x += _area.X;
+        x -= _bitmapToOrigin.X;
+
+        var y = rectangle.Y.Map(0, (float)_mapSize.CanvasHeight, 0, _area.Height);
+        y += _area.Y;
+        y -= _bitmapToOrigin.Y;
+
+        // Convert size from canvas to working area
+        rectangle.Width = rectangle.Width.Map(0, (float)_mapSize.CanvasWidth, 0, _area.Width);
+        rectangle.Height = rectangle.Height.Map(0, (float)_mapSize.CanvasHeight, 0, _area.Height);
+
+        // ZoomAndEnhance function expects canvas coordinates.
+        // Origin is top left of player view which means that everything is now relative to player view
+        rectangle.X = x.Map(0, _playerViewSize.Width, 0, (float)_mapSize.CanvasWidth);
+        rectangle.Y = y.Map(0, _playerViewSize.Height, 0, (float)_mapSize.CanvasHeight);
+        rectangle.Width = rectangle.Width.Map(0, _playerViewSize.Width, 0, (float)_mapSize.CanvasWidth);
+        rectangle.Height = rectangle.Height.Map(0, _playerViewSize.Height, 0, (float)_mapSize.CanvasHeight);
+
+        OnGridSizeZoomAndEnhance?.Invoke(this, new GridSizeZoomAndEnhanceEventArgs() { rectangle = rectangle });
     }
 }

@@ -123,6 +123,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         _connectionManager.OnConnected += ConnectionManagerConnected;
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
         MapOverview = new MapOverviewViewModel(this);
+        MapOverview.OnGridSizeZoomAndEnhance += OnBackgroundGridSizeZoomAndEnhance;
         CampaignController = new CampaignControllerViewModel(_windowService, _connectionManager, _monsterTokens, _settings);
         BackgroundController = new BackgroundControllerViewModel(_windowService, this, _settings);
         BackgroundController.OnGridSizeChanged += OnBackgroundGridSizeChanged;
@@ -194,7 +195,10 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         // Reset mouse canvas
         MouseCanvas.ResetSelection();
         MouseCanvas.ResetMode();
+        MapOverview.MouseCanvas.ResetSelection();
+        MapOverview.MouseCanvas.ResetMode();
         CropColor = System.Windows.Media.Brushes.LightGray;
+        SelectedMapTabIndex = TabMapIndex.Map;
     }
 
     private void MoveToMiddle(RectangleF selectedArea)
@@ -515,15 +519,22 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     {
         if (BackgroundController.GetFullBackgroundBitmap() != null)
         {
-            if (MouseCanvas.GetMode() != MouseCanvasMode.FixedRatioRectangleSelection)
+            if(SelectedMapTabIndex == TabMapIndex.Map)
             {
-                MouseCanvas.SetMode(MouseCanvasMode.FixedRatioRectangleSelection);
-                CropColor = System.Windows.Media.Brushes.LightBlue;
+                if (MouseCanvas.GetMode() != MouseCanvasMode.FixedRatioRectangleSelection)
+                {
+                    MouseCanvas.SetMode(MouseCanvasMode.FixedRatioRectangleSelection);
+                    CropColor = System.Windows.Media.Brushes.LightBlue;
+                }
+                else
+                {
+                    MouseCanvas.ResetSelection();
+                    CropColor = System.Windows.Media.Brushes.LightGray;
+                }
             }
-            else
+            else if (SelectedMapTabIndex == TabMapIndex.Overview)
             {
-                MouseCanvas.ResetSelection();
-                CropColor = System.Windows.Media.Brushes.LightGray;
+                MapOverview.MouseCanvas.SetMode(MouseCanvasMode.FixedRatioRectangleSelection);
             }
         }
     }
