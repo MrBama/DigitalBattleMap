@@ -359,13 +359,26 @@ public static class BitmapTools
         var bitmap = new Bitmap(maxTokenPositionX - minTokenPositionX, maxTokenPositionY - minTokenPositionY);
         using Graphics graph = Graphics.FromImage(bitmap);
 
-        foreach (var token in tokenListWithNormilizedPositions)
+        foreach ((var token, var position) in tokenListWithNormilizedPositions)
         {
-            // Tokens positions can be negative but bitmap positions always start at 0
-            var zeroBasedPosition = new Point<int>(token.Value.X - minTokenPositionX, token.Value.Y - minTokenPositionY);
-            var topLeftCorner = new Point<int>(zeroBasedPosition.X - halfGridSize, zeroBasedPosition.Y - halfGridSize);
-            var tokenImage = ResizeBitmap(token.Key.GetBitmap(), new Size<int>(gridSize, gridSize));
-            graph.DrawImage(tokenImage, topLeftCorner.X, topLeftCorner.Y);
+            if(token.Visible)
+            {
+                // Tokens positions can be negative but bitmap positions always start at 0
+                var zeroBasedPosition = new Point<int>(position.X - minTokenPositionX, position.Y - minTokenPositionY);
+                var topLeftCorner = new Point<int>(zeroBasedPosition.X - halfGridSize, zeroBasedPosition.Y - halfGridSize);
+                var tokenImage = ResizeBitmap(token.GetBitmap(), new Size<int>(gridSize, gridSize));
+                graph.DrawImage(tokenImage, topLeftCorner.X, topLeftCorner.Y);
+
+                if (tokenListWithNormilizedPositions.Count(t => t.Key.Token.Name == token.Token.Name) > 1)
+                {
+                    var tokenId = token.Id.ToString();
+                    var idSize = new Size<double>(Math.Max(gridSize / 5, 1), Math.Max(gridSize / 5, 1));
+                    var idBitmap = _conditionIcons.GetDigitIcon(tokenId);
+                    idBitmap = ResizeBitmap(idBitmap, Size<int>.Create(idSize));
+                    var drawingPositionId = new Point<double>(zeroBasedPosition.X - (idSize.Width / 2.0), zeroBasedPosition.Y - (idSize.Height / 2.0));
+                    DrawImageOnBitmap(bitmap, idBitmap, Point<int>.Create(drawingPositionId));
+                }
+            }
         }
 
         return bitmap;
