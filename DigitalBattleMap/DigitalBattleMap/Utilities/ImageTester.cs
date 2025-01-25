@@ -1,19 +1,19 @@
-﻿using DigitalBattleMap.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace DigitalBattleMap;
+namespace DigitalBattleMap.Utilities;
 
+// THIS CLASS SHOULD ONLY BE USED FOR DEBUGGING AND TESTING
 public static class ImageTester
 {
     private static Dictionary<string, Window> _windows = new();
 
     public static void ShowImage(Bitmap bitmap, string windowName)
     {
-        if(windowName == null)
+        if (windowName == null)
         {
             throw new ArgumentNullException(nameof(windowName));
         }
@@ -33,7 +33,7 @@ public static class ImageTester
 
     private static Window GetWindow(string windowName)
     {
-        if(_windows.ContainsKey(windowName))
+        if (_windows.ContainsKey(windowName))
         {
             return _windows[windowName];
         }
@@ -54,7 +54,7 @@ public static class ImageTester
         return window;
     }
 
-    private static void WindowClosed(object? sender, System.EventArgs e)
+    private static void WindowClosed(object? sender, EventArgs e)
     {
         var window = (Window)sender!;
         _windows.Remove(window.Title);

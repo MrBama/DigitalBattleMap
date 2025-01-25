@@ -7,9 +7,9 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace DigitalBattleMap.ViewModels;
+
 public class MapOverviewViewModel : ViewModelBase
 {
     const double _gridLineWidth = 2.0;
@@ -125,16 +125,16 @@ public class MapOverviewViewModel : ViewModelBase
 
     private void CalculateBoundingBox(Size<int> overviewSize)
     {
-        if ((overviewSize.Width / 16.0 * 9.0) > overviewSize.Height)
+        if ((overviewSize.Width / (double)Constants.AspectRatio.Width * Constants.AspectRatio.Height) > overviewSize.Height)
         {
             // This means that width is the limiting factor, so height needs to be adjusted
             _boudingBox.Width = overviewSize.Width;
-            _boudingBox.Height = (int)Math.Round((double)overviewSize.Width / 16 * 9);
+            _boudingBox.Height = (int)Math.Round((double)overviewSize.Width / Constants.AspectRatio.Width * Constants.AspectRatio.Height);
         }
         else
         {
             // This means that height is the limiting factor, so width needs to be adjusted
-            _boudingBox.Width = (int)Math.Round((double)overviewSize.Height / 9 * 16);
+            _boudingBox.Width = (int)Math.Round((double)overviewSize.Height / Constants.AspectRatio.Height * Constants.AspectRatio.Width);
             _boudingBox.Height = overviewSize.Height;
         }
 

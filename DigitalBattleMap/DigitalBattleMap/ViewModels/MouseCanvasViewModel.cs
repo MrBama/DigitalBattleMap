@@ -1,5 +1,4 @@
 ﻿using DigitalBattleMap.DataClasses;
-using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Drawing;
@@ -259,7 +258,7 @@ public class MouseCanvasViewModel : ViewModelBase
         if (IsSelectionStarted)
         {
             var point = e.Position;
-            var newPoints = new System.Windows.Media.PointCollection(PolygonSelectionPoints)
+            var newPoints = new PointCollection(PolygonSelectionPoints)
             {
                 new System.Windows.Point(point.X, point.Y)
             };

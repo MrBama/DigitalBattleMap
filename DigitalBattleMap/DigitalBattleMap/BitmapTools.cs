@@ -460,7 +460,7 @@ public static class BitmapTools
     public static void DrawPlayerViewIndicator(Bitmap bitmap, int penSize)
     {
         using var graphics = Graphics.FromImage(bitmap);
-        graphics.DrawRectangle(new System.Drawing.Pen(System.Drawing.Color.DarkOrange, penSize), 0, 0, bitmap.Width, bitmap.Height);
+        graphics.DrawRectangle(new Pen(System.Drawing.Color.DarkOrange, penSize), 0, 0, bitmap.Width, bitmap.Height);
     }
 
 
