@@ -225,11 +225,49 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         ShapeCollection.Transform(matrix);
     }
 
-    public System.Drawing.Bitmap GetDrawingBitmap()
+    public Bitmap GetDrawingBitmap()
     {
         var bitmap = BitmapTools.CreateEmptyBitmap();
         BitmapTools.DrawShapes(bitmap, ShapeCollection.GetShapes().ToList(), _mapSize.GetCanvasSize());
         return bitmap;
+    }
+
+    public bool GetOverviewBitmap(double zoomFactor, out OverviewBitmap overviewBitmap)
+    {
+        overviewBitmap = new OverviewBitmap();
+        var shapes = ShapeCollection.GetShapes().ToList();
+        if (shapes.Count != 0)
+        {
+            var shapeOverviewBitmaps = new List<OverviewBitmap>();
+
+            foreach (var shape in shapes)
+            {
+                var shapeOverviewBitmap = new OverviewBitmap();
+                shapeOverviewBitmap.Bitmap = BitmapTools.CreateShapeOverviewBitmap(shape, _mapSize.GetCanvasSize());
+
+                var shapeMinX = shape.Points.Min(t => t.X).Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width);
+                var shapeMinY = shape.Points.Min(t => t.Y).Map(0, _mapSize.CanvasHeight, 0, Constants.MapSize.Height);
+                shapeMinX -= (shape.PenSize / 2);
+                shapeMinY -= (shape.PenSize / 2);
+                shapeOverviewBitmap.OffsetFromOrigin = new Point<int>((int)Math.Round(shapeMinX), (int)Math.Round(shapeMinY));
+
+                shapeOverviewBitmaps.Add(shapeOverviewBitmap);
+            }
+
+            overviewBitmap.Bitmap = BitmapTools.CreateShapesOverviewBitmap(shapeOverviewBitmaps);
+
+            // OffsetFromOrigin = top left of player view to top left of shapes bounding box
+            // Shape positions are always relative to top left of the player view (=origin)
+            var minX = Mathematics.Min(shapeOverviewBitmaps.Select(l => l.OffsetFromOrigin.X));
+            var minY = Mathematics.Min(shapeOverviewBitmaps.Select(l => l.OffsetFromOrigin.Y));
+            overviewBitmap.OffsetFromOrigin = new Point<int>(minX, minY);
+
+            // Everything is calculated relative to the player view, however the player view might be zoomed in or out
+            overviewBitmap.Resize(zoomFactor);
+            return true;
+        }
+
+        return false;
     }
 
     public void ClearDrawings()

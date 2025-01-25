@@ -17,6 +17,7 @@ public class MouseCanvas : Canvas
     public static readonly DependencyProperty RightButtonDownCommandProperty = DependencyProperty.Register(nameof(RightButtonDownCommand), typeof(ICommand), typeof(MouseCanvas));
     public static readonly DependencyProperty RightButtonUpCommandProperty = DependencyProperty.Register(nameof(RightButtonUpCommand), typeof(ICommand), typeof(MouseCanvas));
     public static readonly DependencyProperty MouseMoveCommandProperty = DependencyProperty.Register(nameof(MouseMoveCommand), typeof(ICommand), typeof(MouseCanvas));
+    public static readonly DependencyProperty MouseWheelCommandProperty = DependencyProperty.Register(nameof(MouseWheelCommand), typeof(ICommand), typeof(MouseCanvas));
 
     public ICommand LeftButtonDownCommand
     {
@@ -46,6 +47,12 @@ public class MouseCanvas : Canvas
     {
         get => (ICommand)GetValue(MouseMoveCommandProperty);
         set => SetValue(MouseMoveCommandProperty, value);
+    }
+
+    public ICommand MouseWheelCommand
+    {
+        get => (ICommand)GetValue(MouseWheelCommandProperty);
+        set => SetValue(MouseWheelCommandProperty, value);
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
@@ -81,5 +88,12 @@ public class MouseCanvas : Canvas
         base.OnMouseMove(e);
         var mousePosition = e.GetPosition(this);
         MouseMoveCommand.Execute(new MouseDataEventArgs() { MouseEventArgs = e, Position = new Point<double>(mousePosition.X, mousePosition.Y) });
+    }
+
+    protected override void OnMouseWheel(MouseWheelEventArgs e)
+    {
+        base.OnMouseWheel(e);
+        var mousePosition = e.GetPosition(this);
+        MouseWheelCommand.Execute(new MouseWheelDataEventArgs { Position = new Point<double>(mousePosition.X, mousePosition.Y), Delta = e.Delta });
     }
 }

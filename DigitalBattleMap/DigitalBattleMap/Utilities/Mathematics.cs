@@ -1,6 +1,8 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DigitalBattleMap.Utilities;
@@ -65,8 +67,14 @@ public static class Mathematics
 
     public static Point<int> CalculateGridOffset(int gridSize)
     {
-        var middleGridCellX = (Constants.MapSize.Width / 2) - (gridSize / 2);
-        var middleGridCellY = (Constants.MapSize.Height / 2) - (gridSize / 2);
+        var gridOrigin = new Point<int>(Constants.MapSize.Width / 2, Constants.MapSize.Height / 2);
+        return CalculateGridOffset(gridSize, gridOrigin);
+    }
+
+    public static Point<int> CalculateGridOffset(int gridSize, Point<int> gridOrigin)
+    {
+        var middleGridCellX = gridOrigin.X - (gridSize / 2);
+        var middleGridCellY = gridOrigin.Y - (gridSize / 2);
 
         var xModulo = middleGridCellX % gridSize;
         var yModulo = middleGridCellY % gridSize;
@@ -93,5 +101,51 @@ public static class Mathematics
     {
         var gridOffset = Point<double>.Create(CalculateGridOffset(mapSize.GridSize));
         return new(gridOffset.X.Map(0, mapSize.Width, 0, mapSize.CanvasWidth), gridOffset.Y.Map(0, mapSize.Height, 0, mapSize.CanvasHeight));
+    }
+
+    // C# modulo (e.g. 5 % 2) is actually calculating the remainder instead of an actual modulo
+    public static T Modulo<T>(int left, int right)
+    {
+        dynamic leftd = left;
+        dynamic rightd = right;
+        return (Math.Abs(leftd * rightd) + leftd) % rightd;
+    }
+
+    public static T Min<T>(IEnumerable<T> values)
+    {
+        if (values.Count() == 0)
+        {
+            throw new ArgumentException("There should be atleast 1 number");
+        }
+
+        var min = values.First();
+
+        for (int i = 1; i < values.Count(); i++)
+        {
+            dynamic number1 = min!;
+            dynamic number2 = values.ElementAt(i)!;
+            min = Math.Min(number1, number2);
+        }
+
+        return min;
+    }
+
+    public static T Max<T>(IEnumerable<T> values)
+    {
+        if (values.Count() == 0)
+        {
+            throw new ArgumentException("There should be atleast 1 number");
+        }
+
+        var max = values.First();
+
+        for (int i = 1; i < values.Count(); i++)
+        {
+            dynamic number1 = max!;
+            dynamic number2 = values.ElementAt(i)!;
+            max = Math.Max(number1, number2);
+        }
+
+        return max;
     }
 }

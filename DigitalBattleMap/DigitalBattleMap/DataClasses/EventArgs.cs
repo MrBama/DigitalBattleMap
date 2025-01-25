@@ -90,6 +90,12 @@ public class MouseButtonDataEventArgs : EventArgs
     public Point<double> Position { get; set; } = new();
 }
 
+public class MouseWheelDataEventArgs : EventArgs
+{
+    public Point<double> Position { get; set; } = new();
+    public int Delta { get; set; }
+}
+
 public class MouseMoveDataEventArgs : EventArgs
 {
     public Point<double> Position { get; set; } = new();
