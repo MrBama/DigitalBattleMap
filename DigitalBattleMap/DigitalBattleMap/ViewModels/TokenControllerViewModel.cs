@@ -704,7 +704,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
                 foreach (var tokenListItem in TokenList.OrderBy(t => t.ZLevel))
                 {
-                    tokenListWithNormilizedPositions[tokenListItem] = NormilizePositionToGrid(tokenListItem.Position, _mapSize.GridSize);
+                    tokenListWithNormilizedPositions[tokenListItem] = NormilizePositionToGrid(tokenListItem, _mapSize.GridSize);
                 }
 
                 overviewBitmap.Bitmap = BitmapTools.CreateTokenOverviewBitmap(tokenListWithNormilizedPositions, _mapSize.GridSize);
@@ -725,7 +725,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    public Point<int> NormilizePositionToGrid(Point<int> position, int gridSize)
+    public Point<int> NormilizePositionToGrid(TokenListItem tokenListItem, int gridSize)
     {
         // A position of a token can be anywhere in a grid cell. 
         // This function calculates the position of the center
@@ -734,11 +734,12 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         var normilizedPosition = new Point<int>();
         var gridOffset = Mathematics.CalculateGridOffset(gridSize);
 
-        var distanceToGridCellBorderX = Mathematics.Modulo<int>(position.X - gridOffset.X, gridSize);
-        var distanceToGridCellBorderY = Mathematics.Modulo<int>(position.Y - gridOffset.Y, gridSize);
+        var distanceToGridCellBorderX = Mathematics.Modulo<int>(tokenListItem.Position.X - gridOffset.X, gridSize);
+        var distanceToGridCellBorderY = Mathematics.Modulo<int>(tokenListItem.Position.Y - gridOffset.Y, gridSize);
+        var halfTokenSize = (int)Math.Round(gridSize * tokenListItem.Token.GetSizeFactor() / 2);
 
-        normilizedPosition.X = position.X - distanceToGridCellBorderX + (gridSize / 2);
-        normilizedPosition.Y = position.Y - distanceToGridCellBorderY + (gridSize / 2);
+        normilizedPosition.X = tokenListItem.Position.X - distanceToGridCellBorderX + halfTokenSize;
+        normilizedPosition.Y = tokenListItem.Position.Y - distanceToGridCellBorderY + halfTokenSize;
 
         return normilizedPosition;
     }

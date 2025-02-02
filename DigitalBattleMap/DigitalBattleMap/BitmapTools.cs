@@ -349,30 +349,33 @@ public static class BitmapTools
 
     public static Bitmap CreateTokenOverviewBitmap(Dictionary<TokenListItem, Point<int>> tokenListWithNormilizedPositions, int gridSize)
     {
+        // Helper lambda's to calculate token sizes
+        var calculateTokenSize = (TokenListItem tokenListItem) => (int)Math.Round(gridSize * tokenListItem.Token.GetSizeFactor());
+        var calculateHalfTokenSize = (TokenListItem tokenListItem) => (int)Math.Round(gridSize * tokenListItem.Token.GetSizeFactor() / 2);
+
         // Calculate the bounding box around the tokens
-        var halfGridSize = gridSize / 2;
-        var minTokenPositionX = tokenListWithNormilizedPositions.Values.Min(t => t.X) - halfGridSize;
-        var maxTokenPositionX = tokenListWithNormilizedPositions.Values.Max(t => t.X) + halfGridSize;
-        var minTokenPositionY = tokenListWithNormilizedPositions.Values.Min(t => t.Y) - halfGridSize;
-        var maxTokenPositionY = tokenListWithNormilizedPositions.Values.Max(t => t.Y) + halfGridSize;
+        var minTokenPositionX = tokenListWithNormilizedPositions.Min(kv => kv.Value.X - calculateHalfTokenSize(kv.Key));
+        var maxTokenPositionX = tokenListWithNormilizedPositions.Max(kv => kv.Value.X + calculateHalfTokenSize(kv.Key));
+        var minTokenPositionY = tokenListWithNormilizedPositions.Min(kv => kv.Value.Y - calculateHalfTokenSize(kv.Key));
+        var maxTokenPositionY = tokenListWithNormilizedPositions.Max(kv => kv.Value.Y + calculateHalfTokenSize(kv.Key));
 
         var bitmap = new Bitmap(maxTokenPositionX - minTokenPositionX, maxTokenPositionY - minTokenPositionY);
         using Graphics graph = Graphics.FromImage(bitmap);
 
-        foreach ((var token, var position) in tokenListWithNormilizedPositions)
+        foreach ((var tokenListItem, var position) in tokenListWithNormilizedPositions)
         {
-            if(token.Visible)
+            if(tokenListItem.Visible)
             {
                 // Tokens positions can be negative but bitmap positions always start at 0
                 var zeroBasedPosition = new Point<int>(position.X - minTokenPositionX, position.Y - minTokenPositionY);
-                var topLeftCorner = new Point<int>(zeroBasedPosition.X - halfGridSize, zeroBasedPosition.Y - halfGridSize);
-                var tokenImage = ResizeBitmap(token.GetBitmap(), new Size<int>(gridSize, gridSize));
+                var topLeftCorner = new Point<int>(zeroBasedPosition.X - calculateHalfTokenSize(tokenListItem), zeroBasedPosition.Y - calculateHalfTokenSize(tokenListItem));
+                var tokenImage = ResizeBitmap(tokenListItem.GetBitmap(), new Size<int>(calculateTokenSize(tokenListItem), calculateTokenSize(tokenListItem)));
                 graph.DrawImage(tokenImage, topLeftCorner.X, topLeftCorner.Y);
 
-                if (tokenListWithNormilizedPositions.Count(t => t.Key.Token.Name == token.Token.Name) > 1)
+                if (tokenListWithNormilizedPositions.Count(t => t.Key.Token.Name == tokenListItem.Token.Name) > 1)
                 {
-                    var tokenId = token.Id.ToString();
-                    var idSize = new Size<double>(Math.Max(gridSize / 5, 1), Math.Max(gridSize / 5, 1));
+                    var tokenId = tokenListItem.Id.ToString();
+                    var idSize = new Size<double>(Math.Max(calculateTokenSize(tokenListItem) / 5, 1), Math.Max(calculateTokenSize(tokenListItem) / 5, 1));
                     var idBitmap = _conditionIcons.GetDigitIcon(tokenId);
                     idBitmap = ResizeBitmap(idBitmap, Size<int>.Create(idSize));
                     var drawingPositionId = new Point<double>(zeroBasedPosition.X - (idSize.Width / 2.0), zeroBasedPosition.Y - (idSize.Height / 2.0));
