@@ -13,6 +13,7 @@ public static class Constants
     public static readonly string WebExtensionsPath = Path.Combine(SettingsPath, "WebExtensions");
     public static readonly int FeetPerGridCell = 5;
     public static readonly string TempDirectoryPath = Path.Combine(SettingsPath, "Temp");
-    public static readonly int MinimalZoomGridSize = 10;
+    public static readonly int MinGridSize = 10;
+    public static readonly int MaxGridSize = 20000;
     public static readonly int DefaultZoomSize = 10;
 }

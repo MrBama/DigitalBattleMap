@@ -300,7 +300,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     public void UpdateGridSize(int gridSizeChange, bool update)
     {
-        GridSize = Math.Max(GridSize + gridSizeChange, Constants.MinimalZoomGridSize);
+        GridSize = Math.Max(GridSize + gridSizeChange, Constants.MinGridSize);
+        GridSize = Math.Min(GridSize, Constants.MaxGridSize);
         GridSizeChanged(update);
     }
 
@@ -641,7 +642,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     private void GridSizeChanged(bool update = true)
     {
-        GridSize = Math.Max(GridSize, Constants.MinimalZoomGridSize);
+        GridSize = Math.Max(GridSize, Constants.MinGridSize);
+        GridSize = Math.Min(GridSize, Constants.MaxGridSize);
         GridBitmap = IsGridShown ? BitmapTools.CreateGrid(GridSize) : BitmapTools.CreateEmptyBitmap();
         if (update)
         {

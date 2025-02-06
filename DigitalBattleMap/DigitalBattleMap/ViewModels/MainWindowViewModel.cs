@@ -188,6 +188,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         // Zoom to new grid size
         var ratio = _canvasSize.Width / selectedArea.Width;
         var newGridSize = (int)Math.Round((double)BackgroundController.GridSize * ratio, 0);
+        newGridSize = Math.Min(newGridSize, Constants.MaxGridSize);
 
         _returnGridSize = BackgroundController.GridSize;
         ZoomToGridSize(newGridSize);
@@ -763,6 +764,10 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             }
 
             MapOverview.CreateOverview(overviewBitmaps, zoomFactor, containsBackgroundOverview, BackgroundController.IsGridShown);
+        }
+        else
+        {
+            MapOverview.ClearMap();
         }
     }
 }

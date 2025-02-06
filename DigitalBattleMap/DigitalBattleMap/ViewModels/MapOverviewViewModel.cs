@@ -101,6 +101,12 @@ public class MapOverviewViewModel : ViewModelBase
         CalculateBoundingBox(overviewSize);
     }
 
+    public void ClearMap()
+    {
+        _fullOverviewBitmap = BitmapTools.CreateEmptyBitmap();
+        OverviewBitmap = _fullOverviewBitmap;
+    }
+
     private double CalculateLineFactor(Size<int> overviewSize)
     {
         var distanceOverview = Math.Sqrt(Math.Pow(overviewSize.Width, 2) + Math.Pow(overviewSize.Height, 2));
