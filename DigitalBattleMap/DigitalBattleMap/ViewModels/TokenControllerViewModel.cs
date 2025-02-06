@@ -697,26 +697,25 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             overviewBitmap = new OverviewBitmap();
             if (TokenList.Count > 0)
             {
-                var gridOffset = Mathematics.CalculateGridOffset(_mapSize.GridSize);
-                var gridSize = (double)_mapSize.GridSize;
-
                 var tokenListWithNormilizedPositions = new Dictionary<TokenListItem, Point<int>>();
 
                 foreach (var tokenListItem in TokenList.OrderBy(t => t.ZLevel))
                 {
-                    tokenListWithNormilizedPositions[tokenListItem] = NormilizePositionToGrid(tokenListItem, _mapSize.GridSize);
+                    var normilizedPosition = NormilizePositionToGrid(tokenListItem, _mapSize.GridSize);
+                    tokenListWithNormilizedPositions[tokenListItem] = new Point<int>(
+                        (int)Math.Round(normilizedPosition.X * zoomFactor),
+                        (int)Math.Round(normilizedPosition.Y * zoomFactor));
                 }
 
-                overviewBitmap.Bitmap = BitmapTools.CreateTokenOverviewBitmap(tokenListWithNormilizedPositions, _mapSize.GridSize);
+                var gridSize = _mapSize.GridSize * zoomFactor;
+                overviewBitmap.Bitmap = BitmapTools.CreateTokenOverviewBitmap(tokenListWithNormilizedPositions, (int)Math.Round(gridSize));
 
                 // OffsetFromOrigin = top left of player view to top left of token bounding box
                 // Token positions are always relative to top left of the player view (=origin)
-                var minTokenPositionX = tokenListWithNormilizedPositions.Values.Min(t => t.X) - (_mapSize.GridSize / 2);
-                var minTokenPositionY = tokenListWithNormilizedPositions.Values.Min(t => t.Y) - (_mapSize.GridSize / 2);
-                overviewBitmap.OffsetFromOrigin = new Point<int>(minTokenPositionX, minTokenPositionY);
-                
-                // Everything is calculated relative to the player view, however the player view might be zoomed in or out
-                overviewBitmap.Resize(zoomFactor);
+                var halfGridSize = (int)Math.Round(gridSize / 2);
+                var minTokenPositionX = tokenListWithNormilizedPositions.Min(kv => kv.Value.X - (kv.Key.Token.GetSizeFactor() * halfGridSize));
+                var minTokenPositionY = tokenListWithNormilizedPositions.Min(kv => kv.Value.Y - (kv.Key.Token.GetSizeFactor() * halfGridSize));
+                overviewBitmap.OffsetFromOrigin = new Point<int>((int)Math.Round(minTokenPositionX), (int)Math.Round(minTokenPositionY));
 
                 return true;
             }

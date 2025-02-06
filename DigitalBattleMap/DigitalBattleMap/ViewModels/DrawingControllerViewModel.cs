@@ -243,12 +243,23 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             foreach (var shape in shapes)
             {
                 var shapeOverviewBitmap = new OverviewBitmap();
-                shapeOverviewBitmap.Bitmap = BitmapTools.CreateShapeOverviewBitmap(shape, _mapSize.GetCanvasSize());
+                var penSize = shape.PenSize.Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width);
+                var points = new List<Point<double>>();
 
-                var shapeMinX = shape.Points.Min(t => t.X).Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width);
-                var shapeMinY = shape.Points.Min(t => t.Y).Map(0, _mapSize.CanvasHeight, 0, Constants.MapSize.Height);
-                shapeMinX -= (shape.PenSize / 2);
-                shapeMinY -= (shape.PenSize / 2);
+                foreach (var point in shape.Points)
+                {
+                    var resizedX = point.X.Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width);
+                    var resizedY = point.Y.Map(0, _mapSize.CanvasHeight, 0, Constants.MapSize.Height);
+                    points.Add(new Point<double>(resizedX * zoomFactor, resizedY * zoomFactor));
+                }
+
+                shapeOverviewBitmap.Bitmap = BitmapTools.CreateShapeOverviewBitmap(points, shape.Color, penSize);
+
+                var shapeMinX = points.Min(t => t.X);
+                var shapeMinY = points.Min(t => t.Y);
+                shapeMinX -= (penSize / 2);
+                shapeMinY -= (penSize / 2);
+
                 shapeOverviewBitmap.OffsetFromOrigin = new Point<int>((int)Math.Round(shapeMinX), (int)Math.Round(shapeMinY));
 
                 shapeOverviewBitmaps.Add(shapeOverviewBitmap);
@@ -262,8 +273,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             var minY = Mathematics.Min(shapeOverviewBitmaps.Select(l => l.OffsetFromOrigin.Y));
             overviewBitmap.OffsetFromOrigin = new Point<int>(minX, minY);
 
-            // Everything is calculated relative to the player view, however the player view might be zoomed in or out
-            overviewBitmap.Resize(zoomFactor);
             return true;
         }
 

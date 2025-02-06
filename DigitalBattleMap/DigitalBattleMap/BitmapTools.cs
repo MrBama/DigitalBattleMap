@@ -387,19 +387,12 @@ public static class BitmapTools
         return bitmap;
     }
 
-    public static Bitmap CreateShapeOverviewBitmap(DrawingShape shape, Size<double> canvasSize)
+    public static Bitmap CreateShapeOverviewBitmap(List<Point<double>> points, System.Windows.Media.Color shapeColor, double penSize)
     {
-        var points = new List<Point<float>>();
-        var penSizeF = (float)shape.PenSize;
+        var penSizeF = (float)penSize;
+        var pointsF = points.Select(p => Point<float>.Create(p)).ToList();
 
-        foreach (var point in shape.Points)
-        {
-            var resizedX = (float)point.X.Map(0, canvasSize.Width, 0, Constants.MapSize.Width);
-            var resizedY = (float)point.Y.Map(0, canvasSize.Height, 0, Constants.MapSize.Height);
-            points.Add(new Point<float>(resizedX, resizedY));
-        }
-
-        SmoothLine(points, penSizeF);
+        SmoothLine(pointsF, penSizeF);
 
         // Calculate the bounding box around the shape
         var halfPenSize = penSizeF / 2;
@@ -410,9 +403,9 @@ public static class BitmapTools
 
         var bitmap = new Bitmap(maxX - minX, maxY - minY);
         using var shapeGraphics = Graphics.FromImage(bitmap);
-        var brush = shape.Color.ToDrawingBrush();
+        var brush = shapeColor.ToDrawingBrush();
 
-        foreach (var point in points)
+        foreach (var point in pointsF)
         {
             shapeGraphics.FillEllipse(brush, point.X - minX - halfPenSize, point.Y - minY - halfPenSize, penSizeF, penSizeF);
         }
