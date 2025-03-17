@@ -115,4 +115,11 @@ $(document).ready(function () {
 
         controlsPositionLeft = !controlsPositionLeft;
     });
+
+    $(document).on("keypress", function (e) {
+        if (document.fullscreenElement != null && e.which == 104) {
+            $('#btnControls').toggle();
+            $('#btnFullscreen').toggle();
+        }
+    });
 })
