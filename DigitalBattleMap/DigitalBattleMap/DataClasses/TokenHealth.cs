@@ -104,6 +104,13 @@ public class TokenHealth : PropertyHandler
 
     public void ApplyHp()
     {
+        if(MaxHp == null)
+        {
+            EditorMaxHp = EditorHp;
+            ApplyMaxHp();
+            return;
+        }
+
         var previousHp = Hp;
 
         SetHp(EditorHp);
@@ -178,7 +185,7 @@ public class TokenHealth : PropertyHandler
                 newHp = int.Parse(Hp) - int.Parse(groups[2].Value);
             }
 
-            if (MaxHp != null && MaxHp != "" && newHp > int.Parse(MaxHp))
+            if (newHp > int.Parse(MaxHp))
             {
                 Hp = MaxHp;
             }
