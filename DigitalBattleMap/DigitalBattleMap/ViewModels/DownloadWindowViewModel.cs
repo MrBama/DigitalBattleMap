@@ -5,6 +5,7 @@ using DigitalBattleMap.Views;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Windows.Input;
@@ -57,6 +58,8 @@ public class DownloadWindowViewModel : ViewModelBase
     {
         var data = MonsterTokens.GetRawData();
 
+        RemoveTokensThatBecameLegacy(data);
+
         ProgressBarMinimum = 0;
         ProgressBarMaximum = data.Tokens.Count;
 
@@ -85,6 +88,21 @@ public class DownloadWindowViewModel : ViewModelBase
             var thread = new Thread(() => DownloadTokens(tokenList));
             thread.Start();
             _threadPool.Add(thread);
+        }
+    }
+
+    private void RemoveTokensThatBecameLegacy(MonsterTokenData monsterTokenData)
+    {
+        var legacyTokens = monsterTokenData.Tokens.Where(t => t.LegacyName != null);
+
+        foreach (var legacyToken in legacyTokens)
+        {
+            // When token exists but legacy token does not exist
+            // remove token and redownload both.
+            if(IO.File.Exists(Path.Combine(Constants.MonsterTokensPath, $"{legacyToken.Name}.png")) && !IO.File.Exists(Path.Combine(Constants.MonsterTokensPath, $"{legacyToken.LegacyName}.png")))
+            {
+                IO.File.Delete(Path.Combine(Constants.MonsterTokensPath, $"{legacyToken.Name}.png"));
+            }
         }
     }
 

@@ -6,39 +6,92 @@ namespace MonsterIndexer
 {
     internal class Program
     {
-        private static string _path = @"C:\RepositoryRoot\bestiary\tokens";
+        private static string _repositoryUsername = "5etools-mirror-3";
+        private static string _repositoryNamePrefix = "5etools";
+        private static string _legacyRepositoryNamePrefix = "5etools-2014";
+
+        private static string _path = @"C:\Git\5etools-img-main\5etools-img-main\bestiary\tokens";
+        private static string _legacyPath = @"C:\Git\5etools-2014-img-main\5etools-2014-img-main\bestiary\tokens";
 
         /* How to use:
          * 
-         * 1. Download 5eTools github repository https://github.com/5etools-mirror-3/5etools-2014-src/tree/main
+         * 1. Download 5eTools img github repository https://github.com/5etools-mirror-3/5etools-2014-img
+         * 1. Download 5eTools legacy img github repository https://github.com/5etools-mirror-3/5etools-img
          * 2. Extract repository and go to /bestiary/tokens
-         * 3. Change _path to .../bestiary/tokens path
+         * 3. Change _path and _legacyPath to .../bestiary/tokens path for both repositories
          * 4. Run this application
          * 5. A "MonsterTokens.json" file will be created in /bestiary/tokens
          */
         static void Main()
         {
-            using var httpClient = new HttpClient();
-            var json = httpClient.GetStringAsync("https://raw.githubusercontent.com/5etools-mirror-3/5etools-2014-src/refs/heads/main/data/bestiary/index.json").Result;
-            var parsedJson = Regex.Replace(json, @"[^0-9a-zA-Z:,-.]+", "");
-
             // Gather different books
+            var books = GetBooks(_repositoryNamePrefix);
+            var legacyBooks = GetBooks(_legacyRepositoryNamePrefix);
+
+            // Remove duplicated books
+            foreach (var legacyBook in legacyBooks.ToList())
+            {
+                var book = books.SingleOrDefault(b => b.Source == legacyBook.Source);
+                if (book != null)
+                {
+                    books.Remove(book);
+                }
+            }
+
+            // Create list of tokens with monster info
+            var tokenData = CreateTokenData(books, _path, _repositoryNamePrefix);
+            var legacyTokenData = CreateTokenData(legacyBooks, _legacyPath, _legacyRepositoryNamePrefix);
+
+            // Combine tokens with legacy tokens
+            foreach (var legacyToken in legacyTokenData.Tokens)
+            {
+                if(tokenData.ContainsToken(legacyToken.Name))
+                {
+                    var token = tokenData.Tokens.Single(t => t.Name == legacyToken.Name);
+                    var legacyName = legacyToken.Name + " (2014)";
+
+                    token.LegacyName = legacyName;
+                    legacyToken.Name = legacyName;
+                }
+
+                tokenData.Tokens.Add(legacyToken);
+                tokenData.Sources.Add(legacyToken.Source);
+            }
+
+            tokenData.Sort();
+            tokenData.FillSources();
+            File.WriteAllText(_path + @"\MonsterTokens.json", JsonConvert.SerializeObject(tokenData, Formatting.Indented));
+        }
+
+        private static List<Book> GetBooks(string repositoryNamePrefix)
+        {
             var books = new List<Book>();
-            var monsterDictionary = new Dictionary<string, MonsterInfo>(StringComparer.OrdinalIgnoreCase);
+
+            using var httpClient = new HttpClient();
+            var json = httpClient.GetStringAsync($"https://raw.githubusercontent.com/{_repositoryUsername}/{repositoryNamePrefix}-src/refs/heads/main/data/bestiary/index.json").Result;
+            var parsedJson = Regex.Replace(json, @"[^0-9a-zA-Z:,-.]+", "");
 
             foreach (var pair in parsedJson.Split(','))
             {
                 var values = pair.Split(':');
                 if (!values[0].StartsWith("UA"))
                 {
-                    books.Add(new Book { Source = values[0], Json = values[1] });
+                    books.Add(new Book { Source = values[0], JsonLink = values[1] });
                 }
             }
+
+            return books;
+        }
+
+        private static TokenData CreateTokenData(List<Book> books, string pathToImages, string repositoryNamePrefix)
+        {
+            var monsterDictionary = new Dictionary<string, MonsterInfo>(StringComparer.OrdinalIgnoreCase);
+            using var httpClient = new HttpClient();
 
             // Gather monsters from bestiary
             foreach (var book in books)
             {
-                json = httpClient.GetStringAsync($"https://raw.githubusercontent.com/5etools-mirror-3/5etools-2014-src/refs/heads/main/data/bestiary/{book.Json}").Result;
+                var json = httpClient.GetStringAsync($"https://raw.githubusercontent.com/{_repositoryUsername}/{repositoryNamePrefix}-src/refs/heads/main/data/bestiary/{book.JsonLink}").Result;
                 var monsterRoot = JsonConvert.DeserializeObject<MonsterData>(json);
                 foreach (var monster in monsterRoot!.Monster)
                 {
@@ -57,7 +110,7 @@ namespace MonsterIndexer
 
             // Index images on disk using monster data
             var data = new TokenData();
-            foreach (var directory in Directory.GetDirectories(_path))
+            foreach (var directory in Directory.GetDirectories(pathToImages))
             {
                 foreach (var file in Directory.GetFiles(directory))
                 {
@@ -75,7 +128,8 @@ namespace MonsterIndexer
                                 Size = monsterDictionary[name].Size,
                                 Source = monsterDictionary[name].Source,
                                 Hp = monsterDictionary[name].Hp,
-                                TokenUrl = $"https://github.com/5etools-mirror-3/5etools-img/blob/main/bestiary/tokens/{source}/{Uri.EscapeDataString(name)}.webp?raw=true"
+                                TokenUrl = $"https://github.com/{_repositoryUsername}/{repositoryNamePrefix}-img/blob/main/bestiary/tokens/{source}/{Uri.EscapeDataString(name)}.webp?raw=true",
+                                StatblockUrl = $"https://5e.tools/bestiary.html#{Uri.EscapeDataString(name)}_{monsterDictionary[name].Source}"
                             });
                         }
                     }
@@ -83,14 +137,14 @@ namespace MonsterIndexer
             }
 
             data.FillSources();
-            File.WriteAllText(_path + @"\MonsterTokens.json", JsonConvert.SerializeObject(data, Formatting.Indented));
+            return data;
         }
     }
 
     public class Book
     {
         public string Source { get; set; } = "";
-        public string Json { get; set; } = "";
+        public string JsonLink { get; set; } = "";
     }
 
     public class MonsterData
@@ -123,8 +177,10 @@ namespace MonsterIndexer
     public class Token
     {
         public string Name { get; set; } = "";
+        public string LegacyName { get; set; } = null;
         public string Size { get; set; } = "";
         public string TokenUrl { get; set; } = "";
+        public string StatblockUrl { get; set; } = "";
         public string Source { get; set; } = "";
         public int Hp { get; set; }
     }
@@ -137,6 +193,11 @@ namespace MonsterIndexer
         public bool ContainsToken(string name)
         {
             return Tokens.SingleOrDefault(t => t.Name == name) != null;
+        }
+
+        public void Sort()
+        {
+            Tokens = Tokens.OrderBy(t => t.Source).ToList();
         }
 
         public void FillSources()

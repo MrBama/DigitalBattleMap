@@ -29,11 +29,12 @@ public class MonsterTokens : IMonsterTokens
     {
         _tokens.Clear();
         var rawData = GetRawData();
-        foreach (var file in IO.Directory.GetFiles(Constants.MonsterTokensPath))
+        var imageFiles = IO.Directory.GetFiles(Constants.MonsterTokensPath);
+        foreach (var file in imageFiles)
         {
             var tokenName = Path.GetFileNameWithoutExtension(file);
             var monsterToken = rawData.Tokens.SingleOrDefault(t => t.Name == tokenName);
-            if (monsterToken != null)
+            if (monsterToken != null && IsLegacyVariantAvailable(monsterToken, imageFiles))
             {
                 var token = new Token
                 {
@@ -41,7 +42,7 @@ public class MonsterTokens : IMonsterTokens
                     Size = ConvertSize(monsterToken.Size),
                     Orientation = TokenOrientation.West,
                     ImagePath = file,
-                    Statblock = new SourceStatblock(tokenName, monsterToken.Source),
+                    Statblock = new SourceStatblock(tokenName, monsterToken.StatblockUrl),
                     Hp = monsterToken.Hp != 0 ? monsterToken.Hp : null
                 };
 
@@ -75,14 +76,26 @@ public class MonsterTokens : IMonsterTokens
                 return TokenSize.Medium;
         }
     }
+
+    private bool IsLegacyVariantAvailable(MonsterToken monsterToken, string[] imageFiles)
+    {
+        if(monsterToken.LegacyName != null)
+        {
+            return imageFiles.SingleOrDefault(f => Path.GetFileNameWithoutExtension(f) == monsterToken.LegacyName) != null;
+        }
+
+        return true;
+    }
 }
 
 public class MonsterToken
 {
     public string Name { get; set; } = "";
+    public string LegacyName { get; set; } = null;
     public string Size { get; set; } = "";
     public string Orientation { get; set; } = "";
     public string TokenUrl { get; set; } = "";
+    public string StatblockUrl { get; set; } = "";
     public string Source { get; set; } = "";
     public int Hp { get; set; }
 }

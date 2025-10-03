@@ -37,14 +37,14 @@ public class SourceStatblock : Statblock
 {
     private WebViewPage _webViewPage;
 
-    public SourceStatblock(string sourceName, string sourceBook) : base(sourceName)
+    public SourceStatblock(string sourceName, string statblockUrl) : base(sourceName)
     {
         SourceName = sourceName;
-        SourceBook = sourceBook;
+        StatblockUrl = statblockUrl;
     }
 
     public string SourceName { get; set; }
-    public string SourceBook { get; set; }
+    public string StatblockUrl { get; set; }
 
     public override void Persist(string name)
     {
@@ -53,7 +53,7 @@ public class SourceStatblock : Statblock
 
     public override object Clone()
     {
-        return new SourceStatblock(SourceName, SourceBook)
+        return new SourceStatblock(SourceName, StatblockUrl)
         {
             Name = Name
         };
@@ -63,7 +63,7 @@ public class SourceStatblock : Statblock
     {
         if (_webViewPage == null)
         {
-            var uri = new Uri($"https://5e.tools/bestiary.html#{Uri.EscapeDataString(SourceName)}_{SourceBook}");
+            var uri = new Uri(StatblockUrl);
             _webViewPage = new WebViewPage(uri);
         }
 
