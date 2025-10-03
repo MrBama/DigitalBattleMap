@@ -163,6 +163,8 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         {
             linkedObject.UpdatePosition(offset);
         }
+
+        NotifyTokenChanged();
     }
 
     public override string ToString()
