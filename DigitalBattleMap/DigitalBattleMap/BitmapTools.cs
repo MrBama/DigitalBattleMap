@@ -232,9 +232,9 @@ public static class BitmapTools
 
         Bitmap bitmap = new Bitmap(width, height);
 
-        // Add 20% clearance for the image
-        var widthPadding = bitmap.Width / 5;
-        var heightPadding = bitmap.Height / 5;
+        // Add 25% clearance for the image
+        var widthPadding = bitmap.Width / 4;
+        var heightPadding = bitmap.Height / 4;
 
         var imageWidth = bitmap.Width - (2 * widthPadding);
         var imageHeight = bitmap.Height - (2 * heightPadding);

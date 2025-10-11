@@ -41,6 +41,7 @@
     <None Remove="Resources\ConditionIcons\Stabilized.png" />
     <None Remove="Resources\ConditionIcons\Stunned.png" />
     <None Remove="Resources\ConditionIcons\Unconcious.png" />
+    <None Remove="Resources\Digits\-.png" />
     <None Remove="Resources\Digits\0.png" />
     <None Remove="Resources\Digits\1.png" />
     <None Remove="Resources\Digits\2.png" />
@@ -89,6 +90,7 @@
     <EmbeddedResource Include="Resources\ConditionIcons\Stabilized.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Stunned.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Unconcious.png" />
+    <EmbeddedResource Include="Resources\Digits\-.png" />
     <EmbeddedResource Include="Resources\Digits\0.png" />
     <EmbeddedResource Include="Resources\Digits\1.png" />
     <EmbeddedResource Include="Resources\Digits\2.png" />

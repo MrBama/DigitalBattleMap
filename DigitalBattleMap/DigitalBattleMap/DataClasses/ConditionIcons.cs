@@ -47,6 +47,7 @@ public class ConditionIcons
     private Bitmap _7;
     private Bitmap _8;
     private Bitmap _9;
+    private Bitmap _minus;
 
     public ConditionIcons()
     {
@@ -86,6 +87,7 @@ public class ConditionIcons
         _7 = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_digitResourcePath}.7.png"));
         _8 = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_digitResourcePath}.8.png"));
         _9 = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_digitResourcePath}.9.png"));
+        _minus = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_digitResourcePath}.-.png"));
     }
 
     public Bitmap GetConditionIcon(Condition condition)
@@ -171,6 +173,8 @@ public class ConditionIcons
                 return _8;
             case '9':
                 return _9;
+            case '-':
+                return _minus;
             default:
                 return new(100, 100);
         }
