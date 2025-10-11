@@ -745,9 +745,12 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         var distanceToGridCellBorderX = Mathematics.Modulo<int>(tokenListItem.Position.X - gridOffset.X, gridSize);
         var distanceToGridCellBorderY = Mathematics.Modulo<int>(tokenListItem.Position.Y - gridOffset.Y, gridSize);
         var halfTokenSize = (int)Math.Round(gridSize * tokenListItem.Token.GetSizeFactor() / 2);
+        
+        // The minimum should be half a grid size in order to center small and tiny tokens
+        var distanceToCenterOfToken = Math.Max(halfTokenSize, gridSize / 2);
 
-        normilizedPosition.X = tokenListItem.Position.X - distanceToGridCellBorderX + halfTokenSize;
-        normilizedPosition.Y = tokenListItem.Position.Y - distanceToGridCellBorderY + halfTokenSize;
+        normilizedPosition.X = tokenListItem.Position.X - distanceToGridCellBorderX + distanceToCenterOfToken;
+        normilizedPosition.Y = tokenListItem.Position.Y - distanceToGridCellBorderY + distanceToCenterOfToken;
 
         return normilizedPosition;
     }
