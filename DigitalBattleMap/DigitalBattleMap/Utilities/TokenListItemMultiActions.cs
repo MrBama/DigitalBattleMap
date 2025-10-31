@@ -3,6 +3,7 @@ using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DigitalBattleMap.Utilities;
 
@@ -22,12 +23,7 @@ public class TokenListItemMultiActions : ITokenListItemMultiActions
     {
         Execute(tokenListItem, (TokenListItem selectedTokenListItem) =>
         {
-            var conditions = new List<Condition>();
-            foreach (var condition in tokenListItem.Conditions)
-            {
-                conditions.Add(condition);
-            }
-
+            var conditions = tokenListItem.Conditions.ToList();
             selectedTokenListItem.Conditions = conditions;
             OnConditionsChanged?.Invoke(this, new ConditionsChangedEventArgs { TokenIdentifier = selectedTokenListItem.GetTokenIdentifier(), NewConditions = conditions });
         });
@@ -45,8 +41,10 @@ public class TokenListItemMultiActions : ITokenListItemMultiActions
     {
         Execute(tokenListItem, (TokenListItem selectedTokenListItem) =>
         {
-            tokenListItem.Height = Math.Min(tokenListItem.Height, 999);
             selectedTokenListItem.Height = tokenListItem.Height;
+            var conditions = tokenListItem.Conditions.ToList();
+            selectedTokenListItem.Conditions = conditions;
+            OnConditionsChanged?.Invoke(this, new ConditionsChangedEventArgs { TokenIdentifier = selectedTokenListItem.GetTokenIdentifier(), NewConditions = conditions });
         });
     }
 

@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,6 +33,7 @@ public class ConnectionManager : IWebCommunication
     public event EventHandler<GetConditionsEventArgs> OnGetConditions;
     public event EventHandler<GetTokensEventArgs> OnGetTokens;
     public event EventHandler<SetOrientationEventArgs> OnSetOrientation;
+    public event EventHandler<SetHeightEventArgs> OnSetHeight;
 
     private bool _isConnected;
     private Queue<MapUpdate> _mapUpdateQueue = new();
@@ -125,6 +127,16 @@ public class ConnectionManager : IWebCommunication
         return Task.CompletedTask;
     }
 
+    public Task SetHeight(string character, int height)
+    {
+        if (_playerControlAllowed)
+        {
+            OnSetHeight?.Invoke(this, new SetHeightEventArgs { TokenIdentifier = new TokenIdentifier(character), Height = height });
+        }
+
+        return Task.CompletedTask;
+    }
+
     public void SendMapUpdate(MapUpdate mapUpdate)
     {
         if (!_isConnected)
@@ -187,6 +199,7 @@ public class ConnectionManager : IWebCommunication
         _webHubConnection.On<string>(nameof(GetConditions), GetConditions);
         _webHubConnection.On<string>(nameof(GetTokens), GetTokens);
         _webHubConnection.On<string, Orientation>(nameof(SetOrientation), SetOrientation);
+        _webHubConnection.On<string, int>(nameof(SetHeight), SetHeight);
     }
 
     private void SendMessages()

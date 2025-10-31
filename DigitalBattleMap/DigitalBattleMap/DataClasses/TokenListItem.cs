@@ -26,7 +26,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         TokenSizeChangedCommand = new RelayCommand(p => TokenSizeChanged((string)p));
         TokenOrientationChangedCommand = new RelayCommand(p => TokenOrientationChanged((string)p));
         ConditionChangedCommand = new RelayCommand(p => ConditionChanged((string)p));
-        ConditionHeightCommand = new RelayCommand(p => ConditionHeight());
+        ConditionHeightCommand = new RelayCommand(p => ConditionHeightChanged());
         ClearAllConditionsCommand = new RelayCommand(p => ClearAllConditions());
         TokenVisibilityCommand = new RelayCommand(p => ToggleTokenVisibility());
         MoveToFrontCommand = new RelayCommand(p => MoveToFront());
@@ -63,7 +63,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     public bool Visible { get => Get<bool>(); set => Set(value); }
     public int ZLevel { get; set; }
     public int Initiative { get => Get<int>(); set => Set(value, () => _multiActions?.InitiativeChanged(this)); }
-    public int Height { get => Get<int>(); set => Set(value, () => _multiActions?.HeightChanged(this)); }
+    public int Height { get => Get<int>(); set => Set(value); }
     public TokenHealth Health { get; set; } = new TokenHealth();
 
     [JsonIgnore]
@@ -167,6 +167,17 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         NotifyTokenChanged();
     }
 
+    public void SetHeight(int height)
+    {
+        if(Height != height)
+        {
+            Height = height;
+            ToggleHeightCondition();
+            NotifyConditionsChanged();
+            NotifyTokenChanged();
+        }
+    }
+
     public override string ToString()
     {
         return $"{Token.Name} ID: {Id}";
@@ -196,7 +207,15 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         NotifyTokenChanged();
     }
 
-    private void ConditionHeight()
+    private void ConditionHeightChanged()
+    {
+        ToggleHeightCondition();
+        _multiActions.HeightChanged(this);
+        NotifyConditionsChanged();
+        NotifyTokenChanged();
+    }
+
+    private void ToggleHeightCondition()
     {
         var height = Condition.Height;
         if (Height != 0)
@@ -214,10 +233,6 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
             }
         }
         NotifyPropertyChange(nameof(Conditions));
-
-        _multiActions.ConditionsChanged(this);
-        NotifyConditionsChanged();
-        NotifyTokenChanged();
     }
 
     private void ClearAllConditions()

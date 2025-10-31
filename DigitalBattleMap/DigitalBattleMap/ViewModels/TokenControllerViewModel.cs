@@ -48,6 +48,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         _webCommunication.OnMoveToken += MoveToken;
         _webCommunication.OnToggleCondition += ToggleCondition;
         _webCommunication.OnGetConditions += GetConditions;
+        _webCommunication.OnSetHeight += SetHeight;
         _settings = settings;
         _settings.OnSettingChanged += SettingChanged;
         _mapSize.OnGridSizeChanged += GridSizeChanged;
@@ -582,6 +583,18 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             if (tokenListItem != null && tokenListItem.Conditions.Count > 0)
             {
                 _webCommunication.SendMessage(new ConditionsMessage { TokenIdentifier = e.TokenIdentifier, Conditions = tokenListItem.Conditions });
+            }
+        }
+    }
+
+    private void SetHeight(object? sender, SetHeightEventArgs e)
+    {
+        lock (_lock)
+        {
+            TokenListItem? tokenListItem = TokenList.SingleOrDefault(t => t.GetTokenIdentifier().Equals(e.TokenIdentifier));
+            if (tokenListItem != null)
+            {
+                tokenListItem.SetHeight(e.Height);
             }
         }
     }

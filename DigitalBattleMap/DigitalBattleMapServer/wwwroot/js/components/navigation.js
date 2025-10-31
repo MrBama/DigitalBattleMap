@@ -26,6 +26,8 @@
     "btnUnconcious"
 ]
 
+const heightCondition = 25;
+
 let isInitialized = false;
 
 const connection = new signalR.HubConnectionBuilder()
@@ -103,7 +105,9 @@ connection.on("SetConditions", function (character, conditions) {
         }
 
         for (const condition of conditions) {
-            document.getElementById(conditionButtons[condition]).style.backgroundColor = '#303538';
+            if (condition != heightCondition) {
+                document.getElementById(conditionButtons[condition]).style.backgroundColor = '#303538';
+            }
         }
     }
 });
@@ -219,6 +223,18 @@ $(document).ready(function () {
             url: "Navigation/ChangeOrientation",
             type: "POST"
         })        
+    })
+
+    $(".btn-apply-height").click(function () {
+        let character = $("#tokens").val();
+        let height = $("#height").val();
+        $("#height").val("");
+
+        $.ajax({
+            url: "Navigation/SetHeight",
+            type: "POST",
+            data: { 'character': character, 'height': height }
+        })
     })
 });
 

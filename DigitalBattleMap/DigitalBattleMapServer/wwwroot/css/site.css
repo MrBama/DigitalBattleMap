@@ -96,6 +96,13 @@ body {
   margin-bottom: 15px;
 }
 
+.grid-container-height {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    justify-content: center;
+    grid-column-gap: 5px;
+}
+
 .btn-direction {
   height: 100px;
 }
@@ -105,6 +112,14 @@ body {
 }
 
 .btn-condition {
+  height: 50px;
+}
+
+.btn-apply-height {
+  height: 50px;
+}
+
+.input-height {
   height: 50px;
 }
 

@@ -12,6 +12,7 @@ public interface IWebCommunication
     public event EventHandler<GetConditionsEventArgs> OnGetConditions;
     public event EventHandler<GetTokensEventArgs> OnGetTokens;
     public event EventHandler<SetOrientationEventArgs> OnSetOrientation;
+    public event EventHandler<SetHeightEventArgs> OnSetHeight;
 
     public void SendMessage(IWebMessage webMessage);
 }

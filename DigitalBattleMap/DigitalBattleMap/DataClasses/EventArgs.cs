@@ -108,3 +108,9 @@ public class TokensOrientationChangedEventArgs : EventArgs
     public List<TokenIdentifier> TokenIdentifiers { get; set; } = new();
     public TokenOrientation Orientation { get; set; }
 }
+
+public class SetHeightEventArgs : EventArgs
+{
+    public TokenIdentifier TokenIdentifier { get; set; } = new();
+    public int Height { get; set; }
+}

@@ -60,6 +60,13 @@ public class NavigationController : Controller
     }
 
     [HttpPost]
+    public IActionResult SetHeight(string character, int height)
+    {
+        _webHub.Clients.All.SetHeight(character, height);
+        return Ok();
+    }
+
+    [HttpPost]
     public IActionResult ToggleCondition(string character, Condition condition)
     {
         _webHub.Clients.All.ToggleCondition(character, condition);
