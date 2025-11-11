@@ -36,9 +36,16 @@ function closeFullscreen() {
     }
 }
 
-connectionMap.on("UpdateMap", function (drawLayer) {
-    console.log(drawLayer);
+function updatePauseStatus(isPaused) {
+    if (isPaused) {
+        $('#pauseImage').show()
+    }
+    else {
+        $('#pauseImage').hide()
+    }
+}
 
+connectionMap.on("UpdateMap", function (drawLayer) {
     switch (drawLayer) {
         case 0:
             $('#tokenImage').attr('src', tokensUrl + '&t=' + new Date().getTime());
@@ -58,9 +65,23 @@ connectionMap.on("UpdateMap", function (drawLayer) {
 
 });
 
+connectionMap.on("UpdatePauseStatus", function (isPaused) {
+    updatePauseStatus(isPaused);
+});
+
 async function start() {
     try {
         await connectionMap.start();
+
+        $.ajax({
+            url: "Map/GetPauseStatus",
+            type: "GET",
+            success: function (isPaused) {
+                let paused = isPaused.toLowerCase() === "true";
+                updatePauseStatus(paused);
+            }
+        })
+
     } catch (error) {
         console.log(error);
     }

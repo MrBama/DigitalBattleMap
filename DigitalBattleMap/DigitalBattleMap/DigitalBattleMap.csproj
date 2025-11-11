@@ -54,6 +54,7 @@
     <None Remove="Resources\Digits\9.png" />
     <None Remove="Resources\DrawingEmblem.png" />
     <None Remove="Resources\MonsterTokens.json" />
+    <None Remove="Resources\PauseIcon.png" />
     <None Remove="Resources\RedoIcon.png" />
     <None Remove="Resources\SaveFileIcon.ico" />
     <None Remove="Resources\TokenEmblem.png" />
@@ -103,6 +104,7 @@
     <EmbeddedResource Include="Resources\Digits\9.png" />
     <EmbeddedResource Include="Resources\DrawingEmblem.png" />
     <EmbeddedResource Include="Resources\MonsterTokens.json" />
+    <EmbeddedResource Include="Resources\PauseIcon.png" />
     <EmbeddedResource Include="Resources\RedoIcon.png" />
     <EmbeddedResource Include="Resources\SaveFileIcon.ico" />
     <EmbeddedResource Include="Resources\TokenEmblem.png" />

@@ -10,6 +10,7 @@ namespace DigitalBattleMapServer.Controllers;
 [Produces("application/json")]
 public class MapController : Controller
 {
+    private const string cacheKeyIsPaused = "IsPaused";
     private readonly IHubContext<MapHub, IMapHub> _hubContext;
     private readonly IMemoryCacheHandler _memoryCacheHandler;
 
@@ -28,11 +29,20 @@ public class MapController : Controller
     [HttpGet]
     public IActionResult Get(DrawLayer layer)
     {
-        byte[] data = _memoryCacheHandler.Get(layer.ToString());
+        var data = _memoryCacheHandler.Get<byte[]>(layer.ToString());
         if (data?.Any() == false)
             return NotFound();
 
+        data ??= Array.Empty<byte>();
+
         return File(data, "image/png");
+    }
+
+    [HttpGet]
+    public IActionResult GetPauseStatus()
+    {
+        var isPaused = _memoryCacheHandler.Get<bool>(cacheKeyIsPaused);
+        return Content(isPaused.ToString());
     }
 
     [HttpPost]
@@ -41,6 +51,14 @@ public class MapController : Controller
         _memoryCacheHandler.Set(mapUpdateDto.Layer.ToString(), mapUpdateDto.Data);
         await _hubContext.Clients.All.UpdateMap(mapUpdateDto.Layer);
 
+        return Ok();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SetPaused([FromBody] PausedDto pausedDto)
+    {
+        _memoryCacheHandler.Set(cacheKeyIsPaused, pausedDto.IsPaused);
+        await _hubContext.Clients.All.UpdatePauseStatus(pausedDto.IsPaused);
         return Ok();
     }
 

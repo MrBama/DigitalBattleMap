@@ -153,7 +153,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     protected override void InitializeCommands()
     {
-        ShowMapCommand = new RelayCommand(p => ShowMap());
+        ShowMapCommand = new RelayCommand(p => ShowMapToPlayers());
         WindowClosingCommand = new RelayCommand(p => WindowClosing());
         CanvasSizeOnStartupCommand = new RelayCommand(p => SetCanvasSize((double)p));
         CanvasSizeChangedCommand = new RelayCommand(p => CanvasSizeChanged((SizeChangedEventArgs)p));
@@ -245,6 +245,12 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         {
             _windowService.HideWindow(_mapWindowViewModel);
         }
+    }
+
+    private void ShowMapToPlayers()
+    {
+        UpdatePauseStatus();
+        ShowMap();
     }
 
     private void ShowMap(DrawLayer drawing = 0)
@@ -680,9 +686,20 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         ServerConnectionStatusColor = System.Windows.Media.Brushes.Green;
     }
 
+    private void UpdatePauseStatus()
+    {
+        var paused = !IsShowMapLocked && TokenController.IsAnyTokenControlledByPlayer();
+        if (paused != _mapWindowViewModel.IsPaused)
+        {
+            _mapWindowViewModel.IsPaused = paused;
+            _connectionManager.SendMessage(new PauseMessage() { IsPaused = paused });
+        }
+    }
+
     private void IsShowMapLockedChanged()
     {
         _connectionManager?.UpdatePlayerControlAllowed(IsShowMapLocked);
+        UpdatePauseStatus();
         UpdateMap(DrawLayer.All);
     }
 

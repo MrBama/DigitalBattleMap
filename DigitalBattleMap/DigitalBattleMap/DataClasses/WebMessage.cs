@@ -72,3 +72,19 @@ class CampaignMessage : IWebMessage
         return message;
     }
 }
+
+class PauseMessage : IWebMessage
+{
+    public bool IsPaused { get; set; }
+
+    public HttpRequestMessage CreateHttpRequestMessage()
+    {
+        var dto = new PausedDto { IsPaused = IsPaused };
+        string json = JsonSerializer.Serialize(dto);
+
+        StringContent content = new(json);
+        content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+        HttpRequestMessage message = new(HttpMethod.Post, "/Map/SetPaused") { Content = content };
+        return message;
+    }
+}

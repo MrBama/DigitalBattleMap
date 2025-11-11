@@ -2,9 +2,9 @@
 
 public interface IMemoryCacheHandler
 {
-    byte[] Get(string key);
+    T Get<T>(string key);
 
-    void Set(string key, byte[] value);
+    void Set<T>(string key, T value);
 
     void Delete(string key);
 }

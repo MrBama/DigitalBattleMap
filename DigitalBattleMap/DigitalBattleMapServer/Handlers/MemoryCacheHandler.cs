@@ -11,14 +11,14 @@ public class MemoryCacheHandler : IMemoryCacheHandler
         _memoryCache = memoryCache;
     }
 
-    public byte[] Get(string key)
+    public T Get<T>(string key)
     {
         ValidateKey(key);
-        _memoryCache.TryGetValue(key, out byte[] value);
-        return value ?? Array.Empty<byte>();
+        _memoryCache.TryGetValue(key, out T value);
+        return value ?? default;
     }
 
-    public void Set(string key, byte[] value)
+    public void Set<T>(string key, T value)
     {
         ValidateKey(key);
         _memoryCache.Set(key, value);

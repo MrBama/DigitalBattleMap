@@ -768,6 +768,19 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         return normilizedPosition;
     }
 
+    public bool IsAnyTokenControlledByPlayer()
+    {
+        foreach (var tokenListItem in TokenList)
+        {
+            if(_players.IsTokenControlledByPlayer(tokenListItem.GetTokenIdentifier()))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private string GetTokenIdString(TokenListItem tokenListItem)
     {
         var tokenId = "";
