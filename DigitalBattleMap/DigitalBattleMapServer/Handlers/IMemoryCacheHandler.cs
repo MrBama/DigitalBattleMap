@@ -7,4 +7,6 @@ public interface IMemoryCacheHandler
     void Set<T>(string key, T value);
 
     void Delete(string key);
+
+    void Clear();
 }

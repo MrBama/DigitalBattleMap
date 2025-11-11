@@ -2,6 +2,7 @@
 using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.AspNetCore.SignalR.Protocol;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -81,6 +82,10 @@ public class ConnectionManager : IWebCommunication
 
     public void Disconnect()
     {
+        if (!_isConnected)
+            return;
+
+        SendHttpMessage(new ClearCacheMessage("Map"));
         Disconnect(false);
     }
 

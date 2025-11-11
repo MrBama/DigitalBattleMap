@@ -5,6 +5,7 @@ namespace DigitalBattleMapServer.Handlers;
 public class MemoryCacheHandler : IMemoryCacheHandler
 {
     private readonly IMemoryCache _memoryCache;
+    private HashSet<string> _keys = new();
 
     public MemoryCacheHandler(IMemoryCache memoryCache)
     {
@@ -21,13 +22,23 @@ public class MemoryCacheHandler : IMemoryCacheHandler
     public void Set<T>(string key, T value)
     {
         ValidateKey(key);
+        _keys.Add(key);
         _memoryCache.Set(key, value);
     }
 
     public void Delete(string key)
     {
         ValidateKey(key);
+        _keys.Remove(key);
         _memoryCache.Remove(key);
+    }
+
+    public void Clear()
+    {
+        foreach (var key in _keys)
+        {
+            Delete(key);
+        }
     }
 
     private void ValidateKey(string key)

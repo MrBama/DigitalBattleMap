@@ -62,6 +62,13 @@ public class MapController : Controller
         return Ok();
     }
 
+    [HttpPost]
+    public IActionResult ClearCache()
+    {
+        _memoryCacheHandler.Clear();
+        return Ok();
+    }
+
     [HttpDelete]
     public IActionResult Delete(DrawLayer layer)
     {

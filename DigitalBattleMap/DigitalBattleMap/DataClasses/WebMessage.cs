@@ -88,3 +88,18 @@ class PauseMessage : IWebMessage
         return message;
     }
 }
+
+class ClearCacheMessage : IWebMessage
+{
+    private string _hubName;
+
+    public ClearCacheMessage(string hubName)
+    {
+        _hubName = hubName;
+    }
+
+    public HttpRequestMessage CreateHttpRequestMessage()
+    {
+        return new(HttpMethod.Post, $"/{_hubName}/ClearCache");
+    }
+}

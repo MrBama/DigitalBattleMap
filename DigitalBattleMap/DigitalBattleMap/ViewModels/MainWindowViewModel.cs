@@ -684,6 +684,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         ServerConnectionButtonEnabled = true;
         ServerConnectionStatus = "Connected";
         ServerConnectionStatusColor = System.Windows.Media.Brushes.Green;
+        _connectionManager.SendMessage(new PauseMessage() { IsPaused = _mapWindowViewModel.IsPaused });
     }
 
     private void UpdatePauseStatus()
