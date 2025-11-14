@@ -30,7 +30,6 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
         _monsterTokens = monsterTokens;
         _settings = settings;
         _webCommunication.OnConnected += OnWebCommunicationConnected;
-        _webCommunication.OnGetTokens += OnGetTokens;
         _webCommunication.OnSetOrientation += SetOrientation;
         Campaigns = new(settings.Campaigns.Clone().OrderBy(c => c.Name));
         SetCurrentCampaign(Campaigns.SingleOrDefault(c => string.Equals(c.Name, settings.CurrentCampaignName, StringComparison.CurrentCultureIgnoreCase)));
@@ -357,17 +356,6 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
         if (CurrentCampaign != null)
         {
             _webCommunication.SendMessage(new CampaignMessage { Players = new List<Player>(CurrentCampaign.Players.Clone()) });
-        }
-    }
-
-    private void OnGetTokens(object? sender, GetTokensEventArgs e)
-    {
-        if (CurrentCampaign != null)
-        {
-            if (TryGetPlayer(e.Player, out var player))
-            {
-                _webCommunication.SendMessage(new TokensMessage { Player = e.Player, Tokens = player.TokenIdentifiers.ToStringList() });
-            }
         }
     }
 

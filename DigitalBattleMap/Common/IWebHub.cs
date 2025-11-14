@@ -12,6 +12,5 @@ public interface IWebHub
     Task ToggleCondition(string character, Condition condition);
     Task SetOrientation(string player, Orientation orientation);
     Task SetHeight(string character, int height);
-    Task GetTokens(string player);
     Task GetConditions(string character);
 }

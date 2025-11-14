@@ -32,7 +32,6 @@ public class ConnectionManager : IWebCommunication
     public event EventHandler<MoveTokenEventArgs> OnMoveToken;
     public event EventHandler<ToggleConditionEventArgs> OnToggleCondition;
     public event EventHandler<GetConditionsEventArgs> OnGetConditions;
-    public event EventHandler<GetTokensEventArgs> OnGetTokens;
     public event EventHandler<SetOrientationEventArgs> OnSetOrientation;
     public event EventHandler<SetHeightEventArgs> OnSetHeight;
 
@@ -85,7 +84,7 @@ public class ConnectionManager : IWebCommunication
         if (!_isConnected)
             return;
 
-        SendHttpMessage(new ClearCacheMessage("Map"));
+        SendHttpMessage(new ClearCacheMessage());
         Disconnect(false);
     }
 
@@ -117,12 +116,6 @@ public class ConnectionManager : IWebCommunication
     public Task GetConditions(string character)
     {
         OnGetConditions?.Invoke(this, new GetConditionsEventArgs { TokenIdentifier = new TokenIdentifier(character) });
-        return Task.CompletedTask;
-    }
-
-    public Task GetTokens(string player)
-    {
-        OnGetTokens?.Invoke(this, new GetTokensEventArgs { Player = player });
         return Task.CompletedTask;
     }
 
@@ -202,7 +195,6 @@ public class ConnectionManager : IWebCommunication
         _webHubConnection.On<string, Direction>(nameof(MoveToken), MoveToken);
         _webHubConnection.On<string, Condition>(nameof(ToggleCondition), ToggleCondition);
         _webHubConnection.On<string>(nameof(GetConditions), GetConditions);
-        _webHubConnection.On<string>(nameof(GetTokens), GetTokens);
         _webHubConnection.On<string, Orientation>(nameof(SetOrientation), SetOrientation);
         _webHubConnection.On<string, int>(nameof(SetHeight), SetHeight);
     }

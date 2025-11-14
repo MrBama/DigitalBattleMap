@@ -96,6 +96,25 @@ function initializeServerConnection() {
     }
 }
 
+function setTokens(tokens) {
+    initializeServerConnection();
+
+    let select = document.getElementById("tokens");
+
+    while (select.options.length > 0) {
+        select.remove(0);
+    }
+
+    for (const token of tokens) {
+        let option = document.createElement("option");
+        option.text = token;
+        option.value = token;
+        select.add(option);
+    }
+
+    getConditions();
+}
+
 connection.on("SetConditions", function (character, conditions) {
     let selectedCharacter = $("#tokens").val();
 
@@ -116,22 +135,7 @@ connection.on("SetTokens", function (player, tokens) {
     let settings = getSettings();
 
     if (settings != null && settings.Name.localeCompare(player, undefined, { sensitivity: 'accent' }) === 0) {
-        initializeServerConnection();
-
-        let select = document.getElementById("tokens");
-
-        while (select.options.length > 0) {
-            select.remove(0);
-        }
-
-        for (const token of tokens) {
-            let option = document.createElement("option");
-            option.text = token;
-            option.value = token;
-            select.add(option);
-        }
-
-        getConditions();
+        setTokens(tokens);
     }
 });
 
@@ -143,19 +147,9 @@ connection.on("SetCampaign", function (players) {
 
     initializeServerConnection();
 
-    let select = document.getElementById("tokens");
-    while (select.options.length > 0) {
-        select.remove(0);
-    }
-
     for (const player in players) {
-        if (settings.Name.localeCompare(player, undefined, { sensitivity: 'accent' }) === 0) {        
-            for (const token of players[player]) {
-                let option = document.createElement("option");
-                option.text = token;
-                select.add(option);
-            }
-            getConditions();
+        if (settings.Name.localeCompare(player, undefined, { sensitivity: 'accent' }) === 0) {
+            setTokens(players[player])
         }
     }
 });
@@ -247,8 +241,15 @@ async function start() {
         if (settings != null) {
             $.ajax({
                 url: "Navigation/GetTokens",
-                type: "POST",
-                data: { 'player': settings.Name }
+                type: "GET",
+                data: { 'player': settings.Name },
+                success: function (tokens) {
+                    if (tokens != "") {
+                        let jsonObject = JSON.parse(tokens);
+                        setTokens(jsonObject);
+                    }
+
+                }
             })
         }
         else {

@@ -1,10 +1,13 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.Common.Dto;
 using DigitalBattleMapServer.Application;
+using DigitalBattleMapServer.Handlers;
 using DigitalBattleMapServer.Hubs;
 using DigitalBattleMapServer.Utility;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using System.Collections.Generic;
+using System.Text.Json;
 
 namespace DigitalBattleMapServer.Controllers;
 
@@ -13,10 +16,12 @@ public class NavigationController : Controller
 {
     private readonly IHubContext<WebHub, IWebHub> _webHub;
     private readonly IState<Settings> _settings;
+    private readonly IMemoryCacheHandler _memoryCacheHandler;
 
-    public NavigationController(IHubContext<WebHub, IWebHub> webHub, IState<Settings> settings)
+    public NavigationController(IHubContext<WebHub, IWebHub> webHub, IMemoryCacheHandler memoryCacheHandler, IState<Settings> settings)
     {
         _webHub = webHub;
+        _memoryCacheHandler = memoryCacheHandler;
         _settings = settings;
     }
 
@@ -83,6 +88,13 @@ public class NavigationController : Controller
     [HttpPost]
     public IActionResult SetTokens([FromBody] TokensDto tokensDto)
     {
+        var campaign = _memoryCacheHandler.Get<Dictionary<string, List<string>>>(CacheKeys.Campaign);
+        if(campaign != null)
+        {
+            campaign[tokensDto.Player.ToLower()] = tokensDto.Tokens;
+            _memoryCacheHandler.Set(CacheKeys.Campaign, campaign);
+        }
+
         _webHub.Clients.All.SetTokens(tokensDto.Player, tokensDto.Tokens);
         return Ok();
     }
@@ -90,14 +102,13 @@ public class NavigationController : Controller
     [HttpPost]
     public IActionResult SetCampaign([FromBody] CampaignDto campaignDto)
     {
-        _webHub.Clients.All.SetCampaign(campaignDto.Players);
-        return Ok();
-    }
-
-    [HttpPost]
-    public IActionResult GetTokens(string player)
-    {
-        _webHub.Clients.All.GetTokens(player);
+        Dictionary<string, List<string>> players = new();
+        foreach (var player in campaignDto.Players)
+        {
+            players[player.Key.ToLower()] = player.Value;
+        }
+        _memoryCacheHandler.Set(CacheKeys.Campaign, players);
+        _webHub.Clients.All.SetCampaign(players);
         return Ok();
     }
 
@@ -105,6 +116,29 @@ public class NavigationController : Controller
     public IActionResult GetConditions(string character)
     {
         _webHub.Clients.All.GetConditions(character);
+        return Ok();
+    }
+
+    [HttpPost]
+    public IActionResult ClearCache()
+    {
+        _memoryCacheHandler.Clear();
+        return Ok();
+    }
+
+    [HttpGet]
+    public IActionResult GetTokens(string player)
+    {
+        var campaign = _memoryCacheHandler.Get<Dictionary<string, List<string>>>(CacheKeys.Campaign);
+        if (campaign != null)
+        {
+            if (campaign.TryGetValue(player.ToLower(), out var tokens))
+            {
+                string json = JsonSerializer.Serialize(tokens);
+                return Content(json);
+            }
+        }
+
         return Ok();
     }
 

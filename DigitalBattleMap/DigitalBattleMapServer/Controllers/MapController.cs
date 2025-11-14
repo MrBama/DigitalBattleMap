@@ -2,6 +2,7 @@
 using DigitalBattleMap.Common.Dto;
 using DigitalBattleMapServer.Handlers;
 using DigitalBattleMapServer.Hubs;
+using DigitalBattleMapServer.Utility;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 
@@ -10,7 +11,6 @@ namespace DigitalBattleMapServer.Controllers;
 [Produces("application/json")]
 public class MapController : Controller
 {
-    private const string cacheKeyIsPaused = "IsPaused";
     private readonly IHubContext<MapHub, IMapHub> _hubContext;
     private readonly IMemoryCacheHandler _memoryCacheHandler;
 
@@ -41,7 +41,7 @@ public class MapController : Controller
     [HttpGet]
     public IActionResult GetPauseStatus()
     {
-        var isPaused = _memoryCacheHandler.Get<bool>(cacheKeyIsPaused);
+        var isPaused = _memoryCacheHandler.Get<bool>(CacheKeys.IsPaused);
         return Content(isPaused.ToString());
     }
 
@@ -57,15 +57,8 @@ public class MapController : Controller
     [HttpPost]
     public async Task<IActionResult> SetPaused([FromBody] PausedDto pausedDto)
     {
-        _memoryCacheHandler.Set(cacheKeyIsPaused, pausedDto.IsPaused);
+        _memoryCacheHandler.Set(CacheKeys.IsPaused, pausedDto.IsPaused);
         await _hubContext.Clients.All.UpdatePauseStatus(pausedDto.IsPaused);
-        return Ok();
-    }
-
-    [HttpPost]
-    public IActionResult ClearCache()
-    {
-        _memoryCacheHandler.Clear();
         return Ok();
     }
 

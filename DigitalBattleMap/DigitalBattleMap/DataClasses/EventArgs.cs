@@ -41,11 +41,6 @@ public class CanvasSizeChangedEventArgs : EventArgs
     public Size<double> NewSize { get; set; } = new();
 }
 
-public class GetTokensEventArgs : EventArgs
-{
-    public string Player { get; set; } = "";
-}
-
 public class SetOrientationEventArgs : EventArgs
 {
     public string Player { get; set; } = "";
