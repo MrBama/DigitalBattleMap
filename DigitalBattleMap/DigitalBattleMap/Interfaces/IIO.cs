@@ -20,6 +20,7 @@ public interface IFile
     public void WriteAllText(string path, string? contents);
     public Bitmap LoadBitmap(string path);
     public Bitmap LoadBitmap(Stream stream);
+    public Bitmap? LoadBitmapFromClipboard();
     public void Copy(string sourceFileName, string destFileName);
 }
 

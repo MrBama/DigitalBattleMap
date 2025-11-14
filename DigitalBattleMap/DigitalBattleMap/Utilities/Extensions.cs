@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -22,6 +23,15 @@ public static class Extensions
         bitmap.UnlockBits(bitmapData);
         bitmapSource.Freeze(); // This is required when a dependency property (ImageSource) is create from a different thread. E.g. Token moves from the web server.
         return bitmapSource;
+    }
+
+    public static Bitmap ToBitmap(this BitmapSource bitmapSource)
+    {
+        var bitmap = new Bitmap(bitmapSource.PixelWidth, bitmapSource.PixelHeight, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
+        BitmapData data = bitmap.LockBits(new Rectangle(System.Drawing.Point.Empty, bitmap.Size), ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
+        bitmapSource.CopyPixels(Int32Rect.Empty, data.Scan0, data.Height * data.Stride, data.Stride);
+        bitmap.UnlockBits(data);
+        return bitmap;
     }
 
     public static void Log(this Exception exception)

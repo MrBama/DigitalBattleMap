@@ -3,6 +3,7 @@ using ImageMagick;
 using System;
 using System.Drawing;
 using System.IO;
+using System.Windows;
 
 namespace DigitalBattleMap.Utilities;
 
@@ -108,7 +109,7 @@ public class File : IFile
         }
         catch (Exception)
         {
-            // use 'MagickImage()' if you want just the 1st frame of an animated image. 
+            // use 'MagickImage()' if you want just the 1st frame of an animated image or support additional image formats
             using var magickImages = new MagickImage(path);
             var ms = new MemoryStream();
             magickImages.Write(ms, MagickFormat.Png);
@@ -121,6 +122,23 @@ public class File : IFile
     {
         using var tempBitmap = new Bitmap(stream);
         return new(tempBitmap);
+    }
+
+    public Bitmap? LoadBitmapFromClipboard()
+    {
+        Bitmap? bitmap = null;
+        var bitmapSource = Clipboard.GetImage();
+        if(bitmapSource != null)
+        {
+            try
+            {
+                bitmap = new Bitmap(bitmapSource.ToBitmap());
+            }
+            catch
+            {
+            }
+        }
+        return bitmap;
     }
 
     public void Copy(string sourceFileName, string destFileName)

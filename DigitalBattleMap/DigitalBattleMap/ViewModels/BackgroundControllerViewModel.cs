@@ -69,6 +69,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     protected override void InitializeCommands()
     {
         OpenBackgroundCommand = new RelayCommand(p => OpenBackground());
+        OpenBackgroundFromClipboardCommand = new RelayCommand(p => OpenBackgroundFromClipboard());
         OpenGMOverlayCommand = new RelayCommand(p => OpenGMOverlay());
         ClearBackgroundCommand = new RelayCommand(p => ClearBackground());
         ClearGMOverlayCommand = new RelayCommand(p => ClearGMOverlay());
@@ -107,6 +108,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
 
     public ICommand OpenBackgroundCommand { get; set; }
+    public ICommand OpenBackgroundFromClipboardCommand { get; set; }
     public ICommand OpenGMOverlayCommand { get; set; }
     public ICommand ClearBackgroundCommand { get; set; }
     public ICommand ClearGMOverlayCommand { get; set; }
@@ -233,36 +235,6 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         }
 
         return false;
-    }
-
-    public void OpenBackground()
-    {
-        if (_windowService.ShowOpenFileDialog(out string path))
-        {
-            _fullBackgroundBitmap = IO.File.LoadBitmap(path);
-            _area = new Rectangle(
-                (_fullBackgroundBitmap.Width / 2) - (_mapSize.Width / 2),
-                (_fullBackgroundBitmap.Height / 2) - (_mapSize.Height / 2),
-                _mapSize.Width,
-                _mapSize.Height);
-
-            ExtractGridCells(Path.GetFileNameWithoutExtension(path));
-            FeetPerGridCell = Constants.FeetPerGridCell;
-            HasOpenedBackground = true;
-            IsFogOfWarEnabled = false;
-            _fogOfWarAreas.Clear();
-            CreateBackground();
-        }
-    }
-
-    public void OpenGMOverlay()
-    {
-        if (_windowService.ShowOpenFileDialog(out string path))
-        {
-            _gmOverlayBitmap = IO.File.LoadBitmap(path);
-            HasOpenGMOverlay = true;
-            CreateBackground();
-        }
     }
 
     public void ClearBackground()
@@ -392,6 +364,50 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public double GetZoomFactor()
     {
         return _area.Width / (double)_mapSize.Width;
+    }
+
+    private void OpenBackground()
+    {
+        if (_windowService.ShowOpenFileDialog(out string path))
+        {
+            ExtractGridCells(Path.GetFileNameWithoutExtension(path));
+            OpenBackground(IO.File.LoadBitmap(path));
+        }
+    }
+
+    private void OpenBackgroundFromClipboard()
+    {
+        var bitmap = IO.File.LoadBitmapFromClipboard();
+        if (bitmap != null)
+        {
+            OpenBackground(bitmap);
+        }
+    }
+
+    private void OpenBackground(Bitmap bitmap)
+    {
+        _fullBackgroundBitmap = bitmap;
+        _area = new Rectangle(
+            (_fullBackgroundBitmap.Width / 2) - (_mapSize.Width / 2),
+            (_fullBackgroundBitmap.Height / 2) - (_mapSize.Height / 2),
+            _mapSize.Width,
+            _mapSize.Height);
+
+        FeetPerGridCell = Constants.FeetPerGridCell;
+        HasOpenedBackground = true;
+        IsFogOfWarEnabled = false;
+        _fogOfWarAreas.Clear();
+        CreateBackground();
+    }
+
+    private void OpenGMOverlay()
+    {
+        if (_windowService.ShowOpenFileDialog(out string path))
+        {
+            _gmOverlayBitmap = IO.File.LoadBitmap(path);
+            HasOpenGMOverlay = true;
+            CreateBackground();
+        }
     }
 
     private void MouseDown(object? sender, MouseButtonDataEventArgs e)

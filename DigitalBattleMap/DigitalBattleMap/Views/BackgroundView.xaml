@@ -15,6 +15,7 @@
     <UserControl.Resources>
         <uielements:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <uielements:BoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter" IsInverted="True"/>
+        <uielements:BoolToInvertedBoolConverter x:Key="InvertBoolConverter"/>
     </UserControl.Resources>
 
     <!--Background editor grid-->
@@ -33,13 +34,15 @@
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <Button Content="Open background" Command="{Binding OpenBackgroundCommand}"/>
+        <Button Grid.Row="1" Content="Open from clipboard" Command="{Binding OpenBackgroundFromClipboardCommand}" Margin="0 10 0 0" IsEnabled="{Binding HasOpenedBackground, Converter={StaticResource InvertBoolConverter}}"/>
 
         <!--Zoom buttons grid-->
-        <Grid Grid.Row="1" Margin="0 10 0 0">
+        <Grid Grid.Row="2" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -49,7 +52,7 @@
         </Grid>
         
         <!--Zoom factor grid-->
-        <Grid Grid.Row="2" Margin="0 10 0 0">
+        <Grid Grid.Row="3" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
@@ -59,10 +62,10 @@
             <Slider Grid.Column="1" VerticalAlignment="Center" Minimum="1" Maximum="100" Value="{Binding BackgroundZoomPercentage, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True" Margin="10 0 10 0"/>
             <Label Grid.Column="2" Content="{Binding BackgroundZoomPercentageLabel}" />
         </Grid>
-        <Button Grid.Row="3" Margin="0 10 0 0" Content="Fit to grid" Command="{Binding FitBackgroundToGridCommand}" IsEnabled="{Binding IsBackgroundEditingAllowed}"/>
+        <Button Grid.Row="4" Margin="0 10 0 0" Content="Fit to grid" Command="{Binding FitBackgroundToGridCommand}" IsEnabled="{Binding IsBackgroundEditingAllowed}"/>
 
         <!--Fit background cells grid-->
-        <Grid Grid.Row="4" Margin="0 10 0 0">
+        <Grid Grid.Row="5" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
@@ -77,7 +80,7 @@
         </Grid>
         
         <!--Fit background feet grid-->
-        <Grid Grid.Row="5" Margin="0 10 0 0">
+        <Grid Grid.Row="6" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="4*"/>
                 <ColumnDefinition Width="2*"/>
@@ -89,7 +92,7 @@
         </Grid>
 
         <!--Enable fog of war grid-->
-        <Grid Grid.Row="6" Margin="0 10 0 0">
+        <Grid Grid.Row="7" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
@@ -99,7 +102,7 @@
         </Grid>
 
         <!--Remove fog shape grid-->
-        <Grid Grid.Row="7" Margin="0 10 0 0">
+        <Grid Grid.Row="8" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="auto"/>
@@ -111,7 +114,7 @@
         </Grid>
 
         <!--Remove fog grid-->
-        <Grid Grid.Row="8" Margin="0 10 0 0" IsEnabled="{Binding IsFogOfWarEnabled}">
+        <Grid Grid.Row="9" Margin="0 10 0 0" IsEnabled="{Binding IsFogOfWarEnabled}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -119,9 +122,9 @@
             <Button Content="Cancel" Margin="0 0 5 0" Command="{Binding CancelFogRemovalCommand}" IsEnabled="{Binding IsFogOfWarAreaSelected}" />
             <Button Grid.Column="1" Content="Apply" Margin="5 0 0 0" Command="{Binding ApplyFogOfWarCommand}" IsEnabled="{Binding IsFogOfWarAreaSelected}" />
         </Grid>
-        <Button Grid.Row="9" Content="Clear fog" Margin="0 10 0 0" IsEnabled="{Binding IsFogOfWarEnabled}" Command="{Binding ClearFogCommand}"/>
+        <Button Grid.Row="10" Content="Clear fog" Margin="0 10 0 0" IsEnabled="{Binding IsFogOfWarEnabled}" Command="{Binding ClearFogCommand}"/>
 
-        <Grid Grid.Row="10" Margin="0 10 0 0">
+        <Grid Grid.Row="11" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
@@ -132,7 +135,7 @@
             <Separator Grid.Column="2" BorderThickness="1" BorderBrush="Gray"/>
         </Grid>
 
-        <Grid Grid.Row="11" Margin="0 10 0 0">
+        <Grid Grid.Row="12" Margin="0 10 0 0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
@@ -156,7 +159,7 @@
             <CheckBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding IsGridShown}" Margin="0 10 0 0"/>
         </Grid>
 
-        <Grid Grid.Row="12" Margin="0 10 0 0">
+        <Grid Grid.Row="13" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
@@ -172,7 +175,7 @@
             <Button Grid.Row="1" Grid.ColumnSpan="3" Content="Open overlay" Command="{Binding OpenGMOverlayCommand}"/>
         </Grid>
 
-        <Button Grid.Row="13" Content="Clear overlay" Command="{Binding ClearGMOverlayCommand}" Margin="0 10 0 0" VerticalAlignment="Top"/>
-        <Button Grid.Row="13" Content="Clear" Command="{Binding ClearBackgroundCommand}" Margin="0 10 0 0" VerticalAlignment="Bottom"/>
+        <Button Grid.Row="14" Content="Clear overlay" Command="{Binding ClearGMOverlayCommand}" Margin="0 10 0 0" VerticalAlignment="Top"/>
+        <Button Grid.Row="15" Content="Clear" Command="{Binding ClearBackgroundCommand}" Margin="0 10 0 0" VerticalAlignment="Bottom"/>
     </Grid>
 </UserControl>
