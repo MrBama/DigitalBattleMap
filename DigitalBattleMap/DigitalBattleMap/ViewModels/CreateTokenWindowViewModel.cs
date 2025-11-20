@@ -235,6 +235,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
         {
             var token = selectTokenWindowViewModel.AddedTokens.First();
             _statblock = token.Statblock?.Clone<Statblock>();
+            _statblock!.Name = TokenName;
             IsStatblockCreated = true;
         }
     }

@@ -20,8 +20,10 @@ public class Settings
     public bool ShowMapWindow { get; set; } = true;
     public bool HideDungeonMasterFeatures { get; set; }
     public bool HasBlackBackground { get; set; } = true;
+    public bool IsAutoSaveEnabled { get; set; } = true;
     public string ServerAddress { get; set; } = "http://localhost:8000";
     public string CurrentCampaignName { get; set; } = "";
+    public string Version { get; set; } = "0";
     public List<Token> CustomTokens { get; set; } = new();
     public List<TokenGroup> TokenGroups { get; set; } = new();
     public List<Campaign> Campaigns { get; set; } = new();

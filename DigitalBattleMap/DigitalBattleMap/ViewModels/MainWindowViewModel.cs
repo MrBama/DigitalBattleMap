@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection;
+using System.Timers;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
@@ -25,6 +26,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     private Size<double> _canvasSize;
     private Action _multiMoveAction;
     private MonsterTokens _monsterTokens = new();
+    private Timer _autoSaveTimer;
     private int? _returnStepsX;
     private int? _returnStepsY;
     private int? _returnGridSize;
@@ -122,6 +124,8 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         _connectionManager = new ConnectionManager();
         _connectionManager.OnConnected += ConnectionManagerConnected;
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
+        _autoSaveTimer = new Timer(Constants.AutoSaveIntervalInMs);
+        _autoSaveTimer.Elapsed += AutoSaveMap;
         MapOverview = new MapOverviewViewModel(this);
         MapOverview.OnGridSizeZoomAndEnhance += OnBackgroundGridSizeZoomAndEnhance;
         CampaignController = new CampaignControllerViewModel(_windowService, _connectionManager, _monsterTokens, _settings);
@@ -138,6 +142,9 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
         HasBlackBackground = _settings.HasBlackBackground;
         CropColor = System.Windows.Media.Brushes.LightGray;
+
+        if (_settings.IsAutoSaveEnabled)
+            _autoSaveTimer.Start();
     }
 
     private void InitializeProperties()
@@ -463,6 +470,18 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         }
     }
 
+    private void AutoSaveMap(object? sender, ElapsedEventArgs e)
+    {
+        _autoSaveTimer.Stop();
+        var saveFile = new SaveFile();
+        saveFile.CanvasSize = GetCanvasSize();
+        BackgroundController.AddToSaveFile(saveFile);
+        DrawingController.AddToSaveFile(saveFile);
+        TokenController.AddToSaveFile(saveFile);
+        saveFile.AutoSave();
+        _autoSaveTimer.Start();
+    }
+
     private void OpenMap()
     {
         if (_windowService.ShowOpenFileDialog(out string path, "(*.dbm)|*.dbm"))
@@ -750,6 +769,18 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         else if (e.SettingName == nameof(Settings.HasBlackBackground))
         {
             HasBlackBackground = _settings.HasBlackBackground;
+        }
+        else if (e.SettingName == nameof(Settings.IsAutoSaveEnabled))
+        {
+            if (_settings.IsAutoSaveEnabled)
+            {
+                if(!_autoSaveTimer.Enabled)
+                    _autoSaveTimer.Start();
+            }
+            else
+            {
+                _autoSaveTimer.Stop();
+            }
         }
     }
 

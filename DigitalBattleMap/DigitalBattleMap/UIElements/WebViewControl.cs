@@ -33,6 +33,7 @@ public class WebViewControl : WebView2
                     }
                     else if (Page.Type == WebViewPageType.Html)
                     {
+                        CoreWebView2.Profile.PreferredColorScheme = CoreWebView2PreferredColorScheme.Light;
                         NavigateToString(Page.Html);
                     }
                 }

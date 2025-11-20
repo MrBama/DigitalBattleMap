@@ -134,4 +134,9 @@ public static class Extensions
     {
         return new SolidBrush(System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B));
     }
+
+    public static Bitmap Copy(this Bitmap bitmap)
+    {
+        return new Bitmap(bitmap);
+    }
 }

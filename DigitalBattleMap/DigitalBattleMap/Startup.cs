@@ -26,6 +26,7 @@ public static class Startup
             IO.Directory.CreateDirectory(Constants.WebExtensionsPath);
             IO.Directory.CreateDirectory(Constants.MonsterTokensPath);
             IO.Directory.CreateDirectory(Constants.CustomTokensPath);
+            IO.Directory.CreateDirectory(Constants.AutoSavesPath);
 
             // Extract SaveFileIcon.ico to disk
             IO.Directory.CreateDirectory(dataDirectoryPath);
@@ -46,6 +47,14 @@ public static class Startup
 
             // Create default settings
             settings.IsSoftwareInstalled = true;
+            settings.Version = VersionUpdater.ApplicationVersion;
+            settings.Save();
+        }
+        else if(VersionUpdater.IsUpdateRequired(settings.Version))
+        {
+            VersionUpdater.Update(settings.Version);
+            settings = Settings.Load();
+            settings.Version = VersionUpdater.ApplicationVersion;
             settings.Save();
         }
     }

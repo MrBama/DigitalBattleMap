@@ -23,6 +23,7 @@ public class SettingsWindowViewModel : ViewModelBase
         ShowMapWindow = _settings.ShowMapWindow;
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
         HasBlackBackground = _settings.HasBlackBackground;
+        IsAutoSaveEnabled = _settings.IsAutoSaveEnabled;
 
         foreach (var screenPosition in ScreenWrapper.GetScreenPositions())
         {
@@ -50,6 +51,7 @@ public class SettingsWindowViewModel : ViewModelBase
     public bool ShowMapWindow { get => Get<bool>(); set => Set(value); }
     public bool HideDungeonMasterFeatures { get => Get<bool>(); set => Set(value); }
     public bool HasBlackBackground { get => Get<bool>(); set => Set(value); }
+    public bool IsAutoSaveEnabled { get => Get<bool>(); set => Set(value); }
 
     private void SaveButtonClicked()
     {
@@ -59,6 +61,7 @@ public class SettingsWindowViewModel : ViewModelBase
         _settings.ShowMapWindow = ShowMapWindow;
         _settings.HideDungeonMasterFeatures = HideDungeonMasterFeatures;
         _settings.HasBlackBackground = HasBlackBackground;
+        _settings.IsAutoSaveEnabled = IsAutoSaveEnabled;
 
         _settings.Save();
     }

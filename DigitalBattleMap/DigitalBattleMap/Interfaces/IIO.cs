@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.IO;
 
 namespace DigitalBattleMap.Interfaces;
@@ -22,6 +23,7 @@ public interface IFile
     public Bitmap LoadBitmap(Stream stream);
     public Bitmap? LoadBitmapFromClipboard();
     public void Copy(string sourceFileName, string destFileName);
+    public DateTime GetCreationTime(string path);
 }
 
 public interface IZipFile

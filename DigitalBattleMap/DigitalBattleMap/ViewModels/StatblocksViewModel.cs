@@ -22,7 +22,7 @@ public class StatblocksViewModel : ViewModelBase
     {
         if (tokenListItem.Token.Statblock != null)
         {
-            var existingStatblock = Statblocks.SingleOrDefault(s => s.Name == tokenListItem.Token.Name);
+            var existingStatblock = Statblocks.SingleOrDefault(s => s.Name == tokenListItem.Token.Statblock.Name);
             if (existingStatblock == null)
             {
                 Statblocks.Add(tokenListItem.Token.Statblock);
@@ -34,7 +34,7 @@ public class StatblocksViewModel : ViewModelBase
     {
         if (tokenListItem.Token.Statblock != null)
         {
-            var existingStatblock = Statblocks.SingleOrDefault(s => s.Name == tokenListItem.Token.Name);
+            var existingStatblock = Statblocks.SingleOrDefault(s => s.Name == tokenListItem.Token.Statblock.Name);
             if (existingStatblock != null)
             {
                 existingStatblock.Dispose();

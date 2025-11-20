@@ -145,6 +145,11 @@ public class File : IFile
     {
         System.IO.File.Copy(sourceFileName, destFileName);
     }
+
+    public DateTime GetCreationTime(string path)
+    {
+        return System.IO.File.GetCreationTime(path);
+    }
 }
 
 public class ZipFile : IZipFile
