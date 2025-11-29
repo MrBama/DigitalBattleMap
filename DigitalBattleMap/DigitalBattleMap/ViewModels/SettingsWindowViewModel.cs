@@ -2,6 +2,7 @@
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
@@ -36,6 +37,8 @@ public class SettingsWindowViewModel : ViewModelBase
         SaveCommand = new RelayCommand(p => SaveButtonClicked());
         DownloadMonsterTokensCommand = new RelayCommand(p => DownloadMonsterTokens());
         WebExtensionsCommand = new RelayCommand(p => ManageWebExtensions());
+        ImportCommand = new RelayCommand(p => Import());
+        ExportCommand = new RelayCommand(p => Export());
     }
 
     public ObservableCollection<ScreenPosition> MonitorPositions { get; private set; } = new ObservableCollection<ScreenPosition>();
@@ -44,6 +47,8 @@ public class SettingsWindowViewModel : ViewModelBase
     public ICommand SaveCommand { get; set; }
     public ICommand DownloadMonsterTokensCommand { get; set; }
     public ICommand WebExtensionsCommand { get; set; }
+    public ICommand ImportCommand { get; set; }
+    public ICommand ExportCommand { get; set; }
 
     public int DefaultGridSize { get => Get<int>(); set => Set(value); }
     public string ServerAddress { get => Get<string>(); set => Set(value); }
@@ -82,5 +87,22 @@ public class SettingsWindowViewModel : ViewModelBase
         {
             _settings.Save();
         }
+    }
+
+    private void Import()
+    {
+        if (_windowService.ShowOpenFilesDialog(out List<string> paths, "(*.campaign, *.tokengroup, *.token)|*.campaign;*.tokengroup;*.token"))
+        {
+            foreach (var path in paths)
+            {
+                ImportExport.Import(path, _settings);
+            }
+        }
+    }
+
+    private void Export()
+    {
+        var exportViewModel = new ExportWindowViewModel(_windowService, _settings);
+        _windowService.ShowWindowDialog<ExportWindow>(exportViewModel);
     }
 }

@@ -37,7 +37,6 @@
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -69,15 +68,6 @@
                     <Button Grid.Row="2" Content="Remove" Margin="0 10 5 0" IsEnabled="{Binding SelectedToken, Converter={StaticResource NullConverter}}" Command="{Binding RemoveTokenCommand}"/>
                     <Button Grid.Row="2" Grid.Column="1" Content="Edit" Margin="5 10 5 0" IsEnabled="{Binding SelectedToken, Converter={StaticResource NullConverter}}" Command="{Binding EditTokenCommand}"/>
                     <Button Grid.Row="2" Grid.Column="2" Content="Add" Margin="5 10 0 0" Command="{Binding AddTokenCommand}"/>
-
-                    <Grid Grid.Row="3" Grid.ColumnSpan="3" Margin="0 10 0 0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Button Content="Import" Margin="0 0 5 0" Command="{Binding ImportCommand}"/>
-                        <Button Grid.Column="1" Content="Export" Margin="5 0 0 0" IsEnabled="{Binding SelectedToken, Converter={StaticResource NullConverter}}" Command="{Binding ExportCommand}"/>
-                    </Grid>
                 </Grid>
             </TabItem>
             <TabItem>

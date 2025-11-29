@@ -12,9 +12,9 @@ namespace DigitalBattleMap;
 
 public class SaveFile
 {
-    private static string _saveFilePath = Path.Combine(Constants.TempDirectoryPath, "SaveFile.json");
-    private static string _fullBackgrondFilePath = Path.Combine(Constants.TempDirectoryPath, "FullBackground.png");
-    private static string _gmOverlayFilePath = Path.Combine(Constants.TempDirectoryPath, "GMOverlay.png");
+    private static string _saveFilePath = Path.Combine(Constants.TempSaveFileDirectoryPath, "SaveFile.json");
+    private static string _fullBackgrondFilePath = Path.Combine(Constants.TempSaveFileDirectoryPath, "FullBackground.png");
+    private static string _gmOverlayFilePath = Path.Combine(Constants.TempSaveFileDirectoryPath, "GMOverlay.png");
     private static object _lock = new();
 
     public int GridSize { get; set; }
@@ -51,7 +51,7 @@ public class SaveFile
     {
         lock (_lock)
         {
-            using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
+            using var tempDirectory = new TempDirectory(Constants.TempSaveFileDirectoryPath);
             FileManager.SaveFile(this, _saveFilePath);
 
             FullBackground?.Copy().Save(_fullBackgrondFilePath);
@@ -59,13 +59,13 @@ public class SaveFile
 
             for (int i = 0; i < TokenList.Count; i++)
             {
-                var tokenImagePath = Path.Combine(Constants.TempDirectoryPath, $"Token{i}.png");
+                var tokenImagePath = Path.Combine(Constants.TempSaveFileDirectoryPath, $"Token{i}.png");
                 TokenList[i].GetBitmap().Copy().Save(tokenImagePath);
                 TokenList[i].Token.ImagePath = "";
 
                 if (TokenList[i].Token.Statblock is MarkdownStatblock markdownStatblock)
                 {
-                    var markdownPath = Path.Combine(Constants.TempDirectoryPath, $"Markdown{i}.md");
+                    var markdownPath = Path.Combine(Constants.TempSaveFileDirectoryPath, $"Markdown{i}.md");
                     IO.File.WriteAllText(markdownPath, markdownStatblock.GetMarkdown());
                     markdownStatblock.MarkdownPath = "";
                 }
@@ -77,7 +77,7 @@ public class SaveFile
                 IO.File.Delete(pathWithExtension);
             }
 
-            IO.ZipFile.CreateFromDirectory(Constants.TempDirectoryPath, pathWithExtension);
+            IO.ZipFile.CreateFromDirectory(Constants.TempSaveFileDirectoryPath, pathWithExtension);
         }
     }
 
@@ -102,8 +102,8 @@ public class SaveFile
     {
         lock (_lock)
         {
-            using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
-            IO.ZipFile.ExtractToDirectory(path, Constants.TempDirectoryPath);
+            using var tempDirectory = new TempDirectory(Constants.TempSaveFileDirectoryPath);
+            IO.ZipFile.ExtractToDirectory(path, Constants.TempSaveFileDirectoryPath);
 
             if (!FileManager.OpenFile(_saveFilePath, out SaveFile saveFile, new DerivedClassJsonConverter<Statblock>(), new DerivedClassJsonConverter<DrawingShape>()))
             {
@@ -122,13 +122,13 @@ public class SaveFile
 
             for (int i = 0; i < saveFile.TokenList.Count; i++)
             {
-                var tokenImagePath = Path.Combine(Constants.TempDirectoryPath, $"Token{i}.png");
+                var tokenImagePath = Path.Combine(Constants.TempSaveFileDirectoryPath, $"Token{i}.png");
                 saveFile.TokenList[i].Token.ImagePath = tokenImagePath;
                 saveFile.TokenList[i].GetBitmap();
 
                 if (saveFile.TokenList[i].Token.Statblock is MarkdownStatblock markdownStatblock)
                 {
-                    var markdownPath = Path.Combine(Constants.TempDirectoryPath, $"Markdown{i}.md");
+                    var markdownPath = Path.Combine(Constants.TempSaveFileDirectoryPath, $"Markdown{i}.md");
                     markdownStatblock.MarkdownPath = markdownPath;
                     markdownStatblock.GetMarkdown();
                 }

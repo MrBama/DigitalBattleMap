@@ -61,8 +61,6 @@ public class CustomTokensWindowViewModel : ViewModelBase
         EditGroupCommand = new RelayCommand(p => EditGroup());
         AddGroupTokenCommand = new RelayCommand(p => AddGroupToken());
         RemoveGroupTokenCommand = new RelayCommand(p => RemoveGroupToken());
-        ExportCommand = new RelayCommand(p => Export());
-        ImportCommand = new RelayCommand(p => Import());
     }
 
     public ObservableCollection<Token> TokenList { get; set; } = new();
@@ -81,8 +79,6 @@ public class CustomTokensWindowViewModel : ViewModelBase
     public ICommand EditGroupCommand { get; set; }
     public ICommand AddGroupTokenCommand { get; set; }
     public ICommand RemoveGroupTokenCommand { get; set; }
-    public ICommand ExportCommand { get; set; }
-    public ICommand ImportCommand { get; set; }
 
     private void SaveCustomTokens()
     {
@@ -238,80 +234,6 @@ public class CustomTokensWindowViewModel : ViewModelBase
             foreach (var tokenName in orderedGroupTokens)
             {
                 GroupTokensList.Add(tokenName);
-            }
-        }
-    }
-
-    private void Export()
-    {
-        if (_windowService.ShowSaveFileDialog(out string path, SelectedToken.Name, "(*.token)|*.token"))
-        {
-            if (SelectedTokens.Count == 1)
-            {
-                Export(path, SelectedToken);
-            }
-            else
-            {
-                foreach (var token in SelectedTokens)
-                {
-                    Export(Path.Combine(Path.GetDirectoryName(path), $"{token.Name}.token"), token);
-                }
-            }
-        }
-    }
-
-    private void Export(string path, Token token)
-    {
-        using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
-
-        FileManager.SaveFile(token, _tokenFilePath);
-        IO.File.Copy(token.ImagePath, _tokenImageFilePath);
-
-        if (token.Statblock is MarkdownStatblock markdownStatblock)
-        {
-            IO.File.Copy(markdownStatblock.MarkdownPath, _statblockFilePath);
-        }
-
-        if (IO.File.Exists(path))
-        {
-            IO.File.Delete(path);
-        }
-        IO.ZipFile.CreateFromDirectory(Constants.TempDirectoryPath, path);
-    }
-
-    private void Import()
-    {
-        if (_windowService.ShowOpenFilesDialog(out List<string> paths, "(*.token)|*.token"))
-        {
-            foreach (var path in paths)
-            {
-                Import(path);
-            }
-        }
-    }
-
-    private void Import(string path)
-    {
-        using var tempDirectory = new TempDirectory(Constants.TempDirectoryPath);
-        IO.ZipFile.ExtractToDirectory(path, Constants.TempDirectoryPath);
-
-        if (FileManager.OpenFile(_tokenFilePath, out Token token, new DerivedClassJsonConverter<Statblock>()))
-        {
-            if (_tokenList.SingleOrDefault(t => t.Name == token.Name) == null)
-            {
-                var imagePath = Path.Combine(Constants.CustomTokensPath, $"{token.Name}.png");
-                IO.File.Copy(_tokenImageFilePath, imagePath);
-                token.ImagePath = imagePath;
-
-                if (token.Statblock is MarkdownStatblock markdownStatblock)
-                {
-                    var statblockMarkdownPath = Path.Combine(Constants.CustomTokensPath, $"{token.Name}.md");
-                    IO.File.Copy(_statblockFilePath, statblockMarkdownPath);
-                    markdownStatblock.MarkdownPath = statblockMarkdownPath;
-                }
-
-                _tokenList.Add(token.Clone<Token>());
-                SaveCustomTokens();
             }
         }
     }

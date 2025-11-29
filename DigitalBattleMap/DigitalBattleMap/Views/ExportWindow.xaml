@@ -1,0 +1,61 @@
+﻿<Window x:Class="DigitalBattleMap.Views.ExportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels" 
+        xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements" 
+        mc:Ignorable="d"
+        Title="ExportWindow" Height="550" Width="500"
+        FontSize="17"
+        WindowStartupLocation="CenterScreen">
+    <Window.DataContext>
+        <viewmodels:ExportWindowViewModel/>
+    </Window.DataContext>
+    <Window.Resources>
+        <uielements:NullToBoolConverter x:Key="NullConverter"/>
+    </Window.Resources>
+
+    <!--Main grid-->
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <!--Radio buttons grid-->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <RadioButton Content="Campaign" VerticalContentAlignment="Center" IsChecked="{Binding ExportCampaignChecked}"/>
+            <RadioButton Grid.Column="1" Content="TokenGroup" VerticalContentAlignment="Center" IsChecked="{Binding ExportTokenGroupChecked}"/>
+            <RadioButton Grid.Column="2" Content="Token" VerticalContentAlignment="Center" IsChecked="{Binding ExportTokenChecked}"/>
+        </Grid>
+
+        <ListView Grid.Row="1" Margin="0 10 0 0" ItemsSource="{Binding ExportItemList}" SelectedItem="{Binding SelectedExportItem}">
+            <i:Interaction.Behaviors>
+                <uielements:MultiSelectionBehavior SelectedItems="{Binding SelectedExportItems, Mode=OneWayToSource}" />
+            </i:Interaction.Behaviors>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Label Content="{Binding Name}"/>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <Button Grid.Row="2" Content="Export" Margin="0 10 0 0" Command="{Binding ExportCommand}" IsEnabled="{Binding SelectedExportItem, Converter={StaticResource NullConverter}}">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="Click">
+                    <i:CallMethodAction MethodName="Close" TargetObject="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </Button>
+    </Grid>
+</Window>

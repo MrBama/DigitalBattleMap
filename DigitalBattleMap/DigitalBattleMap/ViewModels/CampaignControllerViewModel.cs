@@ -29,6 +29,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
         _webCommunication = webCommunication;
         _monsterTokens = monsterTokens;
         _settings = settings;
+        _settings.OnSettingChanged += SettingChanged;
         _webCommunication.OnConnected += OnWebCommunicationConnected;
         _webCommunication.OnSetOrientation += SetOrientation;
         Campaigns = new(settings.Campaigns.Clone().OrderBy(c => c.Name));
@@ -445,5 +446,16 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
     {
         var players = CurrentCampaign.Players.Where(p => p.TokenIdentifiers.Contains(tokenIdentifier));
         return players.Count() == 1;
+    }
+
+    private void SettingChanged(object? sender, SettingChangedEventArgs e)
+    {
+        if (e.SettingName == nameof(Settings.Campaigns))
+        {
+            Campaigns = new(_settings.Campaigns.Clone().OrderBy(c => c.Name));
+            NotifyPropertyChange(nameof(Campaigns));
+            SetCurrentCampaign(Campaigns.SingleOrDefault(c => string.Equals(c.Name, _settings.CurrentCampaignName, StringComparison.CurrentCultureIgnoreCase)));
+            ExpandCurrentCampaign();
+        }
     }
 }

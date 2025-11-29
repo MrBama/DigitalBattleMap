@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.Utilities;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -50,7 +51,7 @@ public class Settings
     {
         foreach (PropertyInfo property in typeof(Settings).GetProperties())
         {
-            _oldValues[property.Name] = property.GetValue(this);
+            _oldValues[property.Name] = JsonConvert.SerializeObject(property.GetValue(this));
         }
     }
 
@@ -59,7 +60,7 @@ public class Settings
         foreach (PropertyInfo property in typeof(Settings).GetProperties())
         {
             dynamic? oldValue = _oldValues[property.Name];
-            dynamic? newValue = property.GetValue(this);
+            dynamic? newValue = JsonConvert.SerializeObject(property.GetValue(this));
             if (oldValue != newValue)
             {
                 OnSettingChanged?.Invoke(this, new SettingChangedEventArgs { SettingName = property.Name });

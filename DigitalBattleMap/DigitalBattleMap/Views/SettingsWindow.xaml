@@ -20,6 +20,7 @@
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
@@ -44,6 +45,10 @@
         <CheckBox Grid.Row="6" Grid.Column="1" VerticalAlignment="Center" Margin="0 10 0 0" IsChecked="{Binding IsAutoSaveEnabled}"/>
         <Button Grid.Row="7" Grid.ColumnSpan="2" Content="Download monster tokens" Margin="0 10 0 0" Command="{Binding DownloadMonsterTokensCommand}"/>
         <Button Grid.Row="8" Grid.ColumnSpan="2" Content="Web extensions" Margin="0 10 0 0" Command="{Binding WebExtensionsCommand}"/>
+
+        <Button Grid.Row="9" Content="Import" Margin="0 10 5 0" Command="{Binding ImportCommand}"/>
+        <Button Grid.Row="9" Grid.Column="1" Content="Export" Margin="5 10 0 0" Command="{Binding ExportCommand}"/>
+
         <Button Grid.Row="10" Grid.ColumnSpan="2" Content="Save" Command="{Binding SaveCommand}" IsDefault="True" Margin="0 10 0 0">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="Click">
