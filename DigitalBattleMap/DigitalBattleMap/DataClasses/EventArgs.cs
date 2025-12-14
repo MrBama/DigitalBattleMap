@@ -52,7 +52,7 @@ public class GridSizeChangedEventArgs : EventArgs
     public int NewGridSize { get; set; }
 }
 
-public class GridSizeZoomAndEnhanceEventArgs : EventArgs
+public class ZoomAndEnhanceEventArgs : EventArgs
 {
     public RectangleF rectangle { get; set; }
 }

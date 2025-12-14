@@ -3,6 +3,7 @@ using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
+using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -27,9 +28,6 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     private Action _multiMoveAction;
     private MonsterTokens _monsterTokens = new();
     private Timer _autoSaveTimer;
-    private int? _returnStepsX;
-    private int? _returnStepsY;
-    private int? _returnGridSize;
 
     public MainWindowViewModel(IWindowService windowService)
     {
@@ -57,7 +55,6 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public int DrawingCanvasZIndex { get => Get<int>(); set => Set(value); }
     public int MultiMoveCount { get => Get<int>(); set => Set(value); }
     public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, IsShowMapLockedChanged); }
-    public bool IsBackgroundOpen { get => Get<bool>(); set => Set(value); }
     public bool ServerConnectionButtonEnabled { get => Get<bool>(); set => Set(value); }
     public bool IsConfigurationMenuExpanded { get => Get<bool>(); set => Set(value); }
     public bool IsMultiMove { get => Get<bool>(); set => Set(value); }
@@ -70,6 +67,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public Visibility TokenVisibility { get => Get<Visibility>(); set => Set(value); }
     public System.Windows.Media.Brush ServerConnectionStatusColor { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
     public System.Windows.Media.Brush CropColor { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
+    public CommandHistory<ZoomAndMoveCommand> ZoomAndMoveHistory { get; set; } = new(30);
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); set => Set(value); }
 
     public CampaignControllerViewModel CampaignController { get; set; }
@@ -110,7 +108,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public ICommand MapZoomInCommand { get; set; }
     public ICommand MapZoomOutCommand { get; set; }
     public ICommand MapCropCommand { get; set; }
-    public ICommand MapZoomBackgroundCommand { get; set; }
+    public ICommand MapRevertZoomAndMoveCommand { get; set; }
     public ICommand HideConfigurationCommand { get; set; }
     public ICommand KeyDownCommand { get; set; }
     public ICommand KeyUpCommand { get; set; }
@@ -127,21 +125,22 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         _autoSaveTimer = new Timer(Constants.AutoSaveIntervalInMs);
         _autoSaveTimer.Elapsed += AutoSaveMap;
         MapOverview = new MapOverviewViewModel(this);
-        MapOverview.OnGridSizeZoomAndEnhance += OnBackgroundGridSizeZoomAndEnhance;
+        MapOverview.OnZoomAndEnhance += OnZoomAndEnhance;
         CampaignController = new CampaignControllerViewModel(_windowService, _connectionManager, _monsterTokens, _settings);
         BackgroundController = new BackgroundControllerViewModel(_windowService, this, _settings);
         BackgroundController.OnGridSizeChanged += OnBackgroundGridSizeChanged;
-        BackgroundController.OnGridSizeZoomAndEnhance += OnBackgroundGridSizeZoomAndEnhance;
+        BackgroundController.OnZoomAndEnhance += OnZoomAndEnhance;
         BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
         TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, _monsterTokens, CampaignController, _settings);
-        TokenController.OnGridSizeZoomAndEnhance += OnBackgroundGridSizeZoomAndEnhance;
+        TokenController.OnZoomAndEnhance += OnZoomAndEnhance;
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
         DrawingController = new DrawingControllerViewModel(this, TokenController);
-        DrawingController.OnGridSizeZoomAndEnhance += OnBackgroundGridSizeZoomAndEnhance;
+        DrawingController.OnZoomAndEnhance += OnZoomAndEnhance;
         DrawingController.OnDrawingShapesUpdated += DrawingShapesUpdated;
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
         HasBlackBackground = _settings.HasBlackBackground;
         CropColor = System.Windows.Media.Brushes.LightGray;
+        MouseCanvas = BackgroundController.MouseCanvas;
 
         if (_settings.IsAutoSaveEnabled)
             _autoSaveTimer.Start();
@@ -150,7 +149,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     private void InitializeProperties()
     {
         DrawingCanvasVisibility = Visibility.Hidden;
-        MouseInputCanvasVisibility = Visibility.Hidden;
+        MouseInputCanvasVisibility = Visibility.Visible;
         TokenVisibility = Visibility.Hidden;
         ServerConnectionButtonText = "Connect";
         ServerConnectionStatus = "Disconnected";
@@ -173,7 +172,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         MapZoomInCommand = new RelayCommand(p => ZoomIn());
         MapZoomOutCommand = new RelayCommand(p => ZoomOut());
         MapCropCommand = new RelayCommand(p => SetCropMode());
-        MapZoomBackgroundCommand = new RelayCommand(p => ZoomBackground());
+        MapRevertZoomAndMoveCommand = new RelayCommand(p => RevertZoomAndMove());
         HideConfigurationCommand = new RelayCommand(p => { IsConfigurationMenuExpanded = false; });
         KeyDownCommand = new RelayCommand(p => KeyDown((KeyEventArgs)p));
         KeyUpCommand = new RelayCommand(p => KeyUp((KeyEventArgs)p));
@@ -185,32 +184,11 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         UpdateMap(DrawLayer.GridAndStrokes);
     }
 
-    private void OnBackgroundGridSizeZoomAndEnhance(object? sender, GridSizeZoomAndEnhanceEventArgs e)
+    private void OnZoomAndEnhance(object? sender, ZoomAndEnhanceEventArgs e)
     {
         var selectedArea = e.rectangle;
 
         // Move to the Middle of the selected area (in steps of Gridsize)
-        MoveToMiddle(selectedArea);
-
-        // Zoom to new grid size
-        var ratio = _canvasSize.Width / selectedArea.Width;
-        var newGridSize = (int)Math.Round((double)BackgroundController.GridSize * ratio, 0);
-        newGridSize = Math.Min(newGridSize, Constants.MaxGridSize);
-
-        _returnGridSize = BackgroundController.GridSize;
-        ZoomToGridSize(newGridSize);
-
-        // Reset mouse canvas
-        MouseCanvas.ResetSelection();
-        MouseCanvas.ResetMode();
-        MapOverview.MouseCanvas.ResetSelection();
-        MapOverview.MouseCanvas.ResetMode();
-        CropColor = System.Windows.Media.Brushes.LightGray;
-        SelectedMapTabIndex = TabMapIndex.Map;
-    }
-
-    private void MoveToMiddle(RectangleF selectedArea)
-    {
         // find center of screen and selection
         var middleOfScreenX = _canvasSize.Width / 2.0;
         var middleOfScreenY = _canvasSize.Height / 2.0;
@@ -221,14 +199,34 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         var stepsX = (int)Math.Round((middleOfSelectionX - middleOfScreenX) / CalculateCanvasGridSize());
         var stepsY = (int)Math.Round((middleOfSelectionY - middleOfScreenY) / CalculateCanvasGridSize());
 
-        _returnStepsX = -stepsX;
-        _returnStepsY = -stepsY;
+        PauseBitmapCreation(true);
+        ZoomAndMoveHistory.PauseEnqueueing = true;
         MoveMap(stepsX, stepsY);
+
+        // Zoom to new grid size
+        var ratio = _canvasSize.Width / selectedArea.Width;
+        var oldGridSize = BackgroundController.GridSize;
+        var newGridSize = (int)Math.Round((double)BackgroundController.GridSize * ratio, 0);
+        newGridSize = Math.Min(newGridSize, Constants.MaxGridSize);
+
+        PauseBitmapCreation(false);
+        ZoomToGridSize(newGridSize);
+
+        // Save the move and zoom for history
+        ZoomAndMoveHistory.PauseEnqueueing = false;
+        ZoomAndMoveHistory.Enqueue(new ZoomAndMoveCommand(new Point<int>(stepsX, stepsY), oldGridSize));
+
+        // Reset mouse canvas
+        MouseCanvas.ResetSelection();
+        MouseCanvas.ResetMode();
+        MapOverview.MouseCanvas.ResetSelection();
+        MapOverview.MouseCanvas.ResetMode();
+        CropColor = System.Windows.Media.Brushes.LightGray;
+        SelectedMapTabIndex = TabMapIndex.Map;
     }
 
     private void OnBackgroundUpdated(object? sender, EventArgs e)
     {
-        IsBackgroundOpen = BackgroundController.HasOpenedBackground;
         UpdateMap(DrawLayer.Background);
     }
 
@@ -359,6 +357,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
             GenerateMapOverview();
             _connectionManager.ClearMap();
+            ZoomAndMoveHistory.Clear();
         }
     }
 
@@ -378,8 +377,9 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         switch (SelectedTabIndex)
         {
             case TabIndex.Campaign:
-                MouseInputCanvasVisibility = Visibility.Hidden;
+                MouseInputCanvasVisibility = Visibility.Visible;
                 DrawingCanvasVisibility = Visibility.Visible;
+                MouseCanvas = BackgroundController.MouseCanvas;
                 TokenVisibility = Visibility.Visible;
                 DrawingCanvasZIndex = 0;
                 break;
@@ -426,35 +426,39 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     {
         if (!IsMultiMove)
         {
-            BackgroundController.Move(arrowDirection, 1);
-            DrawingController.Move(arrowDirection, 1);
-            TokenController.Move(arrowDirection, 1);
+            MoveMap(arrowDirection, 1);
         }
         else
         {
             MultiMoveCount++;
             _multiMoveAction = () =>
             {
-                BackgroundController.Move(arrowDirection, MultiMoveCount);
-                DrawingController.Move(arrowDirection, MultiMoveCount);
-                TokenController.Move(arrowDirection, MultiMoveCount);
+                MoveMap(arrowDirection, MultiMoveCount);
             };
         }
     }
 
+    private void MoveMap(ArrowDirection arrowDirection, int steps)
+    {
+        ZoomAndMoveHistory.Enqueue(new ZoomAndMoveCommand(arrowDirection, steps));
+        BackgroundController.Move(arrowDirection, steps);
+        DrawingController.Move(arrowDirection, steps);
+        TokenController.Move(arrowDirection, steps);
+    }
+
     private void MoveMap(int stepsX, int stepsY)
     {
-        var directionX = stepsX > 0 ? ArrowDirection.Right : ArrowDirection.Left;
-        var directionY = stepsY > 0 ? ArrowDirection.Down : ArrowDirection.Up;
-        stepsX = Math.Abs(stepsX);
-        stepsY = Math.Abs(stepsY);
+        if(stepsX != 0)
+        {
+            var directionX = stepsX > 0 ? ArrowDirection.Right : ArrowDirection.Left;
+            MoveMap(directionX, Math.Abs(stepsX));
+        }
 
-        BackgroundController.Move(directionX, stepsX, false);
-        BackgroundController.Move(directionY, stepsY, false);
-        DrawingController.Move(directionX, stepsX, false);
-        DrawingController.Move(directionY, stepsY, false);
-        TokenController.Move(directionX, stepsX, false);
-        TokenController.Move(directionY, stepsY, false);
+        if(stepsY != 0)
+        {
+            var directionY = stepsY > 0 ? ArrowDirection.Down : ArrowDirection.Up;
+            MoveMap(directionY, Math.Abs(stepsY));
+        }
     }
 
     private void SaveMap()
@@ -505,6 +509,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         SelectedTabIndex = TabIndex.Tokens;
         SelectedMapTabIndex = 0;
+        ZoomAndMoveHistory.Clear();
 
         IsShowMapLocked = currentIsShowMapLocked;
     }
@@ -543,102 +548,61 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void SetCropMode()
     {
-        if (BackgroundController.GetFullBackgroundBitmap() != null)
+        if (SelectedMapTabIndex == TabMapIndex.Map)
         {
-            if(SelectedMapTabIndex == TabMapIndex.Map)
+            if (MouseCanvas.GetMode() != MouseCanvasMode.FixedRatioRectangleSelection)
             {
-                if (MouseCanvas.GetMode() != MouseCanvasMode.FixedRatioRectangleSelection)
-                {
-                    MouseCanvas.SetMode(MouseCanvasMode.FixedRatioRectangleSelection);
-                    CropColor = System.Windows.Media.Brushes.LightBlue;
-                }
-                else
-                {
-                    MouseCanvas.ResetSelection();
-                    CropColor = System.Windows.Media.Brushes.LightGray;
-                }
+                MouseCanvas.SetMode(MouseCanvasMode.FixedRatioRectangleSelection);
+                CropColor = System.Windows.Media.Brushes.LightBlue;
             }
-            else if (SelectedMapTabIndex == TabMapIndex.Overview)
+            else
             {
-                MapOverview.MouseCanvas.SetMode(MouseCanvasMode.FixedRatioRectangleSelection);
+                MouseCanvas.ResetSelection();
+                CropColor = System.Windows.Media.Brushes.LightGray;
             }
         }
-    }
-
-    private void ZoomBackground()
-    {
-        if (BackgroundController.GetFullBackgroundBitmap() != null
-            && _returnGridSize != null
-            && _returnStepsX != null
-            && _returnStepsY != null)
+        else if (SelectedMapTabIndex == TabMapIndex.Overview)
         {
-            MoveMap((int)_returnStepsX, (int)_returnStepsY);
-            ZoomToGridSize((int)_returnGridSize);
-
-            _returnGridSize = null;
-            _returnStepsX = null;
-            _returnStepsY = null;
-        }
-        else
-        {
-            ReturnToCenterOfFullBackground();
-            ReturnToZoomOfFullBackground();
+            MapOverview.MouseCanvas.SetMode(MouseCanvasMode.FixedRatioRectangleSelection);
         }
     }
 
-    private void ReturnToCenterOfFullBackground()
+    private void RevertZoomAndMove()
     {
-        // find center of canvas area (background)
-        var background = BackgroundController.GetArea();
-        var middleOfScreenX = background.X + (background.Width / 2.0);
-        var middleOfScreenY = background.Y + (background.Height / 2.0);
-        // find center of background full
-        var backgroundFull = BackgroundController.GetFullBackgroundBitmap();
-        var middleOfCanvasX = backgroundFull.Width / 2.0;
-        var middleOfCanvasY = backgroundFull.Height / 2.0;
-
-        double preciseGridSize = BackgroundController.GridSize;
-        var mapSizeWidth = Constants.MapSize.Width;
-        var mapSizeHeight = Constants.MapSize.Height;
-        var areaWidth = background.Width;
-        var areaHeight = background.Height;
-        var distanceX = (int)Math.Round(preciseGridSize.Map(0, mapSizeWidth, 0, areaWidth));
-        var distanceY = (int)Math.Round(preciseGridSize.Map(0, mapSizeHeight, 0, areaHeight));
-
-        var stepsX = (int)Math.Round((middleOfCanvasX - middleOfScreenX) / distanceX);
-        var stepsY = (int)Math.Round((middleOfCanvasY - middleOfScreenY) / distanceY);
-        MoveMap(stepsX, stepsY);
-    }
-
-    private void ReturnToZoomOfFullBackground()
-    {
-        double ratio = 0.0;
-        var background = BackgroundController.GetArea();
-        var backgroundFull = BackgroundController.GetFullBackgroundBitmap();
-        if (backgroundFull.Width / backgroundFull.Height >= 1.78)
+        if (ZoomAndMoveHistory.TryDequeuePreviousCommand(out var previousCommand))
         {
-            ratio = background.Width / backgroundFull.Width;
+            ZoomAndMoveHistory.PauseEnqueueing = true;
+            PauseBitmapCreation(true);
+
+            if (previousCommand.GridSize != null)
+            {
+                ZoomToGridSize((int)previousCommand.GridSize);
+            }
+
+            if (previousCommand.Steps != null)
+            {
+                MoveMap(-previousCommand.Steps.X, -previousCommand.Steps.Y);
+            }
+
+            ZoomAndMoveHistory.PauseEnqueueing = false;
+            PauseBitmapCreation(false);
         }
-        else
-        {
-            ratio = background.Height / backgroundFull.Height;
-        }
-        var newGridSize = (int)Math.Round((double)BackgroundController.GridSize * ratio, 0);
-        ZoomToGridSize(newGridSize);
     }
 
     private void ZoomToGridSize(int newGridSize)
     {
         var gridSizeChange = newGridSize - BackgroundController.GridSize;
-        Zoom(gridSizeChange, false);
+        Zoom(gridSizeChange);
     }
 
-    private void Zoom(int gridSizeChange, bool update = true)
+    private void Zoom(int gridSizeChange)
     {
         var oldGridSize = BackgroundController.GridSize;
+        ZoomAndMoveHistory.Enqueue(new ZoomAndMoveCommand(oldGridSize));
+
         var currentIsShowMapLocked = IsShowMapLocked;
         IsShowMapLocked = false;
-        BackgroundController.UpdateGridSize(gridSizeChange, update);
+        BackgroundController.UpdateGridSize(gridSizeChange);
 
         var zoomFactor = (double)BackgroundController.GridSize / (double)oldGridSize;
         BackgroundController.Zoom(zoomFactor);
@@ -817,6 +781,22 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         else
         {
             MapOverview.ClearMap();
+        }
+    }
+
+    private void PauseBitmapCreation(bool paused)
+    {
+        if(paused)
+        {
+            BackgroundController.PauseBitmapCreation();
+            DrawingController.PauseBitmapCreation();
+            TokenController.PauseBitmapCreation();
+        }
+        else
+        {
+            BackgroundController.ResumeBitmapCreation();
+            DrawingController.ResumeBitmapCreation();
+            TokenController.ResumeBitmapCreation();
         }
     }
 }

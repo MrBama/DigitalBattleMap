@@ -82,7 +82,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     }
 
     public event EventHandler OnTokenBitmapUpdated;
-    public event EventHandler<GridSizeZoomAndEnhanceEventArgs> OnGridSizeZoomAndEnhance;
+    public event EventHandler<ZoomAndEnhanceEventArgs> OnZoomAndEnhance;
 
     public StatblocksViewModel StatblocksViewModel { get; set; } = new();
     public CommandHistory<TokenMoveCommand> TokenMoveHistory { get; set; } = new(30);
@@ -264,7 +264,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    public override void Move(ArrowDirection direction, int movementCount, bool update = true)
+    public override void Move(ArrowDirection direction, int movementCount)
     {
         lock (_lock)
         {
@@ -288,10 +288,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 }
             }
 
-            if (update)
-            {
-                CreateTokenBitmap();
-            }
+            CreateTokenBitmap();
         }
     }
 
@@ -430,6 +427,11 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             linkableObject.LinkableObject.Link(tokenListItem);
             tokenListItem.LinkedObjects.Add(linkableObject.LinkableObject);
         }
+    }
+
+    protected override void CreateBitmap()
+    {
+        CreateTokenBitmap();
     }
 
     private void MouseLeftButtonDown(object? sender, MouseButtonDataEventArgs e)
@@ -640,6 +642,9 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
     private void CreateTokenBitmap()
     {
+        if (_pauseBitmapCreation)
+            return;
+
         lock (_lock)
         {
             _tokenBitmapDictionary.Clear();
@@ -649,6 +654,9 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
     private void CreateTokenBitmapFromCache()
     {
+        if (_pauseBitmapCreation)
+            return;
+
         lock (_lock)
         {
             var tokenBitmap = BitmapTools.CreateEmptyBitmap();
@@ -960,7 +968,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
     private void FixRatioRectangleAreaSelected(object? sender, RectangleF rectangle)
     {
-        OnGridSizeZoomAndEnhance?.Invoke(this, new GridSizeZoomAndEnhanceEventArgs() { rectangle = rectangle });
+        OnZoomAndEnhance?.Invoke(this, new ZoomAndEnhanceEventArgs() { rectangle = rectangle });
     }
 
     private void InvalidateTokenListItemBitmap(TokenListItem tokenListItem)

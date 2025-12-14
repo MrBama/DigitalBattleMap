@@ -360,7 +360,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
         }
     }
 
-    public void SetOrientation(object? sender, SetOrientationEventArgs e)
+    private void SetOrientation(object? sender, SetOrientationEventArgs e)
     {
         if (CurrentCampaign != null)
         {

@@ -84,7 +84,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     public event EventHandler OnBackgroundUpdated;
     public event EventHandler<GridSizeChangedEventArgs> OnGridSizeChanged;
-    public event EventHandler<GridSizeZoomAndEnhanceEventArgs> OnGridSizeZoomAndEnhance;
+    public event EventHandler<ZoomAndEnhanceEventArgs> OnZoomAndEnhance;
 
     public bool IsBackgroundEditingAllowed { get => HasOpenedBackground && !IsFogOfWarEnabled; }
     public bool HasOpenedBackground { get => Get<bool>(); set => Set(value); }
@@ -208,19 +208,9 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         }
     }
 
-    public Bitmap GetFullBackgroundBitmap()
-    {
-        return _fullBackgroundBitmap;
-    }
-
     public Bitmap GetGridBitmap()
     {
         return GridBitmap;
-    }
-
-    public RectangleF GetArea()
-    {
-        return _area;
     }
 
     public bool GetOverviewBitmap(out OverviewBitmap overviewBitmap)
@@ -270,11 +260,11 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         HasOpenGMOverlay = false;
     }
 
-    public void UpdateGridSize(int gridSizeChange, bool update)
+    public void UpdateGridSize(int gridSizeChange)
     {
         GridSize = Math.Max(GridSize + gridSizeChange, Constants.MinGridSize);
         GridSize = Math.Min(GridSize, Constants.MaxGridSize);
-        GridSizeChanged(update);
+        GridSizeChanged();
     }
 
     public override void Zoom(double zoomFactor)
@@ -286,7 +276,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         }
     }
 
-    public override void Move(ArrowDirection direction, int movementCount, bool update = true)
+    public override void Move(ArrowDirection direction, int movementCount)
     {
         if (_fullBackgroundBitmap != null)
         {
@@ -310,10 +300,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
                     break;
             }
 
-            if (update)
-            {
-                CreateBackground();
-            }
+            CreateBackground();
         }
     }
 
@@ -364,6 +351,11 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public double GetZoomFactor()
     {
         return _area.Width / (double)_mapSize.Width;
+    }
+
+    protected override void CreateBitmap()
+    {
+        CreateBackground();
     }
 
     private void OpenBackground()
@@ -504,6 +496,9 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     private void CreateBackground()
     {
+        if (_pauseBitmapCreation)
+            return;
+
         if (_fullBackgroundBitmap != null)
         {
             var croppedBitmap = BitmapTools.CropBitmap(_fullBackgroundBitmap, _area);
@@ -636,7 +631,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     private void FixRatioRectangleAreaSelected(object? sender, RectangleF rectangle)
     {
-        OnGridSizeZoomAndEnhance?.Invoke(this, new GridSizeZoomAndEnhanceEventArgs() { rectangle = rectangle });
+        OnZoomAndEnhance?.Invoke(this, new ZoomAndEnhanceEventArgs() { rectangle = rectangle });
     }
 
     private void FogRemovalShapeChanged()
@@ -656,15 +651,12 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         }
     }
 
-    private void GridSizeChanged(bool update = true)
+    private void GridSizeChanged()
     {
         GridSize = Math.Max(GridSize, Constants.MinGridSize);
         GridSize = Math.Min(GridSize, Constants.MaxGridSize);
         GridBitmap = IsGridShown ? BitmapTools.CreateGrid(GridSize) : BitmapTools.CreateEmptyBitmap();
-        if (update)
-        {
-            NotifyGridSizeChanged(GridSize);
-        }
+        NotifyGridSizeChanged(GridSize);
     }
 
     private void GridShownChanged()

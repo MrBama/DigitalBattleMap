@@ -200,7 +200,7 @@
                             <Button x:Name="CropButton" Grid.Row="1" Grid.Column="1" Margin="5 0 0 5" Command="{Binding MapCropCommand}" Width="{Binding ElementName=CropButton,Path=ActualHeight}" IsEnabled="{Binding IsBackgroundOpen}" Background="{Binding CropColor}" >
                                 <Image Source="{Binding MapCropBitmapSource}"/>
                             </Button>
-                            <Button x:Name="ZoomBackgroundButton" Grid.Row="2" Grid.Column="1" Margin="5 5 0 0" Command="{Binding MapZoomBackgroundCommand}" Width="{Binding ElementName=ZoomBackgroundButton,Path=ActualHeight}" IsEnabled="{Binding IsBackgroundOpen}">
+                            <Button x:Name="ZoomBackgroundButton" Grid.Row="2" Grid.Column="1" Margin="5 5 0 0" Command="{Binding MapRevertZoomAndMoveCommand}" Width="{Binding ElementName=ZoomBackgroundButton,Path=ActualHeight}" IsEnabled="{Binding ZoomAndMoveHistory.IsPreviousCommandAvailable}">
                                 <Image Source="{Binding MapZoomBackgroundBitmapSource}"/>
                             </Button>
                         </Grid>

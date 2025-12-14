@@ -52,7 +52,7 @@ public class MapOverviewViewModel : ViewModelBase
         ResetCommand = new RelayCommand(p => ResetView());
     }
 
-    public event EventHandler<GridSizeZoomAndEnhanceEventArgs> OnGridSizeZoomAndEnhance;
+    public event EventHandler<ZoomAndEnhanceEventArgs> OnZoomAndEnhance;
 
     public BitmapSource OverviewBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); set => Set(value); }
@@ -263,6 +263,6 @@ public class MapOverviewViewModel : ViewModelBase
         rectangle.Width = rectangle.Width.Map(0, _playerViewSize.Width, 0, (float)_mapSize.CanvasWidth);
         rectangle.Height = rectangle.Height.Map(0, _playerViewSize.Height, 0, (float)_mapSize.CanvasHeight);
 
-        OnGridSizeZoomAndEnhance?.Invoke(this, new GridSizeZoomAndEnhanceEventArgs() { rectangle = rectangle });
+        OnZoomAndEnhance?.Invoke(this, new ZoomAndEnhanceEventArgs() { rectangle = rectangle });
     }
 }

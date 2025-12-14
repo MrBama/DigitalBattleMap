@@ -73,7 +73,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     }
 
     public event EventHandler OnDrawingShapesUpdated;
-    public event EventHandler<GridSizeZoomAndEnhanceEventArgs> OnGridSizeZoomAndEnhance;
+    public event EventHandler<ZoomAndEnhanceEventArgs> OnZoomAndEnhance;
 
     public BitmapSource BlackButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource RedButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
@@ -119,7 +119,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
     }
 
-    public override void Move(ArrowDirection direction, int movementCount, bool update = true)
+    public override void Move(ArrowDirection direction, int movementCount)
     {
         var matrix = new Matrix();
         double gridSize = _mapSize.GridSize * movementCount;
@@ -292,6 +292,11 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         NotifyDrawingShapesUpdated();
     }
 
+    protected override void CreateBitmap()
+    {
+        NotifyDrawingShapesUpdated();
+    }
+
     private void SelectedDrawingButtonChanged(string button)
     {
         var drawingButton = Enum.Parse<DrawingButton>(button);
@@ -454,6 +459,9 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void NotifyDrawingShapesUpdated()
     {
+        if (_pauseBitmapCreation)
+            return;
+
         OnDrawingShapesUpdated?.Invoke(this, new EventArgs());
     }
 
@@ -602,6 +610,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void FixRatioRectangleAreaSelected(object? sender, RectangleF rectangle)
     {
-        OnGridSizeZoomAndEnhance?.Invoke(this, new GridSizeZoomAndEnhanceEventArgs() { rectangle = rectangle });
+        OnZoomAndEnhance?.Invoke(this, new ZoomAndEnhanceEventArgs() { rectangle = rectangle });
     }
 }

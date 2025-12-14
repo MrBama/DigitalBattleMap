@@ -16,6 +16,7 @@ public class CommandHistory<T> : PropertyHandler
     public int Size { get; private set; }
     public bool IsPreviousCommandAvailable { get => Index > 0 && Index <= _commands.Count; }
     public bool IsNextCommandAvailable { get => Index >= 0 && Index < _commands.Count; }
+    public bool PauseEnqueueing { get; set; }
 
     private int Index
     {
@@ -33,6 +34,9 @@ public class CommandHistory<T> : PropertyHandler
 
     public void Enqueue(T command)
     {
+        if (PauseEnqueueing)
+            return;
+
         while (_commands.Count != 0 && Index < _commands.Count)
         {
             _commands.RemoveAt(Index);

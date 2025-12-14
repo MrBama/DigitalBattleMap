@@ -5,6 +5,7 @@ namespace DigitalBattleMap.ViewModels;
 public abstract class ControllerViewModelBase : ViewModelBase
 {
     protected IMapSize _mapSize;
+    protected bool _pauseBitmapCreation;
 
     public ControllerViewModelBase()
     {
@@ -21,5 +22,18 @@ public abstract class ControllerViewModelBase : ViewModelBase
 
     public abstract void Zoom(double zoomFactor);
 
-    public abstract void Move(ArrowDirection arrowDirection, int movementCount, bool update = true);
+    public abstract void Move(ArrowDirection arrowDirection, int movementCount);
+
+    public void PauseBitmapCreation()
+    {
+        _pauseBitmapCreation = true;
+    }
+
+    public void ResumeBitmapCreation()
+    {
+        _pauseBitmapCreation = false;
+        CreateBitmap();
+    }
+
+    protected abstract void CreateBitmap();
 }
