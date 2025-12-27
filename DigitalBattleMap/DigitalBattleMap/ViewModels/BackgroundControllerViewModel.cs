@@ -364,6 +364,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         {
             ExtractGridCells(Path.GetFileNameWithoutExtension(path));
             OpenBackground(IO.File.LoadBitmap(path));
+            FitToGrid();
         }
     }
 
