@@ -1,12 +1,19 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.DrawingShapes;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Drawing;
 using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace DigitalBattleMap.ViewModels;
 
@@ -64,6 +71,11 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         MouseCanvas.OnRectangleAreaSelected += RectangleAreaSelected;
         MouseCanvas.OnPolygonAreaSelected += FogOfWarPolygonAreaSelected;
         MouseCanvas.OnFixRatioRectangleAreaSelected += FixRatioRectangleAreaSelected;
+
+        /** new fog of war elements **/
+        FogShapeCollection = new();
+        FogShapeCollection.OnRenderShapes += (_, _) => NotifyDrawingShapesUpdated();
+        ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize);
     }
 
     protected override void InitializeCommands()
@@ -85,6 +97,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public event EventHandler OnBackgroundUpdated;
     public event EventHandler<GridSizeChangedEventArgs> OnGridSizeChanged;
     public event EventHandler<ZoomAndEnhanceEventArgs> OnZoomAndEnhance;
+    /** new fog of war elements **/
+    public event EventHandler OnFogShapeUpdated;
 
     public bool IsBackgroundEditingAllowed { get => HasOpenedBackground && !IsFogOfWarEnabled; }
     public bool HasOpenedBackground { get => Get<bool>(); set => Set(value); }
@@ -106,6 +120,12 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public BitmapSource GridBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public string BackgroundZoomPercentageLabel { get => $"{BackgroundZoomPercentage}%"; }
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
+
+    /** new fog of war elements **/
+    public DrawingShapeCollection FogShapeCollection { get => Get<DrawingShapeCollection>(); set => Set(value); }
+    public bool IsFogShapeActive { get => Get<bool>(); set => Set(value); }
+    public bool IsEditFogShapeActive { get => Get<bool>(); set => Set(value); }
+    public DrawingShape SelectedFogShape { get => Get<DrawingShape>(); set => Set(value, SelectedShapeChanged); }
 
     public ICommand OpenBackgroundCommand { get; set; }
     public ICommand OpenBackgroundFromClipboardCommand { get; set; }
@@ -353,6 +373,29 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         return _area.Width / (double)_mapSize.Width;
     }
 
+    /** new fog of war elements **/
+    public DrawingShape ActiveFogShape
+    {
+        get => Get<DrawingShape>();
+        set
+        {
+            var oldValue = Get<DrawingShape>();
+            if (oldValue != null)
+            {
+                oldValue.PropertyChanged -= ActiveShapePropertyChanged;
+                oldValue.OnRenderChanged -= OnActiveShapeRenderChanged;
+            }
+
+            Set(value);
+
+            if (value != null)
+            {
+                value.PropertyChanged += ActiveShapePropertyChanged;
+                value.OnRenderChanged += OnActiveShapeRenderChanged;
+            }
+        }
+    }
+
     protected override void CreateBitmap()
     {
         CreateBackground();
@@ -364,7 +407,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         {
             ExtractGridCells(Path.GetFileNameWithoutExtension(path));
             OpenBackground(IO.File.LoadBitmap(path));
-            FitToGrid(); 
+            FitToGrid();
         }
     }
 
@@ -665,4 +708,67 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         GridBitmap = IsGridShown ? BitmapTools.CreateGrid(GridSize) : BitmapTools.CreateEmptyBitmap();
         NotifyGridSizeChanged(GridSize);
     }
+
+    /** new fog of war elements **/
+    private void ActiveShapePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(DrawingShape.Cursor))
+        {
+            MouseCanvas.Cursor = ActiveFogShape.Cursor;
+        }
+    }
+
+    private void OnActiveShapeRenderChanged(object? sender, EventArgs e)
+    {
+        NotifyDrawingShapesUpdated();
+    }
+
+    private void ApplyActiveFogShape()
+    {
+        if (!FogShapeCollection.Contains(ActiveFogShape))
+        {
+            FogShapeCollection.Add(ActiveFogShape);
+        }
+
+        ActiveFogShape = CreateRectangleFogShape();
+        IsFogShapeActive = false;
+        IsEditFogShapeActive = false;
+        NotifyDrawingShapesUpdated();
+    }
+
+    private DrawingShape CreateRectangleFogShape()
+    {
+        var strokeDrawingShapes = FogShapeCollection.GetShapes().OfType<RectangleFogShape>();
+
+        return new RectangleFogShape(ApplyActiveFogShape, _mapSize)
+        {
+            Color = ActiveFogShape.Color,
+            PenSize = ActiveFogShape.PenSize,
+            SnapToGrid = false
+        };
+    }
+
+    private void NotifyDrawingShapesUpdated()
+    {
+        if (_pauseBitmapCreation)
+            return;
+
+        OnFogShapeUpdated?.Invoke(this, new EventArgs());
+    }
+
+    private void SelectedShapeChanged()
+    {
+        if (SelectedFogShape != null)
+        {
+            var points = SelectedFogShape.Points.ToList();
+            SelectedFogShape.Points.Clear();
+            Task.Run(() =>
+            {
+                Thread.Sleep(150);
+                Application.Current.Dispatcher.Invoke(() => { SelectedFogShape.Points = new ObservableCollection<Point<double>>(points); }, DispatcherPriority.Normal);
+            });
+        }
+    }
+
+
 }
