@@ -129,3 +129,8 @@ public class ControlInfoEventArgs : EventArgs
     public string controlName { get; set; }
     public List<InfoBlock> infoBlocks { get; set; }
 }
+
+public class DrawingShapeErasedEventArgs : EventArgs
+{
+    public List<DrawingShapeCommand> EraseCommands { get; set; } = new();
+}

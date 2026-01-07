@@ -12,7 +12,7 @@ public class RectangleDrawingShape : DrawingShape
     private double _radiusX;
     private double _radiusY;
 
-    public RectangleDrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize) : base(applyShapeCallback, tokenLinker, mapSize)
+    public RectangleDrawingShape(Action<DrawingShapeInfo, DrawingShapeInfo> applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize) : base(applyShapeCallback, tokenLinker, mapSize)
     {
         Name = "Rectangle";
         SnapToGrid = true;

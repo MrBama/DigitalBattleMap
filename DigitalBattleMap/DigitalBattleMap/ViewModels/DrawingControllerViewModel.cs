@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -71,6 +72,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         DrawCircleCommand = new RelayCommand(p => DrawShape(DrawingShapeType.Circle));
         DrawConeCommand = new RelayCommand(p => DrawShape(DrawingShapeType.Cone));
         DrawLineCommand = new RelayCommand(p => DrawShape(DrawingShapeType.Line));
+        UndoCommand = new RelayCommand(p => Undo());
+        RedoCommand = new RelayCommand(p => Redo());
     }
 
     public event EventHandler OnDrawingShapesUpdated;
@@ -81,11 +84,14 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public BitmapSource GreenButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource BlueButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource EraserButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
+    public BitmapSource UndoBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.UndoIcon.png")).ToBitmapImage(); }
+    public BitmapSource RedoBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.RedoIcon.png")).ToBitmapImage(); }
     public DrawingShape SelectedShape { get => Get<DrawingShape>(); set => Set(value, SelectedShapeChanged); }
     public DrawingShapeCollection ShapeCollection { get => Get<DrawingShapeCollection>(); set => Set(value); }
     public bool IsDrawShapeActive { get => Get<bool>(); set => Set(value); }
     public bool IsEditShapeActive { get => Get<bool>(); set => Set(value); }
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
+    public CommandHistory<DrawingShapeCommand> DrawingHistory { get; set; } = new(30);
     public ICommand SelectedDrawingButtonChangedCommand { get; set; }
     public ICommand ClearDrawingCommand { get; set; }
     public ICommand CancelDrawShapeCommand { get; set; }
@@ -97,6 +103,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public ICommand DrawCircleCommand { get; set; }
     public ICommand DrawConeCommand { get; set; }
     public ICommand DrawLineCommand { get; set; }
+    public ICommand UndoCommand { get; set; }
+    public ICommand RedoCommand { get; set; }
 
     public DrawingShape ActiveShape
     {
@@ -288,8 +296,11 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
 
         ShapeCollection.Clear();
+        DrawingHistory.Clear();
         ActiveShape = CreateStrokeDrawingShape();
+        ResetDrawingButton();
         IsDrawShapeActive = false;
+        IsEditShapeActive = false;
         NotifyDrawingShapesUpdated();
     }
 
@@ -326,6 +337,14 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         ActiveShape.Color = GetDrawingButtonColor(newDrawingButton);
     }
 
+    private void ResetDrawingButton()
+    {
+        SetDrawingButtonSelection(_selectedDrawingButton, false);
+        SetDrawingButtonSelection(DrawingButton.Black, true);
+        ActiveShape.Color = GetDrawingButtonColor(DrawingButton.Black);
+        _selectedDrawingButton = DrawingButton.Black;
+    }
+
     private void SelectEraser()
     {
         if (IsEditShapeActive)
@@ -337,10 +356,18 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         IsDrawShapeActive = false;
         IsEditShapeActive = false;
 
-        ActiveShape = new EraserDrawingShape(ShapeCollection, _mapSize)
+        var eraserDrawingShape = new EraserDrawingShape(ShapeCollection, _mapSize)
         {
             PenSize = ActiveShape.PenSize
         };
+
+        eraserDrawingShape.OnErased += OnErased;
+        ActiveShape = eraserDrawingShape;
+    }
+
+    private void OnErased(object? sender, DrawingShapeErasedEventArgs e)
+    {
+        DrawingHistory.Enqueue(new DrawingShapeCommand(null, DrawingShapeCommandAction.Erase) { EraseData = e });
     }
 
     private void SetDrawingButtonSelection(DrawingButton drawingButton, bool isSelected)
@@ -367,11 +394,19 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
     }
 
-    private void ApplyActiveShape()
+    private void ApplyActiveShape(DrawingShapeInfo before, DrawingShapeInfo after)
     {
         if (!ShapeCollection.Contains(ActiveShape))
         {
             ShapeCollection.Add(ActiveShape);
+            DrawingHistory.Enqueue(new DrawingShapeCommand(ActiveShape, DrawingShapeCommandAction.Add));
+        }
+        else
+        {
+            var editCommand = new DrawingShapeCommand(ActiveShape, DrawingShapeCommandAction.Edit);
+            editCommand.Before = before;
+            editCommand.After = after;
+            DrawingHistory.Enqueue(editCommand);
         }
 
         ActiveShape = CreateStrokeDrawingShape();
@@ -591,9 +626,79 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             ActiveShape = CreateStrokeDrawingShape();
         }
 
+        DrawingHistory.Enqueue(new DrawingShapeCommand(SelectedShape, DrawingShapeCommandAction.Remove) { RemovedAtIndex = ShapeCollection.IndexOf(SelectedShape) });
         ShapeCollection.Remove(SelectedShape);
+
         IsEditShapeActive = false;
         NotifyDrawingShapesUpdated();
+    }
+
+    private void Undo()
+    {
+        if(DrawingHistory.TryDequeuePreviousCommand(out var command))
+        {
+            UndoDrawingCommand(command);
+        }
+    }
+
+    private void UndoDrawingCommand(DrawingShapeCommand command)
+    {
+        switch (command.Action)
+        {
+            case DrawingShapeCommandAction.Add:
+                ShapeCollection.Remove(command.DrawingShape);
+                break;
+            case DrawingShapeCommandAction.Remove:
+                ShapeCollection.Insert(command.RemovedAtIndex, command.DrawingShape);
+                break;
+            case DrawingShapeCommandAction.Edit:
+                command.DrawingShape.Color = command.Before.Color;
+                command.DrawingShape.PenSize = command.Before.Size;
+                command.DrawingShape.Points = new ObservableCollection<Point<double>>(command.Before.Points);
+                break;
+            case DrawingShapeCommandAction.Erase:
+                foreach (var eraseCommand in command.EraseData.EraseCommands)
+                {
+                    UndoDrawingCommand(eraseCommand);
+                }
+                break;
+            default:
+                throw new NotImplementedException();
+        }
+    }
+
+    private void Redo()
+    {
+        if (DrawingHistory.TryDequeueNextCommand(out var command))
+        {
+            RedoDrawingCommand(command);
+        }
+    }
+
+    private void RedoDrawingCommand(DrawingShapeCommand command)
+    {
+        switch (command.Action)
+        {
+            case DrawingShapeCommandAction.Add:
+                ShapeCollection.Add(command.DrawingShape);
+                break;
+            case DrawingShapeCommandAction.Remove:
+                ShapeCollection.Remove(command.DrawingShape);
+                break;
+            case DrawingShapeCommandAction.Edit:
+                command.DrawingShape.Color = command.After.Color;
+                command.DrawingShape.PenSize = command.After.Size;
+                command.DrawingShape.Points = new ObservableCollection<Point<double>>(command.After.Points);
+                break;
+            case DrawingShapeCommandAction.Erase:
+                foreach (var eraseCommand in command.EraseData.EraseCommands)
+                {
+                    RedoDrawingCommand(eraseCommand);
+                }
+                break;
+            default:
+                throw new NotImplementedException();
+        }
     }
 
     private void ActiveShapePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

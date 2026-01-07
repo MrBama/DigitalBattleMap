@@ -124,3 +124,11 @@ public enum BackgroundColor
     Black,
     White
 }
+
+public enum DrawingShapeCommandAction
+{
+    Add,
+    Remove,
+    Edit,
+    Erase
+}

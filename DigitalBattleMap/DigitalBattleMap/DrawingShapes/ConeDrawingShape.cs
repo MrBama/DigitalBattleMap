@@ -10,7 +10,7 @@ public class ConeDrawingShape : DrawingShape
     private Point<double> _startPosition;
     private Point<double> _previousMovePosition;
 
-    public ConeDrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize) : base(applyShapeCallback, tokenLinker, mapSize)
+    public ConeDrawingShape(Action<DrawingShapeInfo, DrawingShapeInfo> applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize) : base(applyShapeCallback, tokenLinker, mapSize)
     {
         Name = "Cone";
         SnapToGrid = true;

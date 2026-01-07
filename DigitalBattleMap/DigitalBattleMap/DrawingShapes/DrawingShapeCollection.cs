@@ -46,7 +46,16 @@ public class DrawingShapeCollection : IEnumerable, INotifyCollectionChanged
         // Only show shapes that cannot be removed with the eraser
         if (!drawingShape.IsErasable)
         {
-            DrawingShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, drawingShape));
+            var numberOfErasableStrokes = 0;
+            for(int i = 0; i < index; i++)
+            {
+                if(_drawingShapes[i].IsErasable)
+                {
+                    numberOfErasableStrokes++;
+                }
+            }
+            var uiIndex = index - numberOfErasableStrokes;
+            DrawingShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, drawingShape, uiIndex));
         }
     }
 

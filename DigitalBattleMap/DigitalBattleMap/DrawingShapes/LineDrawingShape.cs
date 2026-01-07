@@ -10,7 +10,7 @@ public class LineDrawingShape : DrawingShape
     private Point<double> _startPosition;
     private Point<double> _previousMovePosition;
 
-    public LineDrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize) : base(applyShapeCallback, tokenLinker, mapSize)
+    public LineDrawingShape(Action<DrawingShapeInfo, DrawingShapeInfo> applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize) : base(applyShapeCallback, tokenLinker, mapSize)
     {
         Name = "Line";
         SnapToGrid = true;

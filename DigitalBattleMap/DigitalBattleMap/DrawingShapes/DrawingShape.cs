@@ -15,14 +15,14 @@ namespace DigitalBattleMap.DrawingShapes;
 
 public abstract class DrawingShape : PropertyHandler, ILinkableObject
 {
-    private Action _applyShapeCallback;
-    private DrawingShapeInfo _editInfo;
+    private Action<DrawingShapeInfo, DrawingShapeInfo> _applyShapeCallback;
+    private DrawingShapeInfo _editInfo = new();
     protected IMapSize _mapSize;
     private ITokenLinker _tokenLinker;
     private Point<double> _previousMovePosition;
     private bool _isMoving;
 
-    public DrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize)
+    public DrawingShape(Action<DrawingShapeInfo, DrawingShapeInfo> applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize)
     {
         _applyShapeCallback = applyShapeCallback;
         _tokenLinker = tokenLinker;
@@ -82,7 +82,7 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     public void ApplyShape()
     {
         IsEditing = false;
-        _applyShapeCallback();
+        _applyShapeCallback(_editInfo, new DrawingShapeInfo(this));
     }
 
     public void EditShape()
@@ -170,7 +170,7 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
         }
     }
 
-    public void SetProperties(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize)
+    public void SetProperties(Action<DrawingShapeInfo, DrawingShapeInfo> applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize)
     {
         _applyShapeCallback = applyShapeCallback;
         _tokenLinker = tokenLinker;
@@ -233,19 +233,5 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     private IEnumerable<Point<double>> ToPointDoubleEnumerable(Point[] points)
     {
         return points.Select(p => new Point<double>(p.X, p.Y));
-    }
-
-    private class DrawingShapeInfo
-    {
-        public DrawingShapeInfo(DrawingShape drawingShape)
-        {
-            Color = drawingShape.Color;
-            Size = drawingShape.PenSize;
-            Points = drawingShape.Points.ToList();
-        }
-
-        public Color Color { get; set; }
-        public double Size { get; set; }
-        public List<Point<double>> Points { get; set; }
     }
 }

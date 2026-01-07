@@ -1,4 +1,5 @@
-﻿using DigitalBattleMap.Utilities;
+﻿using DigitalBattleMap.DrawingShapes;
+using DigitalBattleMap.Utilities;
 using System.Collections.Generic;
 using System.ComponentModel;
 
@@ -56,4 +57,20 @@ public class ZoomAndMoveCommand
 
     public Point<int>? Steps { get; set; } = null;
     public int? GridSize { get; set; } = null;
+}
+
+public class DrawingShapeCommand
+{
+    public DrawingShapeCommand(DrawingShape drawingShape, DrawingShapeCommandAction action)
+    {
+        DrawingShape = drawingShape;
+        Action = action;
+    }
+
+    public DrawingShape DrawingShape { get; set; }
+    public DrawingShapeCommandAction Action { get; set; }
+    public DrawingShapeInfo Before { get; set; }
+    public DrawingShapeInfo After { get; set; }
+    public int RemovedAtIndex { get; set; }
+    public DrawingShapeErasedEventArgs EraseData { get; set; }
 }
