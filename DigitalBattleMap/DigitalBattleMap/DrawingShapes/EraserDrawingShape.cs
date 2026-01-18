@@ -39,7 +39,6 @@ public class EraserDrawingShape : DrawingShape
 
     protected override void ButtonUp(Point<double> position)
     {
-        RenderShape();
         NotifyErased();
     }
 
@@ -157,8 +156,8 @@ public class EraserDrawingShape : DrawingShape
             {
                 eraseCommands.Add(new DrawingShapeCommand(editedShape, DrawingShapeCommandAction.Edit)
                 {
-                    Before = editedShapeInfo,
-                    After = new DrawingShapeInfo(editedShape)
+                    OldInfo = editedShapeInfo,
+                    NewInfo = new DrawingShapeInfo(editedShape)
                 });
             }
         }

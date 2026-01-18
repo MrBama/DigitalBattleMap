@@ -6,6 +6,7 @@
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
              xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels" 
              xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements"
+             xmlns:enums="clr-namespace:DigitalBattleMap.DataClasses" 
              mc:Ignorable="d" 
              d:DesignHeight="1080" d:DesignWidth="480"
              Background="White"
@@ -18,6 +19,7 @@
         <uielements:BoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter" IsInverted="True"/>
         <uielements:BoolToInvertedBoolConverter x:Key="InvertBoolConverter"/>
         <uielements:NullToBoolConverter x:Key="NullToBoolConverter"/>
+        <uielements:DrawingColorToBoolConverter x:Key="DrawingColorToBoolConverter"/>
     </UserControl.Resources>
 
     <!--Drawing grid-->
@@ -51,35 +53,35 @@
             <Image Source="{Binding BlackButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="MouseLeftButtonUp">
-                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="Black" />
+                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Black}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </Image>
             <Image Grid.Column="1" Source="{Binding RedButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="MouseLeftButtonUp">
-                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="Red" />
+                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Red}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </Image>
             <Image Grid.Column="2" Source="{Binding GreenButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="MouseLeftButtonUp">
-                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="Green" />
+                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Green}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </Image>
             <Image Grid.Column="3" Source="{Binding BlueButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="MouseLeftButtonUp">
-                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="Blue" />
+                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Blue}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </Image>
             <Image Grid.Row="1" Source="{Binding EraserButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="MouseLeftButtonUp">
-                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="Eraser" />
+                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Eraser}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </Image>
@@ -114,7 +116,30 @@
                 <DataTemplate>
                     <Grid Background="Transparent">
                         <Grid.ContextMenu>
-                            <ContextMenu>
+                            <ContextMenu >
+                                <MenuItem Header="Color">
+                                    <MenuItem Header="Black" IsChecked="{Binding Color, Converter={StaticResource DrawingColorToBoolConverter}, ConverterParameter={x:Static enums:DrawingButton.Black}}" Command="{Binding ColorChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Black}"/>
+                                    <MenuItem Header="Red" IsChecked="{Binding Color, Converter={StaticResource DrawingColorToBoolConverter}, ConverterParameter={x:Static enums:DrawingButton.Red}}" Command="{Binding ColorChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Red}"/>
+                                    <MenuItem Header="Green" IsChecked="{Binding Color, Converter={StaticResource DrawingColorToBoolConverter}, ConverterParameter={x:Static enums:DrawingButton.Green}}" Command="{Binding ColorChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Green}"/>
+                                    <MenuItem Header="Blue" IsChecked="{Binding Color, Converter={StaticResource DrawingColorToBoolConverter}, ConverterParameter={x:Static enums:DrawingButton.Blue}}" Command="{Binding ColorChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Blue}"/>
+                                </MenuItem>
+                                <MenuItem>
+                                    <MenuItem.Header>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Label Content="Pen size" Padding="0"/>
+                                            <TextBox x:Name="ContextMenuPenSizeText" Grid.Column="1" MinWidth="50" Margin="5 0 0 0" Text="{Binding ContextMenuPenSize, UpdateSourceTrigger=PropertyChanged}" >
+                                                <TextBox.InputBindings>
+                                                    <KeyBinding Command="{Binding PenSizeChangedCommand}" Key="Enter"/>
+                                                </TextBox.InputBindings>
+                                            </TextBox>
+                                        </Grid>
+                                    </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Header="Snap to grid" IsChecked="{Binding SnapToGrid}" Command="{Binding SnapToGridChangedCommand}"/>
                                 <MenuItem Header="{Binding LinkableObject.LinkToTokenButtonText}" Command="{Binding LinkToTokenCommand}"/>
                             </ContextMenu>
                         </Grid.ContextMenu>

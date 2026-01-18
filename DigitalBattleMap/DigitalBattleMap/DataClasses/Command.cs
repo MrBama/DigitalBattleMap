@@ -69,8 +69,8 @@ public class DrawingShapeCommand
 
     public DrawingShape DrawingShape { get; set; }
     public DrawingShapeCommandAction Action { get; set; }
-    public DrawingShapeInfo Before { get; set; }
-    public DrawingShapeInfo After { get; set; }
+    public DrawingShapeInfo OldInfo { get; set; }
+    public DrawingShapeInfo NewInfo { get; set; }
     public int RemovedAtIndex { get; set; }
     public DrawingShapeErasedEventArgs EraseData { get; set; }
 }

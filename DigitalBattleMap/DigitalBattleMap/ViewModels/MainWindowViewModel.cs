@@ -189,7 +189,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         CanvasSizeChangedCommand = new RelayCommand(p => CanvasSizeChanged((SizeChangedEventArgs)p));
         ClearAllCommand = new RelayCommand(p => ClearMap());
         SettingsCommand = new RelayCommand(p => OpenSettings());
-        MoveMapArrowCommand = new RelayCommand(p => MoveMap((string)p));
+        MoveMapArrowCommand = new RelayCommand(p => MoveMap((ArrowDirection)p));
         SaveMapCommand = new RelayCommand(p => SaveMap());
         OpenMapCommand = new RelayCommand(p => OpenMap());
         ServerConnectionCommand = new RelayCommand(p => ServerConnectionButton());
@@ -470,12 +470,6 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public Size<double> GetCanvasSize()
     {
         return _canvasSize;
-    }
-
-    private void MoveMap(string direction)
-    {
-        var arrowDirection = Enum.Parse<ArrowDirection>(direction);
-        MoveMap(arrowDirection);
     }
 
     private void MoveMap(ArrowDirection arrowDirection)

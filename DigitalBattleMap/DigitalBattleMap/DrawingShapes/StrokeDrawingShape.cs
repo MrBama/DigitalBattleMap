@@ -13,7 +13,7 @@ public class StrokeDrawingShape : DrawingShape
     {
     }
 
-    public override bool IsErasable => true;
+    public override bool ShowInShapesOverview => false;
 
     protected override void ButtonDown(Point<double> position)
     {

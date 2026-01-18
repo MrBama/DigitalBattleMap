@@ -36,23 +36,30 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
         LinkableObject = new LinkableObject(UpdatePosition);
 
         LinkToTokenCommand = new RelayCommand(p => LinkToDifferentToken());
+        ColorChangedCommand = new RelayCommand(p => ColorChanged((DrawingButton)p));
+        PenSizeChangedCommand = new RelayCommand(p => PenSizeChanged(p));
+        SnapToGridChangedCommand = new RelayCommand(p => SnapToGridChanged());
 
         RegisterPropertyChangedWatcher(nameof(Cursor), new List<string> { nameof(Color), nameof(PenSize) });
     }
 
     public event NotifyCollectionChangedEventHandler OnPointsChanged;
-    public event EventHandler OnRenderChanged;
+
+    // This event triggers a UI update for the players
+    public event EventHandler<DrawingShapeEditedEventArgs> OnRenderChanged;
 
     public Color Color { get => Get<Color>(); set => Set(value, () => NotifyPropertyChange(nameof(ColorBrush))); }
     public Brush ColorBrush { get => new SolidColorBrush(Color); }
-    public double PenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100)); } // This is map size instead of canvas size because of UI reasons.
+    public double PenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100), () => ContextMenuPenSize = PenSize); } // This is map size instead of canvas size because of UI reasons.
+    public double ContextMenuPenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100)); }
     public double PenSizeCanvas { get => PenSize.Map(0, _mapSize.Width, 0, _mapSize.CanvasWidth); }
     public string Size { get => Get<string>(); set => Set(value); }
     public bool IsEditing { get => Get<bool>(); set => Set(value); }
     public bool SnapToGrid { get => Get<bool>(); set => Set(value); }
     public string Name { get => Get<string>(); protected set => Set(value); }
     public virtual Cursor Cursor { get => CursorCreator.Create(new SolidColorBrush(Color), (int)Math.Max(8, PenSize)); }
-    public virtual bool IsErasable => false;
+    public virtual bool ShowInShapesOverview => true;
+    public bool IsErasable => !ShowInShapesOverview;
     public Type Type { get => GetType(); }
     public ObservableCollection<Point<double>> Points
     {
@@ -78,6 +85,12 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     public LinkableObject LinkableObject { get; private set; }
     [JsonIgnore]
     public ICommand LinkToTokenCommand { get; set; }
+    [JsonIgnore]
+    public ICommand ColorChangedCommand { get; set; }    
+    [JsonIgnore]
+    public ICommand SnapToGridChangedCommand { get; set; }    
+    [JsonIgnore]
+    public ICommand PenSizeChangedCommand { get; set; }
 
     public void ApplyShape()
     {
@@ -113,6 +126,8 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     {
         if (IsEditing)
         {
+            _editInfo = new DrawingShapeInfo(this);
+
             var position = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(e.Position, _mapSize, _mapSize.CanvasGridSize / 2) : e.Position;
 
             var margin = 0.001; // This is required for floating point comparison
@@ -142,7 +157,7 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
                 var matrix = new Matrix();
                 matrix.Translate(distanceX, distanceY);
                 Transform(matrix);
-                RenderShape();
+                RenderShape(_editInfo);
             }
 
             _isMoving = false;
@@ -188,6 +203,7 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     {
         Application.Current.Dispatcher.Invoke(() =>
         {
+            var oldInfo = new DrawingShapeInfo(this);
             var offsetDouble = Point<double>.Create(offset);
             var distanceX = offsetDouble.X.Map(0, _mapSize.Width, 0, _mapSize.CanvasWidth);
             var distanceY = offsetDouble.Y.Map(0, _mapSize.Height, 0, _mapSize.CanvasHeight);
@@ -195,7 +211,7 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
             matrix.Translate(distanceX, distanceY);
 
             Transform(matrix);
-            RenderShape();
+            RenderShape(oldInfo);
         });
     }
 
@@ -203,9 +219,15 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     protected abstract void ButtonUp(Point<double> position);
     protected abstract void MouseMove(Point<double> position, bool buttonDown);
 
-    protected void RenderShape()
+    protected void RenderShape(DrawingShapeInfo oldInfo)
     {
-        OnRenderChanged?.Invoke(this, new EventArgs());
+        var eventArgs = new DrawingShapeEditedEventArgs
+        {
+            DrawingShape = this,
+            OldInfo = oldInfo,
+            NewInfo = new DrawingShapeInfo(this)
+        };
+        OnRenderChanged?.Invoke(this, eventArgs);
     }
 
     private void OnPointsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -233,5 +255,24 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     private IEnumerable<Point<double>> ToPointDoubleEnumerable(Point[] points)
     {
         return points.Select(p => new Point<double>(p.X, p.Y));
+    }
+
+    private void ColorChanged(DrawingButton newDrawingButton)
+    {
+        var oldInfo = new DrawingShapeInfo(this);
+        Color = newDrawingButton.ToColor();
+        RenderShape(oldInfo);
+    }
+
+    private void PenSizeChanged(object penSize)
+    {
+        var oldInfo = new DrawingShapeInfo(this);
+        PenSize = ContextMenuPenSize;
+        RenderShape(oldInfo);
+    }
+
+    private void SnapToGridChanged()
+    {
+        SnapToGrid = !SnapToGrid;
     }
 }

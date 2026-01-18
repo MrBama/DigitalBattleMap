@@ -1,18 +1,20 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Utilities;
 using System;
 using System.Globalization;
 using System.Windows.Data;
+using System.Windows.Media;
 
 namespace DigitalBattleMap.UIElements;
 
-public class TokenSizeToBoolConverter : IValueConverter
+public class DrawingColorToBoolConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        var tokenSize = (TokenSize)value;
-        var parameterSize = (TokenSize)parameter;
+        var color = (Color)value;
+        var drawingButton = (DrawingButton)parameter;
 
-        if (tokenSize == parameterSize)
+        if (color == drawingButton.ToColor())
         {
             return true;
         }
@@ -27,3 +29,4 @@ public class TokenSizeToBoolConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
+

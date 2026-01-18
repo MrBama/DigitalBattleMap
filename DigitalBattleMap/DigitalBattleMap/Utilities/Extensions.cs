@@ -139,4 +139,21 @@ public static class Extensions
     {
         return new Bitmap(bitmap);
     }
+
+    public static System.Windows.Media.Color ToColor(this DrawingButton drawingButton)
+    {
+        switch (drawingButton)
+        {
+            case DrawingButton.Black:
+                return System.Windows.Media.Color.FromArgb(255, 0, 0, 0);
+            case DrawingButton.Red:
+                return System.Windows.Media.Color.FromArgb(255, 255, 0, 0);
+            case DrawingButton.Green:
+                return System.Windows.Media.Color.FromArgb(255, 0, 255, 0);
+            case DrawingButton.Blue:
+                return System.Windows.Media.Color.FromArgb(255, 0, 0, 255);
+            default:
+                return System.Windows.Media.Color.FromArgb(255, 255, 0, 0);
+        }
+    }
 }

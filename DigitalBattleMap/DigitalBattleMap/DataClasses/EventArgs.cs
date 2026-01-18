@@ -134,3 +134,10 @@ public class DrawingShapeErasedEventArgs : EventArgs
 {
     public List<DrawingShapeCommand> EraseCommands { get; set; } = new();
 }
+
+public class DrawingShapeEditedEventArgs : EventArgs
+{
+    public DrawingShape DrawingShape { get; set; }
+    public DrawingShapeInfo OldInfo { get; set; }
+    public DrawingShapeInfo NewInfo { get; set; }
+}

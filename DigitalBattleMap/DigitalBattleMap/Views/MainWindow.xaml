@@ -5,7 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
         xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements"
-        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels" xmlns:views="clr-namespace:DigitalBattleMap.Views"
+        xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels" 
+        xmlns:views="clr-namespace:DigitalBattleMap.Views"
+        xmlns:enums="clr-namespace:DigitalBattleMap.DataClasses" 
         mc:Ignorable="d"
         Title="MainWindow" Height="1025" Width="1920" 
         WindowStartupLocation="CenterScreen"
@@ -330,16 +332,16 @@
                             </Grid.ColumnDefinitions>
 
                             <Label Grid.Row="1" Grid.Column="1" Content="{Binding MultiMoveCount}" Visibility="{Binding IsMultiMove, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="30"/>
-                            <Button x:Name="MoveUpButton" Grid.Row="1" Grid.Column="2" Margin="5 0 5 5" Command="{Binding MoveMapArrowCommand}" CommandParameter="Up" Width="{Binding ElementName=MoveUpButton,Path=ActualHeight}">
+                            <Button x:Name="MoveUpButton" Grid.Row="1" Grid.Column="2" Margin="5 0 5 5" Command="{Binding MoveMapArrowCommand}" CommandParameter="{x:Static enums:ArrowDirection.Up}" Width="{Binding ElementName=MoveUpButton,Path=ActualHeight}">
                                 <Image Source="{Binding MapArrowUpBitmapSource}"/>
                             </Button>
-                            <Button x:Name="MoveLeftButton" Grid.Row="2" Grid.Column="1" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Left" Width="{Binding ElementName=MoveLeftButton,Path=ActualHeight}">
+                            <Button x:Name="MoveLeftButton" Grid.Row="2" Grid.Column="1" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="{x:Static enums:ArrowDirection.Left}" Width="{Binding ElementName=MoveLeftButton,Path=ActualHeight}">
                                 <Image Source="{Binding MapArrowLeftBitmapSource}"/>
                             </Button>
-                            <Button x:Name="MoveDownButton" Grid.Row="2" Grid.Column="2" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Down" Width="{Binding ElementName=MoveDownButton,Path=ActualHeight}">
+                            <Button x:Name="MoveDownButton" Grid.Row="2" Grid.Column="2" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="{x:Static enums:ArrowDirection.Down}" Width="{Binding ElementName=MoveDownButton,Path=ActualHeight}">
                                 <Image Source="{Binding MapArrowDownBitmapSource}"/>
                             </Button>
-                            <Button x:Name="MoveRightButton" Grid.Row="2" Grid.Column="3" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="Right" Width="{Binding ElementName=MoveRightButton,Path=ActualHeight}">
+                            <Button x:Name="MoveRightButton" Grid.Row="2" Grid.Column="3" Margin="5 5 5 0" Command="{Binding MoveMapArrowCommand}" CommandParameter="{x:Static enums:ArrowDirection.Right}" Width="{Binding ElementName=MoveRightButton,Path=ActualHeight}">
                                 <Image Source="{Binding MapArrowRightBitmapSource}"/>
                             </Button>
                         </Grid>
