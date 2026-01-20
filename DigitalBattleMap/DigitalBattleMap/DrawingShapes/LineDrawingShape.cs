@@ -10,7 +10,7 @@ public class LineDrawingShape : DrawingShape
     private Point<double> _startPosition;
     private Point<double> _previousMovePosition;
 
-    public LineDrawingShape(Action<DrawingShapeInfo, DrawingShapeInfo> applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize) : base(applyShapeCallback, tokenLinker, mapSize)
+    public LineDrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize) : base(applyShapeCallback, tokenLinker, mapSize)
     {
         Name = "Line";
         SnapToGrid = true;
@@ -67,6 +67,6 @@ public class LineDrawingShape : DrawingShape
         var distance = new Point<double>(_startPosition.X - _previousMovePosition.X, _startPosition.Y - _previousMovePosition.Y);
         var radius = Math.Sqrt(Math.Pow(distance.X, 2) + Math.Pow(distance.Y, 2));
         var gridCells = radius / _mapSize.CanvasGridSize;
-        Size = $"{Math.Round(gridCells * Constants.FeetPerGridCell)}";
+        SizeLabel = $"{Math.Round(gridCells * Constants.FeetPerGridCell)} ft";
     }
 }

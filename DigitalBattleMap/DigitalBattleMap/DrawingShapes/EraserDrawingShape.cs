@@ -7,7 +7,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
 
 namespace DigitalBattleMap.DrawingShapes;
 
@@ -19,7 +18,7 @@ public class EraserDrawingShape : DrawingShape
     private List<DrawingShape> _removedShapes = new();
     private Dictionary<DrawingShape, DrawingShapeInfo> _editedShapes = new();
 
-    public EraserDrawingShape(DrawingShapeCollection drawingShapeCollection, IMapSize mapSize) : base((_, _) => { }, null, mapSize)
+    public EraserDrawingShape(DrawingShapeCollection drawingShapeCollection, IMapSize mapSize) : base(() => { }, null, mapSize)
     {
         _drawingShapeCollection = drawingShapeCollection;
     }
@@ -105,7 +104,7 @@ public class EraserDrawingShape : DrawingShape
     {
         var pointIndex = shape.Points.IndexOf(point);
 
-        var newShape = new StrokeDrawingShape((_, _) => { }, null, _mapSize)
+        var newShape = new StrokeDrawingShape(() => { }, null, _mapSize)
         {
             PenSize = shape.PenSize,
             Color = shape.Color,

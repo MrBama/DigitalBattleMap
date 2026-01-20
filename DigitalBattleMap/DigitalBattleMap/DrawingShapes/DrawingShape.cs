@@ -15,14 +15,14 @@ namespace DigitalBattleMap.DrawingShapes;
 
 public abstract class DrawingShape : PropertyHandler, ILinkableObject
 {
-    private Action<DrawingShapeInfo, DrawingShapeInfo> _applyShapeCallback;
+    private Action _applyShapeCallback;
     private DrawingShapeInfo _editInfo = new();
     protected IMapSize _mapSize;
     private ITokenLinker _tokenLinker;
     private Point<double> _previousMovePosition;
     private bool _isMoving;
 
-    public DrawingShape(Action<DrawingShapeInfo, DrawingShapeInfo> applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize)
+    public DrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize)
     {
         _applyShapeCallback = applyShapeCallback;
         _tokenLinker = tokenLinker;
@@ -32,7 +32,7 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
         PenSize = 5;
         Points = new();
         Name = "DrawingShape";
-        Size = "0";
+        SizeLabel = "";
         LinkableObject = new LinkableObject(UpdatePosition);
 
         LinkToTokenCommand = new RelayCommand(p => LinkToDifferentToken());
@@ -53,8 +53,8 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     public double PenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100), () => ContextMenuPenSize = PenSize); } // This is map size instead of canvas size because of UI reasons.
     public double ContextMenuPenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100)); }
     public double PenSizeCanvas { get => PenSize.Map(0, _mapSize.Width, 0, _mapSize.CanvasWidth); }
-    public string Size { get => Get<string>(); set => Set(value); }
-    public bool IsEditing { get => Get<bool>(); set => Set(value); }
+    public string SizeLabel { get => Get<string>(); set => Set(value); }
+    public Thickness SizeLabelPosition { get => Get<Thickness>(); set => Set(value); }
     public bool SnapToGrid { get => Get<bool>(); set => Set(value); }
     public string Name { get => Get<string>(); protected set => Set(value); }
     public virtual Cursor Cursor { get => CursorCreator.Create(new SolidColorBrush(Color), (int)Math.Max(8, PenSize)); }
@@ -86,34 +86,20 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     [JsonIgnore]
     public ICommand LinkToTokenCommand { get; set; }
     [JsonIgnore]
-    public ICommand ColorChangedCommand { get; set; }    
+    public ICommand ColorChangedCommand { get; set; }
     [JsonIgnore]
-    public ICommand SnapToGridChangedCommand { get; set; }    
+    public ICommand SnapToGridChangedCommand { get; set; }
     [JsonIgnore]
     public ICommand PenSizeChangedCommand { get; set; }
 
     public void ApplyShape()
     {
-        IsEditing = false;
-        _applyShapeCallback(_editInfo, new DrawingShapeInfo(this));
-    }
-
-    public void EditShape()
-    {
-        IsEditing = true;
-        _editInfo = new DrawingShapeInfo(this);
-    }
-
-    public void CancelEditShape()
-    {
-        IsEditing = false;
-        PenSize = _editInfo.Size;
-        Color = _editInfo.Color;
-        Points = new ObservableCollection<Point<double>>(_editInfo.Points);
+        _applyShapeCallback();
     }
 
     public void LeftButtonDown(MouseButtonDataEventArgs e)
     {
+        SizeLabelPosition = new Thickness(e.Position.X, e.Position.Y, 0, 0);
         ButtonDown(e.Position);
     }
 
@@ -124,29 +110,26 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
 
     public void RightButtonDown(MouseButtonDataEventArgs e)
     {
-        if (IsEditing)
+        _editInfo = new DrawingShapeInfo(this);
+
+        var position = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(e.Position, _mapSize, _mapSize.CanvasGridSize / 2) : e.Position;
+
+        var margin = 0.001; // This is required for floating point comparison
+        var minX = Points.Min(p => p.X) - margin;
+        var minY = Points.Min(p => p.Y) - margin;
+        var maxX = Points.Max(p => p.X) + margin;
+        var maxY = Points.Max(p => p.Y) + margin;
+
+        if (position.X >= minX && position.X <= maxX && position.Y >= minY && position.Y <= maxY)
         {
-            _editInfo = new DrawingShapeInfo(this);
-
-            var position = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(e.Position, _mapSize, _mapSize.CanvasGridSize / 2) : e.Position;
-
-            var margin = 0.001; // This is required for floating point comparison
-            var minX = Points.Min(p => p.X) - margin;
-            var minY = Points.Min(p => p.Y) - margin;
-            var maxX = Points.Max(p => p.X) + margin;
-            var maxY = Points.Max(p => p.Y) + margin;
-
-            if (position.X >= minX && position.X <= maxX && position.Y >= minY && position.Y <= maxY)
-            {
-                _previousMovePosition = position;
-                _isMoving = true;
-            }
+            _previousMovePosition = position;
+            _isMoving = true;
         }
     }
 
     public void RightButtonUp(MouseButtonDataEventArgs e)
     {
-        if (IsEditing && _isMoving)
+        if (_isMoving)
         {
             var position = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(e.Position, _mapSize, _mapSize.CanvasGridSize / 2) : e.Position;
             if (position != _previousMovePosition)
@@ -166,9 +149,11 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
 
     public void MouseMove(MouseMoveDataEventArgs e)
     {
-        MouseMove(e.Position, e.LeftButtonDown);
-
-        if (e.RightButtonDown && IsEditing && _isMoving)
+        if (!e.RightButtonDown)
+        {
+            MouseMove(e.Position, e.LeftButtonDown);
+        }
+        else if (e.RightButtonDown && _isMoving)
         {
             var position = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(e.Position, _mapSize, _mapSize.CanvasGridSize / 2) : e.Position;
             if (position != _previousMovePosition)
@@ -185,7 +170,7 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
         }
     }
 
-    public void SetProperties(Action<DrawingShapeInfo, DrawingShapeInfo> applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize)
+    public void SetProperties(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize)
     {
         _applyShapeCallback = applyShapeCallback;
         _tokenLinker = tokenLinker;

@@ -58,6 +58,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         MouseCanvas.OnMouseMove += MouseMove;
         MouseCanvas.Cursor = ActiveShape.Cursor;
         MouseCanvas.OnFixRatioRectangleAreaSelected += FixRatioRectangleAreaSelected;
+        UpdateHelpText();
     }
 
     protected override void InitializeCommands()
@@ -65,9 +66,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         SelectedDrawingButtonChangedCommand = new RelayCommand(p => SelectedDrawingButtonChanged((DrawingButton)p));
         ClearDrawingCommand = new RelayCommand(p => ClearDrawings());
         CancelDrawShapeCommand = new RelayCommand(p => CancelDrawShape());
-        EditShapeCommand = new RelayCommand(p => EditShape());
-        CancelEditShapeCommand = new RelayCommand(p => CancelEditShape());
-        ApplyEditShapeCommand = new RelayCommand(p => ApplyEditShape());
         RemoveShapeCommand = new RelayCommand(p => RemoveShape());
         DrawRectangleCommand = new RelayCommand(p => DrawShape(DrawingShapeType.Rectangle));
         DrawCircleCommand = new RelayCommand(p => DrawShape(DrawingShapeType.Circle));
@@ -89,16 +87,14 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public BitmapSource RedoBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.RedoIcon.png")).ToBitmapImage(); }
     public DrawingShape SelectedShape { get => Get<DrawingShape>(); set => Set(value, SelectedShapeChanged); }
     public DrawingShapeCollection ShapeCollection { get => Get<DrawingShapeCollection>(); set => Set(value); }
-    public bool IsDrawShapeActive { get => Get<bool>(); set => Set(value); }
-    public bool IsEditShapeActive { get => Get<bool>(); set => Set(value); }
+    public bool IsDrawShapeActive { get => Get<bool>(); set => Set(value, UpdateHelpText); }
+    public string LeftMouseButtonHelpText { get => Get<string>(); set => Set(value); }
+    public string RightMouseButtonHelpText { get => Get<string>(); set => Set(value); }
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
     public CommandHistory<DrawingShapeCommand> DrawingHistory { get; set; } = new(30);
     public ICommand SelectedDrawingButtonChangedCommand { get; set; }
     public ICommand ClearDrawingCommand { get; set; }
     public ICommand CancelDrawShapeCommand { get; set; }
-    public ICommand EditShapeCommand { get; set; }
-    public ICommand CancelEditShapeCommand { get; set; }
-    public ICommand ApplyEditShapeCommand { get; set; }
     public ICommand RemoveShapeCommand { get; set; }
     public ICommand DrawRectangleCommand { get; set; }
     public ICommand DrawCircleCommand { get; set; }
@@ -301,7 +297,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         ActiveShape = CreateStrokeDrawingShape();
         ResetDrawingButton();
         IsDrawShapeActive = false;
-        IsEditShapeActive = false;
         NotifyDrawingShapesUpdated();
     }
 
@@ -346,14 +341,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void SelectEraser()
     {
-        if (IsEditShapeActive)
-        {
-            ActiveShape.CancelEditShape();
-            NotifyDrawingShapesUpdated();
-        }
-
         IsDrawShapeActive = false;
-        IsEditShapeActive = false;
 
         var eraserDrawingShape = new EraserDrawingShape(ShapeCollection, _mapSize)
         {
@@ -394,30 +382,19 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
     }
 
-    private void ApplyActiveShape(DrawingShapeInfo oldInfo, DrawingShapeInfo newInfo)
+    private void ApplyActiveShape()
     {
-        if (!ShapeCollection.Contains(ActiveShape))
+        ShapeCollection.Add(ActiveShape);
+        if(ActiveShape.ShowInShapesOverview)
         {
-            ShapeCollection.Add(ActiveShape);
-            if(ActiveShape.ShowInShapesOverview)
-            {
-                _showSelectedShapeIndicator = false;
-                SelectedShape = ActiveShape;
-                _showSelectedShapeIndicator = true;
-            }
-            DrawingHistory.Enqueue(new DrawingShapeCommand(ActiveShape, DrawingShapeCommandAction.Add));
+            _showSelectedShapeIndicator = false;
+            SelectedShape = ActiveShape;
+            _showSelectedShapeIndicator = true;
         }
-        else
-        {
-            var editCommand = new DrawingShapeCommand(ActiveShape, DrawingShapeCommandAction.Edit);
-            editCommand.OldInfo = oldInfo;
-            editCommand.NewInfo = newInfo;
-            DrawingHistory.Enqueue(editCommand);
-        }
+        DrawingHistory.Enqueue(new DrawingShapeCommand(ActiveShape, DrawingShapeCommandAction.Add));
 
         ActiveShape = CreateStrokeDrawingShape();
         IsDrawShapeActive = false;
-        IsEditShapeActive = false;
         NotifyDrawingShapesUpdated();
     }
 
@@ -457,17 +434,24 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void RightButtonDown(object? sender, MouseButtonDataEventArgs e)
     {
-        ActiveShape.RightButtonDown(e);
+        SelectedShape?.RightButtonDown(e);
     }
 
     private void RightButtonUp(object? sender, MouseButtonDataEventArgs e)
     {
-        ActiveShape.RightButtonUp(e);
+        SelectedShape?.RightButtonUp(e);
     }
 
     private void MouseMove(object? sender, MouseMoveDataEventArgs e)
     {
-        ActiveShape.MouseMove(e);
+        if (e.RightButtonDown)
+        {
+            SelectedShape?.MouseMove(e);
+        }
+        else
+        {
+            ActiveShape.MouseMove(e);
+        }      
     }
 
     private DrawingShape CreateStrokeDrawingShape()
@@ -500,7 +484,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
 
         IsDrawShapeActive = true;
-        IsEditShapeActive = false;
 
         switch (drawingShapeType)
         {
@@ -577,37 +560,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
     }
 
-    private void EditShape()
-    {
-        ActiveShape = SelectedShape;
-        ActiveShape.EditShape();
-        IsDrawShapeActive = false;
-        IsEditShapeActive = true;
-
-        var drawingButton = GetDrawingButton(ActiveShape.Color);
-        if (_selectedDrawingButton != drawingButton)
-        {
-            SetDrawingButtonSelection(_selectedDrawingButton, false);
-            SetDrawingButtonSelection(drawingButton, true);
-            MouseCanvas.Cursor = ActiveShape.Cursor;
-            _selectedDrawingButton = drawingButton;
-        }
-    }
-
-    private void CancelEditShape()
-    {
-        IsEditShapeActive = false;
-        ActiveShape.CancelEditShape();
-        ActiveShape = CreateStrokeDrawingShape();
-        NotifyDrawingShapesUpdated();
-    }
-
-    private void ApplyEditShape()
-    {
-        IsEditShapeActive = false;
-        ActiveShape.ApplyShape();
-    }
-
     private void RemoveShape()
     {
         if (ActiveShape == SelectedShape)
@@ -618,7 +570,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         DrawingHistory.Enqueue(new DrawingShapeCommand(SelectedShape, DrawingShapeCommandAction.Remove) { RemovedAtIndex = ShapeCollection.IndexOf(SelectedShape) });
         ShapeCollection.Remove(SelectedShape);
 
-        IsEditShapeActive = false;
         NotifyDrawingShapesUpdated();
     }
 
@@ -714,5 +665,19 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     private void FixRatioRectangleAreaSelected(object? sender, RectangleF rectangle)
     {
         OnZoomAndEnhance?.Invoke(this, new ZoomAndEnhanceEventArgs() { rectangle = rectangle });
+    }
+
+    private void UpdateHelpText()
+    {
+        if(IsDrawShapeActive)
+        {
+            LeftMouseButtonHelpText = "LMB: Click and drag";
+            RightMouseButtonHelpText = "";
+        }
+        else
+        {
+            LeftMouseButtonHelpText = "LMB: Draw a stroke";
+            RightMouseButtonHelpText = "RMB: Move the selected shape";
+        }
     }
 }

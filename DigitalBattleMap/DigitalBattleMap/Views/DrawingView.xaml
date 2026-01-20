@@ -150,16 +150,7 @@
                         </Grid.ColumnDefinitions>
                         <Label Content="{Binding Name}"/>
 
-                        <!--Shape size grid-->
-                        <Grid Grid.Column="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Content="{Binding Size}" Padding="5 5 0 5"/>
-                            <Label Grid.Column="1" Content=" ft" Padding="0 5 5 5"/>
-                        </Grid>
-                        
+                        <Label Grid.Column="1" Content="{Binding SizeLabel}"/>
                         <Label Grid.Column="2" Background="{Binding ColorBrush}"/>
                     </Grid>
                 </DataTemplate>
@@ -175,6 +166,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
+            <Button Content="Remove" Grid.ColumnSpan="2" Margin="0 0 5 0" Command="{Binding RemoveShapeCommand}" IsEnabled="{Binding SelectedShape, Converter={StaticResource NullToBoolConverter}}"/>
             <Button Grid.Column="2" Margin="5 0 2.5 0" Command="{Binding UndoCommand}" Height="{Binding ElementName=DrawRectangleButton, Path=ActualHeight}" IsEnabled="{Binding DrawingHistory.IsPreviousCommandAvailable}">
                 <Image Source="{Binding UndoBitmapSource}"/>
             </Button>
@@ -194,43 +186,16 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!--Size grid-->
-            <Grid Grid.ColumnSpan="2" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="auto"/>
-                </Grid.ColumnDefinitions>
-
-                <Label Content="Size: " Padding="0"/>
-                <Label Grid.Column="1" Content="{Binding ActiveShape.Size}" Padding="0"/>
-                <Label Grid.Column="2" Content=" ft" Padding="0"/>
-            </Grid>
-            
-            <Button Grid.Row="1" Grid.ColumnSpan="4" Margin="0 10 0 0" Content="Cancel" Command="{Binding CancelDrawShapeCommand}" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
+            <Button Grid.ColumnSpan="2" Grid.RowSpan="2" Content="Cancel" Command="{Binding CancelDrawShapeCommand}" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
             <Button x:Name="DrawRectangleButton"  Content="Rectangle" Margin="0 0 5 0" Command="{Binding DrawRectangleCommand}" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
             <Button Grid.Column="1" Content="Circle" Margin="5 0 0 0" Command="{Binding DrawCircleCommand}" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
             <Button Grid.Row="1" Content="Cone" Margin="0 10 5 0" Command="{Binding DrawConeCommand}" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
             <Button Grid.Row="1" Grid.Column="1" Content="Line" Margin="5 10 0 0" Command="{Binding DrawLineCommand}" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
         </Grid>
-
+        
         <Separator Grid.Row="6" Margin="0 10 0 0" BorderThickness="1" BorderBrush="Gray"/>
-
-        <!--Draw shape grid-->
-        <Grid Grid.Row="7" Margin="0 10 0 0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Button Grid.ColumnSpan="2" Content="Edit shape" Command="{Binding EditShapeCommand}" IsEnabled="{Binding SelectedShape, Converter={StaticResource NullToBoolConverter}}" Visibility="{Binding IsEditShapeActive, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
-            <Button Content="Cancel" Margin="0 0 5 0" Visibility="{Binding IsEditShapeActive, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}" Command="{Binding CancelEditShapeCommand}"/>
-            <Button Grid.Column="1" Content="Apply" Margin="5 0 0 0" Visibility="{Binding IsEditShapeActive, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}" Command="{Binding ApplyEditShapeCommand}"/>
-        </Grid>
-
-        <Button Grid.Row="8" Content="Remove shape" Command="{Binding RemoveShapeCommand}" Margin="0 10 0 0" IsEnabled="{Binding SelectedShape, Converter={StaticResource NullToBoolConverter}}"/>
+        <Label Grid.Row="7" Margin="0 10 0 0" Padding="0" Content="{Binding LeftMouseButtonHelpText}"/>
+        <Label Grid.Row="8" Margin="0 10 0 0" Padding="0" Content="{Binding RightMouseButtonHelpText}"/>
         <Button Grid.Row="9" Content="Clear" Command="{Binding ClearDrawingCommand}" Margin="0 10 0 0" VerticalAlignment="Bottom"/>
     </Grid>
 </UserControl>

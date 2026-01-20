@@ -12,7 +12,7 @@ public class RectangleDrawingShape : DrawingShape
     private double _radiusX;
     private double _radiusY;
 
-    public RectangleDrawingShape(Action<DrawingShapeInfo, DrawingShapeInfo> applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize) : base(applyShapeCallback, tokenLinker, mapSize)
+    public RectangleDrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize) : base(applyShapeCallback, tokenLinker, mapSize)
     {
         Name = "Rectangle";
         SnapToGrid = true;
@@ -61,6 +61,6 @@ public class RectangleDrawingShape : DrawingShape
         var gridCellsY = _radiusY * 2 / _mapSize.CanvasGridSize;
         var feedX = Math.Round(gridCellsX * Constants.FeetPerGridCell);
         var feedY = Math.Round(gridCellsY * Constants.FeetPerGridCell);
-        Size = $"{feedX}x{feedY}";
+        SizeLabel = $"{feedX}x{feedY} ft";
     }
 }

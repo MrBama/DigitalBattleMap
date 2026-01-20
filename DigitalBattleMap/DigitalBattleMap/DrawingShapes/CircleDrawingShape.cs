@@ -10,7 +10,7 @@ internal class CircleDrawingShape : DrawingShape
     private Point<double> _startPosition;
     private Point<double> _previousMovePosition;
 
-    public CircleDrawingShape(Action<DrawingShapeInfo, DrawingShapeInfo> applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize) : base(applyShapeCallback, tokenLinker, mapSize)
+    public CircleDrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize) : base(applyShapeCallback, tokenLinker, mapSize)
     {
         Name = "Circle";
         SnapToGrid = true;
@@ -55,6 +55,6 @@ internal class CircleDrawingShape : DrawingShape
         var distance = new Point<double>(_startPosition.X - _previousMovePosition.X, _startPosition.Y - _previousMovePosition.Y);
         var radius = Math.Sqrt(Math.Pow(distance.X, 2) + Math.Pow(distance.Y, 2));
         var gridCells = radius * 2 / _mapSize.CanvasGridSize;
-        Size = $"{Math.Round(gridCells * Constants.FeetPerGridCell)}";
+        SizeLabel = $"{Math.Round(gridCells * Constants.FeetPerGridCell)} ft";
     }
 }

@@ -195,6 +195,17 @@
                                     Width="{Binding ElementName=GridLayer, Path=ActualWidth}" 
                                     Height="{Binding ElementName=GridLayer, Path=ActualHeight}">
                                 </uielements:DrawingCanvas>
+                                <Label 
+                                    Content="{Binding DrawingController.ActiveShape.SizeLabel}" 
+                                    Margin="{Binding DrawingController.ActiveShape.SizeLabelPosition}" 
+                                    Panel.ZIndex="{Binding DrawingCanvasZIndex}"
+                                    FontSize="30" 
+                                    Padding="0"
+                                    FontWeight="Bold"
+                                    Foreground="Black"
+                                    Background="White"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"/>
                                 <Image Source="{Binding TokenController.TokenBitmapSource}" Visibility="{Binding TokenVisibility}"/>
                                 <Image Source="{Binding TokenController.TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
                                 <uielements:MouseCanvas 
