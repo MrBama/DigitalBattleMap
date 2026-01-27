@@ -65,7 +65,7 @@ public enum DrawingShapeType
     Line
 }
 
-public enum FogDrawingShapeType
+public enum FogShapeType
 {
     Rectangle,
     Circle,

@@ -15,18 +15,22 @@ public class PolygonFogShape : FogShape
 
     public override bool IsErasable => true;
 
+    public override FogShape Clone()
+    {
+        return new PolygonFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid };
+    }
+
     protected override void ButtonDown(Point<double> position)
     {
-        Points.Add(position);
+        var snappedPosition = SnapToGrid
+            ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize)
+            : position;
+        Points.Add(snappedPosition);
     }
 
     protected override void ButtonUp(Point<double> position)
     {
-        if (SnapToGrid)
-        {
-            var snappedPoints = Mathematics.SnapPointsToCanvasGrid(Points.ToList(), _mapSize);
-            Points = new ObservableCollection<Point<double>>(snappedPoints);
-        }
+        Points.Add(Points.First());
         ApplyShape();
     }
 
@@ -34,9 +38,13 @@ public class PolygonFogShape : FogShape
     {
         if (buttonDown)
         {
-            if (!Points.Contains(position))
+            var snappedPosition = SnapToGrid
+                ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize)
+                : position;
+
+            if (!Points.Contains(snappedPosition))
             {
-                Points.Add(position);
+                Points.Add(snappedPosition);
             }
         }
     }

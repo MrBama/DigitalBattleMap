@@ -16,6 +16,11 @@ public class RectangleFogShape : FogShape
         SnapToGrid = true;
     }
 
+    public override FogShape Clone()
+    {
+        return new RectangleFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid }; 
+    }
+
     protected override void ButtonDown(Point<double> position)
     {
         _startPosition = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2) : position;

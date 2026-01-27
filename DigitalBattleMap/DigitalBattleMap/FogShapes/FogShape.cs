@@ -15,7 +15,7 @@ namespace DigitalBattleMap.FogShapes;
 
 public abstract class FogShape : PropertyHandler, ILinkableObject, IShape
 {
-    private Action _applyShapeCallback;
+    protected Action _applyShapeCallback;
     private FogShapeInfo _editInfo;
     protected IMapSize _mapSize;
     private Point<double> _previousMovePosition;
@@ -192,6 +192,7 @@ public abstract class FogShape : PropertyHandler, ILinkableObject, IShape
         });
     }
 
+    public abstract FogShape Clone();
     protected abstract void ButtonDown(Point<double> position);
     protected abstract void ButtonUp(Point<double> position);
     protected abstract void MouseMove(Point<double> position, bool buttonDown);

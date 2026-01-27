@@ -1,5 +1,4 @@
 ﻿using DigitalBattleMap.DataClasses;
-using DigitalBattleMap.DrawingShapes;
 using DigitalBattleMap.FogShapes;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
@@ -35,7 +34,7 @@ public class FogControllerViewModel : ControllerViewModelBase
     {
         FogShapeCollection = new();
         FogShapeCollection.OnRenderShapes += (_, _) => NotifyFogShapesUpdated();
-        ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize);
+        ActiveFogShape = new PolygonFogShape(ApplyActiveFogShape, _mapSize);
         MouseCanvas = new MouseCanvasViewModel();
         MouseCanvas.OnLeftButtonDown += LeftButtonDown;
         MouseCanvas.OnLeftButtonUp += LeftButtonUp;
@@ -44,11 +43,13 @@ public class FogControllerViewModel : ControllerViewModelBase
         MouseCanvas.OnMouseMove += MouseMove;
         MouseCanvas.Cursor = ActiveFogShape.Cursor;
         MouseCanvas.OnFixRatioRectangleAreaSelected += FixRatioRectangleAreaSelected;
+        IsPolygonChecked = true;
     }
 
     protected override void InitializeCommands()
     {
-        DrawRectangleCommand = new RelayCommand(p => DrawFogShape(FogDrawingShapeType.Rectangle));
+        DrawPolygonCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Polygon));
+        DrawRectangleCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Rectangle));
         CancelDrawShapeCommand = new RelayCommand(p => CancelDrawShape());
         ClearFogCommand = new RelayCommand(p => ClearFog());
     }
@@ -62,6 +63,10 @@ public class FogControllerViewModel : ControllerViewModelBase
     public bool IsEditFogShapeActive { get => Get<bool>(); set => Set(value); }
     public FogShape SelectedFogShape { get => Get<FogShape>(); set => Set(value, SelectedShapeChanged); }
 
+    public bool IsPolygonChecked { get; set; }
+    public bool IsRectangleChecked { get; set; }
+
+    public ICommand DrawPolygonCommand { get; set; }
     public ICommand DrawRectangleCommand { get; set; }
     public ICommand CancelDrawShapeCommand { get; set; }
     public ICommand ClearFogCommand { get; set; }
@@ -167,7 +172,7 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     private void ActiveShapePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(DrawingShape.Cursor))
+        if (e.PropertyName == nameof(FogShape.Cursor))
         {
             MouseCanvas.Cursor = ActiveFogShape.Cursor;
         }
@@ -185,25 +190,17 @@ public class FogControllerViewModel : ControllerViewModelBase
             FogShapeCollection.Add(ActiveFogShape);
         }
 
-        ActiveFogShape = CreateRectangleFogShape();
+        ActiveFogShape = ActiveFogShape.Clone();
         IsFogShapeActive = false;
         IsEditFogShapeActive = false;
         NotifyFogShapesUpdated();
     }
 
-    /**
-     * Default shape to use 
-     * TODO: change to polygon.
-     */
-    private FogShape CreateRectangleFogShape()
+    private FogShape CreatePolygonFogShape()
     {
-        var strokeDrawingShapes = FogShapeCollection.GetFogShapes().OfType<RectangleFogShape>();
-
         return new RectangleFogShape(ApplyActiveFogShape, _mapSize)
         {
-            Color = ActiveFogShape.Color,
-            PenSize = ActiveFogShape.PenSize,
-            SnapToGrid = ActiveFogShape.SnapToGrid
+            SnapToGrid = false
         };
     }
 
@@ -229,33 +226,40 @@ public class FogControllerViewModel : ControllerViewModelBase
         }
     }
 
-    private void DrawFogShape(FogDrawingShapeType drawingShapeType)
+    private void DrawFogShape(FogShapeType fogShapeType)
     {
         IsFogShapeActive = true;
         IsEditFogShapeActive = false;
+        ToggleOffFogShapeButtons();
 
-        switch (drawingShapeType)
+        switch (fogShapeType)
         {
-            case FogDrawingShapeType.Rectangle:
+            case FogShapeType.Polygon:
+                DrawPolygonShape();
+                IsPolygonChecked = true;
+                break;
+            case FogShapeType.Rectangle:
                 DrawRectangleShape();
+                IsRectangleChecked = true;
                 break;
             default:
-                throw new NotImplementedException($"Shape {drawingShapeType} is not implemented");
+                throw new NotImplementedException($"Shape {fogShapeType} is not implemented");
         }
+    }
+
+    private void DrawPolygonShape()
+    {
+        ActiveFogShape = new PolygonFogShape(ApplyActiveFogShape, _mapSize);
     }
 
     private void DrawRectangleShape()
     {
-        ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize)
-        {
-            Color = ActiveFogShape.Color,
-            PenSize = ActiveFogShape.PenSize
-        };
+        ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize);
     }
 
     private void CancelDrawShape()
     {
-        ActiveFogShape = CreateRectangleFogShape();
+        ActiveFogShape = CreatePolygonFogShape();
         IsFogShapeActive = false;
     }
 
@@ -347,5 +351,11 @@ public class FogControllerViewModel : ControllerViewModelBase
 
             NotifyFogShapesUpdated();
         }
+    }
+
+    private void ToggleOffFogShapeButtons()
+    {
+        IsPolygonChecked = false;
+        IsRectangleChecked = false;
     }
 }
