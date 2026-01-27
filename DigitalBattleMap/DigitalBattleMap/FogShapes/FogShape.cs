@@ -27,7 +27,7 @@ public abstract class FogShape : PropertyHandler, ILinkableObject, IShape
         _mapSize = mapSize;
 
         Color = Colors.Black;
-        PenSize = 5;
+        PenSize = 2;
         Points = new();
         Name = "FogShape";
         Size = "0";

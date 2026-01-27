@@ -311,7 +311,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private Bitmap CreateBackgroundAndFogBitmap()
     {
-        var bitmap = BitmapTools.MergeBitmaps(BackgroundController.GetBackgroundBitmap(), FogController.GetFogBitmap());
+        var bitmap = BitmapTools.MergeBitmaps(BackgroundController.GetBackgroundBitmap(), FogController.GetShowMapFogBitmap());
 
         if (HasBlackBackground)
         {

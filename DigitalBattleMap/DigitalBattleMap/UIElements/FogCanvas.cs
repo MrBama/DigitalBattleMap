@@ -1,5 +1,4 @@
 ﻿using DigitalBattleMap.DataClasses;
-using DigitalBattleMap.DrawingShapes;
 using DigitalBattleMap.FogShapes;
 using System;
 using System.Collections.Generic;
@@ -10,6 +9,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Ink;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Shapes;
 
 namespace DigitalBattleMap.UIElements;
 
@@ -19,6 +20,7 @@ public class FogCanvas : InkCanvas
     private static PropertyChangedEventHandler? _shapePropertyChangedHandler;
     private static NotifyCollectionChangedEventHandler? _shapePointsChangedHandler;
     private Dictionary<FogShape, Stroke> _strokes = new();
+    private Dictionary<FogShape, System.Windows.Shapes.Polygon> _polygons = new();
 
     public FogCanvas()
     {
@@ -88,7 +90,7 @@ public class FogCanvas : InkCanvas
         switch (e.Action)
         {
             case CollectionChangedAction.Add:
-                DrawShape(e.ChangedShape);
+                DrawFinishedShape(e.ChangedShape);
                 break;
             case CollectionChangedAction.Insert:
                 InsertShape(e.Index, e.ChangedShape);
@@ -193,6 +195,30 @@ public class FogCanvas : InkCanvas
     {
         if (!_strokes.ContainsKey(shape) && shape.Points.Count > 0)
         {
+            var stroke = CreateStroke(shape);
+            Strokes.Add(stroke);
+            _strokes[shape] = stroke;
+        }
+    }
+
+    private void DrawFinishedShape(FogShape shape)
+    {
+        if (!_polygons.ContainsKey(shape) && shape.Points.Count > 0)
+        {
+            var polygon = new System.Windows.Shapes.Polygon();
+            var pointCollection = new PointCollection();
+            foreach (var point in shape.Points)
+            {
+                pointCollection.Add(new Point(point.X, point.Y));
+            }
+
+            polygon.Points = pointCollection;
+            polygon.Fill = Brushes.Black;
+            polygon.Opacity = 0.5;
+
+            Children.Add(polygon);
+            _polygons[shape] = polygon;
+
             var stroke = CreateStroke(shape);
             Strokes.Add(stroke);
             _strokes[shape] = stroke;

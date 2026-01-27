@@ -303,6 +303,28 @@ public static class BitmapTools
         return bitmap;
     }
 
+    public static void DrawHiddenFogShapes(Bitmap bitmap, List<IShape> shapes, Size<double> canvasSize)
+    {
+        using var graphics = Graphics.FromImage(bitmap);
+        foreach (var shape in shapes)
+        {
+            var points = new List<PointF>();
+            var brush = shape.Color.ToDrawingBrush();
+            var penSizeF = (float)shape.PenSize;
+
+            foreach (var point in shape.Points)
+            {
+                var halfSize = shape.PenSizeCanvas / 2;
+                var middleOfPoint = new Point<double>(point.X - halfSize, point.Y - halfSize);
+
+                var resizedX = (float)middleOfPoint.X.Map(0, canvasSize.Width, 0, Constants.MapSize.Width);
+                var resizedY = (float)middleOfPoint.Y.Map(0, canvasSize.Height, 0, Constants.MapSize.Height);
+                points.Add(new PointF(resizedX, resizedY));
+            }
+            graphics.FillPolygon(Brushes.Black, points.ToArray());
+        }
+    }
+
     public static void DrawShapes(Bitmap bitmap, List<IShape> shapes, Size<double> canvasSize)
     {
         using var graphics = Graphics.FromImage(bitmap);

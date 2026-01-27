@@ -2,7 +2,6 @@
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace DigitalBattleMap.FogShapes;
@@ -12,8 +11,6 @@ public class PolygonFogShape : FogShape
     public PolygonFogShape(Action applyShapeCallback, IMapSize mapSize) : base(applyShapeCallback, mapSize)
     {
     }
-
-    public override bool IsErasable => true;
 
     public override FogShape Clone()
     {

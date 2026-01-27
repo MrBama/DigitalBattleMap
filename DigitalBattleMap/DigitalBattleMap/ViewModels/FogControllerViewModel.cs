@@ -63,8 +63,8 @@ public class FogControllerViewModel : ControllerViewModelBase
     public bool IsEditFogShapeActive { get => Get<bool>(); set => Set(value); }
     public FogShape SelectedFogShape { get => Get<FogShape>(); set => Set(value, SelectedShapeChanged); }
 
-    public bool IsPolygonChecked { get; set; }
-    public bool IsRectangleChecked { get; set; }
+    public bool IsPolygonChecked { get => Get<bool>(); set => Set(value); }
+    public bool IsRectangleChecked { get => Get<bool>(); set => Set(value); }
 
     public ICommand DrawPolygonCommand { get; set; }
     public ICommand DrawRectangleCommand { get; set; }
@@ -141,10 +141,13 @@ public class FogControllerViewModel : ControllerViewModelBase
         //CreateBackground();
     }
 
-    public Bitmap GetFogBitmap()
+    /**
+     * Returns a bitmap with all shapes internaly filled in to black.
+     */
+    public Bitmap GetShowMapFogBitmap()
     {
         var bitmap = BitmapTools.CreateEmptyBitmap();
-        BitmapTools.DrawShapes(bitmap, FogShapeCollection.GetFogShapes().ToList<IShape>(), _mapSize.GetCanvasSize());
+        BitmapTools.DrawHiddenFogShapes(bitmap, FogShapeCollection.GetFogShapes().ToList<IShape>(), _mapSize.GetCanvasSize());
         return bitmap;
     }
 
