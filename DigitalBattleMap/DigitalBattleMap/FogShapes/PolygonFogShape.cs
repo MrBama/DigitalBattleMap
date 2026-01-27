@@ -10,11 +10,12 @@ public class PolygonFogShape : FogShape
 {
     public PolygonFogShape(Action applyShapeCallback, IMapSize mapSize) : base(applyShapeCallback, mapSize)
     {
+        IsFogEnabled = true;
     }
 
     public override FogShape Clone()
     {
-        return new PolygonFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid };
+        return new PolygonFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid, IsFogEnabled = IsFogEnabled };
     }
 
     protected override void ButtonDown(Point<double> position)

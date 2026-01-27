@@ -27,12 +27,7 @@ public class FogShapeCollection : IEnumerable, INotifyCollectionChanged
         fogShape.OnPointsChanged += FogShapePointsChanged;
         fogShape.OnRenderChanged += RenderShapes; // todo change?
         FogShapeCollectionChanged(new FogShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Add, ChangedShape = fogShape });
-
-        // Only show shapes that cannot be removed with the eraser
-        if (!fogShape.IsErasable)
-        {
-            FogShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, fogShape));
-        }
+        FogShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, fogShape));
     }
 
     public void Insert(int index, FogShape fogShape)
@@ -42,29 +37,19 @@ public class FogShapeCollection : IEnumerable, INotifyCollectionChanged
         fogShape.OnPointsChanged += FogShapePointsChanged;
         fogShape.OnRenderChanged += RenderShapes;
         FogShapeCollectionChanged(new FogShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Insert, ChangedShape = fogShape, Index = index });
-
-        // Only show shapes that cannot be removed with the eraser
-        if (!fogShape.IsErasable)
-        {
-            FogShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, fogShape));
-        }
+        FogShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, fogShape));
     }
 
     public void Remove(FogShape fogShape)
     {
-        var index = _fogShapes.Where(s => !s.IsErasable).ToList().IndexOf(fogShape);
+        var index = _fogShapes.ToList().IndexOf(fogShape);
         fogShape.PropertyChanged -= FogShapePropertyChanged;
         fogShape.OnPointsChanged -= FogShapePointsChanged;
         fogShape.OnRenderChanged -= RenderShapes;
         _fogShapes.Remove(fogShape);
 
         FogShapeCollectionChanged(new FogShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Remove, ChangedShape = fogShape });
-
-        // Only show shapes that cannot be removed with the eraser
-        if (!fogShape.IsErasable)
-        {
-            FogShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, fogShape, index));
-        }
+        FogShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, fogShape, index));
     }
 
     public void Clear()

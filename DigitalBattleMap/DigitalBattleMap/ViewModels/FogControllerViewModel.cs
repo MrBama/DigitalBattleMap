@@ -50,8 +50,11 @@ public class FogControllerViewModel : ControllerViewModelBase
     {
         DrawPolygonCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Polygon));
         DrawRectangleCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Rectangle));
+        DrawCircleCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Circle));
+        DrawTriangleCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Triangle)); // todo improve to n
         CancelDrawShapeCommand = new RelayCommand(p => CancelDrawShape());
         ClearFogCommand = new RelayCommand(p => ClearFog());
+        FillFogCommand = new RelayCommand(p => FillFog());
     }
 
     public event EventHandler OnFogShapeUpdated;
@@ -63,13 +66,19 @@ public class FogControllerViewModel : ControllerViewModelBase
     public bool IsEditFogShapeActive { get => Get<bool>(); set => Set(value); }
     public FogShape SelectedFogShape { get => Get<FogShape>(); set => Set(value, SelectedShapeChanged); }
 
+    public bool IsMapFilledWithFog { get => Get<bool>(); set => Set(value); }
     public bool IsPolygonChecked { get => Get<bool>(); set => Set(value); }
     public bool IsRectangleChecked { get => Get<bool>(); set => Set(value); }
+    public bool IsCircleChecked { get => Get<bool>(); set => Set(value); }
+    public bool IsTriangleChecked { get => Get<bool>(); set => Set(value); }
 
     public ICommand DrawPolygonCommand { get; set; }
     public ICommand DrawRectangleCommand { get; set; }
+    public ICommand DrawCircleCommand { get; set; }
+    public ICommand DrawTriangleCommand { get; set; }
     public ICommand CancelDrawShapeCommand { get; set; }
     public ICommand ClearFogCommand { get; set; }
+    public ICommand FillFogCommand { get; set; }
 
     public void ClearFog()
     {
@@ -142,12 +151,14 @@ public class FogControllerViewModel : ControllerViewModelBase
     }
 
     /**
-     * Returns a bitmap with all shapes internaly filled in to black.
+     * Initial bitmap is black when 'fill with fog' is enabled else empty.
+     * Returns a bitmap with all fog shapes applied. 
+     * The shape will be filled in black or cut out depending on the fog shape 'IsFogEnabled' setting.
      */
     public Bitmap GetShowMapFogBitmap()
     {
-        var bitmap = BitmapTools.CreateEmptyBitmap();
-        BitmapTools.DrawHiddenFogShapes(bitmap, FogShapeCollection.GetFogShapes().ToList<IShape>(), _mapSize.GetCanvasSize());
+        var bitmap = IsMapFilledWithFog ? BitmapTools.CreateBlackBitmap() : BitmapTools.CreateEmptyBitmap();
+        BitmapTools.DrawFogShapes(bitmap, FogShapeCollection.GetFogShapes().ToList(), _mapSize.GetCanvasSize());
         return bitmap;
     }
 
@@ -171,6 +182,18 @@ public class FogControllerViewModel : ControllerViewModelBase
                 value.OnRenderChanged += OnActiveShapeRenderChanged;
             }
         }
+    }
+
+    //public System.Windows.Media.Brush FillFog
+    //{
+    //    get => GetFogBrush(); //sMapFilledWithFog ? GetFogBrush() : System.Windows.Media.Brushes.Transparent;
+    //}
+
+    private SolidColorBrush GetFogBrush()
+    {
+        var fogBrush = System.Windows.Media.Brushes.Black.Clone();
+        fogBrush.Opacity = 0.25;
+        return fogBrush;
     }
 
     private void ActiveShapePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -203,7 +226,8 @@ public class FogControllerViewModel : ControllerViewModelBase
     {
         return new RectangleFogShape(ApplyActiveFogShape, _mapSize)
         {
-            SnapToGrid = false
+            SnapToGrid = false,
+            IsFogEnabled = true
         };
     }
 
@@ -360,5 +384,13 @@ public class FogControllerViewModel : ControllerViewModelBase
     {
         IsPolygonChecked = false;
         IsRectangleChecked = false;
+    }
+
+    /**
+     * When enabled sets a fog shape equal to the background size in the FogCanvas.
+     */
+    private void FillFog()
+    {
+        throw new NotImplementedException();
     }
 }

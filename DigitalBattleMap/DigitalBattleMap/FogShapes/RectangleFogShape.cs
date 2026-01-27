@@ -14,11 +14,12 @@ public class RectangleFogShape : FogShape
     {
         Name = "Fog Rectangle";
         SnapToGrid = true;
+        IsFogEnabled = true;
     }
 
     public override FogShape Clone()
     {
-        return new RectangleFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid }; 
+        return new RectangleFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid, IsFogEnabled = IsFogEnabled }; 
     }
 
     protected override void ButtonDown(Point<double> position)

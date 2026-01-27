@@ -48,7 +48,7 @@ public abstract class FogShape : PropertyHandler, ILinkableObject, IShape
     public bool SnapToGrid { get => Get<bool>(); set => Set(value); }
     public string Name { get => Get<string>(); protected set => Set(value); }
     public virtual Cursor Cursor { get => CursorCreator.Create(new SolidColorBrush(Color), (int)Math.Max(8, PenSize)); }
-    public virtual bool IsErasable => false;
+    public bool IsFogEnabled { get => Get<bool>(); set => Set(value); }
     public Type Type { get => GetType(); }
     public ObservableCollection<Point<double>> Points
     {

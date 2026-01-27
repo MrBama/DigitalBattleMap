@@ -303,14 +303,13 @@ public static class BitmapTools
         return bitmap;
     }
 
-    public static void DrawHiddenFogShapes(Bitmap bitmap, List<IShape> shapes, Size<double> canvasSize)
+    public static void DrawFogShapes(Bitmap bitmap, List<FogShape> shapes, Size<double> canvasSize)
     {
         using var graphics = Graphics.FromImage(bitmap);
         foreach (var shape in shapes)
         {
             var points = new List<PointF>();
-            var brush = shape.Color.ToDrawingBrush();
-            var penSizeF = (float)shape.PenSize;
+            var brush = shape.IsFogEnabled ? Brushes.Black : Brushes.White; // White will become transparent places in the fog.
 
             foreach (var point in shape.Points)
             {
@@ -321,8 +320,10 @@ public static class BitmapTools
                 var resizedY = (float)middleOfPoint.Y.Map(0, canvasSize.Height, 0, Constants.MapSize.Height);
                 points.Add(new PointF(resizedX, resizedY));
             }
-            graphics.FillPolygon(Brushes.Black, points.ToArray());
+            graphics.FillPolygon(brush, points.ToArray());
+            
         }
+        bitmap.MakeTransparent(Color.White);
     }
 
     public static void DrawShapes(Bitmap bitmap, List<IShape> shapes, Size<double> canvasSize)

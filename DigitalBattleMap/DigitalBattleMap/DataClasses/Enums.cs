@@ -67,9 +67,10 @@ public enum DrawingShapeType
 
 public enum FogShapeType
 {
+    Polygon,
     Rectangle,
     Circle,
-    Polygon
+    Triangle
 }
 
 public enum MouseCanvasMode
