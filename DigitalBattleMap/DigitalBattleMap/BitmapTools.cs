@@ -1,6 +1,8 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.DrawingShapes;
+using DigitalBattleMap.FogShapes;
+using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
@@ -301,7 +303,7 @@ public static class BitmapTools
         return bitmap;
     }
 
-    public static void DrawShapes(Bitmap bitmap, List<DrawingShape> shapes, Size<double> canvasSize)
+    public static void DrawShapes(Bitmap bitmap, List<IShape> shapes, Size<double> canvasSize)
     {
         using var graphics = Graphics.FromImage(bitmap);
         foreach (var shape in shapes)

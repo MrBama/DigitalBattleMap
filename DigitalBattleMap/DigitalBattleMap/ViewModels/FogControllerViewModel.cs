@@ -5,7 +5,6 @@ using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.ObjectModel;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -266,7 +265,7 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     private void LeftButtonUp(object? sender, MouseButtonDataEventArgs e)
     {
-        ActiveFogShape.LeftButtonUp(e);
+         ActiveFogShape.LeftButtonUp(e);
     }
 
     private void RightButtonDown(object? sender, MouseButtonDataEventArgs e)

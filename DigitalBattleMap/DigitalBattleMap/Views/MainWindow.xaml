@@ -109,7 +109,7 @@
                             <Image Source="{Binding BackgroundController.GMOverlayBitmapSource}" Opacity="0.5"/>
                             <Image Source="{Binding BackgroundController.FogOfWarBitmapSource}" Opacity="0.5"/>
                             <Image x:Name="GridLayer" Source="{Binding BackgroundController.GridBitmapSource}"/>
-                            <uielements:DrawingCanvas
+                            <uielements:FogCanvas
                                 Background="Transparent" 
                                 ActiveShape="{Binding FogController.ActiveFogShape}" 
                                 ShapeCollection="{Binding FogController.FogShapeCollection}" 
@@ -118,7 +118,7 @@
                                 Panel.ZIndex="{Binding DrawingCanvasZIndex}"
                                 Width="{Binding ElementName=GridLayer, Path=ActualWidth}" 
                                 Height="{Binding ElementName=GridLayer, Path=ActualHeight}">
-                            </uielements:DrawingCanvas>
+                            </uielements:FogCanvas>
                             <uielements:DrawingCanvas
                                 Background="Transparent" 
                                 ActiveShape="{Binding DrawingController.ActiveShape}" 

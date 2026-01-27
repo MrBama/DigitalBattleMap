@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.DrawingShapes;
+using DigitalBattleMap.FogShapes;
 using DigitalBattleMap.Utilities;
 using Newtonsoft.Json;
 using System.Collections.Generic;

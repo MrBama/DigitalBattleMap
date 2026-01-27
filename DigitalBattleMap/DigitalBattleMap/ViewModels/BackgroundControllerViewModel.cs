@@ -73,9 +73,9 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         MouseCanvas.OnFixRatioRectangleAreaSelected += FixRatioRectangleAreaSelected;
 
         /** new fog of war elements **/
-        FogShapeCollection = new();
-        FogShapeCollection.OnRenderShapes += (_, _) => NotifyDrawingShapesUpdated();
-        ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize);
+        //FogShapeCollection = new();
+        //FogShapeCollection.OnRenderShapes += (_, _) => NotifyDrawingShapesUpdated();
+        //ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize);
     }
 
     protected override void InitializeCommands()
@@ -94,15 +94,15 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         GridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
 
         /** new fog of war elements **/
-        DrawRectangleCommand = new RelayCommand(p => DrawFogShape(FogDrawingShapeType.Rectangle));
-        CancelDrawShapeCommand = new RelayCommand(p => CancelDrawShape());
+        //DrawRectangleCommand = new RelayCommand(p => DrawFogShape(FogDrawingShapeType.Rectangle));
+        //CancelDrawShapeCommand = new RelayCommand(p => CancelDrawShape());
     }
 
     public event EventHandler OnBackgroundUpdated;
     public event EventHandler<GridSizeChangedEventArgs> OnGridSizeChanged;
     public event EventHandler<ZoomAndEnhanceEventArgs> OnZoomAndEnhance;
     /** new fog of war elements **/
-    public event EventHandler OnFogShapeUpdated;
+    //public event EventHandler OnFogShapeUpdated;
 
     public bool IsBackgroundEditingAllowed { get => HasOpenedBackground; }
     public bool HasOpenedBackground { get => Get<bool>(); set => Set(value); }
@@ -125,10 +125,10 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
 
     /** new fog of war elements **/
-    public DrawingShapeCollection FogShapeCollection { get => Get<DrawingShapeCollection>(); set => Set(value); }
-    public bool IsFogShapeActive { get => Get<bool>(); set => Set(value); }
-    public bool IsEditFogShapeActive { get => Get<bool>(); set => Set(value); }
-    public DrawingShape SelectedFogShape { get => Get<DrawingShape>(); set => Set(value, SelectedShapeChanged); }
+    //public DrawingShapeCollection FogShapeCollection { get => Get<DrawingShapeCollection>(); set => Set(value); }
+    //public bool IsFogShapeActive { get => Get<bool>(); set => Set(value); }
+    //public bool IsEditFogShapeActive { get => Get<bool>(); set => Set(value); }
+    //public DrawingShape SelectedFogShape { get => Get<DrawingShape>(); set => Set(value, SelectedShapeChanged); }
 
     public ICommand OpenBackgroundCommand { get; set; }
     public ICommand OpenBackgroundFromClipboardCommand { get; set; }
@@ -144,8 +144,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public ICommand GridSizeEnterCommand { get; set; }
 
     /** new fog of war elements **/
-    public ICommand DrawRectangleCommand { get; set; }
-    public ICommand CancelDrawShapeCommand { get; set; }
+    //public ICommand DrawRectangleCommand { get; set; }
+    //public ICommand CancelDrawShapeCommand { get; set; }
 
     private Bitmap BackgroundBitmap
     {
@@ -382,27 +382,27 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     /** new fog of war elements **/
 
-    public DrawingShape ActiveFogShape
-    {
-        get => Get<DrawingShape>();
-        set
-        {
-            var oldValue = Get<DrawingShape>();
-            if (oldValue != null)
-            {
-                oldValue.PropertyChanged -= ActiveShapePropertyChanged;
-                oldValue.OnRenderChanged -= OnActiveShapeRenderChanged;
-            }
+    //public DrawingShape ActiveFogShape
+    //{
+    //    get => Get<DrawingShape>();
+    //    set
+    //    {
+    //        var oldValue = Get<DrawingShape>();
+    //        if (oldValue != null)
+    //        {
+    //            oldValue.PropertyChanged -= ActiveShapePropertyChanged;
+    //            oldValue.OnRenderChanged -= OnActiveShapeRenderChanged;
+    //        }
 
-            Set(value);
+    //        Set(value);
 
-            if (value != null)
-            {
-                value.PropertyChanged += ActiveShapePropertyChanged;
-                value.OnRenderChanged += OnActiveShapeRenderChanged;
-            }
-        }
-    }
+    //        if (value != null)
+    //        {
+    //            value.PropertyChanged += ActiveShapePropertyChanged;
+    //            value.OnRenderChanged += OnActiveShapeRenderChanged;
+    //        }
+    //    }
+    //}
 
     protected override void CreateBitmap()
     {
@@ -605,82 +605,10 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         }
     }
 
-
-    //private void ApplyFogRemoval()
-    //{
-    //    _fogOfWarAreas.Add(_selectedArea);
-    //    IsFogOfWarAreaSelected = false;
-    //    MouseCanvas.ResetSelection();
-    //    CreateBackground();
-    //}
-
-    //private void CancelFogRemoval()
-    //{
-    //    IsFogOfWarAreaSelected = false;
-    //    MouseCanvas.ResetSelection();
-    //}
-
-    //private void ClearFog()
-    //{
-    //    _fogOfWarAreas.Clear();
-    //    CancelFogRemoval();
-    //    CreateBackground();
-    //}
-
-    //private void RectangleAreaSelected(object? sender, RectangleF rectangle)
-    //{
-    //    IsFogOfWarAreaSelected = IsFogOfWarEnabled;
-
-    //    var x = ((double)rectangle.X).Map(0, _mapSize.CanvasWidth, _area.X, _area.X + _area.Width);
-    //    var y = ((double)rectangle.Y).Map(0, _mapSize.CanvasHeight, _area.Y, _area.Y + _area.Height);
-    //    var width = ((double)rectangle.Width).Map(0, _mapSize.CanvasWidth, 0, _area.Width);
-    //    var height = ((double)rectangle.Height).Map(0, _mapSize.CanvasHeight, 0, _area.Height);
-
-    //    var fogOfWarArea = new SelectedArea();
-    //    fogOfWarArea.Points.Add(new Point<double>(x, y));
-    //    fogOfWarArea.Points.Add(new Point<double>(x + width, y));
-    //    fogOfWarArea.Points.Add(new Point<double>(x + width, y + height));
-    //    fogOfWarArea.Points.Add(new Point<double>(x, y + height));
-
-    //    _selectedArea = fogOfWarArea;
-    //}
-
-    //private void FogOfWarPolygonAreaSelected(object? sender, Polygon polygon)
-    //{
-    //    IsFogOfWarAreaSelected = true;
-
-    //    var fogOfWarArea = new SelectedArea();
-    //    foreach (var point in polygon.Points)
-    //    {
-    //        var mappedPoint = new Point<double>(
-    //            point.X.Map(0, _mapSize.CanvasWidth, _area.X, _area.X + _area.Width),
-    //            point.Y.Map(0, _mapSize.CanvasHeight, _area.Y, _area.Y + _area.Height));
-    //        fogOfWarArea.Points.Add(mappedPoint);
-    //    }
-    //    _selectedArea = fogOfWarArea;
-    //}
-
     private void FixRatioRectangleAreaSelected(object? sender, RectangleF rectangle)
     {
         OnZoomAndEnhance?.Invoke(this, new ZoomAndEnhanceEventArgs() { rectangle = rectangle });
     }
-
-    //private void FogRemovalShapeChanged()
-    //{
-    //    if (MouseCanvas != null && IsFogOfWarEnabled)
-    //    {
-    //        IsFogOfWarAreaSelected = false;
-
-    //        if (FogRemovalRectangleShape)
-    //        {
-    //            MouseCanvas.SetMode(MouseCanvasMode.RectangleSelection);
-    //        }
-    //        else
-    //        {
-    //            MouseCanvas.SetMode(MouseCanvasMode.PolygonSelection);
-    //        }
-    //    }
-    //}
 
     private void GridSizeChanged()
     {
@@ -694,145 +622,6 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     {
         GridBitmap = IsGridShown ? BitmapTools.CreateGrid(GridSize) : BitmapTools.CreateEmptyBitmap();
         NotifyGridSizeChanged(GridSize);
-    }
-
-    /** new fog of war elements **/
-    private void ActiveShapePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(DrawingShape.Cursor))
-        {
-            MouseCanvas.Cursor = ActiveFogShape.Cursor;
-        }
-    }
-
-    private void OnActiveShapeRenderChanged(object? sender, EventArgs e)
-    {
-        NotifyDrawingShapesUpdated();
-    }
-
-    private void ApplyActiveFogShape()
-    {
-        if (!FogShapeCollection.Contains(ActiveFogShape))
-        {
-            FogShapeCollection.Add(ActiveFogShape);
-        }
-
-        ActiveFogShape = CreateRectangleFogShape();
-        IsFogShapeActive = false;
-        IsEditFogShapeActive = false;
-        NotifyDrawingShapesUpdated();
-    }
-
-    /**
-     * Default shape to use 
-     * TODO: change to polygon.
-     */
-    private DrawingShape CreateRectangleFogShape()
-    {
-        var strokeDrawingShapes = FogShapeCollection.GetShapes().OfType<RectangleFogShape>();
-
-        return new RectangleFogShape(ApplyActiveFogShape, _mapSize)
-        {
-            Color = ActiveFogShape.Color,
-            PenSize = ActiveFogShape.PenSize,
-            SnapToGrid = false
-        };
-    }
-
-    private void NotifyDrawingShapesUpdated()
-    {
-        if (_pauseBitmapCreation)
-            return;
-
-        OnFogShapeUpdated?.Invoke(this, new EventArgs());
-    }
-
-    private void SelectedShapeChanged()
-    {
-        if (SelectedFogShape != null)
-        {
-            var points = SelectedFogShape.Points.ToList();
-            SelectedFogShape.Points.Clear();
-            Task.Run(() =>
-            {
-                Thread.Sleep(150);
-                Application.Current.Dispatcher.Invoke(() => { SelectedFogShape.Points = new ObservableCollection<Point<double>>(points); }, DispatcherPriority.Normal);
-            });
-        }
-    }
-
-    private void DrawFogShape(FogDrawingShapeType drawingShapeType)
-    {
-        //if (_selectedDrawingButton == DrawingButton.Eraser)
-        //{
-        //    SetDrawingButtonSelection(_selectedDrawingButton, false);
-        //    SetDrawingButtonSelection(DrawingButton.Black, true);
-        //    _selectedDrawingButton = DrawingButton.Black;
-        //}
-
-        IsFogShapeActive = true;
-        IsEditFogShapeActive = false;
-
-        switch (drawingShapeType)
-        {
-            case FogDrawingShapeType.Rectangle:
-                DrawRectangleShape();
-                break;
-            default:
-                throw new NotImplementedException($"Shape {drawingShapeType} is not implemented");
-        }
-    }
-
-    private void DrawRectangleShape()
-    {
-        ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize)
-        {
-            Color = ActiveFogShape.Color,
-            PenSize = ActiveFogShape.PenSize
-        };
-    }
-
-    private void CancelDrawShape()
-    {
-        ActiveFogShape = CreateRectangleFogShape();
-        IsFogShapeActive = false;
-    }
-
-    private void EnableFogShapeMouse()
-    {
-        MouseCanvas = new MouseCanvasViewModel();
-        MouseCanvas.OnLeftButtonDown += LeftButtonDown;
-        MouseCanvas.OnLeftButtonUp += LeftButtonUp;
-        MouseCanvas.OnRightButtonDown += RightButtonDown;
-        MouseCanvas.OnRightButtonUp += RightButtonUp;
-        MouseCanvas.OnMouseMove += MouseMove;
-        MouseCanvas.Cursor = ActiveFogShape.Cursor;
-        MouseCanvas.OnFixRatioRectangleAreaSelected += FixRatioRectangleAreaSelected;
-    }
-
-    private void LeftButtonDown(object? sender, MouseButtonDataEventArgs e)
-    {
-        ActiveFogShape.LeftButtonDown(e);
-    }
-
-    private void LeftButtonUp(object? sender, MouseButtonDataEventArgs e)
-    {
-        ActiveFogShape.LeftButtonUp(e);
-    }
-
-    private void RightButtonDown(object? sender, MouseButtonDataEventArgs e)
-    {
-        ActiveFogShape.RightButtonDown(e);
-    }
-
-    private void RightButtonUp(object? sender, MouseButtonDataEventArgs e)
-    {
-        ActiveFogShape.RightButtonUp(e);
-    }
-
-    private void MouseMove(object? sender, MouseMoveDataEventArgs e)
-    {
-        ActiveFogShape.MouseMove(e);
     }
 
 }

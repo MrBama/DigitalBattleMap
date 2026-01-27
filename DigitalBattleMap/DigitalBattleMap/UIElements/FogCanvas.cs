@@ -1,6 +1,5 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.DrawingShapes;
-using DigitalBattleMap.FogShapes;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -13,14 +12,14 @@ using System.Windows.Input;
 
 namespace DigitalBattleMap.UIElements;
 
-public class DrawingCanvas : InkCanvas
+public class FogCanvas : InkCanvas
 {
     private static EventHandler<DrawingShapeCollectionChangedEventArgs> _shapeCollectionChangedHandler;
     private static PropertyChangedEventHandler? _shapePropertyChangedHandler;
     private static NotifyCollectionChangedEventHandler? _shapePointsChangedHandler;
     private Dictionary<DrawingShape, Stroke> _strokes = new();
 
-    public DrawingCanvas()
+    public FogCanvas()
     {
         _shapeCollectionChangedHandler = OnDrawingShapeCollectionChanged;
         _shapePropertyChangedHandler = OnShapePropertyChanged;
@@ -28,8 +27,8 @@ public class DrawingCanvas : InkCanvas
         ClipToBounds = true;
     }
 
-    public static readonly DependencyProperty ActiveShapeProperty = DependencyProperty.Register(nameof(ActiveShape), typeof(DrawingShape), typeof(DrawingCanvas), new PropertyMetadata(OnActiveShapeDependencyPropertyChanged));
-    public static readonly DependencyProperty ShapeCollectionProperty = DependencyProperty.Register(nameof(ShapeCollection), typeof(DrawingShapeCollection), typeof(DrawingCanvas), new PropertyMetadata(OnShapesDependencyPropertyChanged));
+    public static readonly DependencyProperty ActiveShapeProperty = DependencyProperty.Register(nameof(ActiveShape), typeof(DrawingShape), typeof(FogCanvas), new PropertyMetadata(OnActiveShapeDependencyPropertyChanged));
+    public static readonly DependencyProperty ShapeCollectionProperty = DependencyProperty.Register(nameof(ShapeCollection), typeof(DrawingShapeCollection), typeof(FogCanvas), new PropertyMetadata(OnShapesDependencyPropertyChanged));
 
 
     public DrawingShape ActiveShape
@@ -46,7 +45,7 @@ public class DrawingCanvas : InkCanvas
 
     private static void OnActiveShapeDependencyPropertyChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)
     {
-        var canvas = (DrawingCanvas)dependencyObject;
+        var canvas = (FogCanvas)dependencyObject;
 
         if (eventArgs.OldValue is DrawingShape oldShape)
         {
@@ -64,7 +63,7 @@ public class DrawingCanvas : InkCanvas
 
     private static void OnShapesDependencyPropertyChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)
     {
-        var canvas = (DrawingCanvas)dependencyObject;
+        var canvas = (FogCanvas)dependencyObject;
 
         if (eventArgs.OldValue is DrawingShapeCollection oldShapeCollection)
         {

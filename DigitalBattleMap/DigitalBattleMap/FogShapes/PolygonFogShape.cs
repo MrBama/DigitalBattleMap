@@ -5,7 +5,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace DigitalBattleMap.DrawingShapes;
+namespace DigitalBattleMap.FogShapes;
 
 public class PolygonFogShape : DrawingShape
 {
