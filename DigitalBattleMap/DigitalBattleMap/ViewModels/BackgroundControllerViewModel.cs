@@ -66,27 +66,16 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         FeetPerGridCell = Constants.FeetPerGridCell;
         //FogRemovalRectangleShape = true;
         ZoomSize = Constants.DefaultZoomSize;
-        
-        //EnableBackgroundEditMouse();
-        //MouseCanvas = new MouseCanvasViewModel();
-        //MouseCanvas.OnLeftButtonDown += MouseDown;
-        //MouseCanvas.OnLeftButtonUp += MouseUp;
-        //MouseCanvas.OnRectangleAreaSelected += RectangleAreaSelected;
-        //MouseCanvas.OnPolygonAreaSelected += FogOfWarPolygonAreaSelected;
-        //MouseCanvas.OnFixRatioRectangleAreaSelected += FixRatioRectangleAreaSelected;
+
+        MouseCanvas = new MouseCanvasViewModel();
+        MouseCanvas.OnLeftButtonDown += MouseDown;
+        MouseCanvas.OnLeftButtonUp += MouseUp;
+        MouseCanvas.OnFixRatioRectangleAreaSelected += FixRatioRectangleAreaSelected;
 
         /** new fog of war elements **/
         FogShapeCollection = new();
         FogShapeCollection.OnRenderShapes += (_, _) => NotifyDrawingShapesUpdated();
         ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize);
-        EnableFogShapeMouse();
-    }
-
-    private void EnableBackgroundEditMouse()
-    {
-        MouseCanvas = new MouseCanvasViewModel();
-        MouseCanvas.OnLeftButtonDown += MouseDown;
-        MouseCanvas.OnLeftButtonUp += MouseUp;
     }
 
     protected override void InitializeCommands()
@@ -115,9 +104,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     /** new fog of war elements **/
     public event EventHandler OnFogShapeUpdated;
 
-    public bool IsBackgroundEditingAllowed { get => HasOpenedBackground && !IsFogOfWarEnabled; }
+    public bool IsBackgroundEditingAllowed { get => HasOpenedBackground; }
     public bool HasOpenedBackground { get => Get<bool>(); set => Set(value); }
-    public bool IsFogOfWarEnabled { get => Get<bool>(); set => SetWhenChanged(value, IsFogOfWarEnabledChanged); }
     public bool HasOpenGMOverlay { get => Get<bool>(); set => Set(value); }
     //public bool IsFogOfWarAreaSelected { get => Get<bool>(); set => Set(value); }
     //public bool FogRemovalRectangleShape { get => Get<bool>(); set => Set(value, FogRemovalShapeChanged); }
@@ -225,11 +213,11 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     public Bitmap GetBackgroundBitmap()
     {
-        if (IsFogOfWarEnabled)
-        {
-            return BackgroundAndFogOfWarBitmap;
-        }
-        else
+        //if (IsFogOfWarEnabled)
+        //{
+        //    return BackgroundAndFogOfWarBitmap;
+        //}
+        //else
         {
             return BackgroundBitmap;
         }
@@ -237,11 +225,11 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     public BitmapSource GetBackgroundBitmapSource()
     {
-        if (IsFogOfWarEnabled)
-        {
-            return _backgroundAndFogOfWarBitmapSource;
-        }
-        else
+        //if (IsFogOfWarEnabled)
+        //{
+        //    return _backgroundAndFogOfWarBitmapSource;
+        //}
+        //else
         {
             return BackgroundBitmapSource;
         }
@@ -285,7 +273,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         FeetPerGridCell = Constants.FeetPerGridCell;
         HasOpenedBackground = false;
         HasOpenGMOverlay = false;
-        IsFogOfWarEnabled = false;
+        //IsFogOfWarEnabled = false;
         //FogRemovalRectangleShape = true; // todo change to new setup
         //FogRemovalPolygonShape = false;
         ZoomSize = Constants.DefaultZoomSize;
@@ -353,7 +341,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         saveFile.GridCellsWidth = GridCellsWidth;
         saveFile.GridCellsHeight = GridCellsHeight;
         saveFile.BackgroundFeetPerGridCell = FeetPerGridCell;
-        saveFile.IsFogOfWarEnabled = IsFogOfWarEnabled;
+        //saveFile.IsFogOfWarEnabled = IsFogOfWarEnabled;
         saveFile.FogOfWarAreas = _fogOfWarAreas;
     }
 
@@ -368,7 +356,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         GridCellsWidth = saveFile.GridCellsWidth;
         GridCellsHeight = saveFile.GridCellsHeight;
         FeetPerGridCell = saveFile.BackgroundFeetPerGridCell;
-        IsFogOfWarEnabled = saveFile.IsFogOfWarEnabled;
+        //IsFogOfWarEnabled = saveFile.IsFogOfWarEnabled;
         _fogOfWarAreas = saveFile.FogOfWarAreas;
 
         if (saveFile.FullBackground != null)
@@ -451,7 +439,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
         FeetPerGridCell = Constants.FeetPerGridCell;
         HasOpenedBackground = true;
-        IsFogOfWarEnabled = false;
+        //IsFogOfWarEnabled = false;
         _fogOfWarAreas.Clear();
         CreateBackground();
     }
@@ -577,12 +565,12 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
             }
         }
 
-        if (IsFogOfWarEnabled)
-        {
-            var fogOfWarBitMap = BitmapTools.CreateFogOfWarBitmap(_area, _fogOfWarAreas);
-            FogOfWarBitmap = BitmapTools.ResizeBitmap(fogOfWarBitMap);
-            BackgroundAndFogOfWarBitmap = BitmapTools.MergeBitmaps(BackgroundBitmap, FogOfWarBitmap);
-        }
+        //if (IsFogOfWarEnabled)
+        //{
+        //    var fogOfWarBitMap = BitmapTools.CreateFogOfWarBitmap(_area, _fogOfWarAreas);
+        //    FogOfWarBitmap = BitmapTools.ResizeBitmap(fogOfWarBitMap);
+        //    BackgroundAndFogOfWarBitmap = BitmapTools.MergeBitmaps(BackgroundBitmap, FogOfWarBitmap);
+        //}
 
         NotifyBackgroundUpdated();
     }
@@ -617,29 +605,6 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         }
     }
 
-    private void IsFogOfWarEnabledChanged()
-    {
-        if (IsFogOfWarEnabled)
-        {
-            EnableFogShapeMouse();
-            //if (FogRemovalRectangleShape) todo change to new setup
-            //{
-            //    MouseCanvas.SetMode(MouseCanvasMode.RectangleSelection);
-            //}
-            //else
-            //{
-            //    MouseCanvas.SetMode(MouseCanvasMode.PolygonSelection);
-            //}
-        }
-        else
-        {
-            FogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
-            EnableBackgroundEditMouse();
-            //CancelFogRemoval();
-            //MouseCanvas.SetMode(MouseCanvasMode.Click);
-        }
-        CreateBackground();
-    }
 
     //private void ApplyFogRemoval()
     //{

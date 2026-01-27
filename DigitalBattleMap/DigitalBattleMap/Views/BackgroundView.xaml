@@ -32,13 +32,6 @@
             <RowDefinition Height="auto"/> <!--9-->
             <RowDefinition Height="auto"/> <!--10-->
             <RowDefinition Height="*"/> <!--11-->
-            <RowDefinition Height="auto"/> <!--12-->
-            <RowDefinition Height="auto"/> <!--13-->
-            <RowDefinition Height="auto"/> <!--14-->
-            <RowDefinition Height="auto"/> <!--15-->
-            <RowDefinition Height="auto"/> <!--16-->
-            <RowDefinition Height="auto"/> <!--17-->
-            <RowDefinition Height="*"/> <!--1-->
         </Grid.RowDefinitions>
 
         <Button Content="Open background" Command="{Binding OpenBackgroundCommand}"/>
@@ -94,124 +87,8 @@
             <TextBox Grid.Column="1" VerticalContentAlignment="Center" Text="{Binding FeetPerGridCell, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsBackgroundEditingAllowed}" Width="{Binding ElementName=GridCellsXTextBox,Path=ActualWidth}" HorizontalAlignment="Left"/>
         </Grid>
 
-        <!--Fog of war label-->
-        <Grid Grid.Row="7" Margin="0 10 0 0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Separator BorderThickness="1" BorderBrush="Gray"/>
-            <Label Grid.Column="1" Content="Fog of War" FontSize="20" FontWeight="Bold"/>
-            <Separator Grid.Column="2" BorderThickness="1" BorderBrush="Gray"/>
-        </Grid>
-
-        <!--Enable fog of war grid-->
-        <Grid Grid.Row="8" Margin="0 10 0 0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Label Content="Fog of war"/>
-            <CheckBox Grid.Column="1" VerticalAlignment="Center" Margin="10 0 0 0" IsChecked="{Binding IsFogOfWarEnabled}" IsEnabled="{Binding HasOpenedBackground}"/>
-        </Grid>
-
-        <!--Snapping grid-->
-        <Grid Grid.Row="9" Margin="0 10 0 0" IsEnabled="{Binding IsFogOfWarEnabled}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Label Content="Snap to grid"/>
-            <CheckBox Grid.Column="1" VerticalContentAlignment="Center" Margin="10 0 0 0" IsChecked="{Binding ActiveFogShape.SnapToGrid}"/>
-        </Grid>
-
-        <ListView Grid.Row="10" Margin="0 10 0 0" ItemsSource="{Binding FogShapeCollection}" SelectedItem="{Binding SelectedFogShape}" HorizontalContentAlignment="Stretch" IsEnabled="{Binding IsEditFogShapeActive, Converter={StaticResource InvertBoolConverter}}">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Grid Background="Transparent">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="4*"/>
-                            <ColumnDefinition Width="3*"/>
-                        </Grid.ColumnDefinitions>
-                        <!--<Label Content="{Binding Name}"/>-->
-
-                        <!--Shape size grid-->
-                        <Grid Grid.Column="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Content="{Binding Size}" Padding="5 5 0 5"/>
-                            <Label Grid.Column="1" Content=" ft" Padding="0 5 5 5"/>
-                        </Grid>
-
-                        <Label Grid.Column="2" Background="{Binding ColorBrush}"/>
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-
-        <!--Shape selection grid-->
-        <Grid Grid.Row="11" Margin="0 10 0 0" IsEnabled="{Binding IsFogOfWarEnabled}">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <!--Size grid-->
-            <Grid Grid.ColumnSpan="2" Visibility="{Binding IsFogShapeActive, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="auto"/>
-                </Grid.ColumnDefinitions>
-
-                <Label Content="Size: " Padding="0"/>
-                <Label Grid.Column="1" Content="{Binding ActiveFogShape.Size}" Padding="0"/>
-                <Label Grid.Column="2" Content=" ft" Padding="0"/>
-            </Grid>
-
-            <Button Grid.Row="1" Grid.ColumnSpan="4" Margin="0 10 0 0" Content="Cancel" Command="{Binding CancelDrawShapeCommand}" Visibility="{Binding IsFogShapeActive, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
-            <Button Content="Rectangle" Margin="0 0 5 0" Command="{Binding DrawRectangleCommand}" Visibility="{Binding IsFogShapeActive, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
-            <!--<Button Grid.Column="1" Content="Polygon" Margin="5 0 0 0" Command="{Binding DrawCircleCommand}" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>-->
-            <!--<Button Grid.Row="1" Content="Cone" Margin="0 10 5 0" Command="{Binding DrawConeCommand}" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>-->
-            <!--<Button Grid.Row="1" Grid.Column="1" Content="Polygon" Margin="5 10 0 0" Command="{Binding DrawLineCommand}" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>-->
-        </Grid>
-
-        <!--Remove fog shape grid-->
-        <!--<Grid Grid.Row="11" Margin="0 10 0 0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Label Content="Removal shape"/>
-            <RadioButton Grid.Column="1" Content="Rectangle" VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="10 0 0 0" IsEnabled="{Binding IsFogOfWarEnabled}" IsChecked="{Binding FogRemovalRectangleShape}"/>
-            <RadioButton Grid.Column="2" Content="Polygon" VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="10 0 0 0" IsEnabled="{Binding IsFogOfWarEnabled}" IsChecked="{Binding FogRemovalPolygonShape}"/>
-        </Grid>-->
-
-        <!--Remove fog grid-->
-        <!--<Grid Grid.Row="12" Margin="0 10 0 0" IsEnabled="{Binding IsFogOfWarEnabled}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Button Content="Cancel" Margin="0 0 5 0" Command="{Binding CancelFogRemovalCommand}" IsEnabled="{Binding IsFogOfWarAreaSelected}" />
-            <Button Grid.Column="1" Content="Apply" Margin="5 0 0 0" Command="{Binding ApplyFogOfWarCommand}" IsEnabled="{Binding IsFogOfWarAreaSelected}" />
-        </Grid>-->
-        
-        <!--<Button Grid.Row="13" Content="Clear fog" Margin="0 10 0 0" IsEnabled="{Binding IsFogOfWarEnabled}" Command="{Binding ClearFogCommand}"/>-->
-
         <!-- Grid label-->
-        <Grid Grid.Row="14" Margin="0 10 0 0">
+        <Grid Grid.Row="7" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
@@ -222,7 +99,7 @@
             <Separator Grid.Column="2" BorderThickness="1" BorderBrush="Gray"/>
         </Grid>
 
-        <Grid Grid.Row="15" Margin="0 10 0 0">
+        <Grid Grid.Row="8" Margin="0 10 0 0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
@@ -246,7 +123,7 @@
             <CheckBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding IsGridShown}" Margin="0 10 0 0"/>
         </Grid>
 
-        <Grid Grid.Row="16" Margin="0 10 0 0">
+        <Grid Grid.Row="9" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
@@ -262,7 +139,7 @@
             <Button Grid.Row="1" Grid.ColumnSpan="3" Content="Open overlay" Command="{Binding OpenGMOverlayCommand}"/>
         </Grid>
 
-        <Button Grid.Row="17" Content="Clear overlay" Command="{Binding ClearGMOverlayCommand}" Margin="0 10 0 0" VerticalAlignment="Top"/>
-        <Button Grid.Row="18" Content="Clear" Command="{Binding ClearBackgroundCommand}" Margin="0 10 0 0" VerticalAlignment="Bottom"/>
+        <Button Grid.Row="10" Content="Clear overlay" Command="{Binding ClearGMOverlayCommand}" Margin="0 10 0 0" VerticalAlignment="Top"/>
+        <Button Grid.Row="11" Content="Clear" Command="{Binding ClearBackgroundCommand}" Margin="0 10 0 0" VerticalAlignment="Bottom"/>
     </Grid>
 </UserControl>

@@ -64,6 +64,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public string ServerConnectionButtonText { get => Get<string>(); set => Set(value); }
     public string ServerConnectionStatus { get => Get<string>(); set => Set(value); }
     public Visibility DrawingCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
+    public Visibility FogCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
     public Visibility MouseInputCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
     public Visibility TokenVisibility { get => Get<Visibility>(); set => Set(value); }
     public System.Windows.Media.Brush ServerConnectionStatusColor { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
@@ -140,7 +141,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         FogController = new FogControllerViewModel(_windowService, this, _settings);
         FogController.OnZoomAndEnhance += OnZoomAndEnhance;
-        //FogController.OnDrawingShapesUpdated += DrawingShapesUpdated;
+        FogController.OnFogShapeUpdated += FogShapesUpdated;
 
         TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, _monsterTokens, CampaignController, _settings);
         TokenController.OnZoomAndEnhance += OnZoomAndEnhance;
@@ -244,6 +245,11 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         UpdateMap(DrawLayer.Background);
     }
 
+    private void FogShapesUpdated(object? sender, EventArgs e)
+    {
+        UpdateMap(DrawLayer.Background);
+    }
+
     private void DrawingShapesUpdated(object? sender, EventArgs e)
     {
         UpdateMap(DrawLayer.GridAndStrokes);
@@ -277,17 +283,19 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         switch (drawing)
         {
             case DrawLayer.All:
+                var backgroundAndFogBitmapAll = CreateBackgroundAndFogBitmap();
                 var gridAndTokenBitmapAll = CreateGridAndDrawingBitmap();
-                _mapWindowViewModel.BackgroundBitmapSource = GetBackgroundBitmapSource();
+                _mapWindowViewModel.BackgroundBitmapSource = backgroundAndFogBitmapAll.ToBitmapImage();
                 _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
                 _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(GetBackgroundBitmap()) });
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmapAll) });
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmapAll) });
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
                 break;
             case DrawLayer.Background:
-                _mapWindowViewModel.BackgroundBitmapSource = GetBackgroundBitmapSource();
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(GetBackgroundBitmap()) });
+                var backgroundAndFogBitmap = CreateBackgroundAndFogBitmap();
+                _mapWindowViewModel.BackgroundBitmapSource = backgroundAndFogBitmap.ToBitmapImage();
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmap) });
                 break;
             case DrawLayer.GridAndStrokes:
                 var gridAndTokenBitmap = CreateGridAndDrawingBitmap();
@@ -301,22 +309,16 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         }
     }
 
-    private BitmapSource GetBackgroundBitmapSource()
+    private Bitmap CreateBackgroundAndFogBitmap()
     {
-        if (HasBlackBackground)
-        {
-            return BitmapTools.MergeBitmaps(BitmapTools.CreateBlackBitmap(), BackgroundController.GetBackgroundBitmap()).ToBitmapImage();
-        }
-        return BackgroundController.GetBackgroundBitmapSource();
-    }
+        var bitmap = BitmapTools.MergeBitmaps(BackgroundController.GetBackgroundBitmap(), FogController.GetFogBitmap());
 
-    private Bitmap GetBackgroundBitmap()
-    {
         if (HasBlackBackground)
         {
-            return BitmapTools.MergeBitmaps(BitmapTools.CreateBlackBitmap(), BackgroundController.GetBackgroundBitmap());
+            bitmap =  BitmapTools.MergeBitmaps(BitmapTools.CreateBlackBitmap(), bitmap);
         }
-        return BackgroundController.GetBackgroundBitmap();
+
+        return bitmap;
     }
 
     private Bitmap CreateGridAndDrawingBitmap()
@@ -392,29 +394,47 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         {
             case TabIndex.Campaign:
                 MouseInputCanvasVisibility = Visibility.Visible;
+                FogCanvasVisibility = Visibility.Visible;
                 DrawingCanvasVisibility = Visibility.Visible;
-                MouseCanvas = BackgroundController.MouseCanvas;
                 TokenVisibility = Visibility.Visible;
+
+                MouseCanvas = CampaignController.MouseCanvas;
                 DrawingCanvasZIndex = 0;
                 break;
             case TabIndex.Background:
-                DrawingCanvasVisibility = Visibility.Hidden;
                 MouseInputCanvasVisibility = Visibility.Visible;
-                MouseCanvas = BackgroundController.MouseCanvas;
+                FogCanvasVisibility = Visibility.Visible;
+                DrawingCanvasVisibility = Visibility.Hidden;
                 TokenVisibility = Visibility.Hidden;
+
+                MouseCanvas = BackgroundController.MouseCanvas;
+                DrawingCanvasZIndex = 1;
+                break;
+            case TabIndex.Fog:
+                MouseInputCanvasVisibility = Visibility.Visible;
+                FogCanvasVisibility = Visibility.Visible;
+                DrawingCanvasVisibility = Visibility.Hidden;
+                TokenVisibility = Visibility.Hidden;
+
+                MouseCanvas = FogController.MouseCanvas;
+                DrawingCanvasZIndex = 1;
                 break;
             case TabIndex.Drawing:
-                DrawingCanvasVisibility = Visibility.Visible;
                 MouseInputCanvasVisibility = Visibility.Visible;
-                MouseCanvas = DrawingController.MouseCanvas;
+                FogCanvasVisibility = Visibility.Hidden;
+                DrawingCanvasVisibility = Visibility.Visible;
                 TokenVisibility = Visibility.Visible;
+
+                MouseCanvas = DrawingController.MouseCanvas;
                 DrawingCanvasZIndex = 1;
                 break;
             case TabIndex.Tokens:
                 DrawingCanvasVisibility = Visibility.Visible;
+                FogCanvasVisibility = Visibility.Visible;
                 MouseInputCanvasVisibility = Visibility.Visible;
-                MouseCanvas = TokenController.MouseCanvas;
                 TokenVisibility = Visibility.Visible;
+
+                MouseCanvas = TokenController.MouseCanvas;
                 DrawingCanvasZIndex = 0;
                 break;
         }

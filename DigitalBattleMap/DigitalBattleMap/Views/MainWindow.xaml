@@ -64,7 +64,7 @@
                     <Image Source="{Binding FogEmblemBitmapSource}" MaxHeight="35" Margin="2"/>
                 </TabItem.Header>
                 <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
-                    <views:BackgroundView DataContext="{Binding BackgroundController}" Margin="10"/>
+                    <views:FogView DataContext="{Binding FogController}" Margin="10"/>
                 </Border>
             </TabItem>
             <TabItem>
@@ -109,6 +109,16 @@
                             <Image Source="{Binding BackgroundController.GMOverlayBitmapSource}" Opacity="0.5"/>
                             <Image Source="{Binding BackgroundController.FogOfWarBitmapSource}" Opacity="0.5"/>
                             <Image x:Name="GridLayer" Source="{Binding BackgroundController.GridBitmapSource}"/>
+                            <uielements:DrawingCanvas
+                                Background="Transparent" 
+                                ActiveShape="{Binding FogController.ActiveFogShape}" 
+                                ShapeCollection="{Binding FogController.FogShapeCollection}" 
+                                Cursor="{Binding FogController.ActiveFogShape.Cursor}"
+                                Visibility="{Binding FogCanvasVisibility}"
+                                Panel.ZIndex="{Binding DrawingCanvasZIndex}"
+                                Width="{Binding ElementName=GridLayer, Path=ActualWidth}" 
+                                Height="{Binding ElementName=GridLayer, Path=ActualHeight}">
+                            </uielements:DrawingCanvas>
                             <uielements:DrawingCanvas
                                 Background="Transparent" 
                                 ActiveShape="{Binding DrawingController.ActiveShape}" 
