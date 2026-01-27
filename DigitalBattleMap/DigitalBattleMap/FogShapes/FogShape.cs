@@ -29,7 +29,7 @@ public abstract class FogShape : PropertyHandler, ILinkableObject, IShape
         Color = Colors.Black;
         PenSize = 5;
         Points = new();
-        Name = "DrawingShape";
+        Name = "FogShape";
         Size = "0";
         LinkableObject = new LinkableObject(UpdatePosition);
 

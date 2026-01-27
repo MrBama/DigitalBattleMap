@@ -4,7 +4,6 @@ using DigitalBattleMap.FogShapes;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
@@ -12,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media; 
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace DigitalBattleMap.ViewModels;
@@ -204,7 +203,7 @@ public class FogControllerViewModel : ControllerViewModelBase
         {
             Color = ActiveFogShape.Color,
             PenSize = ActiveFogShape.PenSize,
-            SnapToGrid = false
+            SnapToGrid = ActiveFogShape.SnapToGrid
         };
     }
 

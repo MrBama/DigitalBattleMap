@@ -15,7 +15,6 @@ public class RectangleFogShape : FogShape
     public RectangleFogShape(Action applyShapeCallback, IMapSize mapSize) : base(applyShapeCallback, mapSize)
     {
         Name = "Fog Rectangle";
-        SnapToGrid = true;
     }
 
     protected override void ButtonDown(Point<double> position)
