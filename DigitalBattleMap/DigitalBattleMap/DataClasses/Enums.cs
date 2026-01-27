@@ -64,6 +64,13 @@ public enum DrawingShapeType
     Line
 }
 
+public enum FogDrawingShapeType
+{
+    Rectangle,
+    Circle,
+    Polygon
+}
+
 public enum MouseCanvasMode
 {
     Click,

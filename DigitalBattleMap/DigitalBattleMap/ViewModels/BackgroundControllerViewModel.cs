@@ -92,6 +92,10 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         CancelFogRemovalCommand = new RelayCommand(p => CancelFogRemoval());
         ClearFogCommand = new RelayCommand(p => ClearFog());
         GridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
+
+        /** new fog of war elements **/
+        DrawRectangleCommand = new RelayCommand(p => DrawFogShape(FogDrawingShapeType.Rectangle));
+        CancelDrawShapeCommand = new RelayCommand(p => CancelDrawShape());
     }
 
     public event EventHandler OnBackgroundUpdated;
@@ -139,6 +143,10 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public ICommand ApplyFogOfWarCommand { get; set; }
     public ICommand ClearFogCommand { get; set; }
     public ICommand GridSizeEnterCommand { get; set; }
+
+    /** new fog of war elements **/
+    public ICommand DrawRectangleCommand { get; set; }
+    public ICommand CancelDrawShapeCommand { get; set; }
 
     private Bitmap BackgroundBitmap
     {
@@ -736,6 +744,10 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         NotifyDrawingShapesUpdated();
     }
 
+    /**
+     * Default shape to use 
+     * TODO: change to polygon.
+     */
     private DrawingShape CreateRectangleFogShape()
     {
         var strokeDrawingShapes = FogShapeCollection.GetShapes().OfType<RectangleFogShape>();
@@ -770,5 +782,41 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         }
     }
 
+    private void DrawFogShape(FogDrawingShapeType drawingShapeType)
+    {
+        //if (_selectedDrawingButton == DrawingButton.Eraser)
+        //{
+        //    SetDrawingButtonSelection(_selectedDrawingButton, false);
+        //    SetDrawingButtonSelection(DrawingButton.Black, true);
+        //    _selectedDrawingButton = DrawingButton.Black;
+        //}
+
+        IsFogShapeActive = true;
+        IsEditFogShapeActive = false;
+
+        switch (drawingShapeType)
+        {
+            case FogDrawingShapeType.Rectangle:
+                DrawRectangleShape();
+                break;
+            default:
+                throw new NotImplementedException($"Shape {drawingShapeType} is not implemented");
+        }
+    }
+
+    private void DrawRectangleShape()
+    {
+        ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize)
+        {
+            Color = ActiveFogShape.Color,
+            PenSize = ActiveFogShape.PenSize
+        };
+    }
+
+    private void CancelDrawShape()
+    {
+        ActiveFogShape = CreateRectangleFogShape();
+        IsFogShapeActive = false;
+    }
 
 }
