@@ -61,6 +61,14 @@
             </TabItem>
             <TabItem>
                 <TabItem.Header>
+                    <Image Source="{Binding FogEmblemBitmapSource}" MaxHeight="35" Margin="2"/>
+                </TabItem.Header>
+                <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
+                    <views:BackgroundView DataContext="{Binding BackgroundController}" Margin="10"/>
+                </Border>
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
                     <Image Source="{Binding DrawingEmblemBitmapSource}" MaxHeight="35" Margin="2"/>
                 </TabItem.Header>
                 <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">

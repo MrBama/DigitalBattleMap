@@ -1,6 +1,7 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
+using DigitalBattleMap.UIElements;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System;

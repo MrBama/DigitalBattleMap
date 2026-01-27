@@ -17,7 +17,7 @@ using System.Windows.Threading;
 
 namespace DigitalBattleMap.ViewModels;
 
-public class BackgroundControllerViewModel : ControllerViewModelBase
+public class FogControllerViewModel : ControllerViewModelBase
 {
     private Bitmap _backgroundBitmap;
     private Bitmap _gmOverlayBitmap;
@@ -34,13 +34,13 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     private List<SelectedArea> _fogOfWarAreas = new();
     private Settings _settings;
 
-    public BackgroundControllerViewModel()
+    public FogControllerViewModel()
     {
         GridSize = 65;
         Initialize();
     }
 
-    public BackgroundControllerViewModel(IWindowService windowService, IMapSize mapSize, Settings settings) : base(mapSize)
+    public FogControllerViewModel(IWindowService windowService, IMapSize mapSize, Settings settings) : base(mapSize)
     {
         _windowService = windowService;
         _settings = settings;

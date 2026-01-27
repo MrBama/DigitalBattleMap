@@ -42,6 +42,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         IO.Initialize(new Directory(), new File(), new ZipFile());
         CampaignController = new();
         BackgroundController = new();
+        FogController = new();
         DrawingController = new();
         TokenController = new();
         InitializeProperties();
@@ -72,6 +73,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     public CampaignControllerViewModel CampaignController { get; set; }
     public BackgroundControllerViewModel BackgroundController { get; set; }
+    public FogControllerViewModel FogController { get; set; }
     public DrawingControllerViewModel DrawingController { get; set; }
     public TokenControllerViewModel TokenController { get; set; }
     public MapOverviewViewModel MapOverview { get; set; }
@@ -85,6 +87,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public BitmapSource MapZoomBackgroundBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.UndoIcon.png")).ToBitmapImage(); }
     public BitmapSource CampaignEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.CampaignEmblem.png")).ToBitmapImage(); }
     public BitmapSource BackgroundEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.BackgroundEmblem.png")).ToBitmapImage(); }
+    public BitmapSource FogEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogEmblem.png")).ToBitmapImage(); }
     public BitmapSource DrawingEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.DrawingEmblem.png")).ToBitmapImage(); }
     public BitmapSource TokenEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.TokenEmblem.png")).ToBitmapImage(); }
 
@@ -124,19 +127,30 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
         _autoSaveTimer = new Timer(Constants.AutoSaveIntervalInMs);
         _autoSaveTimer.Elapsed += AutoSaveMap;
+
         MapOverview = new MapOverviewViewModel(this);
         MapOverview.OnZoomAndEnhance += OnZoomAndEnhance;
+
         CampaignController = new CampaignControllerViewModel(_windowService, _connectionManager, _monsterTokens, _settings);
+
         BackgroundController = new BackgroundControllerViewModel(_windowService, this, _settings);
         BackgroundController.OnGridSizeChanged += OnBackgroundGridSizeChanged;
         BackgroundController.OnZoomAndEnhance += OnZoomAndEnhance;
         BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
+
+        FogController = new FogControllerViewModel(_windowService, this, _settings);
+        FogController.OnZoomAndEnhance += OnZoomAndEnhance;
+        //FogController.OnDrawingShapesUpdated += DrawingShapesUpdated;
+
         TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, _monsterTokens, CampaignController, _settings);
         TokenController.OnZoomAndEnhance += OnZoomAndEnhance;
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
+
         DrawingController = new DrawingControllerViewModel(this, TokenController);
         DrawingController.OnZoomAndEnhance += OnZoomAndEnhance;
         DrawingController.OnDrawingShapesUpdated += DrawingShapesUpdated;
+
+        // settings
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
         HasBlackBackground = _settings.HasBlackBackground;
         CropColor = System.Windows.Media.Brushes.LightGray;
