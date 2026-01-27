@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.DrawingShapes;
+using DigitalBattleMap.FogShapes;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
@@ -148,7 +149,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     public override void AddToSaveFile(SaveFile saveFile)
     {
-        foreach ((var shape, var index) in ShapeCollection.GetShapes().WithIndex())
+        foreach ((var shape, var index) in ShapeCollection.GetDrawingShapes().WithIndex())
         {
             saveFile.DrawingShapes.Add(shape);
 
@@ -192,7 +193,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         {
             var zoomFactor = eventArgs.NewSize.Width / eventArgs.OldSize.Width;
 
-            foreach (var shape in ShapeCollection.GetShapes())
+            foreach (var shape in ShapeCollection.GetDrawingShapes())
             {
                 shape.PenSize *= zoomFactor;
             }
@@ -228,14 +229,14 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public Bitmap GetDrawingBitmap()
     {
         var bitmap = BitmapTools.CreateEmptyBitmap();
-        BitmapTools.DrawShapes(bitmap, ShapeCollection.GetShapes().ToList(), _mapSize.GetCanvasSize());
+        BitmapTools.DrawShapes(bitmap, ShapeCollection.GetDrawingShapes().ToList<IShape>(), _mapSize.GetCanvasSize());
         return bitmap;
     }
 
     public bool GetOverviewBitmap(double zoomFactor, out OverviewBitmap overviewBitmap)
     {
         overviewBitmap = new OverviewBitmap();
-        var shapes = ShapeCollection.GetShapes().ToList();
+        var shapes = ShapeCollection.GetDrawingShapes().ToList();
         if (shapes.Count != 0)
         {
             var shapeOverviewBitmaps = new List<OverviewBitmap>();
@@ -281,7 +282,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     public void ClearDrawings()
     {
-        foreach (var shape in ShapeCollection.GetShapes())
+        foreach (var shape in ShapeCollection.GetDrawingShapes())
         {
             shape.LinkableObject.Dispose();
         }
@@ -447,7 +448,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private DrawingShape CreateStrokeDrawingShape()
     {
-        var strokeDrawingShapes = ShapeCollection.GetShapes().OfType<StrokeDrawingShape>();
+        var strokeDrawingShapes = ShapeCollection.GetDrawingShapes().OfType<StrokeDrawingShape>();
 
         return new StrokeDrawingShape(ApplyActiveShape, _tokenLinker, _mapSize)
         {

@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Interfaces;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,8 +14,8 @@ public class FogShapeCollection : IEnumerable, INotifyCollectionChanged
 {
     private List<FogShape> _fogShapes = new();
 
-    public event NotifyCollectionChangedEventHandler? OnDrawingShapePointsChanged; // todo change?
-    public event PropertyChangedEventHandler? OnDrawingShapePropertyChanged; // todo change?
+    public event NotifyCollectionChangedEventHandler? OnFogShapePointsChanged;
+    public event PropertyChangedEventHandler? OnFogShapePropertyChanged;
     public event EventHandler<FogShapeCollectionChangedEventArgs> OnFogShapeCollectionChanged;
     public event EventHandler OnRenderShapes; // todo change?
     public event NotifyCollectionChangedEventHandler? CollectionChanged; // This is only used for UI
@@ -84,7 +85,7 @@ public class FogShapeCollection : IEnumerable, INotifyCollectionChanged
         return _fogShapes.Contains(fogShape);
     }
 
-    public IEnumerable<FogShape> GetShapes()
+    public IEnumerable<FogShape> GetFogShapes()
     {
         return _fogShapes;
     }
@@ -114,12 +115,12 @@ public class FogShapeCollection : IEnumerable, INotifyCollectionChanged
 
     private void FogShapePointsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        OnDrawingShapePointsChanged?.Invoke(sender, e);
+        OnFogShapePointsChanged?.Invoke(sender, e);
     }
 
     private void FogShapePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        OnDrawingShapePropertyChanged?.Invoke(sender, e);
+        OnFogShapePropertyChanged?.Invoke(sender, e);
     }
 
     private void FogShapeCollectionChanged(FogShapeCollectionChangedEventArgs eventArgs)

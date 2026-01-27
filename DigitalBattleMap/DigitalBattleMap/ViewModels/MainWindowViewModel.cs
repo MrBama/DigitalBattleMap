@@ -412,7 +412,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 break;
             case TabIndex.Fog:
                 MouseInputCanvasVisibility = Visibility.Visible;
-                FogCanvasVisibility = Visibility.Hidden;
+                FogCanvasVisibility = Visibility.Visible;
                 DrawingCanvasVisibility = Visibility.Visible;
                 TokenVisibility = Visibility.Hidden;
 

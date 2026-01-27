@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.DrawingShapes;
+using DigitalBattleMap.FogShapes;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -70,6 +71,13 @@ public class SettingChangedEventArgs : EventArgs
 public class DrawingShapeCollectionChangedEventArgs : EventArgs
 {
     public DrawingShape ChangedShape { get; set; }
+    public CollectionChangedAction Action { get; set; }
+    public int Index { get; set; }
+}
+
+public class FogShapeCollectionChangedEventArgs : EventArgs
+{
+    public FogShape ChangedShape { get; set; }
     public CollectionChangedAction Action { get; set; }
     public int Index { get; set; }
 }

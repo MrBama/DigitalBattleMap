@@ -40,7 +40,7 @@ public class EraserDrawingShape : DrawingShape
 
     private void Erase(Point<double> position)
     {
-        foreach (var shape in _drawingShapeCollection.GetShapes().ToList())
+        foreach (var shape in _drawingShapeCollection.GetDrawingShapes().ToList())
         {
             if (shape.IsErasable)
             {

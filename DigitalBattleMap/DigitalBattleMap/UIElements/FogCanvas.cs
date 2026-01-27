@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.DrawingShapes;
+using DigitalBattleMap.FogShapes;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -14,32 +15,32 @@ namespace DigitalBattleMap.UIElements;
 
 public class FogCanvas : InkCanvas
 {
-    private static EventHandler<DrawingShapeCollectionChangedEventArgs> _shapeCollectionChangedHandler;
+    private static EventHandler<FogShapeCollectionChangedEventArgs> _shapeCollectionChangedHandler;
     private static PropertyChangedEventHandler? _shapePropertyChangedHandler;
     private static NotifyCollectionChangedEventHandler? _shapePointsChangedHandler;
-    private Dictionary<DrawingShape, Stroke> _strokes = new();
+    private Dictionary<FogShape, Stroke> _strokes = new();
 
     public FogCanvas()
     {
-        _shapeCollectionChangedHandler = OnDrawingShapeCollectionChanged;
+        _shapeCollectionChangedHandler = OnFogShapeCollectionChanged;
         _shapePropertyChangedHandler = OnShapePropertyChanged;
         _shapePointsChangedHandler = OnShapePointsChanged;
         ClipToBounds = true;
     }
 
-    public static readonly DependencyProperty ActiveShapeProperty = DependencyProperty.Register(nameof(ActiveShape), typeof(DrawingShape), typeof(FogCanvas), new PropertyMetadata(OnActiveShapeDependencyPropertyChanged));
-    public static readonly DependencyProperty ShapeCollectionProperty = DependencyProperty.Register(nameof(ShapeCollection), typeof(DrawingShapeCollection), typeof(FogCanvas), new PropertyMetadata(OnShapesDependencyPropertyChanged));
+    public static readonly DependencyProperty ActiveShapeProperty = DependencyProperty.Register(nameof(ActiveShape), typeof(FogShape), typeof(FogCanvas), new PropertyMetadata(OnActiveShapeDependencyPropertyChanged));
+    public static readonly DependencyProperty ShapeCollectionProperty = DependencyProperty.Register(nameof(ShapeCollection), typeof(FogShapeCollection), typeof(FogCanvas), new PropertyMetadata(OnShapesDependencyPropertyChanged));
 
 
-    public DrawingShape ActiveShape
+    public FogShape ActiveShape
     {
-        get => (DrawingShape)GetValue(ActiveShapeProperty);
+        get => (FogShape)GetValue(ActiveShapeProperty);
         set => SetValue(ActiveShapeProperty, value);
     }
 
-    public DrawingShapeCollection ShapeCollection
+    public FogShapeCollection ShapeCollection
     {
-        get => (DrawingShapeCollection)GetValue(ShapeCollectionProperty);
+        get => (FogShapeCollection)GetValue(ShapeCollectionProperty);
         set => SetValue(ShapeCollectionProperty, value);
     }
 
@@ -47,14 +48,14 @@ public class FogCanvas : InkCanvas
     {
         var canvas = (FogCanvas)dependencyObject;
 
-        if (eventArgs.OldValue is DrawingShape oldShape)
+        if (eventArgs.OldValue is FogShape oldShape)
         {
             oldShape.PropertyChanged -= _shapePropertyChangedHandler;
             oldShape.OnPointsChanged -= _shapePointsChangedHandler;
             canvas.EraseActiveShape(oldShape);
         }
 
-        if (eventArgs.NewValue is DrawingShape newShape)
+        if (eventArgs.NewValue is FogShape newShape)
         {
             newShape.PropertyChanged += _shapePropertyChangedHandler;
             newShape.OnPointsChanged += _shapePointsChangedHandler;
@@ -65,24 +66,24 @@ public class FogCanvas : InkCanvas
     {
         var canvas = (FogCanvas)dependencyObject;
 
-        if (eventArgs.OldValue is DrawingShapeCollection oldShapeCollection)
+        if (eventArgs.OldValue is FogShapeCollection oldShapeCollection)
         {
-            oldShapeCollection.OnDrawingShapeCollectionChanged -= _shapeCollectionChangedHandler;
-            oldShapeCollection.OnDrawingShapePropertyChanged -= _shapePropertyChangedHandler;
-            oldShapeCollection.OnDrawingShapePointsChanged -= _shapePointsChangedHandler;
+            oldShapeCollection.OnFogShapeCollectionChanged -= _shapeCollectionChangedHandler;
+            oldShapeCollection.OnFogShapePropertyChanged -= _shapePropertyChangedHandler;
+            oldShapeCollection.OnFogShapePointsChanged -= _shapePointsChangedHandler;
             canvas.EraseAll();
         }
 
-        if (eventArgs.NewValue is DrawingShapeCollection newShapeCollection)
+        if (eventArgs.NewValue is FogShapeCollection newShapeCollection)
         {
-            newShapeCollection.OnDrawingShapeCollectionChanged += _shapeCollectionChangedHandler;
-            newShapeCollection.OnDrawingShapePropertyChanged += _shapePropertyChangedHandler;
-            newShapeCollection.OnDrawingShapePointsChanged += _shapePointsChangedHandler;
-            canvas.DrawShapes(newShapeCollection.GetShapes());
+            newShapeCollection.OnFogShapeCollectionChanged += _shapeCollectionChangedHandler;
+            newShapeCollection.OnFogShapePropertyChanged += _shapePropertyChangedHandler;
+            newShapeCollection.OnFogShapePointsChanged += _shapePointsChangedHandler;
+            canvas.DrawShapes(newShapeCollection.GetFogShapes());
         }
     }
 
-    private void OnDrawingShapeCollectionChanged(object? sender, DrawingShapeCollectionChangedEventArgs e)
+    private void OnFogShapeCollectionChanged(object? sender, FogShapeCollectionChangedEventArgs e)
     {
         switch (e.Action)
         {
@@ -105,8 +106,8 @@ public class FogCanvas : InkCanvas
 
     private void OnShapePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        var properties = new List<string> { nameof(DrawingShape.PenSize), nameof(DrawingShape.Color), nameof(DrawingShape.Points) };
-        if (sender is DrawingShape shape)
+        var properties = new List<string> { nameof(FogShape.PenSize), nameof(FogShape.Color), nameof(FogShape.Points) };
+        if (sender is FogShape shape)
         {
             if (properties.Contains(e.PropertyName))
             {
@@ -127,7 +128,7 @@ public class FogCanvas : InkCanvas
 
     private void OnShapePointsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (sender is DrawingShape shape)
+        if (sender is FogShape shape)
         {
             switch (e.Action)
             {
@@ -156,7 +157,7 @@ public class FogCanvas : InkCanvas
         _strokes.Clear();
     }
 
-    private void EraseShape(DrawingShape shape)
+    private void EraseShape(FogShape shape)
     {
         if (_strokes.ContainsKey(shape))
         {
@@ -165,15 +166,15 @@ public class FogCanvas : InkCanvas
         }
     }
 
-    private void EraseActiveShape(DrawingShape shape)
+    private void EraseActiveShape(FogShape shape)
     {
-        if (!ShapeCollection.GetShapes().Contains(shape))
+        if (!ShapeCollection.GetFogShapes().Contains(shape))
         {
             EraseShape(shape);
         }
     }
 
-    private void ErasePoints(DrawingShape shape)
+    private void ErasePoints(FogShape shape)
     {
         if (shape.Points.Count > 0)
         {
@@ -188,7 +189,7 @@ public class FogCanvas : InkCanvas
         }
     }
 
-    private void DrawShape(DrawingShape shape)
+    private void DrawShape(FogShape shape)
     {
         if (!_strokes.ContainsKey(shape) && shape.Points.Count > 0)
         {
@@ -198,7 +199,7 @@ public class FogCanvas : InkCanvas
         }
     }
 
-    private void InsertShape(int index, DrawingShape shape)
+    private void InsertShape(int index, FogShape shape)
     {
         if (!_strokes.ContainsKey(shape) && shape.Points.Count > 0)
         {
@@ -208,7 +209,7 @@ public class FogCanvas : InkCanvas
         }
     }
 
-    private void DrawShapes(IEnumerable<DrawingShape> shapes)
+    private void DrawShapes(IEnumerable<FogShape> shapes)
     {
         foreach (var shape in shapes)
         {
@@ -216,7 +217,7 @@ public class FogCanvas : InkCanvas
         }
     }
 
-    private void DrawPoints(DrawingShape shape)
+    private void DrawPoints(FogShape shape)
     {
         if (shape.Points.Count > 0)
         {
@@ -231,7 +232,7 @@ public class FogCanvas : InkCanvas
         }
     }
 
-    private Stroke CreateStroke(DrawingShape shape)
+    private Stroke CreateStroke(FogShape shape)
     {
         var stroke = new Stroke(ConvertToStylusPointCollection(shape));
         stroke.DrawingAttributes.Width = shape.PenSizeCanvas;
@@ -242,7 +243,7 @@ public class FogCanvas : InkCanvas
         return stroke;
     }
 
-    private static StylusPointCollection ConvertToStylusPointCollection(DrawingShape shape)
+    private static StylusPointCollection ConvertToStylusPointCollection(FogShape shape)
     {
         var stylusPoints = new StylusPointCollection();
         foreach (var point in shape.Points)

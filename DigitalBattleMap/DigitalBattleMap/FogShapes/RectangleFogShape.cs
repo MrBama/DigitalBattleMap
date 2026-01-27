@@ -3,16 +3,16 @@ using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
 
-namespace DigitalBattleMap.DrawingShapes;
+namespace DigitalBattleMap.FogShapes;
 
-public class RectangleFogShape : DrawingShape
+public class RectangleFogShape : FogShape
 {
     private Point<double> _startPosition;
     private Point<double> _previousMovePosition;
     private double _radiusX;
     private double _radiusY;
 
-    public RectangleFogShape(Action applyShapeCallback, IMapSize mapSize) : base(applyShapeCallback, null, mapSize)
+    public RectangleFogShape(Action applyShapeCallback, IMapSize mapSize) : base(applyShapeCallback, mapSize)
     {
         Name = "Fog Rectangle";
         SnapToGrid = true;

@@ -1,8 +1,10 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.DrawingShapes;
+using DigitalBattleMap.FogShapes;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
@@ -56,10 +58,10 @@ public class FogControllerViewModel : ControllerViewModelBase
     public event EventHandler<ZoomAndEnhanceEventArgs> OnZoomAndEnhance;
 
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
-    public DrawingShapeCollection FogShapeCollection { get => Get<DrawingShapeCollection>(); set => Set(value); }
+    public FogShapeCollection FogShapeCollection { get => Get<FogShapeCollection>(); set => Set(value); }
     public bool IsFogShapeActive { get => Get<bool>(); set => Set(value); }
     public bool IsEditFogShapeActive { get => Get<bool>(); set => Set(value); }
-    public DrawingShape SelectedFogShape { get => Get<DrawingShape>(); set => Set(value, SelectedShapeChanged); }
+    public FogShape SelectedFogShape { get => Get<FogShape>(); set => Set(value, SelectedShapeChanged); }
 
     public ICommand DrawRectangleCommand { get; set; }
     public ICommand CancelDrawShapeCommand { get; set; }
@@ -138,16 +140,16 @@ public class FogControllerViewModel : ControllerViewModelBase
     public Bitmap GetFogBitmap()
     {
         var bitmap = BitmapTools.CreateEmptyBitmap();
-        BitmapTools.DrawShapes(bitmap, FogShapeCollection.GetShapes().ToList(), _mapSize.GetCanvasSize());
+        BitmapTools.DrawShapes(bitmap, FogShapeCollection.GetFogShapes().ToList<IShape>(), _mapSize.GetCanvasSize());
         return bitmap;
     }
 
-    public DrawingShape ActiveFogShape
+    public FogShape ActiveFogShape
     {
-        get => Get<DrawingShape>();
+        get => Get<FogShape>();
         set
         {
-            var oldValue = Get<DrawingShape>();
+            var oldValue = Get<FogShape>();
             if (oldValue != null)
             {
                 oldValue.PropertyChanged -= ActiveShapePropertyChanged;
@@ -194,9 +196,9 @@ public class FogControllerViewModel : ControllerViewModelBase
      * Default shape to use 
      * TODO: change to polygon.
      */
-    private DrawingShape CreateRectangleFogShape()
+    private FogShape CreateRectangleFogShape()
     {
-        var strokeDrawingShapes = FogShapeCollection.GetShapes().OfType<RectangleFogShape>();
+        var strokeDrawingShapes = FogShapeCollection.GetFogShapes().OfType<RectangleFogShape>();
 
         return new RectangleFogShape(ApplyActiveFogShape, _mapSize)
         {
@@ -335,7 +337,7 @@ public class FogControllerViewModel : ControllerViewModelBase
         {
             var zoomFactor = eventArgs.NewSize.Width / eventArgs.OldSize.Width;
 
-            foreach (var shape in FogShapeCollection.GetShapes())
+            foreach (var shape in FogShapeCollection.GetFogShapes())
             {
                 shape.PenSize *= zoomFactor;
             }

@@ -7,9 +7,9 @@ using System.Linq;
 
 namespace DigitalBattleMap.FogShapes;
 
-public class PolygonFogShape : DrawingShape
+public class PolygonFogShape : FogShape
 {
-    public PolygonFogShape(Action applyShapeCallback, IMapSize mapSize) : base(applyShapeCallback, null, mapSize)
+    public PolygonFogShape(Action applyShapeCallback, IMapSize mapSize) : base(applyShapeCallback, mapSize)
     {
     }
 
