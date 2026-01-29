@@ -141,6 +141,10 @@ public abstract class FogShape : PropertyHandler, ILinkableObject
 
             _isMoving = false;
         }
+        else
+        {
+            CancelButton();
+        }
     }
 
     public void MouseMove(MouseMoveDataEventArgs e)
@@ -195,6 +199,7 @@ public abstract class FogShape : PropertyHandler, ILinkableObject
     public abstract FogShape Clone();
     protected abstract void ButtonDown(Point<double> position);
     protected abstract void ButtonUp(Point<double> position);
+    protected abstract void CancelButton();
     protected abstract void MouseMove(Point<double> position, bool buttonDown);
 
     protected void RenderShape()

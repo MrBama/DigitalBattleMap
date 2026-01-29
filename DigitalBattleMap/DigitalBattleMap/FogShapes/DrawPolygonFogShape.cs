@@ -6,16 +6,16 @@ using System.Linq;
 
 namespace DigitalBattleMap.FogShapes;
 
-public class PolygonFogShape : FogShape
+public class DrawPolygonFogShape : FogShape
 {
-    public PolygonFogShape(Action applyShapeCallback, IMapSize mapSize) : base(applyShapeCallback, mapSize)
+    public DrawPolygonFogShape(Action applyShapeCallback, IMapSize mapSize) : base(applyShapeCallback, mapSize)
     {
         IsFogEnabled = true;
     }
 
     public override FogShape Clone()
     {
-        return new PolygonFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid, IsFogEnabled = IsFogEnabled };
+        return new DrawPolygonFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid, IsFogEnabled = IsFogEnabled };
     }
 
     protected override void ButtonDown(Point<double> position)
@@ -30,6 +30,10 @@ public class PolygonFogShape : FogShape
     {
         Points.Add(Points.First());
         ApplyShape();
+    }
+
+    protected override void CancelButton()
+    {
     }
 
     protected override void MouseMove(Point<double> position, bool buttonDown)

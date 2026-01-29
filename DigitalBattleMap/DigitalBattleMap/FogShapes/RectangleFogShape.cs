@@ -33,6 +33,10 @@ public class RectangleFogShape : FogShape
         ApplyShape();
     }
 
+    protected override void CancelButton()
+    {
+    }
+
     /**
      * Rectangle from corner to corner
      */

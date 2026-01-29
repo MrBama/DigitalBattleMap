@@ -7,11 +7,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 namespace DigitalBattleMap.ViewModels;
@@ -35,7 +37,7 @@ public class FogControllerViewModel : ControllerViewModelBase
     {
         FogShapeCollection = new();
         FogShapeCollection.OnRenderShapes += (_, _) => NotifyFogShapesUpdated();
-        ActiveFogShape = new PolygonFogShape(ApplyActiveFogShape, _mapSize);
+        ActiveFogShape = new DrawPolygonFogShape(ApplyActiveFogShape, _mapSize);
         MouseCanvas = new MouseCanvasViewModel();
         MouseCanvas.OnLeftButtonDown += LeftButtonDown;
         MouseCanvas.OnLeftButtonUp += LeftButtonUp;
@@ -44,15 +46,16 @@ public class FogControllerViewModel : ControllerViewModelBase
         MouseCanvas.OnMouseMove += MouseMove;
         MouseCanvas.Cursor = ActiveFogShape.Cursor;
         MouseCanvas.OnFixRatioRectangleAreaSelected += FixRatioRectangleAreaSelected;
-        IsPolygonChecked = true;
+        IsDrawPolygonChecked = true;
     }
 
     protected override void InitializeCommands()
     {
-        DrawPolygonCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Polygon));
-        DrawRectangleCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Rectangle));
-        DrawCircleCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Circle));
-        DrawTriangleCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Triangle)); // todo improve to n
+        DrawPolygonCommand = new RelayCommand(p => DrawFogShape(FogShapeType.DrawPolygon));
+        StraightPolygonCommand = new RelayCommand(p => DrawFogShape(FogShapeType.StraightPolygon));
+        RectangleCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Rectangle));
+        CircleCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Circle));
+        NGonCommand = new RelayCommand(p => DrawFogShape(FogShapeType.NGon));
         CancelDrawShapeCommand = new RelayCommand(p => CancelDrawShape());
         ClearFogCommand = new RelayCommand(p => ClearFog());
         FillFogCommand = new RelayCommand(p => FillFog());
@@ -68,15 +71,30 @@ public class FogControllerViewModel : ControllerViewModelBase
     public FogShape SelectedFogShape { get => Get<FogShape>(); set => Set(value, SelectedShapeChanged); }
 
     public bool IsMapFilledWithFog { get => Get<bool>(); set => Set(value); }
-    public bool IsPolygonChecked { get => Get<bool>(); set => Set(value); }
+
+    public bool IsDrawPolygonChecked { get => Get<bool>(); set => Set(value); }
+    public bool IsStraightPolygonChecked { get => Get<bool>(); set => Set(value); }
     public bool IsRectangleChecked { get => Get<bool>(); set => Set(value); }
     public bool IsCircleChecked { get => Get<bool>(); set => Set(value); }
-    public bool IsTriangleChecked { get => Get<bool>(); set => Set(value); }
+    public bool IsNGonChecked { get => Get<bool>(); set => Set(value); }
+
+    public BitmapSource DrawIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogIcons.Draw.png")).ToBitmapImage(); }
+    public BitmapSource ZigZagIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogIcons.Zigzag.png")).ToBitmapImage(); }
+    public BitmapSource SquareIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogIcons.Square.png")).ToBitmapImage(); }
+    public BitmapSource CircleIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogIcons.Circle.png")).ToBitmapImage(); }
+    public BitmapSource NGonIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogIcons.NGon.png")).ToBitmapImage(); }
+
+    public BitmapSource FillIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogIcons.Fill.png")).ToBitmapImage(); }
+    public BitmapSource CutIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogIcons.Cut.png")).ToBitmapImage(); }
+    public BitmapSource SeeIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogIcons.See.png")).ToBitmapImage(); }
+    public BitmapSource SnapIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogIcons.Snap.png")).ToBitmapImage(); }
 
     public ICommand DrawPolygonCommand { get; set; }
-    public ICommand DrawRectangleCommand { get; set; }
-    public ICommand DrawCircleCommand { get; set; }
-    public ICommand DrawTriangleCommand { get; set; }
+    public ICommand StraightPolygonCommand { get; set; }
+    public ICommand RectangleCommand { get; set; }
+    public ICommand CircleCommand { get; set; }
+    public ICommand NGonCommand { get; set; }
+
     public ICommand CancelDrawShapeCommand { get; set; }
     public ICommand ClearFogCommand { get; set; }
     public ICommand FillFogCommand { get; set; }
@@ -185,11 +203,6 @@ public class FogControllerViewModel : ControllerViewModelBase
         }
     }
 
-    //public System.Windows.Media.Brush FillFog
-    //{
-    //    get => GetFogBrush(); //sMapFilledWithFog ? GetFogBrush() : System.Windows.Media.Brushes.Transparent;
-    //}
-
     private SolidColorBrush GetFogBrush()
     {
         var fogBrush = System.Windows.Media.Brushes.Black.Clone();
@@ -262,13 +275,25 @@ public class FogControllerViewModel : ControllerViewModelBase
 
         switch (fogShapeType)
         {
-            case FogShapeType.Polygon:
+            case FogShapeType.DrawPolygon:
                 DrawPolygonShape();
-                IsPolygonChecked = true;
+                IsDrawPolygonChecked = true;
+                break;
+            case FogShapeType.StraightPolygon:
+                StraightPolygonShape();
+                IsStraightPolygonChecked = true;
                 break;
             case FogShapeType.Rectangle:
-                DrawRectangleShape();
+                RectangleShape();
                 IsRectangleChecked = true;
+                break;
+            case FogShapeType.Circle:
+                CircleShape();
+                IsCircleChecked = true;
+                break;
+            case FogShapeType.NGon:
+                NGonShape();
+                IsNGonChecked = true;
                 break;
             default:
                 throw new NotImplementedException($"Shape {fogShapeType} is not implemented");
@@ -277,12 +302,27 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     private void DrawPolygonShape()
     {
-        ActiveFogShape = new PolygonFogShape(ApplyActiveFogShape, _mapSize);
+        ActiveFogShape = new DrawPolygonFogShape(ApplyActiveFogShape, _mapSize);
     }
 
-    private void DrawRectangleShape()
+    private void StraightPolygonShape()
+    {
+        ActiveFogShape = new StraightPolygonFogShape(ApplyActiveFogShape, _mapSize);
+    }
+
+    private void RectangleShape()
     {
         ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize);
+    }
+
+    private void CircleShape()
+    {
+        //ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize);
+    }
+
+    private void NGonShape()
+    {
+        //ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize);
     }
 
     private void CancelDrawShape()
@@ -383,8 +423,11 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     private void ToggleOffFogShapeButtons()
     {
-        IsPolygonChecked = false;
+        IsDrawPolygonChecked = false;
+        IsStraightPolygonChecked = false;
         IsRectangleChecked = false;
+        IsCircleChecked = false;
+        IsNGonChecked = false;
     }
 
     /**
@@ -392,8 +435,8 @@ public class FogControllerViewModel : ControllerViewModelBase
      */
     private void FillFog()
     {
-        //if(Background)
-        //_mapSize.GetCanvasSize() use this
+        // Only when a background is added
+        var test = _mapSize.GetCanvasSize();
     }
 
     public bool GetOverviewBitmap(double zoomFactor, out OverviewBitmap overviewBitmap)
