@@ -801,6 +801,10 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 containsBackgroundOverview = true;
                 overviewBitmaps.Add(backgroundOverview);
             }
+            if (FogController.GetOverviewBitmap(zoomFactor, out var fogOverview))
+            {
+                overviewBitmaps.Add(fogOverview);
+            }
             if (DrawingController.GetOverviewBitmap(zoomFactor, out var drawingOverview))
             {
                 overviewBitmaps.Add(drawingOverview);

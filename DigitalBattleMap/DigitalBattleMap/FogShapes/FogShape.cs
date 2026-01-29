@@ -13,7 +13,7 @@ using System.Windows.Media;
 
 namespace DigitalBattleMap.FogShapes;
 
-public abstract class FogShape : PropertyHandler, ILinkableObject, IShape
+public abstract class FogShape : PropertyHandler, ILinkableObject
 {
     protected Action _applyShapeCallback;
     private FogShapeInfo _editInfo;

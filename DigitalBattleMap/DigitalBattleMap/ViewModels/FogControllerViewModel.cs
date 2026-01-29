@@ -3,6 +3,7 @@ using DigitalBattleMap.FogShapes;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
@@ -297,7 +298,7 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     private void LeftButtonUp(object? sender, MouseButtonDataEventArgs e)
     {
-         ActiveFogShape.LeftButtonUp(e);
+        ActiveFogShape.LeftButtonUp(e);
     }
 
     private void RightButtonDown(object? sender, MouseButtonDataEventArgs e)
@@ -391,6 +392,54 @@ public class FogControllerViewModel : ControllerViewModelBase
      */
     private void FillFog()
     {
-        throw new NotImplementedException();
+        //if(Background)
+        //_mapSize.GetCanvasSize() use this
+    }
+
+    public bool GetOverviewBitmap(double zoomFactor, out OverviewBitmap overviewBitmap)
+    {
+        overviewBitmap = new OverviewBitmap();
+        var shapes = FogShapeCollection.GetFogShapes().ToList();
+        if (!shapes.Any())
+        {
+            return false;
+        }
+
+        var shapeOverviewBitmaps = new List<OverviewBitmap>();
+
+        foreach (var shape in shapes)
+        {
+            var shapeOverviewBitmap = new OverviewBitmap();
+            var penSize = shape.PenSize.Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width);
+            var points = new List<Point<double>>();
+
+            foreach (var point in shape.Points)
+            {
+                var resizedX = point.X.Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width);
+                var resizedY = point.Y.Map(0, _mapSize.CanvasHeight, 0, Constants.MapSize.Height);
+                points.Add(new Point<double>(resizedX * zoomFactor, resizedY * zoomFactor));
+            }
+
+            shapeOverviewBitmap.Bitmap = BitmapTools.CreateFogShapeOverviewBitmap(points, shape.Color, penSize, shape.IsFogEnabled);
+
+            var shapeMinX = points.Min(t => t.X);
+            var shapeMinY = points.Min(t => t.Y);
+            shapeMinX -= (penSize / 2);
+            shapeMinY -= (penSize / 2);
+
+            shapeOverviewBitmap.OffsetFromOrigin = new Point<int>((int)Math.Round(shapeMinX), (int)Math.Round(shapeMinY));
+
+            shapeOverviewBitmaps.Add(shapeOverviewBitmap);
+        }
+        overviewBitmap.Bitmap = BitmapTools.CreateShapesOverviewBitmap(shapeOverviewBitmaps);
+        overviewBitmap.Bitmap.MakeTransparent(System.Drawing.Color.White);
+
+        // OffsetFromOrigin = top left of player view to top left of shapes bounding box
+        // Shape positions are always relative to top left of the player view (=origin)
+        var minX = Mathematics.Min(shapeOverviewBitmaps.Select(l => l.OffsetFromOrigin.X));
+        var minY = Mathematics.Min(shapeOverviewBitmaps.Select(l => l.OffsetFromOrigin.Y));
+        overviewBitmap.OffsetFromOrigin = new Point<int>(minX, minY);
+
+        return true;
     }
 }

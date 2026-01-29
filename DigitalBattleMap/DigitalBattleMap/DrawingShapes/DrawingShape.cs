@@ -13,7 +13,7 @@ using System.Windows.Media;
 
 namespace DigitalBattleMap.DrawingShapes;
 
-public abstract class DrawingShape : PropertyHandler, ILinkableObject, IShape
+public abstract class DrawingShape : PropertyHandler, ILinkableObject
 {
     private Action _applyShapeCallback;
     private DrawingShapeInfo _editInfo;

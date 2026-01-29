@@ -14,16 +14,12 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 {
     private Bitmap _backgroundBitmap;
     private Bitmap _gmOverlayBitmap;
-    private Bitmap _fogOfWarBitMap;
-    private Bitmap _backgroundAndFogOfWarBitmap;
     private Bitmap _fullBackgroundBitmap;
     private Bitmap _gridBitmap;
-    private BitmapSource _backgroundAndFogOfWarBitmapSource;
     private Rectangle _area; 
     private IWindowService _windowService;
     private Point<double> _mouseDownPosition;
     private bool _mouseDown;
-    private List<SelectedArea> _fogOfWarAreas = new();
     private Settings _settings;
 
     public BackgroundControllerViewModel()
@@ -43,6 +39,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     private void Initialize()
     {
         _area = new Rectangle(0, 0, Constants.MapSize.Width, Constants.MapSize.Height);
+        RegisterPropertyChangedWatcher(nameof(IsBackgroundEditingAllowed), new List<string>() { nameof(HasOpenedBackground) });
 
         IsGridShown = true;
         GridBitmap = BitmapTools.CreateGrid(GridSize);
@@ -177,7 +174,6 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         _area = new Rectangle(0, 0, _mapSize.Width, _mapSize.Height);
         BackgroundBitmap = BitmapTools.CreateEmptyBitmap();
         GMOverlayBitmap = BitmapTools.CreateEmptyBitmap();
-        _fogOfWarAreas.Clear();
         GridCellsWidth = 10;
         GridCellsHeight = 10;
         FeetPerGridCell = Constants.FeetPerGridCell;
@@ -248,8 +244,6 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         saveFile.GridCellsWidth = GridCellsWidth;
         saveFile.GridCellsHeight = GridCellsHeight;
         saveFile.BackgroundFeetPerGridCell = FeetPerGridCell;
-        //saveFile.IsFogOfWarEnabled = IsFogOfWarEnabled;
-        saveFile.FogOfWarAreas = _fogOfWarAreas;
     }
 
     public override void OpenSaveFile(SaveFile saveFile)
@@ -263,8 +257,6 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         GridCellsWidth = saveFile.GridCellsWidth;
         GridCellsHeight = saveFile.GridCellsHeight;
         FeetPerGridCell = saveFile.BackgroundFeetPerGridCell;
-        //IsFogOfWarEnabled = saveFile.IsFogOfWarEnabled;
-        _fogOfWarAreas = saveFile.FogOfWarAreas;
 
         if (saveFile.FullBackground != null)
         {
@@ -285,31 +277,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public double GetZoomFactor()
     {
         return _area.Width / (double)_mapSize.Width;
-    }
-
-    /** new fog of war elements **/
-
-    //public DrawingShape ActiveFogShape
-    //{
-    //    get => Get<DrawingShape>();
-    //    set
-    //    {
-    //        var oldValue = Get<DrawingShape>();
-    //        if (oldValue != null)
-    //        {
-    //            oldValue.PropertyChanged -= ActiveShapePropertyChanged;
-    //            oldValue.OnRenderChanged -= OnActiveShapeRenderChanged;
-    //        }
-
-    //        Set(value);
-
-    //        if (value != null)
-    //        {
-    //            value.PropertyChanged += ActiveShapePropertyChanged;
-    //            value.OnRenderChanged += OnActiveShapeRenderChanged;
-    //        }
-    //    }
-    //}
+    }   
 
     protected override void CreateBitmap()
     {
@@ -346,8 +314,6 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
         FeetPerGridCell = Constants.FeetPerGridCell;
         HasOpenedBackground = true;
-        //IsFogOfWarEnabled = false;
-        _fogOfWarAreas.Clear();
         CreateBackground();
     }
 
@@ -471,13 +437,6 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
                 GMOverlayBitmap = BitmapTools.ResizeBitmap(gmOverlayBitmap);
             }
         }
-
-        //if (IsFogOfWarEnabled)
-        //{
-        //    var fogOfWarBitMap = BitmapTools.CreateFogOfWarBitmap(_area, _fogOfWarAreas);
-        //    FogOfWarBitmap = BitmapTools.ResizeBitmap(fogOfWarBitMap);
-        //    BackgroundAndFogOfWarBitmap = BitmapTools.MergeBitmaps(BackgroundBitmap, FogOfWarBitmap);
-        //}
 
         NotifyBackgroundUpdated();
     }
