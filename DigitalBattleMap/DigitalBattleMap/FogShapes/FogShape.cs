@@ -27,7 +27,7 @@ public abstract class FogShape : PropertyHandler, ILinkableObject
         _mapSize = mapSize;
 
         Color = Colors.Black;
-        PenSize = 2;
+        PenSize = 3;
         Points = new();
         Name = "FogShape";
         Size = "0";
@@ -168,6 +168,11 @@ public abstract class FogShape : PropertyHandler, ILinkableObject
         }
     }
 
+    public void MouseWheel(MouseWheelDataEventArgs e)
+    {
+        MouseWheel(e.Position, e.Delta);
+    }
+
     public void SetProperties(Action applyShapeCallback, IMapSize mapSize)
     {
         _applyShapeCallback = applyShapeCallback;
@@ -199,8 +204,9 @@ public abstract class FogShape : PropertyHandler, ILinkableObject
     public abstract FogShape Clone();
     protected abstract void ButtonDown(Point<double> position);
     protected abstract void ButtonUp(Point<double> position);
-    protected abstract void CancelButton();
     protected abstract void MouseMove(Point<double> position, bool buttonDown);
+    protected virtual void CancelButton() { /* lets fog shapes choose to implement */ }
+    protected virtual void MouseWheel(Point<double> position, int mouseDelta) { /* lets fog shapes choose to implement */ }
 
     protected void RenderShape()
     {

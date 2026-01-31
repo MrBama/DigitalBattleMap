@@ -32,10 +32,6 @@ public class DrawPolygonFogShape : FogShape
         ApplyShape();
     }
 
-    protected override void CancelButton()
-    {
-    }
-
     protected override void MouseMove(Point<double> position, bool buttonDown)
     {
         if (buttonDown)

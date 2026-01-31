@@ -33,11 +33,6 @@ internal class CircleFogShape : FogShape
         ApplyShape();
     }
 
-    protected override void CancelButton()
-    {
-        throw new NotImplementedException();
-    }
-
     protected override void MouseMove(Point<double> position, bool buttonDown)
     {
         if (buttonDown)

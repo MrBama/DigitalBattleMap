@@ -45,6 +45,7 @@ public class FogControllerViewModel : ControllerViewModelBase
         MouseCanvas.OnRightButtonDown += RightButtonDown;
         MouseCanvas.OnRightButtonUp += RightButtonUp;
         MouseCanvas.OnMouseMove += MouseMove;
+        MouseCanvas.OnMouseWheel += MouseWheel;
         MouseCanvas.Cursor = ActiveFogShape.Cursor;
         MouseCanvas.OnFixRatioRectangleAreaSelected += FixRatioRectangleAreaSelected;
         IsDrawPolygonChecked = true;
@@ -355,6 +356,11 @@ public class FogControllerViewModel : ControllerViewModelBase
     private void MouseMove(object? sender, MouseMoveDataEventArgs e)
     {
         ActiveFogShape.MouseMove(e);
+    }
+
+    private void MouseWheel(object? sender, MouseWheelDataEventArgs e)
+    {
+        ActiveFogShape.MouseWheel(e);
     }
 
     private void FixRatioRectangleAreaSelected(object? sender, RectangleF rectangle)
