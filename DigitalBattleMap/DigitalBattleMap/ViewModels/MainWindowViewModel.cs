@@ -476,6 +476,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     {
         ZoomAndMoveHistory.Enqueue(new ZoomAndMoveCommand(arrowDirection, steps));
         BackgroundController.Move(arrowDirection, steps);
+        FogController.Move(arrowDirection, steps);
         DrawingController.Move(arrowDirection, steps);
         TokenController.Move(arrowDirection, steps);
     }
@@ -640,6 +641,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         var zoomFactor = (double)BackgroundController.GridSize / (double)oldGridSize;
         BackgroundController.Zoom(zoomFactor);
+        FogController.Zoom(zoomFactor);
         DrawingController.Zoom(zoomFactor);
         TokenController.Zoom(zoomFactor);
 

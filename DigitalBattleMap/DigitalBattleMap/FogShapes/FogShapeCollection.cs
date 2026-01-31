@@ -53,11 +53,11 @@ public class FogShapeCollection : IEnumerable, INotifyCollectionChanged
 
     public void Clear()
     {
-        foreach (var drawingShape in _fogShapes)
+        foreach (var fogShape in _fogShapes)
         {
-            drawingShape.PropertyChanged -= FogShapePropertyChanged;
-            drawingShape.OnPointsChanged -= FogShapePointsChanged;
-            drawingShape.OnRenderChanged -= RenderShapes;
+            fogShape.PropertyChanged -= FogShapePropertyChanged;
+            fogShape.OnPointsChanged -= FogShapePointsChanged;
+            fogShape.OnRenderChanged -= RenderShapes;
         }
         _fogShapes.Clear();
         FogShapeCollectionChanged(new FogShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Clear });

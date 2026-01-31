@@ -108,26 +108,17 @@ public class FogCanvas : InkCanvas
 
     private void OnShapePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        var watchedProperties = new List<string> { nameof(FogShape.PenSize), nameof(FogShape.Color), nameof(FogShape.Points), nameof(FogShape.IsFogEnabled) };
+        var watchedProperties = new List<string> { nameof(FogShape.Points), nameof(FogShape.IsFogEnabled) };
         if (sender is not FogShape shape || !watchedProperties.Contains(e.PropertyName))
         {
             return;
         }
 
-        EraseShape(shape);
-
-        if (_strokes.TryGetValue(shape, out var stroke))
+        if (_strokes.ContainsKey(shape))
         {
-            var index = Strokes.IndexOf(stroke);
-
-            if (e.PropertyName == nameof(FogShape.IsFogEnabled))
-            {
-                DrawFinishedShape(shape);
-            }
-            else
-            {
-                InsertShape(index, shape);
-            }
+            var index = Strokes.IndexOf(_strokes[shape]);
+            EraseShape(shape);
+            InsertShape(index, shape);
         }
         else
         {
@@ -165,19 +156,19 @@ public class FogCanvas : InkCanvas
     {
         Strokes.Clear();
         _strokes.Clear();
+        Children.Clear();
+        _polygons.Clear();
     }
 
     private void EraseShape(FogShape shape)
     {
-        if (_strokes.ContainsKey(shape))
-        {
-            Strokes.Remove(_strokes[shape]);
-            _strokes.Remove(shape);
-        }
         if (_polygons.ContainsKey(shape))
         {
             Children.Remove(_polygons[shape]);
             _polygons.Remove(shape);
+
+            Strokes.Remove(_strokes[shape]);
+            _strokes.Remove(shape);
         }
     }
 
@@ -189,6 +180,7 @@ public class FogCanvas : InkCanvas
         }
     }
 
+    // todo
     private void ErasePoints(FogShape shape)
     {
         if (shape.Points.Count > 0)
@@ -218,30 +210,22 @@ public class FogCanvas : InkCanvas
     {
         if (!_polygons.ContainsKey(shape) && shape.Points.Count > 0)
         {
-            var polygon = new System.Windows.Shapes.Polygon();
-            var pointCollection = new PointCollection();
-            foreach (var point in shape.Points)
-            {
-                pointCollection.Add(new Point(point.X, point.Y));
-            }
-
-            polygon.Points = pointCollection;
-            polygon.Fill = shape.IsFogEnabled ? Brushes.Black : Brushes.Transparent;
-            polygon.Opacity = 0.5;
-
+            var polygon = CreatePolygon(shape);
             Children.Add(polygon);
             _polygons[shape] = polygon;
 
-            var stroke = CreateStroke(shape);
-            Strokes.Add(stroke);
-            _strokes[shape] = stroke;
+            DrawShape(shape);
         }
     }
 
     private void InsertShape(int index, FogShape shape)
     {
-        if (!_strokes.ContainsKey(shape) && shape.Points.Count > 0)
+        if (!_polygons.ContainsKey(shape) && shape.Points.Count > 0)
         {
+            var polygon = CreatePolygon(shape);
+            Children.Insert(index, polygon);
+            _polygons[shape] = polygon;
+
             var stroke = CreateStroke(shape);
             Strokes.Insert(index, stroke);
             _strokes[shape] = stroke;
@@ -254,6 +238,21 @@ public class FogCanvas : InkCanvas
         {
             DrawShape(shape);
         }
+    }
+
+    private static System.Windows.Shapes.Polygon CreatePolygon(FogShape shape)
+    {
+        var polygon = new System.Windows.Shapes.Polygon();
+        var pointCollection = new PointCollection();
+        foreach (var point in shape.Points)
+        {
+            pointCollection.Add(new Point(point.X, point.Y));
+        }
+
+        polygon.Points = pointCollection;
+        polygon.Fill = shape.IsFogEnabled ? Brushes.Black : Brushes.Transparent;
+        polygon.Opacity = 0.5;
+        return polygon;
     }
 
     private void DrawPoints(FogShape shape)

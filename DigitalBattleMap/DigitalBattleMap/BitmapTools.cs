@@ -322,7 +322,7 @@ public static class BitmapTools
             // The fog becomes solid black for the players the
             // white polygons will become transparent places in the fog.
             var brush = shape.IsFogEnabled ? Brushes.Black : Brushes.White;
-            graphics.FillPolygon(brush, pointsF.ToArray());
+            graphics.FillPolygon(brush, pointsF.ToArray()); // todo multi-enable in UI seems to break something.
         }
         bitmap.MakeTransparent(Color.White);
     }

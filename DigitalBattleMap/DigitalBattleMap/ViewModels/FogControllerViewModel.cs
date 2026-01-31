@@ -31,7 +31,7 @@ public class FogControllerViewModel : ControllerViewModelBase
     {
         Initialize();
 
-        mapSize.OnCanvasSizeChanged += OnCanvasSizeChanged;
+        _mapSize.OnCanvasSizeChanged += OnCanvasSizeChanged;
     }
 
     private void Initialize()
@@ -101,30 +101,48 @@ public class FogControllerViewModel : ControllerViewModelBase
     public ICommand ClearFogCommand { get; set; }
     public ICommand FillFogCommand { get; set; }
 
+    public override void Move(ArrowDirection direction, int movementCount)
+    {
+        var matrix = new Matrix();
+        double gridSize = _mapSize.GridSize * movementCount;
+        var distanceX = gridSize.Map(0, _mapSize.Width, 0, _mapSize.CanvasWidth);
+        var distanceY = gridSize.Map(0, _mapSize.Height, 0, _mapSize.CanvasHeight);
+
+        switch (direction)
+        {
+            case ArrowDirection.Up:
+                matrix.Translate(0, distanceY);
+                break;
+            case ArrowDirection.Down:
+                matrix.Translate(0, -distanceY);
+                break;
+            case ArrowDirection.Left:
+                matrix.Translate(distanceX, 0);
+                break;
+            case ArrowDirection.Right:
+                matrix.Translate(-distanceX, 0);
+                break;
+        }
+
+        FogShapeCollection.Transform(matrix);
+        NotifyFogShapesUpdated();
+    }
+
+    public override void Zoom(double zoomFactor)
+    {
+        var matrix = new Matrix();
+        matrix.Translate(-(_mapSize.CanvasWidth / 2), -(_mapSize.CanvasHeight / 2));
+        matrix.Scale(zoomFactor, zoomFactor);
+        matrix.Translate((_mapSize.CanvasWidth / 2), (_mapSize.CanvasHeight / 2));
+        FogShapeCollection.Transform(matrix);
+    }
+
     public void ClearFog()
     {
-        //IsGridShown = true;
-        //GridSize = _settings.DefaultGridSize;
-        //GridSizeChanged();
-
-        //_fullBackgroundBitmap = null;
-        //_gmOverlayBitmap = null;
-        //_area = new Rectangle(0, 0, _mapSize.Width, _mapSize.Height);
-        //BackgroundBitmap = BitmapTools.CreateEmptyBitmap();
-        //FogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
-        //GMOverlayBitmap = BitmapTools.CreateEmptyBitmap();
-        //BackgroundAndFogOfWarBitmap = BitmapTools.CreateEmptyBitmap();
-        //_fogOfWarAreas.Clear();
-        //GridCellsWidth = 10;
-        //GridCellsHeight = 10;
-        //FeetPerGridCell = Constants.FeetPerGridCell;
-        //HasOpenedBackground = false;
-        //HasOpenGMOverlay = false;
-        //IsFogOfWarEnabled = false;
-        //FogRemovalRectangleShape = true; // todo change to new setup
-        //FogRemovalPolygonShape = false;
-        //ZoomSize = Constants.DefaultZoomSize;
-        //NotifyBackgroundUpdated();
+        FogShapeCollection.Clear();
+        ActiveFogShape = CreatePolygonFogShape();
+        IsFogShapeActive = false;
+        NotifyFogShapesUpdated();
     }
 
     public override void AddToSaveFile(SaveFile saveFile)
@@ -240,7 +258,7 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     private FogShape CreatePolygonFogShape()
     {
-        return new RectangleFogShape(ApplyActiveFogShape, _mapSize)
+        return new DrawPolygonFogShape(ApplyActiveFogShape, _mapSize)
         {
             SnapToGrid = false,
             IsFogEnabled = true
@@ -366,42 +384,6 @@ public class FogControllerViewModel : ControllerViewModelBase
     private void FixRatioRectangleAreaSelected(object? sender, RectangleF rectangle)
     {
         OnZoomAndEnhance?.Invoke(this, new ZoomAndEnhanceEventArgs() { rectangle = rectangle });
-    }
-
-    public override void Zoom(double zoomFactor)
-    {
-        var matrix = new Matrix();
-        matrix.Translate(-(_mapSize.CanvasWidth / 2), -(_mapSize.CanvasHeight / 2));
-        matrix.Scale(zoomFactor, zoomFactor);
-        matrix.Translate((_mapSize.CanvasWidth / 2), (_mapSize.CanvasHeight / 2));
-        FogShapeCollection.Transform(matrix);
-    }
-
-    public override void Move(ArrowDirection direction, int movementCount)
-    {
-        var matrix = new Matrix();
-        double gridSize = _mapSize.GridSize * movementCount;
-        var distanceX = gridSize.Map(0, _mapSize.Width, 0, _mapSize.CanvasWidth);
-        var distanceY = gridSize.Map(0, _mapSize.Height, 0, _mapSize.CanvasHeight);
-
-        switch (direction)
-        {
-            case ArrowDirection.Up:
-                matrix.Translate(0, distanceY);
-                break;
-            case ArrowDirection.Down:
-                matrix.Translate(0, -distanceY);
-                break;
-            case ArrowDirection.Left:
-                matrix.Translate(distanceX, 0);
-                break;
-            case ArrowDirection.Right:
-                matrix.Translate(-distanceX, 0);
-                break;
-        }
-
-        FogShapeCollection.Transform(matrix);
-        NotifyFogShapesUpdated();
     }
 
     protected override void CreateBitmap()
