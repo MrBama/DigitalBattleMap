@@ -205,12 +205,12 @@ public class FogControllerViewModel : ControllerViewModelBase
         }
     }
 
-    private SolidColorBrush GetFogBrush()
-    {
-        var fogBrush = System.Windows.Media.Brushes.Black.Clone();
-        fogBrush.Opacity = 0.25;
-        return fogBrush;
-    }
+    //private SolidColorBrush GetFogBrush()
+    //{
+    //    var fogBrush = System.Windows.Media.Brushes.Black.Clone();
+    //    fogBrush.Opacity = 0.25;
+    //    return fogBrush;
+    //}
 
     private void ActiveShapePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
@@ -227,7 +227,7 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     private void ApplyActiveFogShape()
     {
-        if (!FogShapeCollection.Contains(ActiveFogShape))
+        if (!FogShapeCollection.Contains(ActiveFogShape) && ActiveFogShape.Points.Any())
         {
             FogShapeCollection.Add(ActiveFogShape);
         }

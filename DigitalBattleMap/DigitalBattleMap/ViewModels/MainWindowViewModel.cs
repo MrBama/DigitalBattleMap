@@ -143,13 +143,13 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         FogController.OnZoomAndEnhance += OnZoomAndEnhance;
         FogController.OnFogShapeUpdated += FogShapesUpdated;
 
-        TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, _monsterTokens, CampaignController, _settings);
-        TokenController.OnZoomAndEnhance += OnZoomAndEnhance;
-        TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
-
         DrawingController = new DrawingControllerViewModel(this, TokenController);
         DrawingController.OnZoomAndEnhance += OnZoomAndEnhance;
         DrawingController.OnDrawingShapesUpdated += DrawingShapesUpdated;
+
+        TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, _monsterTokens, CampaignController, _settings);
+        TokenController.OnZoomAndEnhance += OnZoomAndEnhance;
+        TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
 
         // settings
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;

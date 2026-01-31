@@ -13,7 +13,7 @@ using System.Windows.Media;
 
 namespace DigitalBattleMap.FogShapes;
 
-public abstract class FogShape : PropertyHandler, ILinkableObject
+public abstract class FogShape : PropertyHandler
 {
     protected Action _applyShapeCallback;
     private FogShapeInfo _editInfo;
@@ -31,9 +31,10 @@ public abstract class FogShape : PropertyHandler, ILinkableObject
         Points = new();
         Name = "FogShape";
         Size = "0";
-        LinkableObject = new LinkableObject(UpdatePosition);
+
 
         RegisterPropertyChangedWatcher(nameof(Cursor), new List<string> { nameof(Color), nameof(PenSize) });
+        RegisterPropertyChangedWatcher(nameof(IsFogEnabled), new List<string> { nameof(Color), nameof(PenSize) });
     }
 
     public event NotifyCollectionChangedEventHandler OnPointsChanged;
@@ -69,9 +70,6 @@ public abstract class FogShape : PropertyHandler, ILinkableObject
             }
         }
     }
-
-    [JsonIgnore]
-    public LinkableObject LinkableObject { get; private set; } // todo is this needed for fog?
 
     public void ApplyShape()
     {

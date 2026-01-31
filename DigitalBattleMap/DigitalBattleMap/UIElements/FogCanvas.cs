@@ -108,24 +108,32 @@ public class FogCanvas : InkCanvas
 
     private void OnShapePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        var properties = new List<string> { nameof(FogShape.PenSize), nameof(FogShape.Color), nameof(FogShape.Points) };
-        if (sender is FogShape shape)
+        var watchedProperties = new List<string> { nameof(FogShape.PenSize), nameof(FogShape.Color), nameof(FogShape.Points), nameof(FogShape.IsFogEnabled) };
+        if (sender is not FogShape shape || !watchedProperties.Contains(e.PropertyName))
         {
-            if (properties.Contains(e.PropertyName))
+            return;
+        }
+
+        EraseShape(shape);
+
+        if (_strokes.TryGetValue(shape, out var stroke))
+        {
+            var index = Strokes.IndexOf(stroke);
+
+            if (e.PropertyName == nameof(FogShape.IsFogEnabled))
             {
-                if (_strokes.ContainsKey(shape))
-                {
-                    var index = Strokes.IndexOf(_strokes[shape]);
-                    EraseShape(shape);
-                    InsertShape(index, shape);
-                }
-                else
-                {
-                    EraseShape(shape);
-                    DrawShape(shape);
-                }
+                DrawFinishedShape(shape);
+            }
+            else
+            {
+                InsertShape(index, shape);
             }
         }
+        else
+        {
+            DrawFinishedShape(shape);
+        }
+        shape.ApplyShape();
     }
 
     private void OnShapePointsChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -165,6 +173,11 @@ public class FogCanvas : InkCanvas
         {
             Strokes.Remove(_strokes[shape]);
             _strokes.Remove(shape);
+        }
+        if (_polygons.ContainsKey(shape))
+        {
+            Children.Remove(_polygons[shape]);
+            _polygons.Remove(shape);
         }
     }
 
@@ -213,7 +226,7 @@ public class FogCanvas : InkCanvas
             }
 
             polygon.Points = pointCollection;
-            polygon.Fill = Brushes.Black;
+            polygon.Fill = shape.IsFogEnabled ? Brushes.Black : Brushes.Transparent;
             polygon.Opacity = 0.5;
 
             Children.Add(polygon);
