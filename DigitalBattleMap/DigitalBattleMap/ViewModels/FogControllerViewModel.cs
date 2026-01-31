@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.DrawingShapes;
 using DigitalBattleMap.FogShapes;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
@@ -317,7 +318,7 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     private void CircleShape()
     {
-        //ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize);
+        ActiveFogShape = new CircleFogShape(ApplyActiveFogShape, _mapSize);
     }
 
     private void NGonShape()
