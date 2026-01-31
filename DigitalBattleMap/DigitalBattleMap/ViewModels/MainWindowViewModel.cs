@@ -150,6 +150,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, _monsterTokens, CampaignController, _settings);
         TokenController.OnZoomAndEnhance += OnZoomAndEnhance;
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
+        TokenController.OnToggleFog += ToggleFog;
 
         // settings
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
@@ -238,6 +239,12 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         MapOverview.MouseCanvas.ResetMode();
         CropColor = System.Windows.Media.Brushes.LightGray;
         SelectedMapTabIndex = TabMapIndex.Map;
+    }
+
+    private void ToggleFog(object? sender, ToggleFogEventArgs e)
+    {
+        FogController.ToggleFog(e);
+        UpdateMap(DrawLayer.Background);
     }
 
     private void OnBackgroundUpdated(object? sender, EventArgs e)

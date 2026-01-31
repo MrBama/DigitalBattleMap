@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 namespace DigitalBattleMap.ViewModels;
 
@@ -83,6 +84,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
     public event EventHandler OnTokenBitmapUpdated;
     public event EventHandler<ZoomAndEnhanceEventArgs> OnZoomAndEnhance;
+    public event EventHandler<ToggleFogEventArgs> OnToggleFog;
 
     public StatblocksViewModel StatblocksViewModel { get; set; } = new();
     public CommandHistory<TokenMoveCommand> TokenMoveHistory { get; set; } = new(30);
@@ -438,35 +440,58 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            if (SelectedToken != null)
+            if(System.Windows.Forms.Control.ModifierKeys != System.Windows.Forms.Keys.Alt)
             {
-                var newPosition = new Point<double>
-                {
-                    X = e.Position.X.Map(0, _mapSize.CanvasWidth, 0, _mapSize.Width),
-                    Y = e.Position.Y.Map(0, _mapSize.CanvasHeight, 0, _mapSize.Height)
-                };
-
-                var gridSize = _mapSize.GridSize;
-                var gridOffset = Point<double>.Create(Mathematics.CalculateGridOffset(gridSize));
-                var cellX = Math.Floor((SelectedToken.Position.X - gridOffset.X) / gridSize);
-                var cellY = Math.Floor((SelectedToken.Position.Y - gridOffset.Y) / gridSize);
-                var newCellX = Math.Floor((newPosition.X - gridOffset.X) / gridSize);
-                var newCellY = Math.Floor((newPosition.Y - gridOffset.Y) / gridSize);
-
-                var cellOffset = new Point<double>(newCellX - cellX, newCellY - cellY);
-                var offset = new Point<double>(cellOffset.X * gridSize, cellOffset.Y * gridSize);
-
-                // Update other selected tokens
-                _blockTokenBitmapCreation = true;
-                foreach (var tokenListItem in SelectedTokens)
-                {
-                    tokenListItem.UpdatePosition(Point<int>.Create(offset));
-                }
-                _blockTokenBitmapCreation = false;
-
-                TokenMoveHistory.Enqueue(new TokenMoveCommand(SelectedTokens.Select(t => t.GetTokenIdentifier()).ToList(), Point<int>.Create(cellOffset)));
-                CreateTokenBitmapFromCache();
+                SelectToken(e);
             }
+            else
+            {
+                ToggleFogOfWar(e);
+            }
+        }
+    }
+
+    private void ToggleFogOfWar(MouseButtonDataEventArgs e)
+    {
+        var fogPosition = new Point<double>
+        {
+            X = e.Position.X.Map(0, _mapSize.CanvasWidth, 0, _mapSize.Width),
+            Y = e.Position.Y.Map(0, _mapSize.CanvasHeight, 0, _mapSize.Height)
+        };
+
+        OnToggleFog.Invoke(this, new ToggleFogEventArgs() { position = fogPosition });
+    }
+
+    private void SelectToken(MouseButtonDataEventArgs e)
+    {
+        if (SelectedToken != null)
+        {
+            var newPosition = new Point<double>
+            {
+                X = e.Position.X.Map(0, _mapSize.CanvasWidth, 0, _mapSize.Width),
+                Y = e.Position.Y.Map(0, _mapSize.CanvasHeight, 0, _mapSize.Height)
+            };
+
+            var gridSize = _mapSize.GridSize;
+            var gridOffset = Point<double>.Create(Mathematics.CalculateGridOffset(gridSize));
+            var cellX = Math.Floor((SelectedToken.Position.X - gridOffset.X) / gridSize);
+            var cellY = Math.Floor((SelectedToken.Position.Y - gridOffset.Y) / gridSize);
+            var newCellX = Math.Floor((newPosition.X - gridOffset.X) / gridSize);
+            var newCellY = Math.Floor((newPosition.Y - gridOffset.Y) / gridSize);
+
+            var cellOffset = new Point<double>(newCellX - cellX, newCellY - cellY);
+            var offset = new Point<double>(cellOffset.X * gridSize, cellOffset.Y * gridSize);
+
+            // Update other selected tokens
+            _blockTokenBitmapCreation = true;
+            foreach (var tokenListItem in SelectedTokens)
+            {
+                tokenListItem.UpdatePosition(Point<int>.Create(offset));
+            }
+            _blockTokenBitmapCreation = false;
+
+            TokenMoveHistory.Enqueue(new TokenMoveCommand(SelectedTokens.Select(t => t.GetTokenIdentifier()).ToList(), Point<int>.Create(cellOffset)));
+            CreateTokenBitmapFromCache();
         }
     }
 

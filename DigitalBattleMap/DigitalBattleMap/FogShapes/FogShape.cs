@@ -226,6 +226,20 @@ public abstract class FogShape : PropertyHandler
         return points.Select(p => new Point<double>(p.X, p.Y));
     }
 
+    internal bool PositionInside(Point<double> position)
+    {
+        bool inside = false;
+        for (int i = 0, j = Points.Count() - 1; i < Points.Count(); j = i++)
+        {
+            if (((Points[i].Y > position.Y) != (Points[j].Y > position.Y)) &&
+                (position.X < (Points[j].X - Points[i].X) * (position.Y - Points[i].Y) / (Points[j].Y - Points[i].Y) + Points[i].X))
+            {
+                inside = !inside;
+            }
+        }
+        return inside;
+    }
+
     private class FogShapeInfo
     {
         public FogShapeInfo(FogShape fogShape)

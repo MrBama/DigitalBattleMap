@@ -58,6 +58,12 @@ public class ZoomAndEnhanceEventArgs : EventArgs
     public RectangleF rectangle { get; set; }
 }
 
+public class ToggleFogEventArgs : EventArgs
+{
+    public Point<double> position { get; set; }
+}
+
+
 public class DisconnectedEventArgs : EventArgs
 {
     public bool IsConnectionLost { get; set; }

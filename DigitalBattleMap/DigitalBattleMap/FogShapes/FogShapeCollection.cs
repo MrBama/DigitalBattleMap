@@ -121,4 +121,17 @@ public class FogShapeCollection : IEnumerable, INotifyCollectionChanged
     {
         OnRenderShapes?.Invoke(this, new EventArgs());
     }
+
+    /**
+     * Finds the fog(s) at the toggled position.
+     * Toggles the isFogEnabled indicator.
+     */
+    internal void ToggleFog(Point<double> position)
+    {
+        var test = _fogShapes.Where(fog => fog.PositionInside(position)).ToList();
+        foreach (var fogShape in _fogShapes.Where(fog => fog.PositionInside(position)))
+        {
+            fogShape.IsFogEnabled = !fogShape.IsFogEnabled;
+        }
+    }
 }

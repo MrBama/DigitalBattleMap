@@ -58,7 +58,6 @@ public class FogControllerViewModel : ControllerViewModelBase
         RectangleCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Rectangle));
         CircleCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Circle));
         NGonCommand = new RelayCommand(p => DrawFogShape(FogShapeType.NGon));
-        //CancelDrawShapeCommand = new RelayCommand(p => CancelDrawShape());
         ClearFogCommand = new RelayCommand(p => ClearFog());
         FillFogCommand = new RelayCommand(p => FillFog());
     }
@@ -476,5 +475,10 @@ public class FogControllerViewModel : ControllerViewModelBase
         overviewBitmap.OffsetFromOrigin = new Point<int>(minX, minY);
 
         return true;
+    }
+
+    internal void ToggleFog(ToggleFogEventArgs e)
+    {
+        FogShapeCollection.ToggleFog(e.position);
     }
 }
