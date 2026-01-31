@@ -303,28 +303,39 @@ public static class BitmapTools
         return bitmap;
     }
 
+    /**
+     * First draws all transparent polygon aftewords the black polygons. 
+     * This gives fog priority on overlapping shaps and aligns with the visuals in the UI.
+     */
     public static void DrawFogShapes(Bitmap bitmap, List<FogShape> shapes, Size<double> canvasSize)
     {
         using var graphics = Graphics.FromImage(bitmap);
-        foreach (var shape in shapes)
+
+        foreach (var shape in shapes.OrderBy(s => s.IsFogEnabled))
         {
-            var pointsF = new List<PointF>();
-            foreach (var point in shape.Points)
-            {
-                var halfSize = shape.PenSizeCanvas / 2;
-                var middleOfPoint = new Point<double>(point.X - halfSize, point.Y - halfSize);
-
-                var resizedX = (float)middleOfPoint.X.Map(0, canvasSize.Width, 0, Constants.MapSize.Width);
-                var resizedY = (float)middleOfPoint.Y.Map(0, canvasSize.Height, 0, Constants.MapSize.Height);
-                pointsF.Add(new PointF(resizedX, resizedY));
-            }
-
-            // The fog becomes solid black for the players the
-            // white polygons will become transparent places in the fog.
-            var brush = shape.IsFogEnabled ? Brushes.Black : Brushes.White;
-            graphics.FillPolygon(brush, pointsF.ToArray()); // todo multi-enable in UI seems to break something.
+            FogPolygon(canvasSize, graphics, shape);
         }
+
         bitmap.MakeTransparent(Color.White);
+    }
+
+    private static void FogPolygon(Size<double> canvasSize, Graphics graphics, FogShape shape)
+    {
+        var pointsF = new List<PointF>();
+        foreach (var point in shape.Points)
+        {
+            var halfSize = shape.PenSizeCanvas / 2;
+            var middleOfPoint = new Point<double>(point.X - halfSize, point.Y - halfSize);
+
+            var resizedX = (float)middleOfPoint.X.Map(0, canvasSize.Width, 0, Constants.MapSize.Width);
+            var resizedY = (float)middleOfPoint.Y.Map(0, canvasSize.Height, 0, Constants.MapSize.Height);
+            pointsF.Add(new PointF(resizedX, resizedY));
+        }
+
+        // The fog becomes solid black for the players the
+        // white polygons will become transparent places in the fog.
+        var brush = shape.IsFogEnabled ? Brushes.Black : Brushes.White;
+        graphics.FillPolygon(brush, pointsF.ToArray()); // todo multi-enable in UI seems to break something.
     }
 
     public static void DrawShapes(Bitmap bitmap, List<DrawingShape> shapes, Size<double> canvasSize)

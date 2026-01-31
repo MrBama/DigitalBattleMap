@@ -58,7 +58,7 @@ public class FogControllerViewModel : ControllerViewModelBase
         RectangleCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Rectangle));
         CircleCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Circle));
         NGonCommand = new RelayCommand(p => DrawFogShape(FogShapeType.NGon));
-        CancelDrawShapeCommand = new RelayCommand(p => CancelDrawShape());
+        //CancelDrawShapeCommand = new RelayCommand(p => CancelDrawShape());
         ClearFogCommand = new RelayCommand(p => ClearFog());
         FillFogCommand = new RelayCommand(p => FillFog());
     }
@@ -143,6 +143,8 @@ public class FogControllerViewModel : ControllerViewModelBase
         ActiveFogShape = CreatePolygonFogShape();
         IsFogShapeActive = false;
         NotifyFogShapesUpdated();
+        ToggleOffFogShapeButtons();
+        IsDrawPolygonChecked = true;
     }
 
     public override void AddToSaveFile(SaveFile saveFile)
@@ -345,6 +347,7 @@ public class FogControllerViewModel : ControllerViewModelBase
         //ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize);
     }
 
+    //todo
     private void CancelDrawShape()
     {
         ActiveFogShape = CreatePolygonFogShape();
