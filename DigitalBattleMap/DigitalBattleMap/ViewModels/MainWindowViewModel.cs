@@ -378,6 +378,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             BackgroundController.ClearBackground();
             DrawingController.ClearDrawings();
             TokenController.ClearTokens();
+            FogController.ClearFog();
 
             GenerateMapOverview();
             _connectionManager.ClearMap();
@@ -513,6 +514,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             BackgroundController.AddToSaveFile(saveFile);
             DrawingController.AddToSaveFile(saveFile);
             TokenController.AddToSaveFile(saveFile);
+            FogController.AddToSaveFile(saveFile);
             saveFile.Save(path);
         }
     }
@@ -525,6 +527,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         BackgroundController.AddToSaveFile(saveFile);
         DrawingController.AddToSaveFile(saveFile);
         TokenController.AddToSaveFile(saveFile);
+        FogController.AddToSaveFile(saveFile);
         saveFile.AutoSave();
         _autoSaveTimer.Start();
     }
@@ -546,6 +549,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         BackgroundController.OpenSaveFile(saveFile);
         DrawingController.OpenSaveFile(saveFile);
         TokenController.OpenSaveFile(saveFile);
+        FogController.OpenSaveFile(saveFile);
 
         DrawingController.OpenObjectLinks(saveFile.ObjectLinks);
         TokenController.OpenObjectLinks(saveFile.ObjectLinks);

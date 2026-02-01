@@ -163,7 +163,7 @@ public class FogCanvas : InkCanvas
 
     private void OnShapeCollectionPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (ShapeCollection.FillFog)
+        if (ShapeCollection.IsFillFogEnabled)
         {
             FillBackground();
         }
@@ -205,7 +205,7 @@ public class FogCanvas : InkCanvas
 
     private void UpdateInnerPolygonsFill()
     {
-        if (_backgroundFillPath == null || !_innerPolygons.Any())
+        if (_backgroundFillPath == null)
         {
             return;
         }
@@ -224,6 +224,8 @@ public class FogCanvas : InkCanvas
         _strokes.Clear();
         Children.Clear();
         _polygons.Clear();
+        _innerPolygons.Clear();
+        _backgroundFillPath = null;
     }
 
     private void EraseShape(FogShape shape)

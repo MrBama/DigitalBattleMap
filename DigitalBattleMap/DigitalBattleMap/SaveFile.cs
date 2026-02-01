@@ -22,8 +22,6 @@ public class SaveFile
 
     public bool IsGridShown { get; set; }
 
-    public bool IsFogOfWarEnabled { get; set; }
-
     public int GridCellsWidth { get; set; }
 
     public int GridCellsHeight { get; set; }
@@ -40,7 +38,9 @@ public class SaveFile
 
     public List<ObjectLink> ObjectLinks { get; set; } = new();
 
-    public List<SelectedArea> FogOfWarAreas { get; set; } = new();
+    public List<FogShape> FogShapes { get; set; } = new();
+
+    public bool IsFillFogEnabled { get; set; }
 
     [JsonIgnore]
     public Bitmap FullBackground { get; set; }
@@ -106,7 +106,10 @@ public class SaveFile
             using var tempDirectory = new TempDirectory(Constants.TempSaveFileDirectoryPath);
             IO.ZipFile.ExtractToDirectory(path, Constants.TempSaveFileDirectoryPath);
 
-            if (!FileManager.OpenFile(_saveFilePath, out SaveFile saveFile, new DerivedClassJsonConverter<Statblock>(), new DerivedClassJsonConverter<DrawingShape>()))
+            if (!FileManager.OpenFile(_saveFilePath, out SaveFile saveFile, 
+                new DerivedClassJsonConverter<Statblock>(), 
+                new DerivedClassJsonConverter<DrawingShape>(),
+                new DerivedClassJsonConverter<FogShape>()))
             {
                 saveFile = new SaveFile();
             }

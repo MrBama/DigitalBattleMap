@@ -146,46 +146,35 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     public override void AddToSaveFile(SaveFile saveFile)
     {
-        //saveFile.IsGridShown = IsGridShown;
-        //saveFile.GridSize = GridSize;
-        //saveFile.FullBackground = _fullBackgroundBitmap;
-        //saveFile.GMOverlay = _gmOverlayBitmap;
-        ////saveFile.BackgroundArea = _area;
-        //saveFile.GridCellsWidth = GridCellsWidth;
-        //saveFile.GridCellsHeight = GridCellsHeight;
-        //saveFile.BackgroundFeetPerGridCell = FeetPerGridCell;
-        //saveFile.IsFogOfWarEnabled = IsFogOfWarEnabled;
-        //saveFile.FogOfWarAreas = _fogOfWarAreas;
+        foreach ((var shape, var index) in FogShapeCollection.GetFogShapes().WithIndex())
+        {
+            saveFile.FogShapes.Add(shape);
+        }
+        saveFile.IsFillFogEnabled = FogShapeCollection.IsFillFogEnabled;
     }
 
     public override void OpenSaveFile(SaveFile saveFile)
     {
-        //ClearBackground();
 
-        //IsGridShown = saveFile.IsGridShown;
-        //GridSize = saveFile.GridSize;
-        //GridSizeChanged();
+        ClearFog();
 
-        //GridCellsWidth = saveFile.GridCellsWidth;
-        //GridCellsHeight = saveFile.GridCellsHeight;
-        //FeetPerGridCell = saveFile.BackgroundFeetPerGridCell;
-        //IsFogOfWarEnabled = saveFile.IsFogOfWarEnabled;
-        //_fogOfWarAreas = saveFile.FogOfWarAreas;
+        FogShapeCollection.IsFillFogEnabled = saveFile.IsFillFogEnabled;
 
-        //if (saveFile.FullBackground != null)
-        //{
-        //    _fullBackgroundBitmap = saveFile.FullBackground;
-        //    //_area = saveFile.BackgroundArea;
-        //    HasOpenedBackground = true;
-        //}
+        foreach (var shape in saveFile.FogShapes)
+        {
+            shape.SetProperties(ApplyActiveFogShape, _mapSize);
+            FogShapeCollection.Add(shape);
+        }
 
-        //if (saveFile.GMOverlay != null)
-        //{
-        //    _gmOverlayBitmap = saveFile.GMOverlay;
-        //    HasOpenGMOverlay = true;
-        //}
+        if (!saveFile.CanvasSize.Equals(_mapSize.GetCanvasSize()) && saveFile.CanvasSize.Width != 0)
+        {
+            var zoomFactor = _mapSize.CanvasWidth / saveFile.CanvasSize.Width;
+            var matrix = new Matrix();
+            matrix.Scale(zoomFactor, zoomFactor);
+            FogShapeCollection.Transform(matrix);
+        }
 
-        //CreateBackground();
+        NotifyFogShapesUpdated();
     }
 
     /**
@@ -195,7 +184,7 @@ public class FogControllerViewModel : ControllerViewModelBase
      */
     public Bitmap GetFogBitmap()
     {
-        var bitmap = FogShapeCollection.FillFog ? BitmapTools.CreateBlackBitmap() : BitmapTools.CreateEmptyBitmap();
+        var bitmap = FogShapeCollection.IsFillFogEnabled ? BitmapTools.CreateBlackBitmap() : BitmapTools.CreateEmptyBitmap();
         BitmapTools.DrawFogShapes(bitmap, FogShapeCollection.GetFogShapes().ToList(), _mapSize.GetCanvasSize());
         return bitmap;
     }
