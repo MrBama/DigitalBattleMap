@@ -453,13 +453,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
     private void ToggleFogOfWar(MouseButtonDataEventArgs e)
     {
-        var fogPosition = new Point<double>
-        {
-            X = e.Position.X.Map(0, _mapSize.CanvasWidth, 0, _mapSize.Width),
-            Y = e.Position.Y.Map(0, _mapSize.CanvasHeight, 0, _mapSize.Height)
-        };
-
-        OnToggleFog.Invoke(this, new ToggleFogEventArgs() { position = fogPosition });
+        OnToggleFog.Invoke(this, new ToggleFogEventArgs() { position = e.Position });
     }
 
     private void SelectToken(MouseButtonDataEventArgs e)
