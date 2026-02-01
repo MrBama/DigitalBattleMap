@@ -32,16 +32,6 @@ public class FogShapeCollection : PropertyHandler, IEnumerable, INotifyCollectio
         FogShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, fogShape));
     }
 
-    public void Insert(int index, FogShape fogShape)
-    {
-        _fogShapes.Insert(index, fogShape);
-        fogShape.PropertyChanged += FogShapePropertyChanged;
-        fogShape.OnPointsChanged += FogShapePointsChanged;
-        fogShape.OnRenderChanged += RenderShapes;
-        FogShapeCollectionChanged(new FogShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Insert, ChangedShape = fogShape, Index = index });
-        FogShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, fogShape));
-    }
-
     public void Remove(FogShape fogShape)
     {
         var index = _fogShapes.ToList().IndexOf(fogShape);
@@ -108,7 +98,14 @@ public class FogShapeCollection : PropertyHandler, IEnumerable, INotifyCollectio
 
     private void FogShapePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        OnFogShapePropertyChanged?.Invoke(sender, e);
+        if(e.PropertyName == nameof(FogShape.IsDeleted))
+        {
+            Remove(sender as FogShape);
+        }
+        else
+        {
+            OnFogShapePropertyChanged?.Invoke(sender, e);
+        }
     }
 
     private void FogShapeCollectionChanged(FogShapeCollectionChangedEventArgs eventArgs)

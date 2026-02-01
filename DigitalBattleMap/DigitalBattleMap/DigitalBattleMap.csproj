@@ -56,6 +56,7 @@
     <None Remove="Resources\FogEmblem.png" />
     <None Remove="Resources\FogIcons\Circle.png" />
     <None Remove="Resources\FogIcons\Cut.png" />
+    <None Remove="Resources\FogIcons\Delete.png" />
     <None Remove="Resources\FogIcons\Draw.png" />
     <None Remove="Resources\FogIcons\Eye.png" />
     <None Remove="Resources\FogIcons\Fill.png" />
@@ -118,6 +119,7 @@
     <EmbeddedResource Include="Resources\FogEmblem.png" />
     <EmbeddedResource Include="Resources\FogIcons\Circle.png" />
     <EmbeddedResource Include="Resources\FogIcons\Cut.png" />
+    <EmbeddedResource Include="Resources\FogIcons\Delete.png" />
     <EmbeddedResource Include="Resources\FogIcons\Draw.png" />
     <EmbeddedResource Include="Resources\FogIcons\Fill.png" />
     <EmbeddedResource Include="Resources\FogIcons\NGon.png" />

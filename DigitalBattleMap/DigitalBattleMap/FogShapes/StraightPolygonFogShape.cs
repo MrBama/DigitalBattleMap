@@ -10,11 +10,12 @@ namespace DigitalBattleMap.FogShapes;
 public class StraightPolygonFogShape : FogShape
 {
     private Stack<Point<double>> previousMoves;
-    public StraightPolygonFogShape(Action applyShapeCallback, IMapSize mapSize) : base(applyShapeCallback, mapSize)
+    public StraightPolygonFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnable = true) : base(applyShapeCallback, mapSize)
     {
-        IsFogEnabled = true;
+        ShapeType = "Straight Polygon";
         SnapToGrid = true;
         previousMoves = new Stack<Point<double>>();
+        IsFogEnabled = isFogEnable;
     }
 
     public override FogShape Clone()

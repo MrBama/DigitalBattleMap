@@ -40,7 +40,7 @@ public class FogControllerViewModel : ControllerViewModelBase
     {
         FogShapeCollection = new();
         FogShapeCollection.OnRenderShapes += (_, _) => NotifyFogShapesUpdated();
-        ActiveFogShape = new DrawPolygonFogShape(ApplyActiveFogShape, _mapSize);
+        ActiveFogShape = new DrawPolygonFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled);
         MouseCanvas = new MouseCanvasViewModel();
         MouseCanvas.OnLeftButtonDown += LeftButtonDown;
         MouseCanvas.OnLeftButtonUp += LeftButtonUp;
@@ -242,7 +242,7 @@ public class FogControllerViewModel : ControllerViewModelBase
         return new DrawPolygonFogShape(ApplyActiveFogShape, _mapSize)
         {
             SnapToGrid = false,
-            IsFogEnabled = true
+            IsFogEnabled = !FogShapeCollection.IsFillFogEnabled
         };
     }
 
@@ -303,28 +303,33 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     private void DrawPolygonShape()
     {
-        ActiveFogShape = new DrawPolygonFogShape(ApplyActiveFogShape, _mapSize);
+        ActiveFogShape = new DrawPolygonFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled);
     }
 
     private void StraightPolygonShape()
     {
-        ActiveFogShape = new StraightPolygonFogShape(ApplyActiveFogShape, _mapSize);
+        ActiveFogShape = new StraightPolygonFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled);
     }
 
     private void RectangleShape()
     {
-        ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize);
+        ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled);
     }
 
     private void CircleShape()
     {
-        ActiveFogShape = new CircleFogShape(ApplyActiveFogShape, _mapSize);
+        ActiveFogShape = new CircleFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled);
     }
 
     // todo
     private void NGonShape()
     {
         //ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize);
+    }
+
+    private void DeleteShape(FogShape fogShape)
+    {
+        throw new NotImplementedException();
     }
 
     private void LeftButtonDown(object? sender, MouseButtonDataEventArgs e)
@@ -388,6 +393,7 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     private void OnFogShapeCollectionChanged(object? sender, PropertyChangedEventArgs e)
     {
+        ActiveFogShape.IsFogEnabled = !FogShapeCollection.IsFillFogEnabled;
         NotifyFogShapesUpdated();
     }
 

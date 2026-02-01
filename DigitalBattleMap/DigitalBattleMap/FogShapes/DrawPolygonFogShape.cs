@@ -8,9 +8,10 @@ namespace DigitalBattleMap.FogShapes;
 
 public class DrawPolygonFogShape : FogShape
 {
-    public DrawPolygonFogShape(Action applyShapeCallback, IMapSize mapSize) : base(applyShapeCallback, mapSize)
+    public DrawPolygonFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnable = true) : base(applyShapeCallback, mapSize)
     {
-        IsFogEnabled = true;
+        ShapeType = "Draw Polygon";
+        IsFogEnabled = isFogEnable;
     }
 
     public override FogShape Clone()

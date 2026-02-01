@@ -10,11 +10,11 @@ public class RectangleFogShape : FogShape
     private Point<double> _startPosition;
     private Point<double> _previousMovePosition;
 
-    public RectangleFogShape(Action applyShapeCallback, IMapSize mapSize) : base(applyShapeCallback, mapSize)
+    public RectangleFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnable = true) : base(applyShapeCallback, mapSize)
     {
-        Name = "Fog Rectangle";
+        ShapeType = "Rectangle";
         SnapToGrid = true;
-        IsFogEnabled = true;
+        IsFogEnabled = isFogEnable;
     }
 
     public override FogShape Clone()

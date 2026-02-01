@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.FogShapes;
 
@@ -28,9 +30,8 @@ public abstract class FogShape : PropertyHandler
         Color = Colors.Black;
         PenSize = 3;
         Points = new();
-        Name = "FogShape";
+        Name = "Name";
         Size = "0";
-
 
         RegisterPropertyChangedWatcher(nameof(Cursor), new List<string> { nameof(Color), nameof(PenSize) });
     }
@@ -45,9 +46,12 @@ public abstract class FogShape : PropertyHandler
     public string Size { get => Get<string>(); set => Set(value); }
     public bool IsEditing { get => Get<bool>(); set => Set(value); }
     public bool SnapToGrid { get => Get<bool>(); set => Set(value); }
-    public string Name { get => Get<string>(); protected set => Set(value); }
+    public string Name { get => Get<string>(); set => Set(value); }
+    public string ShapeType { get => Get<string>(); set => Set(value); }
     public virtual Cursor Cursor { get => CursorCreator.Create(new SolidColorBrush(Color), (int)Math.Max(8, PenSize)); }
     public bool IsFogEnabled { get => Get<bool>(); set => Set(value); }
+    public bool IsDeleted { get => Get<bool>(); set => Set(value); }
+    public BitmapSource DeleteIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogIcons.Delete.png")).ToBitmapImage(); }
     public Type Type { get => GetType(); }
     public ObservableCollection<Point<double>> Points
     {
@@ -245,10 +249,12 @@ public abstract class FogShape : PropertyHandler
             Color = fogShape.Color;
             Size = fogShape.PenSize;
             Points = fogShape.Points.ToList();
+            IsDeleted = fogShape.IsDeleted;
         }
 
         public Color Color { get; set; }
         public double Size { get; set; }
+        public bool IsDeleted { get; set; }
         public List<Point<double>> Points { get; set; }
     }
 }

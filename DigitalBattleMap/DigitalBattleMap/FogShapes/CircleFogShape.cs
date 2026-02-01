@@ -10,10 +10,11 @@ internal class CircleFogShape : FogShape
     private Point<double> _startPosition;
     private Point<double> _previousMovePosition;
 
-    public CircleFogShape(Action applyShapeCallback, IMapSize mapSize) : base(applyShapeCallback, mapSize)
+    public CircleFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnabled = true) : base(applyShapeCallback, mapSize)
     {
-        Name = "Circle";
+        ShapeType = "Circle";
         SnapToGrid = true;
+        IsFogEnabled = isFogEnabled;
     }
 
     public override FogShape Clone()
