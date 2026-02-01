@@ -20,7 +20,7 @@ public class FogShapeCollection : PropertyHandler, IEnumerable, INotifyCollectio
     public event EventHandler OnRenderShapes; // todo change?
     public event NotifyCollectionChangedEventHandler? CollectionChanged; // This is only used for UI
 
-    public bool HasBackgroundShape { get => Get<bool>(); set => Set(value); }
+    public bool FillFog { get => Get<bool>(); set => Set(value); }
 
     public void Add(FogShape fogShape)
     {

@@ -163,7 +163,7 @@ public class FogCanvas : InkCanvas
 
     private void OnShapeCollectionPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (ShapeCollection.HasBackgroundShape)
+        if (ShapeCollection.FillFog)
         {
             FillBackground();
         }

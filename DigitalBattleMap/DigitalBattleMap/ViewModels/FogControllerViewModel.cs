@@ -6,6 +6,7 @@ using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
@@ -32,6 +33,7 @@ public class FogControllerViewModel : ControllerViewModelBase
         Initialize();
 
         _mapSize.OnCanvasSizeChanged += OnCanvasSizeChanged;
+        FogShapeCollection.PropertyChanged += OnFogShapeCollectionChanged;
     }
 
     private void Initialize()
@@ -69,8 +71,6 @@ public class FogControllerViewModel : ControllerViewModelBase
     public bool IsFogShapeActive { get => Get<bool>(); set => Set(value); }
     public bool IsEditFogShapeActive { get => Get<bool>(); set => Set(value); }
     public FogShape SelectedFogShape { get => Get<FogShape>(); set => Set(value, SelectedShapeChanged); }
-
-    public bool IsMapFilledWithFog { get => Get<bool>(); set => Set(value); }
 
     public bool IsDrawPolygonChecked { get => Get<bool>(); set => Set(value); }
     public bool IsStraightPolygonChecked { get => Get<bool>(); set => Set(value); }
@@ -193,9 +193,9 @@ public class FogControllerViewModel : ControllerViewModelBase
      * Returns a bitmap with all fog shapes applied. 
      * The shape will be filled in black or cut out depending on the fog shape 'IsFogEnabled' setting.
      */
-    public Bitmap GetShowMapFogBitmap()
+    public Bitmap GetFogBitmap()
     {
-        var bitmap = IsMapFilledWithFog ? BitmapTools.CreateBlackBitmap() : BitmapTools.CreateEmptyBitmap();
+        var bitmap = FogShapeCollection.FillFog ? BitmapTools.CreateBlackBitmap() : BitmapTools.CreateEmptyBitmap();
         BitmapTools.DrawFogShapes(bitmap, FogShapeCollection.GetFogShapes().ToList(), _mapSize.GetCanvasSize());
         return bitmap;
     }
@@ -395,6 +395,11 @@ public class FogControllerViewModel : ControllerViewModelBase
 
             NotifyFogShapesUpdated();
         }
+    }
+
+    private void OnFogShapeCollectionChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        NotifyFogShapesUpdated();
     }
 
     private void ToggleOffFogShapeButtons()

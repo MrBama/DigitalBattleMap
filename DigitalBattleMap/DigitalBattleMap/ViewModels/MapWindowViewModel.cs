@@ -13,6 +13,7 @@ public class MapWindowViewModel : ViewModelBase
     public BitmapSource BackgroundBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource GridBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource TokenBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
+    public BitmapSource FogBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource PauseIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.PauseIcon.png")).ToBitmapImage(); }
     public void ChangeWindowPosition(int x)
     {

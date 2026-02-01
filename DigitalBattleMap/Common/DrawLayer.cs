@@ -5,5 +5,6 @@ public enum DrawLayer
     All,
     Background,
     GridAndStrokes,
-    Tokens
+    Tokens,
+    Fog
 }
