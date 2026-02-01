@@ -64,6 +64,7 @@
     <None Remove="Resources\FogIcons\Snap.png" />
     <None Remove="Resources\FogIcons\Square.png" />
     <None Remove="Resources\FogIcons\Zigzag.png" />
+    <None Remove="Resources\infoIcon.png" />
     <None Remove="Resources\MonsterTokens.json" />
     <None Remove="Resources\PauseIcon.png" />
     <None Remove="Resources\RedoIcon.png" />
@@ -124,6 +125,7 @@
     <EmbeddedResource Include="Resources\FogIcons\Snap.png" />
     <EmbeddedResource Include="Resources\FogIcons\Square.png" />
     <EmbeddedResource Include="Resources\FogIcons\Zigzag.png" />
+    <EmbeddedResource Include="Resources\infoIcon.png" />
     <EmbeddedResource Include="Resources\MonsterTokens.json" />
     <EmbeddedResource Include="Resources\PauseIcon.png" />
     <EmbeddedResource Include="Resources\RedoIcon.png" />

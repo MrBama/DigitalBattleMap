@@ -34,7 +34,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
-            <ToggleButton VerticalContentAlignment="Center" Margin="10 0 0 0" IsChecked="{Binding IsMapFilledWithFog}" ToolTip="Fill map with fog">
+            <ToggleButton VerticalContentAlignment="Center" Margin="10 0 0 0" IsChecked="{Binding FogShapeCollection.HasBackgroundShape}" ToolTip="Fill map with fog">
                 <Image Source="{Binding FillIconBitmapSource}" MaxHeight="35" Margin="2"/>
             </ToggleButton>
         </Grid>

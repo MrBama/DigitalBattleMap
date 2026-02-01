@@ -59,7 +59,6 @@ public class FogControllerViewModel : ControllerViewModelBase
         CircleCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Circle));
         NGonCommand = new RelayCommand(p => DrawFogShape(FogShapeType.NGon));
         ClearFogCommand = new RelayCommand(p => ClearFog());
-        FillFogCommand = new RelayCommand(p => FillFog());
     }
 
     public event EventHandler OnFogShapeUpdated;
@@ -98,7 +97,6 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     public ICommand CancelDrawShapeCommand { get; set; }
     public ICommand ClearFogCommand { get; set; }
-    public ICommand FillFogCommand { get; set; }
 
     public override void Move(ArrowDirection direction, int movementCount)
     {
@@ -224,13 +222,6 @@ public class FogControllerViewModel : ControllerViewModelBase
         }
     }
 
-    //private SolidColorBrush GetFogBrush()
-    //{
-    //    var fogBrush = System.Windows.Media.Brushes.Black.Clone();
-    //    fogBrush.Opacity = 0.25;
-    //    return fogBrush;
-    //}
-
     private void ActiveShapePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(FogShape.Cursor))
@@ -341,16 +332,10 @@ public class FogControllerViewModel : ControllerViewModelBase
         ActiveFogShape = new CircleFogShape(ApplyActiveFogShape, _mapSize);
     }
 
+    // todo
     private void NGonShape()
     {
         //ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize);
-    }
-
-    //todo
-    private void CancelDrawShape()
-    {
-        ActiveFogShape = CreatePolygonFogShape();
-        IsFogShapeActive = false;
     }
 
     private void LeftButtonDown(object? sender, MouseButtonDataEventArgs e)
@@ -419,15 +404,6 @@ public class FogControllerViewModel : ControllerViewModelBase
         IsRectangleChecked = false;
         IsCircleChecked = false;
         IsNGonChecked = false;
-    }
-
-    /**
-     * When enabled sets a fog shape equal to the background size in the FogCanvas.
-     */
-    private void FillFog()
-    {
-        // Only when a background is added
-        var test = _mapSize.GetCanvasSize();
     }
 
     public bool GetOverviewBitmap(double zoomFactor, out OverviewBitmap overviewBitmap)

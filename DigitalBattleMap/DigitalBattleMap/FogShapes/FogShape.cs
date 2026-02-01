@@ -33,7 +33,6 @@ public abstract class FogShape : PropertyHandler
 
 
         RegisterPropertyChangedWatcher(nameof(Cursor), new List<string> { nameof(Color), nameof(PenSize) });
-        RegisterPropertyChangedWatcher(nameof(IsFogEnabled), new List<string> { nameof(Color), nameof(PenSize) });
     }
 
     public event NotifyCollectionChangedEventHandler OnPointsChanged;

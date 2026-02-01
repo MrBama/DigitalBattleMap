@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Utilities;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Windows.Media;
 
 namespace DigitalBattleMap.FogShapes;
 
-public class FogShapeCollection : IEnumerable, INotifyCollectionChanged
+public class FogShapeCollection : PropertyHandler, IEnumerable, INotifyCollectionChanged
 {
     private List<FogShape> _fogShapes = new();
 
@@ -18,6 +19,8 @@ public class FogShapeCollection : IEnumerable, INotifyCollectionChanged
     public event EventHandler<FogShapeCollectionChangedEventArgs> OnFogShapeCollectionChanged;
     public event EventHandler OnRenderShapes; // todo change?
     public event NotifyCollectionChangedEventHandler? CollectionChanged; // This is only used for UI
+
+    public bool HasBackgroundShape { get => Get<bool>(); set => Set(value); }
 
     public void Add(FogShape fogShape)
     {
