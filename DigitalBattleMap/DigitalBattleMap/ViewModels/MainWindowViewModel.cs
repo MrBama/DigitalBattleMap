@@ -3,7 +3,6 @@ using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
-using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -61,6 +60,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public bool IsMultiMove { get => Get<bool>(); set => Set(value); }
     public bool HideDungeonMasterFeatures { get => Get<bool>(); set => Set(value); }
     public bool HasBlackBackground { get => Get<bool>(); set => Set(value); }
+    public bool IsInfoEnabled { get => Get<bool>(); set => Set(value); }
     public string ServerConnectionButtonText { get => Get<string>(); set => Set(value); }
     public string ServerConnectionStatus { get => Get<string>(); set => Set(value); }
     public Visibility DrawingCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
@@ -91,6 +91,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public BitmapSource FogEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogEmblem.png")).ToBitmapImage(); }
     public BitmapSource DrawingEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.DrawingEmblem.png")).ToBitmapImage(); }
     public BitmapSource TokenEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.TokenEmblem.png")).ToBitmapImage(); }
+    public BitmapSource InfoIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.InfoIcon.png")).ToBitmapImage(); }
 
     int IMapSize.Width => Constants.MapSize.Width;
     int IMapSize.Height => Constants.MapSize.Height;

@@ -127,7 +127,7 @@
     <EmbeddedResource Include="Resources\FogIcons\Snap.png" />
     <EmbeddedResource Include="Resources\FogIcons\Square.png" />
     <EmbeddedResource Include="Resources\FogIcons\Zigzag.png" />
-    <EmbeddedResource Include="Resources\infoIcon.png" />
+    <EmbeddedResource Include="Resources\InfoIcon.png" />
     <EmbeddedResource Include="Resources\MonsterTokens.json" />
     <EmbeddedResource Include="Resources\PauseIcon.png" />
     <EmbeddedResource Include="Resources\RedoIcon.png" />
