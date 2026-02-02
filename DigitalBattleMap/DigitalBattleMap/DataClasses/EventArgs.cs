@@ -123,3 +123,9 @@ public class SetHeightEventArgs : EventArgs
     public TokenIdentifier TokenIdentifier { get; set; } = new();
     public int Height { get; set; }
 }
+
+public class ControlInfoEventArgs : EventArgs
+{
+    public string controlName { get; set; }
+    public List<InfoBlock> infoBlocks { get; set; }
+}

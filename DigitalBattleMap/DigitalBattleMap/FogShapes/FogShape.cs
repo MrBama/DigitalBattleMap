@@ -8,6 +8,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -37,6 +38,7 @@ public abstract class FogShape : PropertyHandler
     }
 
     public event NotifyCollectionChangedEventHandler OnPointsChanged;
+    public event EventHandler<ControlInfoEventArgs> OnControlUpdated;
     public event EventHandler OnRenderChanged;
 
     public Color Color { get => Get<Color>(); set => Set(value, () => NotifyPropertyChange(nameof(ColorBrush))); }
@@ -202,6 +204,7 @@ public abstract class FogShape : PropertyHandler
     }
 
     public abstract FogShape Clone();
+    public abstract void UpdateControls();
     protected abstract void ButtonDown(Point<double> position);
     protected abstract void ButtonUp(Point<double> position);
     protected abstract void MouseMove(Point<double> position, bool buttonDown);
@@ -228,7 +231,7 @@ public abstract class FogShape : PropertyHandler
         return points.Select(p => new Point<double>(p.X, p.Y));
     }
 
-    internal bool PositionInside(Point<double> position)
+    public bool PositionInside(Point<double> position)
     {
         bool inside = false;
         for (int i = 0, j = Points.Count() - 1; i < Points.Count(); j = i++)
@@ -240,6 +243,16 @@ public abstract class FogShape : PropertyHandler
             }
         }
         return inside;
+    }
+
+    public void NotifyControlUpdated(string controlName, List<InfoBlock> infoBlocks)
+    {
+        OnControlUpdated.Invoke(this, new ControlInfoEventArgs { controlName = controlName, infoBlocks = infoBlocks });
+    }
+
+    public void NotifyControlUpdated(object? sender, ControlInfoEventArgs e)
+    {
+        OnControlUpdated.Invoke(sender, e);
     }
 
     private class FogShapeInfo

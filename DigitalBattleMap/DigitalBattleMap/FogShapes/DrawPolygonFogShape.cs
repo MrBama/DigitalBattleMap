@@ -2,6 +2,7 @@
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace DigitalBattleMap.FogShapes;
@@ -16,7 +17,9 @@ public class DrawPolygonFogShape : FogShape
 
     public override FogShape Clone()
     {
-        return new DrawPolygonFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid, IsFogEnabled = IsFogEnabled };
+        var shape = new DrawPolygonFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid, IsFogEnabled = IsFogEnabled };
+        shape.OnControlUpdated += NotifyControlUpdated;
+        return shape;
     }
 
     protected override void ButtonDown(Point<double> position)
@@ -46,5 +49,12 @@ public class DrawPolygonFogShape : FogShape
                 Points.Add(snappedPosition);
             }
         }
+    }
+
+    public override void UpdateControls()
+    {
+        var infoBlock1 = new InfoBlock(ControlType.LMB, ControlType.Down, "Start free drawing the fog polygon");
+        var infoBlock2 = new InfoBlock(ControlType.LMB, ControlType.Up, "Complete drawing shape, end will connect to start");
+        NotifyControlUpdated("Free polygon drawing", new List<InfoBlock> { infoBlock1, infoBlock2 });
     }
 }

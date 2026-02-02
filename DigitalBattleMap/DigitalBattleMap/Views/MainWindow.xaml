@@ -243,19 +243,25 @@
                 </TabControl>
                 <!-- Info corner -->
                 <Canvas IsHitTestVisible="False" Visibility="{Binding IsInfoEnabled, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}">
-                    <TextBlock Text="TEST" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                    <!-- Black border around white info text for contrast -->
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
                            Canvas.Top="2" Canvas.Left="2"/>
-                    <TextBlock Text="TEST" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
                            Canvas.Top="2" Canvas.Left="4"/>
-                    <TextBlock Text="TEST" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
                            Canvas.Top="4" Canvas.Left="2"/>
-                    <TextBlock Text="TEST" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
                            Canvas.Top="4" Canvas.Left="4"/>
-                    <TextBlock Text="TEST" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
                            Canvas.Top="4" Canvas.Left="3"/>
-                    <TextBlock Text="TEST" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
                            Canvas.Top="3" Canvas.Left="4"/>
-                    <TextBlock Text="TEST" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                           Canvas.Top="2" Canvas.Left="3"/>
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                           Canvas.Top="3" Canvas.Left="2"/>
+                    <!-- White info text -->
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
                            Canvas.Top="3" Canvas.Left="3" Foreground="White"/>
                 </Canvas>
 

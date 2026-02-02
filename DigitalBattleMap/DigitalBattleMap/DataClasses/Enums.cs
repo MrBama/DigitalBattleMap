@@ -68,7 +68,7 @@ public enum DrawingShapeType
 public enum FogShapeType
 {
     DrawPolygon,
-    StraightPolygon,
+    AngularPolygon,
     Rectangle,
     Circle,
     NGon
@@ -94,4 +94,17 @@ public enum CollectionChangedAction
     Insert,
     Remove,
     Clear
+}
+
+public enum ControlType
+{
+    LMB,
+    RMB,
+    Wheel,
+    Scroll,
+    Ctrl,
+    Alt,
+    Up,
+    Down,
+    Click
 }

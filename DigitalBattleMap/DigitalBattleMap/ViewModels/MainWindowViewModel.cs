@@ -6,7 +6,9 @@ using DigitalBattleMap.Views;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Timers;
 using System.Windows;
 using System.Windows.Input;
@@ -63,6 +65,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public bool IsInfoEnabled { get => Get<bool>(); set => Set(value); }
     public string ServerConnectionButtonText { get => Get<string>(); set => Set(value); }
     public string ServerConnectionStatus { get => Get<string>(); set => Set(value); }
+    public string ControlInfoText { get => Get<string>(); set => Set(value); }
     public Visibility DrawingCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
     public Visibility FogCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
     public Visibility MouseInputCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
@@ -143,15 +146,16 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         FogController = new FogControllerViewModel(_windowService, this, _settings);
         FogController.OnZoomAndEnhance += OnZoomAndEnhance;
         FogController.OnFogShapeUpdated += FogShapesUpdated;
-
-        DrawingController = new DrawingControllerViewModel(this, TokenController);
-        DrawingController.OnZoomAndEnhance += OnZoomAndEnhance;
-        DrawingController.OnDrawingShapesUpdated += DrawingShapesUpdated;
+        FogController.OnControlUpdated += ControlUpdated;
 
         TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, _monsterTokens, CampaignController, _settings);
         TokenController.OnZoomAndEnhance += OnZoomAndEnhance;
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
         TokenController.OnToggleFog += ToggleFog;
+
+        DrawingController = new DrawingControllerViewModel(this, TokenController);
+        DrawingController.OnZoomAndEnhance += OnZoomAndEnhance;
+        DrawingController.OnDrawingShapesUpdated += DrawingShapesUpdated;
 
         // settings
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
@@ -240,6 +244,11 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         MapOverview.MouseCanvas.ResetMode();
         CropColor = System.Windows.Media.Brushes.LightGray;
         SelectedMapTabIndex = TabMapIndex.Map;
+    }
+
+    private void ControlUpdated(object? sender, ControlInfoEventArgs e)
+    {
+        ControlInfoText = GetControlInfoText(e);
     }
 
     private void ToggleFog(object? sender, ToggleFogEventArgs e)
@@ -409,6 +418,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 TokenVisibility = Visibility.Visible;
 
                 MouseCanvas = CampaignController.MouseCanvas;
+                ControlInfoText = string.Empty; // todo: update to active controls for this tab on tab switch
                 DrawingCanvasZIndex = 0;
                 break;
             case TabIndex.Background:
@@ -418,6 +428,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 TokenVisibility = Visibility.Hidden;
 
                 MouseCanvas = BackgroundController.MouseCanvas;
+                ControlInfoText = string.Empty; // todo: update to active controls for this tab on tab switch
                 DrawingCanvasZIndex = 1;
                 break;
             case TabIndex.Fog:
@@ -427,6 +438,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 TokenVisibility = Visibility.Hidden;
 
                 MouseCanvas = FogController.MouseCanvas;
+                FogController.ActiveFogShape.UpdateControls();
                 DrawingCanvasZIndex = 1;
                 break;
             case TabIndex.Drawing:
@@ -436,6 +448,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 TokenVisibility = Visibility.Visible;
 
                 MouseCanvas = DrawingController.MouseCanvas;
+                ControlInfoText = string.Empty; // todo: update to active controls for this tab on tab switch
                 DrawingCanvasZIndex = 1;
                 break;
             case TabIndex.Tokens:
@@ -445,6 +458,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 TokenVisibility = Visibility.Visible;
 
                 MouseCanvas = TokenController.MouseCanvas;
+                ControlInfoText = string.Empty; // todo: update to active controls for this tab on tab switch
                 DrawingCanvasZIndex = 0;
                 break;
         }
@@ -851,5 +865,23 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             DrawingController.ResumeBitmapCreation();
             TokenController.ResumeBitmapCreation();
         }
+    }
+
+    private string GetControlInfoText(ControlInfoEventArgs e)
+    {
+        var controlInfoText = new StringBuilder();
+        controlInfoText.Append("Active Mode: ").Append(e.controlName.ToString()); // header
+        controlInfoText.Append("\n").Append("\n");
+        foreach (var controlInfo in e.infoBlocks.OrderBy(i => (int?) i.Type ?? -1)) // order by type, null type first
+        {
+            var additional = controlInfo?.Additional == null ? string.Empty : " + " + controlInfo.Additional.ToString();
+            var typeInfo = controlInfo?.Type == null ?
+                string.Empty : // ignore type info in control info text
+                string.Format("{0}{1}: ", controlInfo.Type.ToString(), additional); // adds type info in control info text + adds additional if present.
+
+            var info = string.Format("{0}{1}\n", typeInfo, controlInfo.ControlInfo);
+            controlInfoText.Append(info);
+        }
+        return controlInfoText.ToString();
     }
 }

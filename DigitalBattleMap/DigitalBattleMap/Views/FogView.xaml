@@ -121,24 +121,19 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <ToggleButton Margin="0 0 10 0" Command="{Binding DrawPolygonCommand}" IsChecked="{Binding IsDrawPolygonChecked}" HorizontalContentAlignment="Stretch" HorizontalAlignment="Stretch"
-                          ToolTip="Press and move to draw a fog shape">
+            <ToggleButton Margin="0 0 10 0" Command="{Binding DrawPolygonCommand}" IsChecked="{Binding IsDrawPolygonChecked}" HorizontalContentAlignment="Stretch" HorizontalAlignment="Stretch">
                 <Image Source="{Binding DrawIconBitmapSource}" Height="50" Margin="2"/>
             </ToggleButton>
-            <ToggleButton Grid.Column="1" Margin="10 0 10 0" Command="{Binding StraightPolygonCommand}" IsChecked="{Binding IsStraightPolygonChecked}" HorizontalContentAlignment="Stretch"
-                          ToolTip="Click to start drawing the fog shape, return to the start point or right click will complete the shape">
+            <ToggleButton Grid.Column="1" Margin="10 0 10 0" Command="{Binding AngularPolygonCommand}" IsChecked="{Binding IsAngularPolygonChecked}" HorizontalContentAlignment="Stretch">
                 <Image Source="{Binding ZigZagIconBitmapSource}" Height="50" Margin="2"/>
             </ToggleButton>
-            <ToggleButton Grid.Column="2" Margin="10 0 10 0" Command="{Binding RectangleCommand}" IsChecked="{Binding IsRectangleChecked}" HorizontalContentAlignment="Stretch"
-                          ToolTip="Press and move to draw a square shape corner to corner">
+            <ToggleButton Grid.Column="2" Margin="10 0 10 0" Command="{Binding RectangleCommand}" IsChecked="{Binding IsRectangleChecked}" HorizontalContentAlignment="Stretch">
                 <Image Source="{Binding SquareIconBitmapSource}" Height="50" Margin="2"/>
             </ToggleButton>
-            <ToggleButton Grid.Column="3" Margin="10 0 10 0" Command="{Binding CircleCommand}" IsChecked="{Binding IsCircleChecked}" HorizontalContentAlignment="Stretch"
-                          ToolTip="Press and move to draw a circle from the center">
+            <ToggleButton Grid.Column="3" Margin="10 0 10 0" Command="{Binding CircleCommand}" IsChecked="{Binding IsCircleChecked}" HorizontalContentAlignment="Stretch">
                 <Image Source="{Binding CircleIconBitmapSource}" Height="50" Margin="2"/>
             </ToggleButton>
-            <ToggleButton Grid.Column="4" Margin="10 0 0 0" Command="{Binding NGonCommand}" IsChecked="{Binding IsNGonChecked}" HorizontalContentAlignment="Stretch"
-                          ToolTip="Press and move to draw a N-number gon shape. Default trigon (triangle), increase by mouse wheele while pressed">
+            <ToggleButton Grid.Column="4" Margin="10 0 0 0" Command="{Binding NGonCommand}" IsChecked="{Binding IsNGonChecked}" HorizontalContentAlignment="Stretch">
                 <Image Source="{Binding NGonIconBitmapSource}" Height="50" Margin="2"/>
             </ToggleButton>
         </Grid>

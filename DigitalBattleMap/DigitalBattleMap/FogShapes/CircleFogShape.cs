@@ -2,6 +2,7 @@
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
+using System.Collections.Generic;
 
 namespace DigitalBattleMap.FogShapes;
 
@@ -19,7 +20,9 @@ internal class CircleFogShape : FogShape
 
     public override FogShape Clone()
     {
-        return new CircleFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid, IsFogEnabled = IsFogEnabled };
+        var shape = new CircleFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid, IsFogEnabled = IsFogEnabled };
+        shape.OnControlUpdated += NotifyControlUpdated;
+        return shape;
     }
 
     protected override void ButtonDown(Point<double> position)
@@ -62,5 +65,12 @@ internal class CircleFogShape : FogShape
         var radius = Math.Sqrt(Math.Pow(distance.X, 2) + Math.Pow(distance.Y, 2));
         var gridCells = radius * 2 / _mapSize.CanvasGridSize;
         Size = $"{Math.Round(gridCells * Constants.FeetPerGridCell)}";
+    }
+
+    public override void UpdateControls()
+    {
+        var infoBlock1 = new InfoBlock(ControlType.LMB, ControlType.Down, "Start drawing the circle from the center of the start position");
+        var infoBlock2 = new InfoBlock(ControlType.LMB, ControlType.Up, "Complete drawing the circle");
+        NotifyControlUpdated("Circle drawing", new List<InfoBlock> { infoBlock1, infoBlock2 });
     }
 }

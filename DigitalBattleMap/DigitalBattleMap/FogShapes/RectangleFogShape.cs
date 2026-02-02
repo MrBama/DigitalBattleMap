@@ -2,6 +2,7 @@
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
+using System.Collections.Generic;
 
 namespace DigitalBattleMap.FogShapes;
 
@@ -19,7 +20,9 @@ public class RectangleFogShape : FogShape
 
     public override FogShape Clone()
     {
-        return new RectangleFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid, IsFogEnabled = IsFogEnabled }; 
+        var shape = new RectangleFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid, IsFogEnabled = IsFogEnabled };
+        shape.OnControlUpdated += NotifyControlUpdated;
+        return shape;
     }
 
     protected override void ButtonDown(Point<double> position)
@@ -67,5 +70,12 @@ public class RectangleFogShape : FogShape
                 Points.Add(new Point<double>(left, top));
             }
         }
+    }
+
+    public override void UpdateControls()
+    {
+        var infoBlock1 = new InfoBlock(ControlType.LMB, ControlType.Down, "Start drawing the rectangle from the corner of the start position");
+        var infoBlock2 = new InfoBlock(ControlType.LMB, ControlType.Up, "Complete drawing the rectangle");
+        NotifyControlUpdated("Rectangle drawing", new List<InfoBlock> { infoBlock1, infoBlock2 });
     }
 }
