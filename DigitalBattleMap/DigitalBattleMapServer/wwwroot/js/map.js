@@ -3,6 +3,7 @@
 const backgroundUrl = "/Map/Get?layer=Background";
 const gridAndStrokesUrl = "/Map/Get?layer=GridAndStrokes";
 const tokensUrl = "/Map/Get?layer=Tokens";
+const fogUrl = "/Map/Get?layer=Fog";
 
 let controlsPositionLeft = true;
 
@@ -51,6 +52,7 @@ connectionMap.on("UpdateMap", function (drawLayer) {
             $('#tokenImage').attr('src', tokensUrl + '&t=' + new Date().getTime());
             $('#gridAndStrokesImage').attr('src', gridAndStrokesUrl + '&t=' + new Date().getTime());
             $('#backgroundImage').attr('src', backgroundUrl + '&t=' + new Date().getTime());
+            $('#fogImage').attr('src', fogUrl + '&t=' + new Date().getTime());
             break;
         case 1:
             $('#backgroundImage').attr('src', backgroundUrl + '&t=' + new Date().getTime());
@@ -60,6 +62,8 @@ connectionMap.on("UpdateMap", function (drawLayer) {
             break;
         case 3:
             $('#tokenImage').attr('src', tokensUrl + '&t=' + new Date().getTime());
+        case 4:
+            $('#fogImage').attr('src', fogUrl + '&t=' + new Date().getTime());
             break;
     }
 
