@@ -83,7 +83,7 @@
                                 <ColumnDefinition Width="4*" />
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" x:Name="ShapeNameTextBox" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" Margin="2"/>
-                            <TextBlock Grid.Column="1" Text="{Binding ShapeType}" FontWeight="Bold" Margin="2"/>
+                            <TextBlock Grid.Column="1" Text="{Binding ShapeType}" FontWeight="Bold" Margin="2" HorizontalAlignment="Center"/>
                         </Grid>
                         
                         <!-- Toggle Fog -->
@@ -91,7 +91,7 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="auto"/>
                             </Grid.ColumnDefinitions>
-                            <ToggleButton Content="Enabled" FontWeight="Bold" IsChecked="{Binding IsFogEnabled, Mode=TwoWay}" HorizontalAlignment="Center" Margin="2"/>
+                            <ToggleButton Content="Enabled" FontWeight="Bold" IsChecked="{Binding IsFogEnabled, Mode=TwoWay}" HorizontalAlignment="Right" Margin="2"/>
                         </Grid>
 
                         <!-- Delete Fog -->

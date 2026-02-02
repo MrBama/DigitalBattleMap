@@ -12,7 +12,7 @@ public class RectangleFogShape : FogShape
 
     public RectangleFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnable = true) : base(applyShapeCallback, mapSize)
     {
-        ShapeType = "Rectangle";
+        ShapeType = "Rectangle Fog";
         SnapToGrid = true;
         IsFogEnabled = isFogEnable;
     }

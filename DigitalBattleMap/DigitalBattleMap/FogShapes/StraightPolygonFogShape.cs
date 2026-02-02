@@ -12,7 +12,7 @@ public class StraightPolygonFogShape : FogShape
     private Stack<Point<double>> previousMoves;
     public StraightPolygonFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnable = true) : base(applyShapeCallback, mapSize)
     {
-        ShapeType = "Straight Polygon";
+        ShapeType = "Straight Fog";
         SnapToGrid = true;
         previousMoves = new Stack<Point<double>>();
         IsFogEnabled = isFogEnable;

@@ -321,6 +321,11 @@ public static class BitmapTools
 
     private static void FogPolygon(Size<double> canvasSize, Graphics graphics, FogShape shape)
     {
+        if (!shape.Points.Any())
+        {
+            return;
+        }
+
         var pointsF = new List<PointF>();
         foreach (var point in shape.Points)
         {
@@ -335,7 +340,7 @@ public static class BitmapTools
         // The fog becomes solid black for the players the
         // white polygons will become transparent places in the fog.
         var brush = shape.IsFogEnabled ? Brushes.Black : Brushes.White;
-        graphics.FillPolygon(brush, pointsF.ToArray()); // todo multi-enable in UI seems to break something.
+        graphics.FillPolygon(brush, pointsF.ToArray());
     }
 
     public static void DrawShapes(Bitmap bitmap, List<DrawingShape> shapes, Size<double> canvasSize)

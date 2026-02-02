@@ -12,7 +12,7 @@ internal class CircleFogShape : FogShape
 
     public CircleFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnabled = true) : base(applyShapeCallback, mapSize)
     {
-        ShapeType = "Circle";
+        ShapeType = "Circle Fog";
         SnapToGrid = true;
         IsFogEnabled = isFogEnabled;
     }

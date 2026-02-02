@@ -10,7 +10,7 @@ public class DrawPolygonFogShape : FogShape
 {
     public DrawPolygonFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnable = true) : base(applyShapeCallback, mapSize)
     {
-        ShapeType = "Draw Polygon";
+        ShapeType = "Drawn Fog";
         IsFogEnabled = isFogEnable;
     }
 

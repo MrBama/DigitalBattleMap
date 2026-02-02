@@ -17,17 +17,21 @@ public class FogShapeCollection : PropertyHandler, IEnumerable, INotifyCollectio
     public event NotifyCollectionChangedEventHandler? OnFogShapePointsChanged;
     public event PropertyChangedEventHandler? OnFogShapePropertyChanged;
     public event EventHandler<FogShapeCollectionChangedEventArgs> OnFogShapeCollectionChanged;
-    public event EventHandler OnRenderShapes; // todo change?
+    public event EventHandler OnRenderShapes;
     public event NotifyCollectionChangedEventHandler? CollectionChanged; // This is only used for UI
 
     public bool IsFillFogEnabled { get => Get<bool>(); set => Set(value); }
 
     public void Add(FogShape fogShape)
     {
+        if (!fogShape.Points.Any())
+        {
+            return;
+        }
         _fogShapes.Add(fogShape);
         fogShape.PropertyChanged += FogShapePropertyChanged;
         fogShape.OnPointsChanged += FogShapePointsChanged;
-        fogShape.OnRenderChanged += RenderShapes; // todo change?
+        fogShape.OnRenderChanged += RenderShapes;
         FogShapeCollectionChanged(new FogShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Add, ChangedShape = fogShape });
         FogShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, fogShape));
     }
@@ -42,6 +46,7 @@ public class FogShapeCollection : PropertyHandler, IEnumerable, INotifyCollectio
 
         FogShapeCollectionChanged(new FogShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Remove, ChangedShape = fogShape });
         FogShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, fogShape, index));
+        fogShape.ApplyShape(); // remove from map
     }
 
     public void Clear()

@@ -327,11 +327,6 @@ public class FogControllerViewModel : ControllerViewModelBase
         //ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize);
     }
 
-    private void DeleteShape(FogShape fogShape)
-    {
-        throw new NotImplementedException();
-    }
-
     private void LeftButtonDown(object? sender, MouseButtonDataEventArgs e)
     {
         ActiveFogShape.LeftButtonDown(e);
