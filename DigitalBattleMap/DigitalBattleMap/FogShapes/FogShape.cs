@@ -1,6 +1,7 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,7 +9,6 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
-using System.Windows.Automation;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -53,7 +53,6 @@ public abstract class FogShape : PropertyHandler
     public virtual Cursor Cursor { get => CursorCreator.Create(new SolidColorBrush(Color), (int)Math.Max(8, PenSize)); }
     public bool IsFogEnabled { get => Get<bool>(); set => Set(value); }
     public bool IsDeleted { get => Get<bool>(); set => Set(value); }
-    public BitmapSource DeleteIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogIcons.Delete.png")).ToBitmapImage(); }
     public Type Type { get => GetType(); }
     public ObservableCollection<Point<double>> Points
     {
@@ -74,6 +73,8 @@ public abstract class FogShape : PropertyHandler
             }
         }
     }
+    [JsonIgnore]
+    public BitmapSource DeleteIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogIcons.Delete.png")).ToBitmapImage(); }
 
     public void ApplyShape()
     {

@@ -53,7 +53,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public event EventHandler<CanvasSizeChangedEventArgs> OnCanvasSizeChanged;
 
     public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
-    public int SelectedMapTabIndex { get => Get<int>(); set => SetWhenChanged(value, GenerateMapOverview); }
+    public int SelectedMapTabIndex { get => Get<int>(); set => SetWhenChanged(value, SelectedTabMapChanged); }
     public int DrawingCanvasZIndex { get => Get<int>(); set => Set(value); }
     public int MultiMoveCount { get => Get<int>(); set => Set(value); }
     public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, IsShowMapLockedChanged); }
@@ -102,6 +102,10 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     double IMapSize.CanvasWidth => _canvasSize.Width;
     double IMapSize.CanvasHeight => _canvasSize.Height;
     double IMapSize.CanvasGridSize => CalculateCanvasGridSize();
+    string CampaingInfoText => "Active Mode: None \n \n Campaign tab contains no mouse controls";
+    // Oneliner because webpage elements exist on top of all other ui elements including this info text.
+    string StatBlockInfoText => "\t \t Select the header of a statblock to keep it focused. Switching between tabs will return you to the focused statblock."; 
+    string OverviewInfoText => "Active Mode: Map Overview \n \n Press reset to reset the overview";
 
     public ICommand ShowMapCommand { get; set; }
     public ICommand WindowClosingCommand { get; set; }
@@ -162,6 +166,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         HasBlackBackground = _settings.HasBlackBackground;
         CropColor = System.Windows.Media.Brushes.LightGray;
         MouseCanvas = BackgroundController.MouseCanvas;
+        ControlInfoText = CampaingInfoText;
 
         if (_settings.IsAutoSaveEnabled)
             _autoSaveTimer.Start();
@@ -390,7 +395,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             TokenController.ClearTokens();
             FogController.ClearFog();
 
-            GenerateMapOverview();
+            SelectedTabMapChanged();
             _connectionManager.ClearMap();
             ZoomAndMoveHistory.Clear();
         }
@@ -418,7 +423,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 TokenVisibility = Visibility.Visible;
 
                 MouseCanvas = CampaignController.MouseCanvas;
-                ControlInfoText = string.Empty; // todo: update to active controls for this tab on tab switch
+                ControlInfoText = CampaingInfoText;
                 DrawingCanvasZIndex = 0;
                 break;
             case TabIndex.Background:
@@ -428,7 +433,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 TokenVisibility = Visibility.Hidden;
 
                 MouseCanvas = BackgroundController.MouseCanvas;
-                ControlInfoText = string.Empty; // todo: update to active controls for this tab on tab switch
+                ControlInfoText = string.Empty;
                 DrawingCanvasZIndex = 1;
                 break;
             case TabIndex.Fog:
@@ -462,6 +467,8 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 DrawingCanvasZIndex = 0;
                 break;
         }
+
+        SetMapTabControlText();
     }
 
     public Size<int> GetSize()
@@ -571,6 +578,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         SelectedTabIndex = TabIndex.Tokens;
         SelectedMapTabIndex = 0;
+        ControlInfoText = string.Empty; // todo: update to active controls for this tab on tab switch
         ZoomAndMoveHistory.Clear();
 
         IsShowMapLocked = currentIsShowMapLocked;
@@ -817,37 +825,67 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         return gridSize.Map(0.0, Constants.MapSize.Width, 0.0, _canvasSize.Width);
     }
 
-    private void GenerateMapOverview()
+    private void SelectedTabMapChanged()
+    {
+        switch (SelectedMapTabIndex)
+        {
+            case TabMapIndex.Map:
+                // Not sure if this is smart
+                // Rediscorvers the selected tab and sets the Control text depending on the tab.
+                SelectedTabChanged(); 
+                MapOverview.ClearMap();
+                break;
+            case TabMapIndex.Overview:
+                GenerateMapOverview();
+                break;
+            case TabMapIndex.Statblocks:
+                MapOverview.ClearMap();
+                break;
+        }
+
+        SetMapTabControlText();
+    }
+     
+    private void GenerateMapOverview() 
+    { 
+        var zoomFactor = BackgroundController.GetZoomFactor();
+        var containsBackgroundOverview = false;
+
+        var overviewBitmaps = new List<OverviewBitmap>();
+        if (BackgroundController.GetOverviewBitmap(out var backgroundOverview))
+        {
+            containsBackgroundOverview = true;
+            overviewBitmaps.Add(backgroundOverview);
+        }
+        if (FogController.GetOverviewBitmap(zoomFactor, out var fogOverview))
+        {
+            overviewBitmaps.Add(fogOverview);
+        }
+        if (DrawingController.GetOverviewBitmap(zoomFactor, out var drawingOverview))
+        {
+            overviewBitmaps.Add(drawingOverview);
+        }
+        if (TokenController.GetOverviewBitmap(zoomFactor, out var tokenOverview))
+        {
+            overviewBitmaps.Add(tokenOverview);
+        }
+
+        MapOverview.CreateOverview(overviewBitmaps, zoomFactor, containsBackgroundOverview, BackgroundController.IsGridShown);
+    }
+
+    /**
+     * Set the control text depending on TabMapIndex
+     * TabMapIndex.Map control text depends on an other tab and is done in SelectedTabChanged
+     */
+    private void SetMapTabControlText()
     {
         if(SelectedMapTabIndex == TabMapIndex.Overview)
         {
-            var zoomFactor = BackgroundController.GetZoomFactor();
-            var containsBackgroundOverview = false;
-
-            var overviewBitmaps = new List<OverviewBitmap>();
-            if (BackgroundController.GetOverviewBitmap(out var backgroundOverview))
-            {
-                containsBackgroundOverview = true;
-                overviewBitmaps.Add(backgroundOverview);
-            }
-            if (FogController.GetOverviewBitmap(zoomFactor, out var fogOverview))
-            {
-                overviewBitmaps.Add(fogOverview);
-            }
-            if (DrawingController.GetOverviewBitmap(zoomFactor, out var drawingOverview))
-            {
-                overviewBitmaps.Add(drawingOverview);
-            }
-            if (TokenController.GetOverviewBitmap(zoomFactor, out var tokenOverview))
-            {
-                overviewBitmaps.Add(tokenOverview);
-            }
-
-            MapOverview.CreateOverview(overviewBitmaps, zoomFactor, containsBackgroundOverview, BackgroundController.IsGridShown);
-        }
-        else
+            ControlInfoText = OverviewInfoText;
+        } 
+        else if (SelectedMapTabIndex == TabMapIndex.Statblocks)
         {
-            MapOverview.ClearMap();
+            ControlInfoText = StatBlockInfoText;
         }
     }
 
