@@ -326,10 +326,11 @@ public class FogControllerViewModel : ControllerViewModelBase
         ActiveFogShape.UpdateControls();
     }
 
-    // todo
     private void NGonShape()
     {
-        //ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize);
+        ActiveFogShape = new NGonFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled);
+        ActiveFogShape.OnControlUpdated += NotifyControlUpdated;
+        ActiveFogShape.UpdateControls();
     }
 
     private void LeftButtonDown(object? sender, MouseButtonDataEventArgs e)
