@@ -45,6 +45,10 @@ public class AngularPolygonFogShape : FogShape
 
     protected override void CancelButton()
     {
+        if (!Points.Any())
+        {
+            return;
+        }
         Points.Add(Points.First());
         ApplyShape();
     }

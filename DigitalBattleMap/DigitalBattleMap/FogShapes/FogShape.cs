@@ -75,6 +75,8 @@ public abstract class FogShape : PropertyHandler
     }
     [JsonIgnore]
     public BitmapSource DeleteIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogIcons.Delete.png")).ToBitmapImage(); }
+    public virtual NType CurrentType { get => Get<NType>(); set => Set(value); }
+
 
     public void ApplyShape()
     {

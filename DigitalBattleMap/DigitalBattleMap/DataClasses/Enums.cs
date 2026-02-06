@@ -108,3 +108,13 @@ public enum ControlType
     Down,
     Click
 }
+
+public enum NType
+{
+    Triangle,
+    Tetragon,
+    Pentagon,
+    Hexagon,
+    Heptagon,
+    Octagon
+}
