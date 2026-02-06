@@ -103,7 +103,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     double IMapSize.CanvasHeight => _canvasSize.Height;
     double IMapSize.CanvasGridSize => CalculateCanvasGridSize();
     string CampaingInfoText => "Active Mode: None \n \n Campaign tab contains no mouse controls";
-    // Oneliner because webpage elements exist on top of all other ui elements including this info text.
+    // Oneliner because webpage elements exist on top of all other ui elements including any info text after a new line.
     string StatBlockInfoText => "\t \t Select the header of a statblock to keep it focused. Switching between tabs will return you to the focused statblock."; 
     string OverviewInfoText => "Active Mode: Map Overview \n \n Press reset to reset the overview";
 
@@ -463,7 +463,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 TokenVisibility = Visibility.Visible;
 
                 MouseCanvas = TokenController.MouseCanvas;
-                ControlInfoText = string.Empty; // todo: update to active controls for this tab on tab switch
+                ControlInfoText = GetTokenInfoText();
                 DrawingCanvasZIndex = 0;
                 break;
         }
@@ -578,7 +578,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         SelectedTabIndex = TabIndex.Tokens;
         SelectedMapTabIndex = 0;
-        ControlInfoText = string.Empty; // todo: update to active controls for this tab on tab switch
+        ControlInfoText = GetTokenInfoText();
         ZoomAndMoveHistory.Clear();
 
         IsShowMapLocked = currentIsShowMapLocked;
@@ -903,6 +903,22 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             DrawingController.ResumeBitmapCreation();
             TokenController.ResumeBitmapCreation();
         }
+    }
+
+    // todo: complete info text
+    private string GetTokenInfoText()
+    {
+        var info = new ControlInfoEventArgs()
+        {
+            controlName = "Token Controls",
+            infoBlocks = new List<InfoBlock>()
+            {
+                new InfoBlock(ControlType.LMB, "Move selected token to grid location"),
+                new InfoBlock(ControlType.RMB, "Select token in grid location"),
+                new InfoBlock(ControlType.Alt, ControlType.LMB, "Toggle on/off the fog of war shape at the selected location")
+            }
+        };
+        return GetControlInfoText(info);
     }
 
     private string GetControlInfoText(ControlInfoEventArgs e)
