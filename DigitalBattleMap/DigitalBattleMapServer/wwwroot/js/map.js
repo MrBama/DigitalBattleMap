@@ -1,9 +1,9 @@
 "use strict";
 
 const backgroundUrl = "/Map/Get?layer=Background";
+const fogUrl = "/Map/Get?layer=Fog";
 const gridAndStrokesUrl = "/Map/Get?layer=GridAndStrokes";
 const tokensUrl = "/Map/Get?layer=Tokens";
-const fogUrl = "/Map/Get?layer=Fog";
 
 let controlsPositionLeft = true;
 
@@ -47,26 +47,26 @@ function updatePauseStatus(isPaused) {
 }
 
 connectionMap.on("UpdateMap", function (drawLayer) {
+    var time = new Date().getTime();
     switch (drawLayer) {
         case 0:
-            $('#tokenImage').attr('src', tokensUrl + '&t=' + new Date().getTime());
-            $('#gridAndStrokesImage').attr('src', gridAndStrokesUrl + '&t=' + new Date().getTime());
-            $('#backgroundImage').attr('src', backgroundUrl + '&t=' + new Date().getTime());
-            $('#fogImage').attr('src', fogUrl + '&t=' + new Date().getTime());
+            $('#tokenImage').attr('src', tokensUrl + '&t=' + time);
+            $('#fogImage').attr('src', fogUrl + '&t=' + time);
+            $('#gridAndStrokesImage').attr('src', gridAndStrokesUrl + '&t=' + time);
+            $('#backgroundImage').attr('src', backgroundUrl + '&t=' + time);
             break;
         case 1:
-            $('#backgroundImage').attr('src', backgroundUrl + '&t=' + new Date().getTime());
+            $('#backgroundImage').attr('src', backgroundUrl + '&t=' + time);
             break;
         case 2:
-            $('#gridAndStrokesImage').attr('src', gridAndStrokesUrl + '&t=' + new Date().getTime());
+            $('#gridAndStrokesImage').attr('src', gridAndStrokesUrl + '&t=' + time);
             break;
         case 3:
-            $('#tokenImage').attr('src', tokensUrl + '&t=' + new Date().getTime());
+            $('#tokenImage').attr('src', tokensUrl + '&t=' + time);
         case 4:
-            $('#fogImage').attr('src', fogUrl + '&t=' + new Date().getTime());
+            $('#fogImage').attr('src', fogUrl + '&t=' + time);
             break;
     }
-
 });
 
 connectionMap.on("UpdatePauseStatus", function (isPaused) {

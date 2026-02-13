@@ -22,9 +22,9 @@
     
     <Grid Margin="5">
         <Image Source="{Binding BackgroundBitmapSource}"/>
+        <Image Source="{Binding FogBitmapSource}"/>
         <Image Source="{Binding GridBitmapSource}"/>
         <Image Source="{Binding TokenBitmapSource}"/>
-        <Image Source="{Binding FogBitmapSource}"/>
         <Image Source="{Binding PauseIconBitmapSource}" Width="250" Stretch="Uniform" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="20" Visibility="{Binding IsPaused, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}" />
     </Grid>
 </Window>
