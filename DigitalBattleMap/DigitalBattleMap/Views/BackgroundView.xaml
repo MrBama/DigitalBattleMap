@@ -21,21 +21,17 @@
     <!--Background editor grid-->
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/> <!--1-->
+            <RowDefinition Height="auto"/> <!--2-->
+            <RowDefinition Height="auto"/> <!--3-->
+            <RowDefinition Height="auto"/> <!--4-->
+            <RowDefinition Height="auto"/> <!--5-->
+            <RowDefinition Height="auto"/> <!--6-->
+            <RowDefinition Height="auto"/> <!--7-->
+            <RowDefinition Height="auto"/> <!--8-->
+            <RowDefinition Height="auto"/> <!--9-->
+            <RowDefinition Height="auto"/> <!--10-->
+            <RowDefinition Height="*"/> <!--11-->
         </Grid.RowDefinitions>
 
         <Button Content="Open background" Command="{Binding OpenBackgroundCommand}"/>
@@ -91,51 +87,19 @@
             <TextBox Grid.Column="1" VerticalContentAlignment="Center" Text="{Binding FeetPerGridCell, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsBackgroundEditingAllowed}" Width="{Binding ElementName=GridCellsXTextBox,Path=ActualWidth}" HorizontalAlignment="Left"/>
         </Grid>
 
-        <!--Enable fog of war grid-->
+        <!-- Grid label-->
         <Grid Grid.Row="7" Margin="0 10 0 0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Label Content="Fog of war"/>
-            <CheckBox Grid.Column="1" VerticalAlignment="Center" Margin="10 0 0 0" IsChecked="{Binding IsFogOfWarEnabled}" IsEnabled="{Binding HasOpenedBackground}"/>
-        </Grid>
-
-        <!--Remove fog shape grid-->
-        <Grid Grid.Row="8" Margin="0 10 0 0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Label Content="Removal shape"/>
-            <RadioButton Grid.Column="1" Content="Rectangle" VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="10 0 0 0" IsEnabled="{Binding IsFogOfWarEnabled}" IsChecked="{Binding FogRemovalRectangleShape}"/>
-            <RadioButton Grid.Column="2" Content="Polygon" VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="10 0 0 0" IsEnabled="{Binding IsFogOfWarEnabled}" IsChecked="{Binding FogRemovalPolygonShape}"/>
-        </Grid>
-
-        <!--Remove fog grid-->
-        <Grid Grid.Row="9" Margin="0 10 0 0" IsEnabled="{Binding IsFogOfWarEnabled}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Button Content="Cancel" Margin="0 0 5 0" Command="{Binding CancelFogRemovalCommand}" IsEnabled="{Binding IsFogOfWarAreaSelected}" />
-            <Button Grid.Column="1" Content="Apply" Margin="5 0 0 0" Command="{Binding ApplyFogOfWarCommand}" IsEnabled="{Binding IsFogOfWarAreaSelected}" />
-        </Grid>
-        <Button Grid.Row="10" Content="Clear fog" Margin="0 10 0 0" IsEnabled="{Binding IsFogOfWarEnabled}" Command="{Binding ClearFogCommand}"/>
-
-        <Grid Grid.Row="11" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Separator BorderThickness="1" BorderBrush="Gray"/>
-            <Label Grid.Column="1" Content="Grid" x:Name="testlabel" FontSize="20" FontWeight="Bold"/>
+            <Label Grid.Column="1" Content="Grid" FontSize="20" FontWeight="Bold"/>
             <Separator Grid.Column="2" BorderThickness="1" BorderBrush="Gray"/>
         </Grid>
 
-        <Grid Grid.Row="12" Margin="0 10 0 0">
+        <Grid Grid.Row="8" Margin="0 10 0 0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
@@ -159,7 +123,7 @@
             <CheckBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding IsGridShown}" Margin="0 10 0 0"/>
         </Grid>
 
-        <Grid Grid.Row="13" Margin="0 10 0 0">
+        <Grid Grid.Row="9" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
@@ -175,7 +139,7 @@
             <Button Grid.Row="1" Grid.ColumnSpan="3" Content="Open overlay" Command="{Binding OpenGMOverlayCommand}"/>
         </Grid>
 
-        <Button Grid.Row="14" Content="Clear overlay" Command="{Binding ClearGMOverlayCommand}" Margin="0 10 0 0" VerticalAlignment="Top"/>
-        <Button Grid.Row="15" Content="Clear" Command="{Binding ClearBackgroundCommand}" Margin="0 10 0 0" VerticalAlignment="Bottom"/>
+        <Button Grid.Row="10" Content="Clear overlay" Command="{Binding ClearGMOverlayCommand}" Margin="0 10 0 0" VerticalAlignment="Top"/>
+        <Button Grid.Row="11" Content="Clear" Command="{Binding ClearBackgroundCommand}" Margin="0 10 0 0" VerticalAlignment="Bottom"/>
     </Grid>
 </UserControl>

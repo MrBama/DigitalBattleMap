@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.DrawingShapes;
+using DigitalBattleMap.FogShapes;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
@@ -148,7 +149,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     public override void AddToSaveFile(SaveFile saveFile)
     {
-        foreach ((var shape, var index) in ShapeCollection.GetShapes().WithIndex())
+        foreach ((var shape, var index) in ShapeCollection.GetDrawingShapes().WithIndex())
         {
             saveFile.DrawingShapes.Add(shape);
 
@@ -192,7 +193,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         {
             var zoomFactor = eventArgs.NewSize.Width / eventArgs.OldSize.Width;
 
-            foreach (var shape in ShapeCollection.GetShapes())
+            foreach (var shape in ShapeCollection.GetDrawingShapes())
             {
                 shape.PenSize *= zoomFactor;
             }
@@ -228,60 +229,60 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public Bitmap GetDrawingBitmap()
     {
         var bitmap = BitmapTools.CreateEmptyBitmap();
-        BitmapTools.DrawShapes(bitmap, ShapeCollection.GetShapes().ToList(), _mapSize.GetCanvasSize());
+        BitmapTools.DrawShapes(bitmap, ShapeCollection.GetDrawingShapes().ToList(), _mapSize.GetCanvasSize());
         return bitmap;
     }
 
     public bool GetOverviewBitmap(double zoomFactor, out OverviewBitmap overviewBitmap)
     {
         overviewBitmap = new OverviewBitmap();
-        var shapes = ShapeCollection.GetShapes().ToList();
-        if (shapes.Count != 0)
+        var shapes = ShapeCollection.GetDrawingShapes().ToList();
+        if (!shapes.Any())
         {
-            var shapeOverviewBitmaps = new List<OverviewBitmap>();
-
-            foreach (var shape in shapes)
-            {
-                var shapeOverviewBitmap = new OverviewBitmap();
-                var penSize = shape.PenSize.Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width);
-                var points = new List<Point<double>>();
-
-                foreach (var point in shape.Points)
-                {
-                    var resizedX = point.X.Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width);
-                    var resizedY = point.Y.Map(0, _mapSize.CanvasHeight, 0, Constants.MapSize.Height);
-                    points.Add(new Point<double>(resizedX * zoomFactor, resizedY * zoomFactor));
-                }
-
-                shapeOverviewBitmap.Bitmap = BitmapTools.CreateShapeOverviewBitmap(points, shape.Color, penSize);
-
-                var shapeMinX = points.Min(t => t.X);
-                var shapeMinY = points.Min(t => t.Y);
-                shapeMinX -= (penSize / 2);
-                shapeMinY -= (penSize / 2);
-
-                shapeOverviewBitmap.OffsetFromOrigin = new Point<int>((int)Math.Round(shapeMinX), (int)Math.Round(shapeMinY));
-
-                shapeOverviewBitmaps.Add(shapeOverviewBitmap);
-            }
-
-            overviewBitmap.Bitmap = BitmapTools.CreateShapesOverviewBitmap(shapeOverviewBitmaps);
-
-            // OffsetFromOrigin = top left of player view to top left of shapes bounding box
-            // Shape positions are always relative to top left of the player view (=origin)
-            var minX = Mathematics.Min(shapeOverviewBitmaps.Select(l => l.OffsetFromOrigin.X));
-            var minY = Mathematics.Min(shapeOverviewBitmaps.Select(l => l.OffsetFromOrigin.Y));
-            overviewBitmap.OffsetFromOrigin = new Point<int>(minX, minY);
-
-            return true;
+            return false;
         }
 
-        return false;
+        var shapeOverviewBitmaps = new List<OverviewBitmap>();
+
+        foreach (var shape in shapes)
+        {
+            var shapeOverviewBitmap = new OverviewBitmap();
+            var penSize = shape.PenSize.Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width);
+            var points = new List<Point<double>>();
+
+            foreach (var point in shape.Points)
+            {
+                var resizedX = point.X.Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width);
+                var resizedY = point.Y.Map(0, _mapSize.CanvasHeight, 0, Constants.MapSize.Height);
+                points.Add(new Point<double>(resizedX * zoomFactor, resizedY * zoomFactor));
+            }
+
+            shapeOverviewBitmap.Bitmap = BitmapTools.CreateShapeOverviewBitmap(points, shape.Color, penSize);
+
+            var shapeMinX = points.Min(t => t.X);
+            var shapeMinY = points.Min(t => t.Y);
+            shapeMinX -= (penSize / 2);
+            shapeMinY -= (penSize / 2);
+
+            shapeOverviewBitmap.OffsetFromOrigin = new Point<int>((int)Math.Round(shapeMinX), (int)Math.Round(shapeMinY));
+
+            shapeOverviewBitmaps.Add(shapeOverviewBitmap);
+        }
+
+        overviewBitmap.Bitmap = BitmapTools.CreateShapesOverviewBitmap(shapeOverviewBitmaps);
+
+        // OffsetFromOrigin = top left of player view to top left of shapes bounding box
+        // Shape positions are always relative to top left of the player view (=origin)
+        var minX = Mathematics.Min(shapeOverviewBitmaps.Select(l => l.OffsetFromOrigin.X));
+        var minY = Mathematics.Min(shapeOverviewBitmaps.Select(l => l.OffsetFromOrigin.Y));
+        overviewBitmap.OffsetFromOrigin = new Point<int>(minX, minY);
+
+        return true;
     }
 
     public void ClearDrawings()
     {
-        foreach (var shape in ShapeCollection.GetShapes())
+        foreach (var shape in ShapeCollection.GetDrawingShapes())
         {
             shape.LinkableObject.Dispose();
         }
@@ -447,7 +448,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private DrawingShape CreateStrokeDrawingShape()
     {
-        var strokeDrawingShapes = ShapeCollection.GetShapes().OfType<StrokeDrawingShape>();
+        var strokeDrawingShapes = ShapeCollection.GetDrawingShapes().OfType<StrokeDrawingShape>();
 
         return new StrokeDrawingShape(ApplyActiveShape, _tokenLinker, _mapSize)
         {

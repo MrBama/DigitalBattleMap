@@ -1,6 +1,7 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
+using DigitalBattleMap.UIElements;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System;
@@ -21,10 +22,12 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
 
     public CampaignControllerViewModel()
     {
+        MouseCanvas = new MouseCanvasViewModel(); // do nothing with the mouse
     }
 
     public CampaignControllerViewModel(IWindowService windowService, IWebCommunication webCommunication, IMonsterTokens monsterTokens, Settings settings)
     {
+        MouseCanvas = new MouseCanvasViewModel(); // do nothing with the mouse
         _windowService = windowService;
         _webCommunication = webCommunication;
         _monsterTokens = monsterTokens;
@@ -58,6 +61,7 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
     public Player SelectedPlayer { get => Get<Player>(); set => Set(value); }
     public TokenIdentifier SelectedToken { get => Get<TokenIdentifier>(); set => Set(value); }
     public bool CampaignListUpdated { get => Get<bool>(); set => Set(value); }
+    public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
 
     public ICommand RemoveCampaignCommand { get; set; }
     public ICommand EditCampaignCommand { get; set; }

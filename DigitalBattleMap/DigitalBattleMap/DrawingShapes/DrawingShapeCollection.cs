@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Interfaces;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -84,7 +85,7 @@ public class DrawingShapeCollection : IEnumerable, INotifyCollectionChanged
         return _drawingShapes.Contains(drawingShape);
     }
 
-    public IEnumerable<DrawingShape> GetShapes()
+    public IEnumerable<DrawingShape> GetDrawingShapes()
     {
         return _drawingShapes;
     }

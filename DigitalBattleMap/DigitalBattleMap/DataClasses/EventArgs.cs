@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.DrawingShapes;
+using DigitalBattleMap.FogShapes;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -57,6 +58,12 @@ public class ZoomAndEnhanceEventArgs : EventArgs
     public RectangleF rectangle { get; set; }
 }
 
+public class ToggleFogEventArgs : EventArgs
+{
+    public Point<double> position { get; set; }
+}
+
+
 public class DisconnectedEventArgs : EventArgs
 {
     public bool IsConnectionLost { get; set; }
@@ -70,6 +77,13 @@ public class SettingChangedEventArgs : EventArgs
 public class DrawingShapeCollectionChangedEventArgs : EventArgs
 {
     public DrawingShape ChangedShape { get; set; }
+    public CollectionChangedAction Action { get; set; }
+    public int Index { get; set; }
+}
+
+public class FogShapeCollectionChangedEventArgs : EventArgs
+{
+    public FogShape ChangedShape { get; set; }
     public CollectionChangedAction Action { get; set; }
     public int Index { get; set; }
 }
@@ -108,4 +122,10 @@ public class SetHeightEventArgs : EventArgs
 {
     public TokenIdentifier TokenIdentifier { get; set; } = new();
     public int Height { get; set; }
+}
+
+public class ControlInfoEventArgs : EventArgs
+{
+    public string controlName { get; set; }
+    public List<InfoBlock> infoBlocks { get; set; }
 }

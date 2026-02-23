@@ -17,6 +17,61 @@
     <Window.Resources>
         <uielements:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <uielements:BoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter" IsInverted="True"/>
+        <Style x:Key="FocusVisual">
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Rectangle Margin="2" StrokeDashArray="1 2" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" SnapsToDevicePixels="true" StrokeThickness="1"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <SolidColorBrush x:Key="Button.Static.Background" Color="#FFDDDDDD"/>
+        <SolidColorBrush x:Key="Button.Static.Border" Color="Black"/>
+        <SolidColorBrush x:Key="Button.MouseOver.Background" Color="#FFBEE6FD"/>
+        <SolidColorBrush x:Key="Button.MouseOver.Border" Color="#FF3C7FB1"/>
+        <SolidColorBrush x:Key="Button.Pressed.Background" Color="#FFC4E5F6"/>
+        <SolidColorBrush x:Key="Button.Pressed.Border" Color="#FF2C628B"/>
+        <SolidColorBrush x:Key="Button.Disabled.Background" Color="#FFF4F4F4"/>
+        <SolidColorBrush x:Key="Button.Disabled.Border" Color="#FFADB2B5"/>
+        <SolidColorBrush x:Key="Button.Disabled.Foreground" Color="#FF838383"/>
+        <Style x:Key="InfoToggleStyle" TargetType="{x:Type ToggleButton}"> <!-- I wanted a round button :( -->
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
+            <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Border x:Name="border" CornerRadius="50" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
+                            <ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Button.IsDefaulted" Value="True">
+                                <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.MouseOver.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.MouseOver.Border}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Pressed.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Pressed.Border}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
+                                <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <i:Interaction.Triggers>
@@ -42,40 +97,56 @@
         </Grid.ColumnDefinitions>
 
         <!--Tab grid-->
-        <TabControl Margin="0 0 10 0" BorderBrush="Gray" BorderThickness="0" SelectedIndex="{Binding SelectedTabIndex}">
-            <TabItem>
-                <TabItem.Header>
-                    <Image Source="{Binding CampaignEmblemBitmapSource}" MaxHeight="35" Margin="2"/>
-                </TabItem.Header>
-                <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
-                    <views:CampaignView DataContext="{Binding CampaignController}" Margin="10"/>
-                </Border>
-            </TabItem>
-            <TabItem>
-                <TabItem.Header>
-                    <Image Source="{Binding BackgroundEmblemBitmapSource}" MaxHeight="35" Margin="2"/>
-                </TabItem.Header>
-                <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
-                    <views:BackgroundView DataContext="{Binding BackgroundController}" Margin="10"/>
-                </Border>
-            </TabItem>
-            <TabItem>
-                <TabItem.Header>
-                    <Image Source="{Binding DrawingEmblemBitmapSource}" MaxHeight="35" Margin="2"/>
-                </TabItem.Header>
-                <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
-                    <views:DrawingView DataContext="{Binding DrawingController}" Margin="10"/>
-                </Border>
-            </TabItem>
-            <TabItem>
-                <TabItem.Header>
-                    <Image Source="{Binding TokenEmblemBitmapSource}" MaxHeight="35" Margin="2"/>
-                </TabItem.Header>
-                <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
-                    <views:TokenView DataContext="{Binding TokenController}" Margin="10"/>
-                </Border>
-            </TabItem>
-        </TabControl>
+        <Grid>
+            <!-- Tab control -->
+            <TabControl Margin="0 0 10 0" BorderBrush="Gray" BorderThickness="0" SelectedIndex="{Binding SelectedTabIndex}">
+                <TabItem>
+                    <TabItem.Header>
+                        <Image Source="{Binding CampaignEmblemBitmapSource}" MaxHeight="35" Margin="2"/>
+                    </TabItem.Header>
+                    <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
+                        <views:CampaignView DataContext="{Binding CampaignController}" Margin="10"/>
+                    </Border>
+                </TabItem>
+                <TabItem>
+                    <TabItem.Header>
+                        <Image Source="{Binding BackgroundEmblemBitmapSource}" MaxHeight="35" Margin="2"/>
+                    </TabItem.Header>
+                    <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
+                        <views:BackgroundView DataContext="{Binding BackgroundController}" Margin="10"/>
+                    </Border>
+                </TabItem>
+                <TabItem>
+                    <TabItem.Header>
+                        <Image Source="{Binding FogEmblemBitmapSource}" MaxHeight="35" Margin="2"/>
+                    </TabItem.Header>
+                    <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
+                        <views:FogView DataContext="{Binding FogController}" Margin="10"/>
+                    </Border>
+                </TabItem>
+                <TabItem>
+                    <TabItem.Header>
+                        <Image Source="{Binding DrawingEmblemBitmapSource}" MaxHeight="35" Margin="2"/>
+                    </TabItem.Header>
+                    <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
+                        <views:DrawingView DataContext="{Binding DrawingController}" Margin="10"/>
+                    </Border>
+                </TabItem>
+                <TabItem>
+                    <TabItem.Header>
+                        <Image Source="{Binding TokenEmblemBitmapSource}" MaxHeight="35" Margin="2"/>
+                    </TabItem.Header>
+                    <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
+                        <views:TokenView DataContext="{Binding TokenController}" Margin="10"/>
+                    </Border>
+                </TabItem>
+            </TabControl>
+            <!-- Info button -->
+            <ToggleButton Style="{DynamicResource InfoToggleStyle}" IsChecked="{Binding IsInfoEnabled}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0 5 15 0"
+                          ToolTip="When enabled shows the active controls in the top left corner of the map">
+                <Image Source="{Binding InfoIconBitmapSource}" Width="30" Height="30" Margin="-3" IsHitTestVisible="False"/>
+            </ToggleButton>
+        </Grid>
 
         <!--Map grid-->
         <Grid Grid.Column="1" >
@@ -84,81 +155,117 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <TabControl BorderThickness="0" SelectedIndex="{Binding SelectedMapTabIndex}">
-                <TabItem>
-                    <TabItem.Header>
-                        <TextBlock Text="Map" FontSize="20" FontWeight="Bold"/>
-                    </TabItem.Header>
+            <Grid>
+                <!-- Map and tabs -->
+                <TabControl BorderThickness="0" SelectedIndex="{Binding SelectedMapTabIndex}">
+                    <TabItem>
+                        <TabItem.Header>
+                            <TextBlock Text="Map" FontSize="20" FontWeight="Bold"/>
+                        </TabItem.Header>
 
-                    <Border x:Name="MapBorder" BorderThickness="3" BorderBrush="Black">
-                        <Grid x:Name="MapCanvas">
-                            <i:Interaction.Triggers>
-                                <i:EventTrigger EventName="SizeChanged">
-                                    <i:InvokeCommandAction Command="{Binding CanvasSizeChangedCommand}" PassEventArgsToCommand="True"/>
-                                </i:EventTrigger>
-                            </i:Interaction.Triggers>
-                            <Image Source="{Binding BackgroundController.BackgroundBitmapSource}"/>
-                            <Image Source="{Binding BackgroundController.GMOverlayBitmapSource}" Opacity="0.5"/>
-                            <Image Source="{Binding BackgroundController.FogOfWarBitmapSource}" Opacity="0.5"/>
-                            <Image x:Name="GridLayer" Source="{Binding BackgroundController.GridBitmapSource}"/>
-                            <uielements:DrawingCanvas
-                                Background="Transparent" 
-                                ActiveShape="{Binding DrawingController.ActiveShape}" 
-                                ShapeCollection="{Binding DrawingController.ShapeCollection}" 
-                                Cursor="{Binding DrawingController.ActiveShape.Cursor}"
-                                Visibility="{Binding DrawingCanvasVisibility}"
-                                Panel.ZIndex="{Binding DrawingCanvasZIndex}"
-                                Width="{Binding ElementName=GridLayer, Path=ActualWidth}" 
-                                Height="{Binding ElementName=GridLayer, Path=ActualHeight}">
-                            </uielements:DrawingCanvas>
-                            <Image Source="{Binding TokenController.TokenBitmapSource}" Visibility="{Binding TokenVisibility}"/>
-                            <Image Source="{Binding TokenController.TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
-                            <uielements:MouseCanvas 
-                                Visibility="{Binding MouseInputCanvasVisibility}" 
-                                Background="Transparent" 
-                                Cursor="{Binding MouseCanvas.Cursor}" 
-                                Panel.ZIndex="5"
-                                LeftButtonDownCommand="{Binding MouseCanvas.LeftButtonDownCommand}"
-                                LeftButtonUpCommand="{Binding MouseCanvas.LeftButtonUpCommand}"
-                                RightButtonDownCommand="{Binding MouseCanvas.RightButtonDownCommand}"
-                                RightButtonUpCommand="{Binding MouseCanvas.RightButtonUpCommand}"
-                                MouseMoveCommand="{Binding MouseCanvas.MouseMoveCommand}"
-                                MouseWheelCommand="{Binding MouseCanvas.MouseWheelCommand}">
-                                <Rectangle 
-                                    Width="{Binding MouseCanvas.SelectionWidth}" 
-                                    Height="{Binding MouseCanvas.SelectionHeight}" 
-                                    Canvas.Left="{Binding MouseCanvas.SelectionX}" 
-                                    Canvas.Top="{Binding MouseCanvas.SelectionY}"
-                                    Visibility="{Binding MouseCanvas.IsSelectionAreaVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
-                                    Fill="#32B8D4F0"
-                                    Stroke="#0078D7"/>
-                                <Polygon
-                                    Points="{Binding MouseCanvas.PolygonSelectionPoints}"
-                                    Visibility="{Binding MouseCanvas.IsSelectionAreaVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
-                                    Fill="#32B8D4F0"
-                                    Stroke="#0078D7"/>
-                            </uielements:MouseCanvas>
-                        </Grid>
-                    </Border>
-                </TabItem>
-                <TabItem>
-                    <TabItem.Header>
-                        <TextBlock Text="Overview" FontSize="20" FontWeight="Bold"/>
-                    </TabItem.Header>
+                        <Border x:Name="MapBorder" BorderThickness="3" BorderBrush="Black">
+                            <Grid x:Name="MapCanvas">
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="SizeChanged">
+                                        <i:InvokeCommandAction Command="{Binding CanvasSizeChangedCommand}" PassEventArgsToCommand="True"/>
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                                <Image Source="{Binding BackgroundController.BackgroundBitmapSource}"/>
+                                <Image Source="{Binding BackgroundController.GMOverlayBitmapSource}" Opacity="0.5"/>
+                                <Image x:Name="GridLayer" Source="{Binding BackgroundController.GridBitmapSource}"/>
+                                <uielements:FogCanvas
+                                    Background="Transparent" 
+                                    ActiveShape="{Binding FogController.ActiveFogShape}" 
+                                    ShapeCollection="{Binding FogController.FogShapeCollection}" 
+                                    Cursor="{Binding FogController.ActiveFogShape.Cursor}"
+                                    Visibility="{Binding FogCanvasVisibility}"
+                                    Panel.ZIndex="{Binding DrawingCanvasZIndex}"
+                                    Width="{Binding ElementName=GridLayer, Path=ActualWidth}" 
+                                    Height="{Binding ElementName=GridLayer, Path=ActualHeight}">
+                                </uielements:FogCanvas>
+                                <uielements:DrawingCanvas
+                                    Background="Transparent" 
+                                    ActiveShape="{Binding DrawingController.ActiveShape}" 
+                                    ShapeCollection="{Binding DrawingController.ShapeCollection}" 
+                                    Cursor="{Binding DrawingController.ActiveShape.Cursor}"
+                                    Visibility="{Binding DrawingCanvasVisibility}"
+                                    Panel.ZIndex="{Binding DrawingCanvasZIndex}"
+                                    Width="{Binding ElementName=GridLayer, Path=ActualWidth}" 
+                                    Height="{Binding ElementName=GridLayer, Path=ActualHeight}">
+                                </uielements:DrawingCanvas>
+                                <Image Source="{Binding TokenController.TokenBitmapSource}" Visibility="{Binding TokenVisibility}"/>
+                                <Image Source="{Binding TokenController.TokenSelectionBitmapSource}" Visibility="{Binding TokenVisibility}"/>
+                                <uielements:MouseCanvas 
+                                    Visibility="{Binding MouseInputCanvasVisibility}" 
+                                    Background="Transparent" 
+                                    Cursor="{Binding MouseCanvas.Cursor}" 
+                                    Panel.ZIndex="5"
+                                    LeftButtonDownCommand="{Binding MouseCanvas.LeftButtonDownCommand}"
+                                    LeftButtonUpCommand="{Binding MouseCanvas.LeftButtonUpCommand}"
+                                    RightButtonDownCommand="{Binding MouseCanvas.RightButtonDownCommand}"
+                                    RightButtonUpCommand="{Binding MouseCanvas.RightButtonUpCommand}"
+                                    MouseMoveCommand="{Binding MouseCanvas.MouseMoveCommand}"
+                                    MouseWheelCommand="{Binding MouseCanvas.MouseWheelCommand}">
+                                    <Rectangle 
+                                        Width="{Binding MouseCanvas.SelectionWidth}" 
+                                        Height="{Binding MouseCanvas.SelectionHeight}" 
+                                        Canvas.Left="{Binding MouseCanvas.SelectionX}" 
+                                        Canvas.Top="{Binding MouseCanvas.SelectionY}"
+                                        Visibility="{Binding MouseCanvas.IsSelectionAreaVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
+                                        Fill="#32B8D4F0"
+                                        Stroke="#0078D7"/>
+                                    <Polygon
+                                        Points="{Binding MouseCanvas.PolygonSelectionPoints}"
+                                        Visibility="{Binding MouseCanvas.IsSelectionAreaVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
+                                        Fill="#32B8D4F0"
+                                        Stroke="#0078D7"/>
+                                </uielements:MouseCanvas>
+                            </Grid>
+                        </Border>
+                    </TabItem>
+                    <TabItem>
+                        <TabItem.Header>
+                            <TextBlock Text="Overview" FontSize="20" FontWeight="Bold"/>
+                        </TabItem.Header>
 
-                    <Border BorderThickness="3" BorderBrush="Black" Width="{Binding ElementName=MapBorder, Path=ActualWidth}" Height="{Binding ElementName=MapBorder, Path=ActualHeight}">
-                        <views:MapOverviewView DataContext="{Binding MapOverview}"/>
-                    </Border>
-                </TabItem>
-                <TabItem Visibility="{Binding HideDungeonMasterFeatures, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}">
-                    <TabItem.Header>
-                        <TextBlock Text="Statblocks" FontSize="20" FontWeight="Bold"/>
-                    </TabItem.Header>
-                    <Border BorderThickness="3" BorderBrush="Black" Width="{Binding ElementName=MapBorder, Path=ActualWidth}" Height="{Binding ElementName=MapBorder, Path=ActualHeight}">
-                        <views:StatblocksView DataContext="{Binding TokenController.StatblocksViewModel}"/>
-                    </Border>
-                </TabItem>
-            </TabControl>
+                        <Border BorderThickness="3" BorderBrush="Black" Width="{Binding ElementName=MapBorder, Path=ActualWidth}" Height="{Binding ElementName=MapBorder, Path=ActualHeight}">
+                            <views:MapOverviewView DataContext="{Binding MapOverview}"/>
+                        </Border>
+                    </TabItem>
+                    <TabItem Visibility="{Binding HideDungeonMasterFeatures, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}">
+                        <TabItem.Header>
+                            <TextBlock Text="Statblocks" FontSize="20" FontWeight="Bold"/>
+                        </TabItem.Header>
+                        <Border BorderThickness="3" BorderBrush="Black" Width="{Binding ElementName=MapBorder, Path=ActualWidth}" Height="{Binding ElementName=MapBorder, Path=ActualHeight}">
+                            <views:StatblocksView DataContext="{Binding TokenController.StatblocksViewModel}"/>
+                        </Border>
+                    </TabItem>
+                </TabControl>
+                <!-- Info corner -->
+                <Canvas IsHitTestVisible="False" Visibility="{Binding IsInfoEnabled, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}">
+                    <!-- Black border around white info text for contrast -->
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                           Canvas.Top="2" Canvas.Left="2"/>
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                           Canvas.Top="2" Canvas.Left="4"/>
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                           Canvas.Top="4" Canvas.Left="2"/>
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                           Canvas.Top="4" Canvas.Left="4"/>
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                           Canvas.Top="4" Canvas.Left="3"/>
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                           Canvas.Top="3" Canvas.Left="4"/>
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                           Canvas.Top="2" Canvas.Left="3"/>
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                           Canvas.Top="3" Canvas.Left="2"/>
+                    <!-- White info text -->
+                    <TextBlock Text="{Binding ControlInfoText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 40 0 0" FontSize="18" IsHitTestVisible="False"
+                           Canvas.Top="3" Canvas.Left="3" Foreground="White"/>
+                </Canvas>
+
+            </Grid>
 
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
@@ -197,7 +304,7 @@
                             <Button x:Name="ZoomOutButton" Grid.Row="2" Grid.Column="0" Margin="0 5 5 0" Command="{Binding MapZoomOutCommand}" Width="{Binding ElementName=ZoomOutButton,Path=ActualHeight}">
                                 <Image Source="{Binding MapZoomOutBitmapSource}"/>
                             </Button>
-                            <Button x:Name="CropButton" Grid.Row="1" Grid.Column="1" Margin="5 0 0 5" Command="{Binding MapCropCommand}" Width="{Binding ElementName=CropButton,Path=ActualHeight}" IsEnabled="{Binding IsBackgroundOpen}" Background="{Binding CropColor}" >
+                            <Button x:Name="CropButton" Grid.Row="1" Grid.Column="1" Margin="5 0 0 5" Command="{Binding MapCropCommand}" Width="{Binding ElementName=CropButton,Path=ActualHeight}" Background="{Binding CropColor}" >
                                 <Image Source="{Binding MapCropBitmapSource}"/>
                             </Button>
                             <Button x:Name="ZoomBackgroundButton" Grid.Row="2" Grid.Column="1" Margin="5 5 0 0" Command="{Binding MapRevertZoomAndMoveCommand}" Width="{Binding ElementName=ZoomBackgroundButton,Path=ActualHeight}" IsEnabled="{Binding ZoomAndMoveHistory.IsPreviousCommandAvailable}">

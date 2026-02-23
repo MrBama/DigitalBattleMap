@@ -1,11 +1,13 @@
 ﻿using DigitalBattleMap.Common;
 using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.DrawingShapes;
+using DigitalBattleMap.FogShapes;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 
 namespace DigitalBattleMap;
 
@@ -301,12 +303,52 @@ public static class BitmapTools
         return bitmap;
     }
 
+    /**
+     * First draws all transparent polygon aftewords the black polygons. 
+     * This gives fog priority on overlapping shaps and aligns with the visuals in the UI.
+     */
+    public static void DrawFogShapes(Bitmap bitmap, List<FogShape> shapes, Size<double> canvasSize)
+    {
+        using var graphics = Graphics.FromImage(bitmap);
+
+        foreach (var shape in shapes.OrderBy(s => s.IsFogEnabled))
+        {
+            FogPolygon(canvasSize, graphics, shape);
+        }
+
+        bitmap.MakeTransparent(Color.White);
+    }
+
+    private static void FogPolygon(Size<double> canvasSize, Graphics graphics, FogShape shape)
+    {
+        if (!shape.Points.Any())
+        {
+            return;
+        }
+
+        var pointsF = new List<PointF>();
+        foreach (var point in shape.Points)
+        {
+            var halfSize = shape.PenSizeCanvas / 2;
+            var middleOfPoint = new Point<double>(point.X - halfSize, point.Y - halfSize);
+
+            var resizedX = (float)middleOfPoint.X.Map(0, canvasSize.Width, 0, Constants.MapSize.Width);
+            var resizedY = (float)middleOfPoint.Y.Map(0, canvasSize.Height, 0, Constants.MapSize.Height);
+            pointsF.Add(new PointF(resizedX, resizedY));
+        }
+
+        // The fog becomes solid black for the players the
+        // white polygons will become transparent places in the fog.
+        var brush = shape.IsFogEnabled ? Brushes.Black : Brushes.White;
+        graphics.FillPolygon(brush, pointsF.ToArray());
+    }
+
     public static void DrawShapes(Bitmap bitmap, List<DrawingShape> shapes, Size<double> canvasSize)
     {
         using var graphics = Graphics.FromImage(bitmap);
         foreach (var shape in shapes)
         {
-            var points = new List<Point<float>>();
+            var pointsF = new List<Point<float>>();
             var brush = shape.Color.ToDrawingBrush();
             var penSizeF = (float)shape.PenSize;
 
@@ -317,15 +359,19 @@ public static class BitmapTools
 
                 var resizedX = (float)middleOfPoint.X.Map(0, canvasSize.Width, 0, Constants.MapSize.Width);
                 var resizedY = (float)middleOfPoint.Y.Map(0, canvasSize.Height, 0, Constants.MapSize.Height);
-                points.Add(new Point<float>(resizedX, resizedY));
+                pointsF.Add(new Point<float>(resizedX, resizedY));
             }
 
-            SmoothLine(points, penSizeF);
+            DrawShape(graphics, pointsF, brush, penSizeF);
+        }
+    }
 
-            foreach (var point in points)
-            {
-                graphics.FillEllipse(brush, point.X, point.Y, penSizeF, penSizeF);
-            }
+    private static void DrawShape(Graphics graphics, List<Point<float>> points, System.Drawing.Brush brush, float penSizeF)
+    {
+        SmoothLine(points, penSizeF);
+        foreach (var point in points)
+        {
+            graphics.FillEllipse(brush, point.X, point.Y, penSizeF, penSizeF);
         }
     }
 
@@ -392,8 +438,6 @@ public static class BitmapTools
         var penSizeF = (float)penSize;
         var pointsF = points.Select(p => Point<float>.Create(p)).ToList();
 
-        SmoothLine(pointsF, penSizeF);
-
         // Calculate the bounding box around the shape
         var halfPenSize = penSizeF / 2;
         var minX = (int)Math.Round(points.Min(t => t.X) - halfPenSize);
@@ -405,11 +449,44 @@ public static class BitmapTools
         using var shapeGraphics = Graphics.FromImage(bitmap);
         var brush = shapeColor.ToDrawingBrush();
 
-        foreach (var point in pointsF)
-        {
-            shapeGraphics.FillEllipse(brush, point.X - minX - halfPenSize, point.Y - minY - halfPenSize, penSizeF, penSizeF);
-        }
+        // Offset points into bitmap-local space
+        var offsetPoints = pointsF.Select(p =>
+            new Point<float>(
+                p.X - minX - halfPenSize,
+                p.Y - minY - halfPenSize))
+            .ToList();
 
+        DrawShape(shapeGraphics, offsetPoints, brush, penSizeF);
+        return bitmap;
+    }
+
+    public static Bitmap CreateFogShapeOverviewBitmap(List<Point<double>> points, System.Windows.Media.Color shapeColor, double penSize, bool isFogEnabled)
+    {
+        var penSizeF = (float)penSize;
+        var pointsF = points.Select(p => Point<float>.Create(p)).ToList();
+
+        // Calculate the bounding box around the shape
+        var halfPenSize = penSizeF / 2;
+        var minX = (int)Math.Round(points.Min(t => t.X) - halfPenSize);
+        var maxX = (int)Math.Round(points.Max(t => t.X) + halfPenSize);
+        var minY = (int)Math.Round(points.Min(t => t.Y) - halfPenSize);
+        var maxY = (int)Math.Round(points.Max(t => t.Y) + halfPenSize);
+
+        // Offset points into bitmap-local space
+        var offsetPoints = pointsF.Select(p =>
+            new PointF(
+                p.X - minX - halfPenSize,
+                p.Y - minY - halfPenSize))
+            .ToList();
+
+        var bitmap = new Bitmap(maxX - minX, maxY - minY);
+        using var shapeGraphics = Graphics.FromImage(bitmap);
+
+        // The fog becomes transparent black for the DM overview the
+        // white polygons will become transparent places in the fog.
+        var transparentBlack = Color.FromArgb(127, Color.Black);
+        var brush = isFogEnabled ? new SolidBrush(transparentBlack) : Brushes.White;
+        shapeGraphics.FillPolygon(brush, offsetPoints.ToArray());
         return bitmap;
     }
 

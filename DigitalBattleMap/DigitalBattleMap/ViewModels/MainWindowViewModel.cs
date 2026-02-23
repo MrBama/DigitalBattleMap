@@ -3,11 +3,12 @@ using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
-using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Timers;
 using System.Windows;
 using System.Windows.Input;
@@ -42,6 +43,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         IO.Initialize(new Directory(), new File(), new ZipFile());
         CampaignController = new();
         BackgroundController = new();
+        FogController = new();
         DrawingController = new();
         TokenController = new();
         InitializeProperties();
@@ -51,7 +53,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public event EventHandler<CanvasSizeChangedEventArgs> OnCanvasSizeChanged;
 
     public int SelectedTabIndex { get => Get<int>(); set => Set(value, SelectedTabChanged); }
-    public int SelectedMapTabIndex { get => Get<int>(); set => SetWhenChanged(value, GenerateMapOverview); }
+    public int SelectedMapTabIndex { get => Get<int>(); set => SetWhenChanged(value, SelectedTabMapChanged); }
     public int DrawingCanvasZIndex { get => Get<int>(); set => Set(value); }
     public int MultiMoveCount { get => Get<int>(); set => Set(value); }
     public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, IsShowMapLockedChanged); }
@@ -60,9 +62,12 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public bool IsMultiMove { get => Get<bool>(); set => Set(value); }
     public bool HideDungeonMasterFeatures { get => Get<bool>(); set => Set(value); }
     public bool HasBlackBackground { get => Get<bool>(); set => Set(value); }
+    public bool IsInfoEnabled { get => Get<bool>(); set => Set(value); }
     public string ServerConnectionButtonText { get => Get<string>(); set => Set(value); }
     public string ServerConnectionStatus { get => Get<string>(); set => Set(value); }
+    public string ControlInfoText { get => Get<string>(); set => Set(value); }
     public Visibility DrawingCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
+    public Visibility FogCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
     public Visibility MouseInputCanvasVisibility { get => Get<Visibility>(); set => Set(value); }
     public Visibility TokenVisibility { get => Get<Visibility>(); set => Set(value); }
     public System.Windows.Media.Brush ServerConnectionStatusColor { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
@@ -72,6 +77,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     public CampaignControllerViewModel CampaignController { get; set; }
     public BackgroundControllerViewModel BackgroundController { get; set; }
+    public FogControllerViewModel FogController { get; set; }
     public DrawingControllerViewModel DrawingController { get; set; }
     public TokenControllerViewModel TokenController { get; set; }
     public MapOverviewViewModel MapOverview { get; set; }
@@ -85,8 +91,10 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public BitmapSource MapZoomBackgroundBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.UndoIcon.png")).ToBitmapImage(); }
     public BitmapSource CampaignEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.CampaignEmblem.png")).ToBitmapImage(); }
     public BitmapSource BackgroundEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.BackgroundEmblem.png")).ToBitmapImage(); }
+    public BitmapSource FogEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogEmblem.png")).ToBitmapImage(); }
     public BitmapSource DrawingEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.DrawingEmblem.png")).ToBitmapImage(); }
     public BitmapSource TokenEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.TokenEmblem.png")).ToBitmapImage(); }
+    public BitmapSource InfoIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.InfoIcon.png")).ToBitmapImage(); }
 
     int IMapSize.Width => Constants.MapSize.Width;
     int IMapSize.Height => Constants.MapSize.Height;
@@ -94,6 +102,10 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     double IMapSize.CanvasWidth => _canvasSize.Width;
     double IMapSize.CanvasHeight => _canvasSize.Height;
     double IMapSize.CanvasGridSize => CalculateCanvasGridSize();
+    string CampaingInfoText => "Active Mode: None \n \n Campaign tab contains no mouse controls";
+    // Oneliner because webpage elements exist on top of all other ui elements including any info text after a new line.
+    string StatBlockInfoText => "\t \t Select the header of a statblock to keep it focused. Switching between tabs will return you to the focused statblock."; 
+    string OverviewInfoText => "Active Mode: Map Overview \n \n Press reset to reset the overview";
 
     public ICommand ShowMapCommand { get; set; }
     public ICommand WindowClosingCommand { get; set; }
@@ -124,23 +136,37 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
         _autoSaveTimer = new Timer(Constants.AutoSaveIntervalInMs);
         _autoSaveTimer.Elapsed += AutoSaveMap;
+
         MapOverview = new MapOverviewViewModel(this);
         MapOverview.OnZoomAndEnhance += OnZoomAndEnhance;
+
         CampaignController = new CampaignControllerViewModel(_windowService, _connectionManager, _monsterTokens, _settings);
+
         BackgroundController = new BackgroundControllerViewModel(_windowService, this, _settings);
         BackgroundController.OnGridSizeChanged += OnBackgroundGridSizeChanged;
         BackgroundController.OnZoomAndEnhance += OnZoomAndEnhance;
         BackgroundController.OnBackgroundUpdated += OnBackgroundUpdated;
+
+        FogController = new FogControllerViewModel(_windowService, this, _settings);
+        FogController.OnZoomAndEnhance += OnZoomAndEnhance;
+        FogController.OnFogShapeUpdated += FogShapesUpdated;
+        FogController.OnControlUpdated += ControlUpdated;
+
         TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, _monsterTokens, CampaignController, _settings);
         TokenController.OnZoomAndEnhance += OnZoomAndEnhance;
         TokenController.OnTokenBitmapUpdated += TokenBitmapUpdated;
+        TokenController.OnToggleFog += ToggleFog;
+
         DrawingController = new DrawingControllerViewModel(this, TokenController);
         DrawingController.OnZoomAndEnhance += OnZoomAndEnhance;
         DrawingController.OnDrawingShapesUpdated += DrawingShapesUpdated;
+
+        // settings
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
         HasBlackBackground = _settings.HasBlackBackground;
         CropColor = System.Windows.Media.Brushes.LightGray;
         MouseCanvas = BackgroundController.MouseCanvas;
+        ControlInfoText = CampaingInfoText;
 
         if (_settings.IsAutoSaveEnabled)
             _autoSaveTimer.Start();
@@ -225,9 +251,25 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         SelectedMapTabIndex = TabMapIndex.Map;
     }
 
+    private void ControlUpdated(object? sender, ControlInfoEventArgs e)
+    {
+        ControlInfoText = GetControlInfoText(e);
+    }
+
+    private void ToggleFog(object? sender, ToggleFogEventArgs e)
+    {
+        FogController.ToggleFog(e);
+        UpdateMap(DrawLayer.Fog);
+    }
+
     private void OnBackgroundUpdated(object? sender, EventArgs e)
     {
         UpdateMap(DrawLayer.Background);
+    }
+
+    private void FogShapesUpdated(object? sender, EventArgs e)
+    {
+        UpdateMap(DrawLayer.Fog);
     }
 
     private void DrawingShapesUpdated(object? sender, EventArgs e)
@@ -263,17 +305,25 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         switch (drawing)
         {
             case DrawLayer.All:
+                var backgroundAndFogBitmapAll = CreateBackgroundBitmap();
                 var gridAndTokenBitmapAll = CreateGridAndDrawingBitmap();
-                _mapWindowViewModel.BackgroundBitmapSource = GetBackgroundBitmapSource();
+                _mapWindowViewModel.BackgroundBitmapSource = backgroundAndFogBitmapAll.ToBitmapImage();
+                _mapWindowViewModel.FogBitmapSource = FogController.GetFogBitmap().ToBitmapImage();
                 _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
                 _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(GetBackgroundBitmap()) });
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmapAll) });
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Fog, Bitmap = new Bitmap(FogController.GetFogBitmap()) });
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmapAll) });
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
                 break;
             case DrawLayer.Background:
-                _mapWindowViewModel.BackgroundBitmapSource = GetBackgroundBitmapSource();
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(GetBackgroundBitmap()) });
+                var backgroundAndFogBitmap = CreateBackgroundBitmap();
+                _mapWindowViewModel.BackgroundBitmapSource = backgroundAndFogBitmap.ToBitmapImage();
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmap) });
+                break;
+            case DrawLayer.Fog:
+                _mapWindowViewModel.FogBitmapSource = FogController.GetFogBitmap().ToBitmapImage();
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Fog, Bitmap = new Bitmap(FogController.GetFogBitmap()) });
                 break;
             case DrawLayer.GridAndStrokes:
                 var gridAndTokenBitmap = CreateGridAndDrawingBitmap();
@@ -287,22 +337,11 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         }
     }
 
-    private BitmapSource GetBackgroundBitmapSource()
+    private Bitmap CreateBackgroundBitmap()
     {
-        if (HasBlackBackground)
-        {
-            return BitmapTools.MergeBitmaps(BitmapTools.CreateBlackBitmap(), BackgroundController.GetBackgroundBitmap()).ToBitmapImage();
-        }
-        return BackgroundController.GetBackgroundBitmapSource();
-    }
-
-    private Bitmap GetBackgroundBitmap()
-    {
-        if (HasBlackBackground)
-        {
-            return BitmapTools.MergeBitmaps(BitmapTools.CreateBlackBitmap(), BackgroundController.GetBackgroundBitmap());
-        }
-        return BackgroundController.GetBackgroundBitmap();
+        return HasBlackBackground ?
+            BitmapTools.MergeBitmaps(BitmapTools.CreateBlackBitmap(), BackgroundController.GetBackgroundBitmap()) :
+            BackgroundController.GetBackgroundBitmap();
     }
 
     private Bitmap CreateGridAndDrawingBitmap()
@@ -354,8 +393,9 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             BackgroundController.ClearBackground();
             DrawingController.ClearDrawings();
             TokenController.ClearTokens();
+            FogController.ClearFog();
 
-            GenerateMapOverview();
+            SelectedTabMapChanged();
             _connectionManager.ClearMap();
             ZoomAndMoveHistory.Clear();
         }
@@ -378,32 +418,57 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         {
             case TabIndex.Campaign:
                 MouseInputCanvasVisibility = Visibility.Visible;
+                FogCanvasVisibility = Visibility.Visible;
                 DrawingCanvasVisibility = Visibility.Visible;
-                MouseCanvas = BackgroundController.MouseCanvas;
                 TokenVisibility = Visibility.Visible;
+
+                MouseCanvas = CampaignController.MouseCanvas;
+                ControlInfoText = CampaingInfoText;
                 DrawingCanvasZIndex = 0;
                 break;
             case TabIndex.Background:
-                DrawingCanvasVisibility = Visibility.Hidden;
                 MouseInputCanvasVisibility = Visibility.Visible;
-                MouseCanvas = BackgroundController.MouseCanvas;
+                FogCanvasVisibility = Visibility.Visible;
+                DrawingCanvasVisibility = Visibility.Hidden;
                 TokenVisibility = Visibility.Hidden;
+
+                MouseCanvas = BackgroundController.MouseCanvas;
+                ControlInfoText = string.Empty;
+                DrawingCanvasZIndex = 1;
+                break;
+            case TabIndex.Fog:
+                MouseInputCanvasVisibility = Visibility.Visible;
+                FogCanvasVisibility = Visibility.Visible;
+                DrawingCanvasVisibility = Visibility.Visible;
+                TokenVisibility = Visibility.Hidden;
+
+                MouseCanvas = FogController.MouseCanvas;
+                FogController.ActiveFogShape.UpdateControls();
+                DrawingCanvasZIndex = 1;
                 break;
             case TabIndex.Drawing:
-                DrawingCanvasVisibility = Visibility.Visible;
                 MouseInputCanvasVisibility = Visibility.Visible;
-                MouseCanvas = DrawingController.MouseCanvas;
+                FogCanvasVisibility = Visibility.Hidden;
+                DrawingCanvasVisibility = Visibility.Visible;
                 TokenVisibility = Visibility.Visible;
+
+                MouseCanvas = DrawingController.MouseCanvas;
+                ControlInfoText = string.Empty; // todo: update to active controls for this tab on tab switch
                 DrawingCanvasZIndex = 1;
                 break;
             case TabIndex.Tokens:
                 DrawingCanvasVisibility = Visibility.Visible;
+                FogCanvasVisibility = Visibility.Visible;
                 MouseInputCanvasVisibility = Visibility.Visible;
-                MouseCanvas = TokenController.MouseCanvas;
                 TokenVisibility = Visibility.Visible;
+
+                MouseCanvas = TokenController.MouseCanvas;
+                ControlInfoText = GetTokenInfoText();
                 DrawingCanvasZIndex = 0;
                 break;
         }
+
+        SetMapTabControlText();
     }
 
     public Size<int> GetSize()
@@ -442,6 +507,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     {
         ZoomAndMoveHistory.Enqueue(new ZoomAndMoveCommand(arrowDirection, steps));
         BackgroundController.Move(arrowDirection, steps);
+        FogController.Move(arrowDirection, steps);
         DrawingController.Move(arrowDirection, steps);
         TokenController.Move(arrowDirection, steps);
     }
@@ -470,6 +536,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             BackgroundController.AddToSaveFile(saveFile);
             DrawingController.AddToSaveFile(saveFile);
             TokenController.AddToSaveFile(saveFile);
+            FogController.AddToSaveFile(saveFile);
             saveFile.Save(path);
         }
     }
@@ -482,6 +549,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         BackgroundController.AddToSaveFile(saveFile);
         DrawingController.AddToSaveFile(saveFile);
         TokenController.AddToSaveFile(saveFile);
+        FogController.AddToSaveFile(saveFile);
         saveFile.AutoSave();
         _autoSaveTimer.Start();
     }
@@ -503,12 +571,14 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         BackgroundController.OpenSaveFile(saveFile);
         DrawingController.OpenSaveFile(saveFile);
         TokenController.OpenSaveFile(saveFile);
+        FogController.OpenSaveFile(saveFile);
 
         DrawingController.OpenObjectLinks(saveFile.ObjectLinks);
         TokenController.OpenObjectLinks(saveFile.ObjectLinks);
 
         SelectedTabIndex = TabIndex.Tokens;
         SelectedMapTabIndex = 0;
+        ControlInfoText = GetTokenInfoText();
         ZoomAndMoveHistory.Clear();
 
         IsShowMapLocked = currentIsShowMapLocked;
@@ -606,6 +676,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         var zoomFactor = (double)BackgroundController.GridSize / (double)oldGridSize;
         BackgroundController.Zoom(zoomFactor);
+        FogController.Zoom(zoomFactor);
         DrawingController.Zoom(zoomFactor);
         TokenController.Zoom(zoomFactor);
 
@@ -754,33 +825,67 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         return gridSize.Map(0.0, Constants.MapSize.Width, 0.0, _canvasSize.Width);
     }
 
-    private void GenerateMapOverview()
+    private void SelectedTabMapChanged()
+    {
+        switch (SelectedMapTabIndex)
+        {
+            case TabMapIndex.Map:
+                // Not sure if this is smart
+                // Rediscorvers the selected tab and sets the Control text depending on the tab.
+                SelectedTabChanged(); 
+                MapOverview.ClearMap();
+                break;
+            case TabMapIndex.Overview:
+                GenerateMapOverview();
+                break;
+            case TabMapIndex.Statblocks:
+                MapOverview.ClearMap();
+                break;
+        }
+
+        SetMapTabControlText();
+    }
+     
+    private void GenerateMapOverview() 
+    { 
+        var zoomFactor = BackgroundController.GetZoomFactor();
+        var containsBackgroundOverview = false;
+
+        var overviewBitmaps = new List<OverviewBitmap>();
+        if (BackgroundController.GetOverviewBitmap(out var backgroundOverview))
+        {
+            containsBackgroundOverview = true;
+            overviewBitmaps.Add(backgroundOverview);
+        }
+        if (FogController.GetOverviewBitmap(zoomFactor, out var fogOverview))
+        {
+            overviewBitmaps.Add(fogOverview);
+        }
+        if (DrawingController.GetOverviewBitmap(zoomFactor, out var drawingOverview))
+        {
+            overviewBitmaps.Add(drawingOverview);
+        }
+        if (TokenController.GetOverviewBitmap(zoomFactor, out var tokenOverview))
+        {
+            overviewBitmaps.Add(tokenOverview);
+        }
+
+        MapOverview.CreateOverview(overviewBitmaps, zoomFactor, containsBackgroundOverview, BackgroundController.IsGridShown);
+    }
+
+    /**
+     * Set the control text depending on TabMapIndex
+     * TabMapIndex.Map control text depends on an other tab and is done in SelectedTabChanged
+     */
+    private void SetMapTabControlText()
     {
         if(SelectedMapTabIndex == TabMapIndex.Overview)
         {
-            var zoomFactor = BackgroundController.GetZoomFactor();
-            var containsBackgroundOverview = false;
-
-            var overviewBitmaps = new List<OverviewBitmap>();
-            if (BackgroundController.GetOverviewBitmap(out var backgroundOverview))
-            {
-                containsBackgroundOverview = true;
-                overviewBitmaps.Add(backgroundOverview);
-            }
-            if (DrawingController.GetOverviewBitmap(zoomFactor, out var drawingOverview))
-            {
-                overviewBitmaps.Add(drawingOverview);
-            }
-            if (TokenController.GetOverviewBitmap(zoomFactor, out var tokenOverview))
-            {
-                overviewBitmaps.Add(tokenOverview);
-            }
-
-            MapOverview.CreateOverview(overviewBitmaps, zoomFactor, containsBackgroundOverview, BackgroundController.IsGridShown);
-        }
-        else
+            ControlInfoText = OverviewInfoText;
+        } 
+        else if (SelectedMapTabIndex == TabMapIndex.Statblocks)
         {
-            MapOverview.ClearMap();
+            ControlInfoText = StatBlockInfoText;
         }
     }
 
@@ -798,5 +903,39 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             DrawingController.ResumeBitmapCreation();
             TokenController.ResumeBitmapCreation();
         }
+    }
+
+    // todo: complete info text
+    private string GetTokenInfoText()
+    {
+        var info = new ControlInfoEventArgs()
+        {
+            controlName = "Token Controls",
+            infoBlocks = new List<InfoBlock>()
+            {
+                new InfoBlock(ControlType.LMB, "Move selected token to grid location"),
+                new InfoBlock(ControlType.RMB, "Select token in grid location"),
+                new InfoBlock(ControlType.Alt, ControlType.LMB, "Toggle on/off the fog of war shape at the selected location")
+            }
+        };
+        return GetControlInfoText(info);
+    }
+
+    private string GetControlInfoText(ControlInfoEventArgs e)
+    {
+        var controlInfoText = new StringBuilder();
+        controlInfoText.Append("Active Mode: ").Append(e.controlName.ToString()); // header
+        controlInfoText.Append("\n").Append("\n");
+        foreach (var controlInfo in e.infoBlocks.OrderBy(i => (int?) i.Type ?? -1)) // order by type, null type first
+        {
+            var additional = controlInfo?.Additional == null ? string.Empty : " + " + controlInfo.Additional.ToString();
+            var typeInfo = controlInfo?.Type == null ?
+                string.Empty : // ignore type info in control info text
+                string.Format("{0}{1}: ", controlInfo.Type.ToString(), additional); // adds type info in control info text + adds additional if present.
+
+            var info = string.Format("{0}{1}\n", typeInfo, controlInfo.ControlInfo);
+            controlInfoText.Append(info);
+        }
+        return controlInfoText.ToString();
     }
 }

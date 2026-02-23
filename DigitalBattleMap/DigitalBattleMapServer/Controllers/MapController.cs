@@ -69,6 +69,7 @@ public class MapController : Controller
         {
             _memoryCacheHandler.Delete(DrawLayer.All.ToString());
             _memoryCacheHandler.Delete(DrawLayer.Background.ToString());
+            _memoryCacheHandler.Delete(DrawLayer.Fog.ToString());
             _memoryCacheHandler.Delete(DrawLayer.GridAndStrokes.ToString());
             _memoryCacheHandler.Delete(DrawLayer.Tokens.ToString());
 

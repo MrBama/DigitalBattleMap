@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.DrawingShapes;
+using DigitalBattleMap.FogShapes;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -78,7 +79,7 @@ public class DrawingCanvas : InkCanvas
             newShapeCollection.OnDrawingShapeCollectionChanged += _shapeCollectionChangedHandler;
             newShapeCollection.OnDrawingShapePropertyChanged += _shapePropertyChangedHandler;
             newShapeCollection.OnDrawingShapePointsChanged += _shapePointsChangedHandler;
-            canvas.DrawShapes(newShapeCollection.GetShapes());
+            canvas.DrawShapes(newShapeCollection.GetDrawingShapes());
         }
     }
 
@@ -167,7 +168,7 @@ public class DrawingCanvas : InkCanvas
 
     private void EraseActiveShape(DrawingShape shape)
     {
-        if (!ShapeCollection.GetShapes().Contains(shape))
+        if (!ShapeCollection.GetDrawingShapes().Contains(shape))
         {
             EraseShape(shape);
         }
