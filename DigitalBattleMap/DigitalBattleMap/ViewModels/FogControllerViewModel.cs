@@ -55,6 +55,8 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     protected override void InitializeCommands()
     {
+        EnableAllCommand = new RelayCommand(p => EnableAllFog(true));
+        DisableAllCommand = new RelayCommand(p => EnableAllFog(false));
         DrawPolygonCommand = new RelayCommand(p => DrawFogShape(FogShapeType.DrawPolygon));
         AngularPolygonCommand = new RelayCommand(p => DrawFogShape(FogShapeType.AngularPolygon));
         RectangleCommand = new RelayCommand(p => DrawFogShape(FogShapeType.Rectangle));
@@ -88,6 +90,9 @@ public class FogControllerViewModel : ControllerViewModelBase
     public BitmapSource CutIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogIcons.Cut.png")).ToBitmapImage(); }
     public BitmapSource SeeIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogIcons.See.png")).ToBitmapImage(); }
     public BitmapSource SnapIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogIcons.Snap.png")).ToBitmapImage(); }
+
+    public ICommand EnableAllCommand { get; set; }
+    public ICommand DisableAllCommand { get; set; }
 
     public ICommand DrawPolygonCommand { get; set; }
     public ICommand AngularPolygonCommand { get; set; }
@@ -264,6 +269,13 @@ public class FogControllerViewModel : ControllerViewModelBase
                 Thread.Sleep(150);
                 Application.Current.Dispatcher.Invoke(() => { SelectedFogShape.Points = new ObservableCollection<Point<double>>(points); }, DispatcherPriority.Normal);
             });
+        }
+    }
+    private void EnableAllFog(bool isEnabled)
+    {
+        foreach (FogShape item in FogShapeCollection)
+        {
+            item.IsFogEnabled = isEnabled;
         }
     }
 
