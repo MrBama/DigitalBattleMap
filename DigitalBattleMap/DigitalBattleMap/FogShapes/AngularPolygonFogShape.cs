@@ -74,6 +74,7 @@ public class AngularPolygonFogShape : FogShape
 
     protected override void ButtonDown(Point<double> position)
     {
+        IsDrawingFog = true;
         var infoBlock1 = new InfoBlock("Placing a point at the start point to auto complete the fog shape");
         var infoBlock2 = new InfoBlock(ControlType.LMB, "Adds points for line segments");
         var infoBlock3 = new InfoBlock(ControlType.RMB, "Completes drawing, connects last point to first");

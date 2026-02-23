@@ -45,7 +45,6 @@ public class FogControllerViewModel : ControllerViewModelBase
         MouseCanvas = new MouseCanvasViewModel();
         MouseCanvas.OnLeftButtonDown += LeftButtonDown;
         MouseCanvas.OnLeftButtonUp += LeftButtonUp;
-        MouseCanvas.OnRightButtonDown += RightButtonDown;
         MouseCanvas.OnRightButtonUp += RightButtonUp;
         MouseCanvas.OnMouseMove += MouseMove;
         MouseCanvas.OnMouseWheel += MouseWheel;
@@ -70,8 +69,6 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
     public FogShapeCollection FogShapeCollection { get => Get<FogShapeCollection>(); set => Set(value); }
-    public bool IsFogShapeActive { get => Get<bool>(); set => Set(value); }
-    public bool IsEditFogShapeActive { get => Get<bool>(); set => Set(value); }
     public bool IsSnapToGridEnabled { get => Get<bool>(); set => Set(value, SnapToGridChanged); }
     public FogShape SelectedFogShape { get => Get<FogShape>(); set => Set(value, SelectedShapeChanged); }
 
@@ -141,7 +138,6 @@ public class FogControllerViewModel : ControllerViewModelBase
     {
         FogShapeCollection.Clear();
         DrawPolygonShape();
-        IsFogShapeActive = false;
         NotifyFogShapesUpdated();
         ToggleOffFogShapeButtons();
         IsDrawPolygonChecked = true;
@@ -158,9 +154,7 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     public override void OpenSaveFile(SaveFile saveFile)
     {
-
         ClearFog();
-
         FogShapeCollection.IsFillFogEnabled = saveFile.IsFillFogEnabled;
 
         foreach (var shape in saveFile.FogShapes)
@@ -235,8 +229,6 @@ public class FogControllerViewModel : ControllerViewModelBase
         }
 
         ActiveFogShape = ActiveFogShape.Clone();
-        IsFogShapeActive = false;
-        IsEditFogShapeActive = false;
         NotifyFogShapesUpdated();
     }
 
@@ -277,8 +269,6 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     private void DrawFogShape(FogShapeType fogShapeType)
     {
-        IsFogShapeActive = true;
-        IsEditFogShapeActive = false;
         ToggleOffFogShapeButtons();
 
         switch (fogShapeType)
@@ -351,11 +341,6 @@ public class FogControllerViewModel : ControllerViewModelBase
     private void LeftButtonUp(object? sender, MouseButtonDataEventArgs e)
     {
         ActiveFogShape.LeftButtonUp(e);
-    }
-
-    private void RightButtonDown(object? sender, MouseButtonDataEventArgs e)
-    {
-        ActiveFogShape.RightButtonDown(e);
     }
 
     private void RightButtonUp(object? sender, MouseButtonDataEventArgs e)

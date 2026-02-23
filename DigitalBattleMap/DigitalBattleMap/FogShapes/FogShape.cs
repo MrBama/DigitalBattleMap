@@ -18,15 +18,13 @@ namespace DigitalBattleMap.FogShapes;
 public abstract class FogShape : PropertyHandler
 {
     protected Action _applyShapeCallback;
-    private FogShapeInfo _editInfo;
     protected IMapSize _mapSize;
-    private Point<double> _previousMovePosition;
-    private bool _isMoving;
 
     public FogShape(Action applyShapeCallback, IMapSize mapSize)
     {
         _applyShapeCallback = applyShapeCallback;
         _mapSize = mapSize;
+        IsDrawingFog = false;
 
         Color = Colors.Black;
         PenSize = 3;
@@ -46,7 +44,7 @@ public abstract class FogShape : PropertyHandler
     public double PenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100)); } // This is map size instead of canvas size because of UI reasons.
     public double PenSizeCanvas { get => PenSize.Map(0, _mapSize.Width, 0, _mapSize.CanvasWidth); }
     public string Size { get => Get<string>(); set => Set(value); }
-    public bool IsEditing { get => Get<bool>(); set => Set(value); }
+    public bool IsDrawingFog { get => Get<bool>(); set => Set(value); }
     public bool SnapToGrid { get => Get<bool>(); set => Set(value); }
     public string Name { get => Get<string>(); set => Set(value); }
     public string ShapeType { get => Get<string>(); set => Set(value); }
@@ -80,22 +78,8 @@ public abstract class FogShape : PropertyHandler
 
     public void ApplyShape()
     {
-        IsEditing = false;
+        IsDrawingFog = false;
         _applyShapeCallback();
-    }
-
-    public void EditShape()
-    {
-        IsEditing = true;
-        _editInfo = new FogShapeInfo(this);
-    }
-
-    public void CancelEditShape()
-    {
-        IsEditing = false;
-        PenSize = _editInfo.Size;
-        Color = _editInfo.Color;
-        Points = new ObservableCollection<Point<double>>(_editInfo.Points);
     }
 
     public void LeftButtonDown(MouseButtonDataEventArgs e)
@@ -108,69 +92,14 @@ public abstract class FogShape : PropertyHandler
         ButtonUp(e.Position);
     }
 
-    public void RightButtonDown(MouseButtonDataEventArgs e)
-    {
-        if (IsEditing)
-        {
-            var position = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(e.Position, _mapSize, _mapSize.CanvasGridSize / 2) : e.Position;
-
-            var margin = 0.001; // This is required for floating point comparison
-            var minX = Points.Min(p => p.X) - margin;
-            var minY = Points.Min(p => p.Y) - margin;
-            var maxX = Points.Max(p => p.X) + margin;
-            var maxY = Points.Max(p => p.Y) + margin;
-
-            if (position.X >= minX && position.X <= maxX && position.Y >= minY && position.Y <= maxY)
-            {
-                _previousMovePosition = position;
-                _isMoving = true;
-            }
-        }
-    }
-
     public void RightButtonUp(MouseButtonDataEventArgs e)
     {
-        if (IsEditing && _isMoving)
-        {
-            var position = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(e.Position, _mapSize, _mapSize.CanvasGridSize / 2) : e.Position;
-            if (position != _previousMovePosition)
-            {
-                var distanceX = position.X - _previousMovePosition.X;
-                var distanceY = position.Y - _previousMovePosition.Y;
-
-                var matrix = new Matrix();
-                matrix.Translate(distanceX, distanceY);
-                Transform(matrix);
-                RenderShape();
-            }
-
-            _isMoving = false;
-        }
-        else
-        {
-            CancelButton();
-        }
+        CancelButton();
     }
 
     public void MouseMove(MouseMoveDataEventArgs e)
     {
         MouseMove(e.Position, e.LeftButtonDown);
-
-        if (e.RightButtonDown && IsEditing && _isMoving)
-        {
-            var position = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(e.Position, _mapSize, _mapSize.CanvasGridSize / 2) : e.Position;
-            if (position != _previousMovePosition)
-            {
-                var distanceX = position.X - _previousMovePosition.X;
-                var distanceY = position.Y - _previousMovePosition.Y;
-
-                var matrix = new Matrix();
-                matrix.Translate(distanceX, distanceY);
-                Transform(matrix);
-
-                _previousMovePosition = position;
-            }
-        }
     }
 
     public void MouseWheel(MouseWheelDataEventArgs e)
@@ -256,21 +185,5 @@ public abstract class FogShape : PropertyHandler
     public void NotifyControlUpdated(object? sender, ControlInfoEventArgs e)
     {
         OnControlUpdated.Invoke(sender, e);
-    }
-
-    private class FogShapeInfo
-    {
-        public FogShapeInfo(FogShape fogShape)
-        {
-            Color = fogShape.Color;
-            Size = fogShape.PenSize;
-            Points = fogShape.Points.ToList();
-            IsDeleted = fogShape.IsDeleted;
-        }
-
-        public Color Color { get; set; }
-        public double Size { get; set; }
-        public bool IsDeleted { get; set; }
-        public List<Point<double>> Points { get; set; }
     }
 }

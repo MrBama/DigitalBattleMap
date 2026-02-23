@@ -27,6 +27,7 @@ internal class NGonFogShape : FogShape
 
     protected override void ButtonDown(Point<double> position)
     {
+        IsDrawingFog = true;
         _startPosition = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2) : position;
         _buttonDown = true;
         Points.Add(position);

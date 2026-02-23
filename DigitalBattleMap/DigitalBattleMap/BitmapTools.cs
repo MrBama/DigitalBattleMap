@@ -310,7 +310,7 @@ public static class BitmapTools
     public static void DrawFogShapes(Bitmap bitmap, List<FogShape> shapes, Size<double> canvasSize)
     {
         using var graphics = Graphics.FromImage(bitmap);
-        graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias; // fix for 1 pixel shift in map drawing vs dm 
+        graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias; // fix for 1 pixel shift in map drawing vs dm overview
 
         foreach (var shape in shapes.OrderBy(s => s.IsFogEnabled))
         {

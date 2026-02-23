@@ -25,6 +25,7 @@ public class DrawPolygonFogShape : FogShape
 
     protected override void ButtonDown(Point<double> position)
     {
+        IsDrawingFog = true;
         var snappedPosition = SnapToGrid
             ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize)
             : position;
