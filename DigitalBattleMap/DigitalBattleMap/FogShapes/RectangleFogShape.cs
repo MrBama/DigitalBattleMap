@@ -11,16 +11,16 @@ public class RectangleFogShape : FogShape
     private Point<double> _startPosition;
     private Point<double> _previousMovePosition;
 
-    public RectangleFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnable = true) : base(applyShapeCallback, mapSize)
+    public RectangleFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnable, bool isSnapToGridEnabled) : base(applyShapeCallback, mapSize)
     {
         ShapeType = "Rectangle Fog";
-        SnapToGrid = true;
+        SnapToGrid = isSnapToGridEnabled;
         IsFogEnabled = isFogEnable;
     }
 
     public override FogShape Clone()
     {
-        var shape = new RectangleFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid, IsFogEnabled = IsFogEnabled };
+        var shape = new RectangleFogShape(_applyShapeCallback, _mapSize, IsFogEnabled, SnapToGrid);
         shape.OnControlUpdated += NotifyControlUpdated;
         return shape;
     }

@@ -58,7 +58,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
-            <ToggleButton VerticalContentAlignment="Center" Margin="10 0 0 0" IsChecked="{Binding ActiveFogShape.SnapToGrid}" ToolTip="Shape snaps to grid">
+            <ToggleButton VerticalContentAlignment="Center" Margin="10 0 0 0" IsChecked="{Binding IsSnapToGridEnabled}" ToolTip="Shape snaps to grid">
                 <Image Source="{Binding SnapIconBitmapSource}" MaxHeight="35" Margin="2"/>
             </ToggleButton>
             <ToggleButton Grid.Column="2" VerticalContentAlignment="Center" HorizontalAlignment="Right" Margin="0 0 10 0" IsChecked="{Binding ActiveFogShape.IsFogEnabled, Converter={StaticResource InvertBoolConverter}}" ToolTip="Cut shape out of the fog">

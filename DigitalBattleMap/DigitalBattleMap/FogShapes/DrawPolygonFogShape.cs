@@ -9,15 +9,16 @@ namespace DigitalBattleMap.FogShapes;
 
 public class DrawPolygonFogShape : FogShape
 {
-    public DrawPolygonFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnable = true) : base(applyShapeCallback, mapSize)
+    public DrawPolygonFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnable, bool isSnapToGridEnabled) : base(applyShapeCallback, mapSize)
     {
         ShapeType = "Drawn Fog";
+        SnapToGrid = isSnapToGridEnabled;
         IsFogEnabled = isFogEnable;
     }
 
     public override FogShape Clone()
     {
-        var shape = new DrawPolygonFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid, IsFogEnabled = IsFogEnabled };
+        var shape = new DrawPolygonFogShape(_applyShapeCallback, _mapSize, IsFogEnabled, SnapToGrid);
         shape.OnControlUpdated += NotifyControlUpdated;
         return shape;
     }

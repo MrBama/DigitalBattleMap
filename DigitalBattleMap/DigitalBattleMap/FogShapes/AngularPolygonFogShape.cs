@@ -11,17 +11,17 @@ public class AngularPolygonFogShape : FogShape
 {
     private Stack<Point<double>> previousMoves;
     
-    public AngularPolygonFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnable = true) : base(applyShapeCallback, mapSize)
+    public AngularPolygonFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnable, bool isSnapToGridEnabled) : base(applyShapeCallback, mapSize)
     {
         ShapeType = "Angular Polygon";
-        SnapToGrid = true;
+        SnapToGrid = isSnapToGridEnabled;
         previousMoves = new Stack<Point<double>>();
         IsFogEnabled = isFogEnable;
     }
 
     public override FogShape Clone()
     {
-        var shape = new AngularPolygonFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid, IsFogEnabled = IsFogEnabled };
+        var shape = new AngularPolygonFogShape(_applyShapeCallback, _mapSize, IsFogEnabled, SnapToGrid);
         shape.OnControlUpdated += NotifyControlUpdated;
         return shape;
     }

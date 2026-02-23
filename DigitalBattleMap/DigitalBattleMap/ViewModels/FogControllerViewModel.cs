@@ -39,7 +39,8 @@ public class FogControllerViewModel : ControllerViewModelBase
     {
         FogShapeCollection = new();
         FogShapeCollection.OnRenderShapes += (_, _) => NotifyFogShapesUpdated();
-        ActiveFogShape = new DrawPolygonFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled);
+        IsSnapToGridEnabled = false;
+        ActiveFogShape = new DrawPolygonFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled, IsSnapToGridEnabled);
         ActiveFogShape.OnControlUpdated += NotifyControlUpdated;
         MouseCanvas = new MouseCanvasViewModel();
         MouseCanvas.OnLeftButtonDown += LeftButtonDown;
@@ -71,6 +72,7 @@ public class FogControllerViewModel : ControllerViewModelBase
     public FogShapeCollection FogShapeCollection { get => Get<FogShapeCollection>(); set => Set(value); }
     public bool IsFogShapeActive { get => Get<bool>(); set => Set(value); }
     public bool IsEditFogShapeActive { get => Get<bool>(); set => Set(value); }
+    public bool IsSnapToGridEnabled { get => Get<bool>(); set => Set(value, SnapToGridChanged); }
     public FogShape SelectedFogShape { get => Get<FogShape>(); set => Set(value, SelectedShapeChanged); }
 
     public bool IsDrawPolygonChecked { get => Get<bool>(); set => Set(value); }
@@ -251,6 +253,14 @@ public class FogControllerViewModel : ControllerViewModelBase
         OnControlUpdated.Invoke(sender, e);
     }
 
+    private void SnapToGridChanged()
+    { 
+        if (ActiveFogShape != null)
+        {
+            ActiveFogShape.SnapToGrid = IsSnapToGridEnabled;
+        }
+    }
+
     private void SelectedShapeChanged()
     {
         if (SelectedFogShape != null)
@@ -300,35 +310,35 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     private void DrawPolygonShape()
     {
-        ActiveFogShape = new DrawPolygonFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled);
+        ActiveFogShape = new DrawPolygonFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled, IsSnapToGridEnabled);
         ActiveFogShape.OnControlUpdated += NotifyControlUpdated;
         ActiveFogShape.UpdateControls();
     }
 
     private void AngularPolygonShape()
     {
-        ActiveFogShape = new AngularPolygonFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled);
+        ActiveFogShape = new AngularPolygonFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled, IsSnapToGridEnabled);
         ActiveFogShape.OnControlUpdated += NotifyControlUpdated;
         ActiveFogShape.UpdateControls();
     }
 
     private void RectangleShape()
     {
-        ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled);
+        ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled, IsSnapToGridEnabled);
         ActiveFogShape.OnControlUpdated += NotifyControlUpdated;
         ActiveFogShape.UpdateControls();
     }
 
     private void CircleShape()
     {
-        ActiveFogShape = new CircleFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled);
+        ActiveFogShape = new CircleFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled, IsSnapToGridEnabled);
         ActiveFogShape.OnControlUpdated += NotifyControlUpdated;
         ActiveFogShape.UpdateControls();
     }
 
     private void NGonShape()
     {
-        ActiveFogShape = new NGonFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled);
+        ActiveFogShape = new NGonFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled, IsSnapToGridEnabled);
         ActiveFogShape.OnControlUpdated += NotifyControlUpdated;
         ActiveFogShape.UpdateControls();
     }

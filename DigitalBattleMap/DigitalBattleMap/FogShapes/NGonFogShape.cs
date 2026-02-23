@@ -12,15 +12,15 @@ internal class NGonFogShape : FogShape
     private Point<double> _previousMovePosition;
     private bool _buttonDown;
 
-    public NGonFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnabled = true) : base(applyShapeCallback, mapSize)
+    public NGonFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnabled, bool isSnapToGridEnabled) : base(applyShapeCallback, mapSize)
     {
-        SnapToGrid = true;
+        SnapToGrid = isSnapToGridEnabled;
         IsFogEnabled = isFogEnabled;
     }
 
     public override FogShape Clone()
     {
-        var shape = new NGonFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid, IsFogEnabled = IsFogEnabled, CurrentType = CurrentType};
+        var shape = new NGonFogShape(_applyShapeCallback, _mapSize, IsFogEnabled, SnapToGrid) { CurrentType = CurrentType};
         shape.OnControlUpdated += NotifyControlUpdated;
         return shape;
     }

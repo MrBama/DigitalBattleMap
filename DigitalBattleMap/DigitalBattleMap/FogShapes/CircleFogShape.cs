@@ -11,16 +11,16 @@ internal class CircleFogShape : FogShape
     private Point<double> _startPosition;
     private Point<double> _previousMovePosition;
 
-    public CircleFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnabled = true) : base(applyShapeCallback, mapSize)
+    public CircleFogShape(Action applyShapeCallback, IMapSize mapSize, bool isFogEnabled, bool isSnapToGridEnabled) : base(applyShapeCallback, mapSize)
     {
         ShapeType = "Circle Fog";
-        SnapToGrid = true;
+        SnapToGrid = isSnapToGridEnabled;
         IsFogEnabled = isFogEnabled;
     }
 
     public override FogShape Clone()
     {
-        var shape = new CircleFogShape(_applyShapeCallback, _mapSize) { SnapToGrid = SnapToGrid, IsFogEnabled = IsFogEnabled };
+        var shape = new CircleFogShape(_applyShapeCallback, _mapSize, IsFogEnabled, SnapToGrid);
         shape.OnControlUpdated += NotifyControlUpdated;
         return shape;
     }
