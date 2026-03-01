@@ -23,7 +23,7 @@ public class SettingsWindowViewModel : ViewModelBase
         SelectedMonitorPosition = _settings.MonitorPosition;
         ShowMapWindow = _settings.ShowMapWindow;
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
-        HasBlackBackground = _settings.HasBlackBackground;
+        SelectedBackgroundColor = _settings.DefaultBackgroundColor;
         IsAutoSaveEnabled = _settings.IsAutoSaveEnabled;
 
         foreach (var screenPosition in ScreenWrapper.GetScreenPositions())
@@ -41,7 +41,8 @@ public class SettingsWindowViewModel : ViewModelBase
         ExportCommand = new RelayCommand(p => Export());
     }
 
-    public ObservableCollection<ScreenPosition> MonitorPositions { get; private set; } = new ObservableCollection<ScreenPosition>();
+    public ObservableCollection<ScreenPosition> MonitorPositions { get; private set; } = new();
+    public ObservableCollection<BackgroundColor> BackgroundColors { get; private set; } = new() { BackgroundColor.Black, BackgroundColor.White };
     public bool MonsterTokensDownloaded { get; set; }
 
     public ICommand SaveCommand { get; set; }
@@ -53,9 +54,9 @@ public class SettingsWindowViewModel : ViewModelBase
     public int DefaultGridSize { get => Get<int>(); set => Set(value); }
     public string ServerAddress { get => Get<string>(); set => Set(value); }
     public ScreenPosition SelectedMonitorPosition { get => Get<ScreenPosition>(); set => Set(value); }
+    public BackgroundColor SelectedBackgroundColor { get => Get<BackgroundColor>(); set => Set(value); }
     public bool ShowMapWindow { get => Get<bool>(); set => Set(value); }
     public bool HideDungeonMasterFeatures { get => Get<bool>(); set => Set(value); }
-    public bool HasBlackBackground { get => Get<bool>(); set => Set(value); }
     public bool IsAutoSaveEnabled { get => Get<bool>(); set => Set(value); }
 
     private void SaveButtonClicked()
@@ -65,7 +66,7 @@ public class SettingsWindowViewModel : ViewModelBase
         _settings.MonitorPosition = SelectedMonitorPosition;
         _settings.ShowMapWindow = ShowMapWindow;
         _settings.HideDungeonMasterFeatures = HideDungeonMasterFeatures;
-        _settings.HasBlackBackground = HasBlackBackground;
+        _settings.DefaultBackgroundColor = SelectedBackgroundColor;
         _settings.IsAutoSaveEnabled = IsAutoSaveEnabled;
 
         _settings.Save();

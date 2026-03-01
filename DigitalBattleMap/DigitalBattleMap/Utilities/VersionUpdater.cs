@@ -2,18 +2,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static DigitalBattleMap.Utilities.FileManager;
 
 namespace DigitalBattleMap.Utilities;
 
 public static class VersionUpdater
 {
-    public static readonly string ApplicationVersion = "2";
+    public static readonly string ApplicationVersion = "3";
 
     // Versions are defined from top to bottom where the bottom has the newest version.
     // Updates are executed in the same order.
     private static readonly List<IVersionUpdate> _versions = new() {
         new VersionUpdate0(),
-        new VersionUpdate1()
+        new VersionUpdate1(),
+        new VersionUpdate2()
     };
 
     public static bool IsUpdateRequired(string version)
@@ -106,6 +108,33 @@ public static class VersionUpdater
         public void Update()
         {
             IO.Directory.CreateDirectory(Constants.AutoSavesPath);
+        }
+    }
+
+    private class VersionUpdate2 : IVersionUpdate
+    {
+        public string Version => "2";
+        public string NewVersion => "3";
+
+        /// <summary>
+        /// This update converted the setting HasBlackBackground to DefaultBackgroundColor.
+        /// 
+        /// This update will convert the exiting bool HasBlackBackground to the correct enum value for DefaultBackgroundColor.
+        /// </summary>
+        public void Update()
+        {
+            if (FileManager.OpenFile(Settings.SettingsPath, out TempSetting tempSetting))
+            {
+                var settings = Settings.Load();
+                settings.DefaultBackgroundColor = tempSetting.HasBlackBackground ? BackgroundColor.Black : BackgroundColor.White;
+                settings.Save();
+            }
+
+        }
+
+        private class TempSetting
+        {
+            public bool HasBlackBackground { get; set; } = true;
         }
     }
 }

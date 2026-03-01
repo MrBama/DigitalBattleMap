@@ -31,16 +31,16 @@
 
         <Label Content="Monitor position"/>
         <ComboBox Grid.Column="1" ItemsSource="{Binding MonitorPositions}" SelectedItem="{Binding SelectedMonitorPosition}" VerticalContentAlignment="Center"/>
-        <Label Grid.Row="1" Content="Default grid size" Margin="0 10 0 0"/>
-        <TextBox Grid.Row="1" Grid.Column="1" Margin="0 10 0 0" Text="{Binding DefaultGridSize, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
-        <Label Grid.Row="2" Content="Server Address" Margin="0 10 0 0"/>
-        <TextBox Grid.Row="2" Grid.Column="1" Margin="0 10 0 0" Text="{Binding ServerAddress, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
-        <Label Grid.Row="3" Content="Show map window" Margin="0 10 0 0"/>
-        <CheckBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" Margin="0 10 0 0" IsChecked="{Binding ShowMapWindow}"/>
-        <Label Grid.Row="4" Content="Hide DM features" Margin="0 10 0 0"/>
-        <CheckBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Center" Margin="0 10 0 0" IsChecked="{Binding HideDungeonMasterFeatures}"/>
-        <Label Grid.Row="5" Content="Set black background" Margin="0 10 0 0"/>
-        <CheckBox Grid.Row="5" Grid.Column="1" VerticalAlignment="Center" Margin="0 10 0 0" IsChecked="{Binding HasBlackBackground}"/>
+        <Label Grid.Row="1" Content="Default background" Margin="0 10 0 0"/>
+        <ComboBox Grid.Row="1" Grid.Column="1" Margin="0 10 0 0" ItemsSource="{Binding BackgroundColors}" SelectedItem="{Binding SelectedBackgroundColor}" VerticalContentAlignment="Center"/>
+        <Label Grid.Row="2" Content="Default grid size" Margin="0 10 0 0"/>
+        <TextBox Grid.Row="2" Grid.Column="1" Margin="0 10 0 0" Text="{Binding DefaultGridSize, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
+        <Label Grid.Row="3" Content="Server Address" Margin="0 10 0 0"/>
+        <TextBox Grid.Row="3" Grid.Column="1" Margin="0 10 0 0" Text="{Binding ServerAddress, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
+        <Label Grid.Row="4" Content="Show map window" Margin="0 10 0 0"/>
+        <CheckBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Center" Margin="0 10 0 0" IsChecked="{Binding ShowMapWindow}"/>
+        <Label Grid.Row="5" Content="Hide DM features" Margin="0 10 0 0"/>
+        <CheckBox Grid.Row="5" Grid.Column="1" VerticalAlignment="Center" Margin="0 10 0 0" IsChecked="{Binding HideDungeonMasterFeatures}"/>
         <Label Grid.Row="6" Content="Enable auto save" Margin="0 10 0 0"/>
         <CheckBox Grid.Row="6" Grid.Column="1" VerticalAlignment="Center" Margin="0 10 0 0" IsChecked="{Binding IsAutoSaveEnabled}"/>
         <Button Grid.Row="7" Grid.ColumnSpan="2" Content="Download monster tokens" Margin="0 10 0 0" Command="{Binding DownloadMonsterTokensCommand}"/>

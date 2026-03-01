@@ -61,7 +61,6 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public bool IsConfigurationMenuExpanded { get => Get<bool>(); set => Set(value); }
     public bool IsMultiMove { get => Get<bool>(); set => Set(value); }
     public bool HideDungeonMasterFeatures { get => Get<bool>(); set => Set(value); }
-    public bool HasBlackBackground { get => Get<bool>(); set => Set(value); }
     public bool IsInfoEnabled { get => Get<bool>(); set => Set(value); }
     public string ServerConnectionButtonText { get => Get<string>(); set => Set(value); }
     public string ServerConnectionStatus { get => Get<string>(); set => Set(value); }
@@ -163,7 +162,6 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         // settings
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
-        HasBlackBackground = _settings.HasBlackBackground;
         CropColor = System.Windows.Media.Brushes.LightGray;
         MouseCanvas = BackgroundController.MouseCanvas;
         ControlInfoText = CampaingInfoText;
@@ -305,7 +303,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         switch (drawing)
         {
             case DrawLayer.All:
-                var backgroundAndFogBitmapAll = CreateBackgroundBitmap();
+                var backgroundAndFogBitmapAll = BackgroundController.GetBackgroundBitmap();
                 var gridAndTokenBitmapAll = CreateGridAndDrawingBitmap();
                 _mapWindowViewModel.BackgroundBitmapSource = backgroundAndFogBitmapAll.ToBitmapImage();
                 _mapWindowViewModel.FogBitmapSource = FogController.GetFogBitmap().ToBitmapImage();
@@ -317,7 +315,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
                 break;
             case DrawLayer.Background:
-                var backgroundAndFogBitmap = CreateBackgroundBitmap();
+                var backgroundAndFogBitmap = BackgroundController.GetBackgroundBitmap();
                 _mapWindowViewModel.BackgroundBitmapSource = backgroundAndFogBitmap.ToBitmapImage();
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmap) });
                 break;
@@ -335,13 +333,6 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
                 break;
         }
-    }
-
-    private Bitmap CreateBackgroundBitmap()
-    {
-        return HasBlackBackground ?
-            BitmapTools.MergeBitmaps(BitmapTools.CreateBlackBitmap(), BackgroundController.GetBackgroundBitmap()) :
-            BackgroundController.GetBackgroundBitmap();
     }
 
     private Bitmap CreateGridAndDrawingBitmap()
@@ -800,10 +791,6 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         else if (e.SettingName == nameof(Settings.HideDungeonMasterFeatures))
         {
             HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
-        }
-        else if (e.SettingName == nameof(Settings.HasBlackBackground))
-        {
-            HasBlackBackground = _settings.HasBlackBackground;
         }
         else if (e.SettingName == nameof(Settings.IsAutoSaveEnabled))
         {

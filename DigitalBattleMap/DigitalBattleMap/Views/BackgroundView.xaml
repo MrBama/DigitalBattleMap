@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels" 
-             xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements"
+             xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements" 
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d" 
              d:DesignHeight="1080" d:DesignWidth="480"
              Background="White"
@@ -31,14 +32,32 @@
             <RowDefinition Height="auto"/> <!--8-->
             <RowDefinition Height="auto"/> <!--9-->
             <RowDefinition Height="auto"/> <!--10-->
-            <RowDefinition Height="*"/> <!--11-->
+            <RowDefinition Height="auto"/> <!--11-->
+            <RowDefinition Height="*"/> <!--12-->
         </Grid.RowDefinitions>
 
         <Button Content="Open background" Command="{Binding OpenBackgroundCommand}"/>
         <Button Grid.Row="1" Content="Open from clipboard" Command="{Binding OpenBackgroundFromClipboardCommand}" Margin="0 10 0 0" IsEnabled="{Binding HasOpenedBackground, Converter={StaticResource InvertBoolConverter}}"/>
 
-        <!--Zoom buttons grid-->
+        <!--Background color grid-->
         <Grid Grid.Row="2" Margin="0 10 0 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Label Content="Background color"/>
+            <ComboBox Grid.Column="1" ItemsSource="{Binding BackgroundColors}" SelectedItem="{Binding SelectedBackgroundColor}"  VerticalContentAlignment="Center">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectionChanged">
+                        <i:InvokeCommandAction Command="{Binding BackgroundColorChangedCommand}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </ComboBox>
+        </Grid>
+
+        <!--Zoom buttons grid-->
+        <Grid Grid.Row="3" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -48,7 +67,7 @@
         </Grid>
         
         <!--Zoom factor grid-->
-        <Grid Grid.Row="3" Margin="0 10 0 0">
+        <Grid Grid.Row="4" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
@@ -58,10 +77,11 @@
             <Slider Grid.Column="1" VerticalAlignment="Center" Minimum="1" Maximum="100" Value="{Binding BackgroundZoomPercentage, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True" Margin="10 0 10 0"/>
             <Label Grid.Column="2" Content="{Binding BackgroundZoomPercentageLabel}" />
         </Grid>
-        <Button Grid.Row="4" Margin="0 10 0 0" Content="Fit to grid" Command="{Binding FitBackgroundToGridCommand}" IsEnabled="{Binding IsBackgroundEditingAllowed}"/>
+        
+        <Button Grid.Row="5" Margin="0 10 0 0" Content="Fit to grid" Command="{Binding FitBackgroundToGridCommand}" IsEnabled="{Binding IsBackgroundEditingAllowed}"/>
 
         <!--Fit background cells grid-->
-        <Grid Grid.Row="5" Margin="0 10 0 0">
+        <Grid Grid.Row="6" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
@@ -76,7 +96,7 @@
         </Grid>
         
         <!--Fit background feet grid-->
-        <Grid Grid.Row="6" Margin="0 10 0 0">
+        <Grid Grid.Row="7" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="4*"/>
                 <ColumnDefinition Width="2*"/>
@@ -88,7 +108,7 @@
         </Grid>
 
         <!-- Grid label-->
-        <Grid Grid.Row="7" Margin="0 10 0 0">
+        <Grid Grid.Row="8" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
@@ -99,7 +119,7 @@
             <Separator Grid.Column="2" BorderThickness="1" BorderBrush="Gray"/>
         </Grid>
 
-        <Grid Grid.Row="8" Margin="0 10 0 0">
+        <Grid Grid.Row="9" Margin="0 10 0 0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
@@ -123,7 +143,7 @@
             <CheckBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding IsGridShown}" Margin="0 10 0 0"/>
         </Grid>
 
-        <Grid Grid.Row="9" Margin="0 10 0 0">
+        <Grid Grid.Row="10" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
@@ -139,7 +159,7 @@
             <Button Grid.Row="1" Grid.ColumnSpan="3" Content="Open overlay" Command="{Binding OpenGMOverlayCommand}"/>
         </Grid>
 
-        <Button Grid.Row="10" Content="Clear overlay" Command="{Binding ClearGMOverlayCommand}" Margin="0 10 0 0" VerticalAlignment="Top"/>
-        <Button Grid.Row="11" Content="Clear" Command="{Binding ClearBackgroundCommand}" Margin="0 10 0 0" VerticalAlignment="Bottom"/>
+        <Button Grid.Row="12" Content="Clear overlay" Command="{Binding ClearGMOverlayCommand}" Margin="0 10 0 0" VerticalAlignment="Top"/>
+        <Button Grid.Row="12" Content="Clear" Command="{Binding ClearBackgroundCommand}" Margin="0 10 0 0" VerticalAlignment="Bottom"/>
     </Grid>
 </UserControl>

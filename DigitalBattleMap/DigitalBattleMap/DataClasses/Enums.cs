@@ -118,3 +118,9 @@ public enum NType
     Heptagon,
     Octagon
 }
+
+public enum BackgroundColor
+{
+    Black,
+    White
+}

@@ -3,6 +3,7 @@ using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Drawing;
 using System.IO;
 using System.Windows.Input;
@@ -33,6 +34,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         _windowService = windowService;
         _settings = settings;
         GridSize = _settings.DefaultGridSize;
+        SelectedBackgroundColor = _settings.DefaultBackgroundColor;
         Initialize();
     }
 
@@ -69,6 +71,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         BackgroundZoomOutCommand = new RelayCommand(p => ZoomOut(BackgroundZoomPercentage));
         FitBackgroundToGridCommand = new RelayCommand(p => FitToGrid());
         GridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
+        BackgroundColorChangedCommand = new RelayCommand(p => BackgroundColorChanged());
     }
 
     public event EventHandler OnBackgroundUpdated;
@@ -85,11 +88,13 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public int GridSize { get => Get<int>(); set => Set(value); }
     public int ZoomSize { get => Get<int>(); set => Set(value); }
     public double BackgroundZoomPercentage { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(BackgroundZoomPercentageLabel))); }
+    public BackgroundColor SelectedBackgroundColor { get => Get<BackgroundColor>(); set => Set(value); }
     public BitmapSource BackgroundBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public BitmapSource GMOverlayBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public BitmapSource GridBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public string BackgroundZoomPercentageLabel { get => $"{BackgroundZoomPercentage}%"; }
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
+    public ObservableCollection<BackgroundColor> BackgroundColors { get; set; } = new() { BackgroundColor.Black, BackgroundColor.White };
 
     public ICommand OpenBackgroundCommand { get; set; }
     public ICommand OpenBackgroundFromClipboardCommand { get; set; }
@@ -100,6 +105,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public ICommand BackgroundZoomOutCommand { get; set; }
     public ICommand FitBackgroundToGridCommand { get; set; }
     public ICommand GridSizeEnterCommand { get; set; }
+    public ICommand BackgroundColorChangedCommand { get; set; }
 
     private Bitmap BackgroundBitmap
     {
@@ -141,7 +147,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     public Bitmap GetBackgroundBitmap()
     {
-        return BackgroundBitmap;
+        return SelectedBackgroundColor == BackgroundColor.Black 
+            ? BitmapTools.MergeBitmaps(BitmapTools.CreateBlackBitmap(), BackgroundBitmap) : BackgroundBitmap;
     }
 
     public Bitmap GetGridBitmap()
@@ -180,6 +187,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         HasOpenedBackground = false;
         HasOpenGMOverlay = false;
         ZoomSize = Constants.DefaultZoomSize;
+        SelectedBackgroundColor = _settings.DefaultBackgroundColor;
         NotifyBackgroundUpdated();
     }
 
@@ -490,4 +498,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         NotifyGridSizeChanged(GridSize);
     }
 
+    private void BackgroundColorChanged()
+    {
+        CreateBackground();
+    }
 }

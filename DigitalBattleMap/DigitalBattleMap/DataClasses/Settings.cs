@@ -10,8 +10,8 @@ namespace DigitalBattleMap.DataClasses;
 
 public class Settings
 {
-    private static string _settingsPath = Path.Combine(Constants.SettingsPath, "Settings.json");
     private Dictionary<string, object> _oldValues = new();
+    public static string SettingsPath = Path.Combine(Constants.SettingsPath, "Settings.json");
 
     public event EventHandler<SettingChangedEventArgs> OnSettingChanged;
 
@@ -20,7 +20,7 @@ public class Settings
     public bool IsSoftwareInstalled { get; set; }
     public bool ShowMapWindow { get; set; } = true;
     public bool HideDungeonMasterFeatures { get; set; }
-    public bool HasBlackBackground { get; set; } = true;
+    public BackgroundColor DefaultBackgroundColor { get; set; } = BackgroundColor.Black;
     public bool IsAutoSaveEnabled { get; set; } = true;
     public string ServerAddress { get; set; } = "http://localhost:8000";
     public string CurrentCampaignName { get; set; } = "";
@@ -32,7 +32,7 @@ public class Settings
 
     public static Settings Load()
     {
-        if (!FileManager.OpenFile(_settingsPath, out Settings storage, new DerivedClassJsonConverter<Statblock>()))
+        if (!FileManager.OpenFile(SettingsPath, out Settings storage, new DerivedClassJsonConverter<Statblock>()))
         {
             return new();
         }
@@ -42,7 +42,7 @@ public class Settings
 
     public void Save()
     {
-        FileManager.SaveFile(this, _settingsPath);
+        FileManager.SaveFile(this, SettingsPath);
         NotifySettingsChanged();
         BackupValues();
     }
