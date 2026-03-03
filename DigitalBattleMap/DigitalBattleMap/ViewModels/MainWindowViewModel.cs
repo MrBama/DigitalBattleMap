@@ -914,7 +914,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 string.Empty : // ignore type info in control info text
                 string.Format("{0}{1}: ", controlInfo.Type.ToString(), additional); // adds type info in control info text + adds additional if present.
 
-            var info = string.Format("{0}{1}\n", typeInfo, controlInfo.ControlInfo);
+            var info = string.Format("{0}{1}\n", typeInfo, controlInfo!.ControlInfo);
             controlInfoText.Append(info);
         }
         return controlInfoText.ToString();

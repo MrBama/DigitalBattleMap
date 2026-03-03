@@ -32,7 +32,7 @@ public class EraserDrawingShape : DrawingShape
         _addedShapes.Clear();
         _removedShapes.Clear();
         _editedShapes.Clear();
-        _originalDrawingShapes = _drawingShapeCollection.GetShapes().ToList();
+        _originalDrawingShapes = _drawingShapeCollection.GetDrawingShapes().ToList();
         Erase(position);
     }
 
