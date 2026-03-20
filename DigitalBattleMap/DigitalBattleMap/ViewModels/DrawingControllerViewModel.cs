@@ -58,7 +58,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         MouseCanvas.OnMouseMove += MouseMove;
         MouseCanvas.Cursor = ActiveShape.Cursor;
         MouseCanvas.OnFixRatioRectangleAreaSelected += FixRatioRectangleAreaSelected;
-        UpdateHelpText();
     }
 
     protected override void InitializeCommands()
@@ -87,9 +86,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public BitmapSource RedoBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.RedoIcon.png")).ToBitmapImage(); }
     public DrawingShape SelectedShape { get => Get<DrawingShape>(); set => Set(value, SelectedShapeChanged); }
     public DrawingShapeCollection ShapeCollection { get => Get<DrawingShapeCollection>(); set => Set(value); }
-    public bool IsDrawShapeActive { get => Get<bool>(); set => Set(value, UpdateHelpText); }
-    public string LeftMouseButtonHelpText { get => Get<string>(); set => Set(value); }
-    public string RightMouseButtonHelpText { get => Get<string>(); set => Set(value); }
+    public bool IsDrawShapeActive { get => Get<bool>(); set => Set(value); }
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
     public CommandHistory<DrawingShapeCommand> DrawingHistory { get; set; } = new(30);
     public ICommand SelectedDrawingButtonChangedCommand { get; set; }
@@ -665,19 +662,5 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     private void FixRatioRectangleAreaSelected(object? sender, RectangleF rectangle)
     {
         OnZoomAndEnhance?.Invoke(this, new ZoomAndEnhanceEventArgs() { rectangle = rectangle });
-    }
-
-    private void UpdateHelpText()
-    {
-        if(IsDrawShapeActive)
-        {
-            LeftMouseButtonHelpText = "LMB: Click and drag";
-            RightMouseButtonHelpText = "";
-        }
-        else
-        {
-            LeftMouseButtonHelpText = "LMB: Draw a stroke";
-            RightMouseButtonHelpText = "RMB: Move the selected shape";
-        }
     }
 }

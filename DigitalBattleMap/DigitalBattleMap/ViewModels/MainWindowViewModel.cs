@@ -444,7 +444,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 TokenVisibility = Visibility.Visible;
 
                 MouseCanvas = DrawingController.MouseCanvas;
-                ControlInfoText = string.Empty; // todo: update to active controls for this tab on tab switch
+                ControlInfoText = GetDrawingInfoText();
                 DrawingCanvasZIndex = 1;
                 break;
             case TabIndex.Tokens:
@@ -897,6 +897,20 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 new InfoBlock(ControlType.LMB, "Move selected token to grid location"),
                 new InfoBlock(ControlType.RMB, "Select token in grid location"),
                 new InfoBlock(ControlType.Alt, ControlType.LMB, "Toggle on/off the fog of war shape at the selected location")
+            }
+        };
+        return GetControlInfoText(info);
+    }
+
+    private string GetDrawingInfoText()
+    {
+        var info = new ControlInfoEventArgs()
+        {
+            controlName = "Drawing Controls",
+            infoBlocks = new List<InfoBlock>()
+            {
+                new InfoBlock(ControlType.LMB, "Hold to draw a stroke"),
+                new InfoBlock(ControlType.RMB, "Move the selected shape")
             }
         };
         return GetControlInfoText(info);
