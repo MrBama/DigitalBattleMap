@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -23,6 +24,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 {
     private DrawingButton _selectedDrawingButton = DrawingButton.Black;
     private ITokenLinker _tokenLinker;
+    private bool _showSelectedShapeIndicator = true;
 
     public DrawingControllerViewModel()
     {
@@ -40,13 +42,13 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void Initialize()
     {
-        BlackButtonBitmapSource = BitmapTools.CreateColorButton(GetDrawingButtonColor(DrawingButton.Black).ToDrawingBrush(), true).ToBitmapImage();
-        RedButtonBitmapSource = BitmapTools.CreateColorButton(GetDrawingButtonColor(DrawingButton.Red).ToDrawingBrush(), false).ToBitmapImage();
-        GreenButtonBitmapSource = BitmapTools.CreateColorButton(GetDrawingButtonColor(DrawingButton.Green).ToDrawingBrush(), false).ToBitmapImage();
-        BlueButtonBitmapSource = BitmapTools.CreateColorButton(GetDrawingButtonColor(DrawingButton.Blue).ToDrawingBrush(), false).ToBitmapImage();
+        BlackButtonBitmapSource = BitmapTools.CreateColorButton(DrawingButton.Black.ToColor().ToDrawingBrush(), true).ToBitmapImage();
+        RedButtonBitmapSource = BitmapTools.CreateColorButton(DrawingButton.Red.ToColor().ToDrawingBrush(), false).ToBitmapImage();
+        GreenButtonBitmapSource = BitmapTools.CreateColorButton(DrawingButton.Green.ToColor().ToDrawingBrush(), false).ToBitmapImage();
+        BlueButtonBitmapSource = BitmapTools.CreateColorButton(DrawingButton.Blue.ToColor().ToDrawingBrush(), false).ToBitmapImage();
         EraserButtonBitmapSource = BitmapTools.CreateEraserButton(false).ToBitmapImage();
         ShapeCollection = new();
-        ShapeCollection.OnRenderShapes += (_, _) => NotifyDrawingShapesUpdated();
+        ShapeCollection.OnRenderShapes += OnShapeRenderChanged;
         ActiveShape = new StrokeDrawingShape(ApplyActiveShape, _tokenLinker, _mapSize);
         MouseCanvas = new MouseCanvasViewModel();
         MouseCanvas.OnLeftButtonDown += LeftButtonDown;
@@ -60,17 +62,16 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     protected override void InitializeCommands()
     {
-        SelectedDrawingButtonChangedCommand = new RelayCommand(p => SelectedDrawingButtonChanged((string)p));
+        SelectedDrawingButtonChangedCommand = new RelayCommand(p => SelectedDrawingButtonChanged((DrawingButton)p));
         ClearDrawingCommand = new RelayCommand(p => ClearDrawings());
         CancelDrawShapeCommand = new RelayCommand(p => CancelDrawShape());
-        EditShapeCommand = new RelayCommand(p => EditShape());
-        CancelEditShapeCommand = new RelayCommand(p => CancelEditShape());
-        ApplyEditShapeCommand = new RelayCommand(p => ApplyEditShape());
         RemoveShapeCommand = new RelayCommand(p => RemoveShape());
         DrawRectangleCommand = new RelayCommand(p => DrawShape(DrawingShapeType.Rectangle));
         DrawCircleCommand = new RelayCommand(p => DrawShape(DrawingShapeType.Circle));
         DrawConeCommand = new RelayCommand(p => DrawShape(DrawingShapeType.Cone));
         DrawLineCommand = new RelayCommand(p => DrawShape(DrawingShapeType.Line));
+        UndoCommand = new RelayCommand(p => Undo());
+        RedoCommand = new RelayCommand(p => Redo());
     }
 
     public event EventHandler OnDrawingShapesUpdated;
@@ -81,22 +82,23 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public BitmapSource GreenButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource BlueButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource EraserButtonBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
+    public BitmapSource UndoBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.UndoIcon.png")).ToBitmapImage(); }
+    public BitmapSource RedoBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.RedoIcon.png")).ToBitmapImage(); }
     public DrawingShape SelectedShape { get => Get<DrawingShape>(); set => Set(value, SelectedShapeChanged); }
     public DrawingShapeCollection ShapeCollection { get => Get<DrawingShapeCollection>(); set => Set(value); }
     public bool IsDrawShapeActive { get => Get<bool>(); set => Set(value); }
-    public bool IsEditShapeActive { get => Get<bool>(); set => Set(value); }
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
+    public CommandHistory<DrawingShapeCommand> DrawingHistory { get; set; } = new(30);
     public ICommand SelectedDrawingButtonChangedCommand { get; set; }
     public ICommand ClearDrawingCommand { get; set; }
     public ICommand CancelDrawShapeCommand { get; set; }
-    public ICommand EditShapeCommand { get; set; }
-    public ICommand CancelEditShapeCommand { get; set; }
-    public ICommand ApplyEditShapeCommand { get; set; }
     public ICommand RemoveShapeCommand { get; set; }
     public ICommand DrawRectangleCommand { get; set; }
     public ICommand DrawCircleCommand { get; set; }
     public ICommand DrawConeCommand { get; set; }
     public ICommand DrawLineCommand { get; set; }
+    public ICommand UndoCommand { get; set; }
+    public ICommand RedoCommand { get; set; }
 
     public DrawingShape ActiveShape
     {
@@ -107,7 +109,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             if (oldValue != null)
             {
                 oldValue.PropertyChanged -= ActiveShapePropertyChanged;
-                oldValue.OnRenderChanged -= OnActiveShapeRenderChanged;
+                oldValue.OnRenderChanged -= OnShapeRenderChanged;
             }
 
             Set(value);
@@ -115,7 +117,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             if (value != null)
             {
                 value.PropertyChanged += ActiveShapePropertyChanged;
-                value.OnRenderChanged += OnActiveShapeRenderChanged;
+                value.OnRenderChanged += OnShapeRenderChanged;
             }
         }
     }
@@ -288,7 +290,9 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
 
         ShapeCollection.Clear();
+        DrawingHistory.Clear();
         ActiveShape = CreateStrokeDrawingShape();
+        ResetDrawingButton();
         IsDrawShapeActive = false;
         NotifyDrawingShapesUpdated();
     }
@@ -298,10 +302,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         NotifyDrawingShapesUpdated();
     }
 
-    private void SelectedDrawingButtonChanged(string button)
+    private void SelectedDrawingButtonChanged(DrawingButton drawingButton)
     {
-        var drawingButton = Enum.Parse<DrawingButton>(button);
-
         if (_selectedDrawingButton != drawingButton)
         {
             ChangeDrawingButton(_selectedDrawingButton, drawingButton);
@@ -323,29 +325,39 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             SelectEraser();
         }
 
-        ActiveShape.Color = GetDrawingButtonColor(newDrawingButton);
+        ActiveShape.Color = newDrawingButton.ToColor();
+    }
+
+    private void ResetDrawingButton()
+    {
+        SetDrawingButtonSelection(_selectedDrawingButton, false);
+        SetDrawingButtonSelection(DrawingButton.Black, true);
+        ActiveShape.Color = DrawingButton.Black.ToColor();
+        _selectedDrawingButton = DrawingButton.Black;
     }
 
     private void SelectEraser()
     {
-        if (IsEditShapeActive)
-        {
-            ActiveShape.CancelEditShape();
-            NotifyDrawingShapesUpdated();
-        }
-
         IsDrawShapeActive = false;
-        IsEditShapeActive = false;
 
-        ActiveShape = new EraserDrawingShape(ShapeCollection, _mapSize)
+        var eraserDrawingShape = new EraserDrawingShape(ShapeCollection, _mapSize)
         {
             PenSize = ActiveShape.PenSize
         };
+
+        eraserDrawingShape.OnErased += OnErased;
+        ActiveShape = eraserDrawingShape;
+    }
+
+    private void OnErased(object? sender, DrawingShapeErasedEventArgs e)
+    {
+        DrawingHistory.Enqueue(new DrawingShapeCommand(null, DrawingShapeCommandAction.Erase) { EraseData = e });
+        NotifyDrawingShapesUpdated();
     }
 
     private void SetDrawingButtonSelection(DrawingButton drawingButton, bool isSelected)
     {
-        var color = GetDrawingButtonColor(drawingButton);
+        var color = drawingButton.ToColor();
 
         switch (drawingButton)
         {
@@ -369,32 +381,18 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void ApplyActiveShape()
     {
-        if (!ShapeCollection.Contains(ActiveShape))
+        ShapeCollection.Add(ActiveShape);
+        if(ActiveShape.ShowInShapesOverview)
         {
-            ShapeCollection.Add(ActiveShape);
+            _showSelectedShapeIndicator = false;
+            SelectedShape = ActiveShape;
+            _showSelectedShapeIndicator = true;
         }
+        DrawingHistory.Enqueue(new DrawingShapeCommand(ActiveShape, DrawingShapeCommandAction.Add));
 
         ActiveShape = CreateStrokeDrawingShape();
         IsDrawShapeActive = false;
-        IsEditShapeActive = false;
         NotifyDrawingShapesUpdated();
-    }
-
-    private Color GetDrawingButtonColor(DrawingButton drawingButton)
-    {
-        switch (drawingButton)
-        {
-            case DrawingButton.Black:
-                return Color.FromArgb(255, 0, 0, 0);
-            case DrawingButton.Red:
-                return Color.FromArgb(255, 255, 0, 0);
-            case DrawingButton.Green:
-                return Color.FromArgb(255, 0, 255, 0);
-            case DrawingButton.Blue:
-                return Color.FromArgb(255, 0, 0, 255);
-            default:
-                return Color.FromArgb(255, 255, 0, 0);
-        }
     }
 
     private DrawingButton GetDrawingButton(Color color)
@@ -433,17 +431,24 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void RightButtonDown(object? sender, MouseButtonDataEventArgs e)
     {
-        ActiveShape.RightButtonDown(e);
+        SelectedShape?.RightButtonDown(e);
     }
 
     private void RightButtonUp(object? sender, MouseButtonDataEventArgs e)
     {
-        ActiveShape.RightButtonUp(e);
+        SelectedShape?.RightButtonUp(e);
     }
 
     private void MouseMove(object? sender, MouseMoveDataEventArgs e)
     {
-        ActiveShape.MouseMove(e);
+        if (e.RightButtonDown)
+        {
+            SelectedShape?.MouseMove(e);
+        }
+        else
+        {
+            ActiveShape.MouseMove(e);
+        }      
     }
 
     private DrawingShape CreateStrokeDrawingShape()
@@ -476,7 +481,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
 
         IsDrawShapeActive = true;
-        IsEditShapeActive = false;
 
         switch (drawingShapeType)
         {
@@ -541,7 +545,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void SelectedShapeChanged()
     {
-        if (SelectedShape != null)
+        if (SelectedShape != null && _showSelectedShapeIndicator)
         {
             var points = SelectedShape.Points.ToList();
             SelectedShape.Points.Clear();
@@ -553,37 +557,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
     }
 
-    private void EditShape()
-    {
-        ActiveShape = SelectedShape;
-        ActiveShape.EditShape();
-        IsDrawShapeActive = false;
-        IsEditShapeActive = true;
-
-        var drawingButton = GetDrawingButton(ActiveShape.Color);
-        if (_selectedDrawingButton != drawingButton)
-        {
-            SetDrawingButtonSelection(_selectedDrawingButton, false);
-            SetDrawingButtonSelection(drawingButton, true);
-            MouseCanvas.Cursor = ActiveShape.Cursor;
-            _selectedDrawingButton = drawingButton;
-        }
-    }
-
-    private void CancelEditShape()
-    {
-        IsEditShapeActive = false;
-        ActiveShape.CancelEditShape();
-        ActiveShape = CreateStrokeDrawingShape();
-        NotifyDrawingShapesUpdated();
-    }
-
-    private void ApplyEditShape()
-    {
-        IsEditShapeActive = false;
-        ActiveShape.ApplyShape();
-    }
-
     private void RemoveShape()
     {
         if (ActiveShape == SelectedShape)
@@ -591,8 +564,81 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             ActiveShape = CreateStrokeDrawingShape();
         }
 
+        DrawingHistory.Enqueue(new DrawingShapeCommand(SelectedShape, DrawingShapeCommandAction.Remove) { RemovedAtIndex = ShapeCollection.IndexOf(SelectedShape) });
         ShapeCollection.Remove(SelectedShape);
-        IsEditShapeActive = false;
+
+        NotifyDrawingShapesUpdated();
+    }
+
+    private void Undo()
+    {
+        if(DrawingHistory.TryDequeuePreviousCommand(out var command))
+        {
+            UndoDrawingCommand(command);
+        }
+    }
+
+    private void UndoDrawingCommand(DrawingShapeCommand command)
+    {
+        switch (command.Action)
+        {
+            case DrawingShapeCommandAction.Add:
+                ShapeCollection.Remove(command.DrawingShape);
+                break;
+            case DrawingShapeCommandAction.Remove:
+                ShapeCollection.Insert(command.RemovedAtIndex, command.DrawingShape);
+                break;
+            case DrawingShapeCommandAction.Edit:
+                command.DrawingShape.Color = command.OldInfo.Color;
+                command.DrawingShape.PenSize = command.OldInfo.Size;
+                command.DrawingShape.Points = new ObservableCollection<Point<double>>(command.OldInfo.Points);
+                break;
+            case DrawingShapeCommandAction.Erase:
+                foreach (var eraseCommand in command.EraseData.EraseCommands)
+                {
+                    UndoDrawingCommand(eraseCommand);
+                }
+                break;
+            default:
+                throw new NotImplementedException();
+        }
+
+        NotifyDrawingShapesUpdated();
+    }
+
+    private void Redo()
+    {
+        if (DrawingHistory.TryDequeueNextCommand(out var command))
+        {
+            RedoDrawingCommand(command);
+        }
+    }
+
+    private void RedoDrawingCommand(DrawingShapeCommand command)
+    {
+        switch (command.Action)
+        {
+            case DrawingShapeCommandAction.Add:
+                ShapeCollection.Add(command.DrawingShape);
+                break;
+            case DrawingShapeCommandAction.Remove:
+                ShapeCollection.Remove(command.DrawingShape);
+                break;
+            case DrawingShapeCommandAction.Edit:
+                command.DrawingShape.Color = command.NewInfo.Color;
+                command.DrawingShape.PenSize = command.NewInfo.Size;
+                command.DrawingShape.Points = new ObservableCollection<Point<double>>(command.NewInfo.Points);
+                break;
+            case DrawingShapeCommandAction.Erase:
+                foreach (var eraseCommand in command.EraseData.EraseCommands)
+                {
+                    RedoDrawingCommand(eraseCommand);
+                }
+                break;
+            default:
+                throw new NotImplementedException();
+        }
+
         NotifyDrawingShapesUpdated();
     }
 
@@ -604,8 +650,12 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
     }
 
-    private void OnActiveShapeRenderChanged(object? sender, EventArgs e)
+    private void OnShapeRenderChanged(object? sender, DrawingShapeEditedEventArgs e)
     {
+        var editCommand = new DrawingShapeCommand(e.DrawingShape, DrawingShapeCommandAction.Edit);
+        editCommand.OldInfo = e.OldInfo;
+        editCommand.NewInfo = e.NewInfo;
+        DrawingHistory.Enqueue(editCommand);
         NotifyDrawingShapesUpdated();
     }
 

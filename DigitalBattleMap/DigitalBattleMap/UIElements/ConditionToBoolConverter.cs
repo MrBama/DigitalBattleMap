@@ -11,7 +11,7 @@ public class ConditionToBoolConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         var conditions = (List<Condition>)value;
-        var parameterCondition = Enum.Parse<Condition>((string)parameter);
+        var parameterCondition = (Condition)parameter;
 
         return conditions.Contains(parameterCondition);
     }

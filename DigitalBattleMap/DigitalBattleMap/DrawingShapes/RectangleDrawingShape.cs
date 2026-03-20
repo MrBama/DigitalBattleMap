@@ -61,6 +61,6 @@ public class RectangleDrawingShape : DrawingShape
         var gridCellsY = _radiusY * 2 / _mapSize.CanvasGridSize;
         var feedX = Math.Round(gridCellsX * Constants.FeetPerGridCell);
         var feedY = Math.Round(gridCellsY * Constants.FeetPerGridCell);
-        Size = $"{feedX}x{feedY}";
+        SizeLabel = $"{feedX}x{feedY} ft";
     }
 }

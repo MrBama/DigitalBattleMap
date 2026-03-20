@@ -17,7 +17,7 @@ public class DrawingShapeCollection : IEnumerable, INotifyCollectionChanged
     public event NotifyCollectionChangedEventHandler? OnDrawingShapePointsChanged;
     public event PropertyChangedEventHandler? OnDrawingShapePropertyChanged;
     public event EventHandler<DrawingShapeCollectionChangedEventArgs> OnDrawingShapeCollectionChanged;
-    public event EventHandler OnRenderShapes;
+    public event EventHandler<DrawingShapeEditedEventArgs> OnRenderShapes;
     public event NotifyCollectionChangedEventHandler? CollectionChanged; // This is only used for UI
 
     public void Add(DrawingShape drawingShape)
@@ -28,8 +28,7 @@ public class DrawingShapeCollection : IEnumerable, INotifyCollectionChanged
         drawingShape.OnRenderChanged += RenderShapes;
         DrawingShapeCollectionChanged(new DrawingShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Add, ChangedShape = drawingShape });
 
-        // Only show shapes that cannot be removed with the eraser
-        if (!drawingShape.IsErasable)
+        if (drawingShape.ShowInShapesOverview)
         {
             DrawingShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, drawingShape));
         }
@@ -43,16 +42,24 @@ public class DrawingShapeCollection : IEnumerable, INotifyCollectionChanged
         drawingShape.OnRenderChanged += RenderShapes;
         DrawingShapeCollectionChanged(new DrawingShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Insert, ChangedShape = drawingShape, Index = index });
 
-        // Only show shapes that cannot be removed with the eraser
-        if (!drawingShape.IsErasable)
+        if (drawingShape.ShowInShapesOverview)
         {
-            DrawingShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, drawingShape));
+            var numberOfStrokesNotInCollection = 0;
+            for(int i = 0; i < index; i++)
+            {
+                if(!_drawingShapes[i].ShowInShapesOverview)
+                {
+                    numberOfStrokesNotInCollection++;
+                }
+            }
+            var uiIndex = index - numberOfStrokesNotInCollection;
+            DrawingShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, drawingShape, uiIndex));
         }
     }
 
     public void Remove(DrawingShape drawingShape)
     {
-        var index = _drawingShapes.Where(s => !s.IsErasable).ToList().IndexOf(drawingShape);
+        var index = _drawingShapes.Where(s => s.ShowInShapesOverview).ToList().IndexOf(drawingShape);
         drawingShape.PropertyChanged -= DrawingShapePropertyChanged;
         drawingShape.OnPointsChanged -= DrawingShapePointsChanged;
         drawingShape.OnRenderChanged -= RenderShapes;
@@ -60,8 +67,7 @@ public class DrawingShapeCollection : IEnumerable, INotifyCollectionChanged
 
         DrawingShapeCollectionChanged(new DrawingShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Remove, ChangedShape = drawingShape });
 
-        // Only show shapes that cannot be removed with the eraser
-        if (!drawingShape.IsErasable)
+        if (drawingShape.ShowInShapesOverview)
         {
             DrawingShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, drawingShape, index));
         }
@@ -133,8 +139,8 @@ public class DrawingShapeCollection : IEnumerable, INotifyCollectionChanged
         CollectionChanged?.Invoke(this, eventArgs);
     }
 
-    private void RenderShapes(object? sender, EventArgs e)
+    private void RenderShapes(object? sender, DrawingShapeEditedEventArgs e)
     {
-        OnRenderShapes?.Invoke(this, new EventArgs());
+        OnRenderShapes?.Invoke(this, e);
     }
 }

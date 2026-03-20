@@ -10,7 +10,7 @@ public class TokenOrientationToBoolConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         var tokenOrientation = (TokenOrientation)value;
-        var parameterSize = Enum.Parse<TokenOrientation>((string)parameter);
+        var parameterSize = (TokenOrientation)parameter;
 
         if (tokenOrientation == parameterSize)
         {

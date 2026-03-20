@@ -23,9 +23,9 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         Height = 0;
         LinkableObject = new LinkableObject(UpdatePosition);
 
-        TokenSizeChangedCommand = new RelayCommand(p => TokenSizeChanged((string)p));
-        TokenOrientationChangedCommand = new RelayCommand(p => TokenOrientationChanged((string)p));
-        ConditionChangedCommand = new RelayCommand(p => ConditionChanged((string)p));
+        TokenSizeChangedCommand = new RelayCommand(p => TokenSizeChanged((TokenSize)p));
+        TokenOrientationChangedCommand = new RelayCommand(p => TokenOrientationChanged((TokenOrientation)p));
+        ConditionChangedCommand = new RelayCommand(p => ConditionChanged((Condition)p));
         ConditionHeightCommand = new RelayCommand(p => ConditionHeightChanged());
         ClearAllConditionsCommand = new RelayCommand(p => ClearAllConditions());
         TokenVisibilityCommand = new RelayCommand(p => ToggleTokenVisibility());
@@ -183,23 +183,22 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         return $"{Token.Name} ID: {Id}";
     }
 
-    private void TokenSizeChanged(string size)
+    private void TokenSizeChanged(TokenSize size)
     {
-        Token.Size = Enum.Parse<TokenSize>(size);
+        Token.Size = size;
         _multiActions.TokenSizeChanged(this);
         NotifyTokenChanged();
     }
 
-    private void TokenOrientationChanged(string orientation)
+    private void TokenOrientationChanged(TokenOrientation orientation)
     {
-        Token.Orientation = Enum.Parse<TokenOrientation>(orientation);
+        Token.Orientation = orientation;
         _multiActions.TokenOrientationChanged(this);
         NotifyTokenChanged();
     }
 
-    private void ConditionChanged(string conditionString)
+    private void ConditionChanged(Condition condition)
     {
-        var condition = Enum.Parse<Condition>(conditionString);
         ToggleCondition(condition);
 
         _multiActions.ConditionsChanged(this);
