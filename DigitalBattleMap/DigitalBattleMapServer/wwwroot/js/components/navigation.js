@@ -29,6 +29,10 @@
 const heightCondition = 25;
 
 let isInitialized = false;
+let activeConditions = {};
+let visibleConditions = {}; // Track which conditions are visible in the UI
+let closedConditions = {}; // Track which conditions have been manually closed by the user
+let isPanelManuallyHidden = false; // Track if user manually closed the panel
 
 const connection = new signalR.HubConnectionBuilder()
     .withUrl("/WebHub")
@@ -123,11 +127,16 @@ connection.on("SetConditions", function (character, conditions) {
             document.getElementById(button).style.backgroundColor = '';
         }
 
+        let appliedConditions = [];
         for (const condition of conditions) {
             if (condition != heightCondition) {
                 document.getElementById(conditionButtons[condition]).style.backgroundColor = '#303538';
+                appliedConditions.push(conditionButtons[condition]);
             }
         }
+
+        // Update the info panel to only show applied conditions
+        syncConditionPanelWithAppliedConditions(appliedConditions);
     }
 });
 
@@ -230,10 +239,25 @@ $(document).ready(function () {
             data: { 'character': character, 'height': height }
         })
     })
+
+    $("#closeConditionInfo").click(function () {
+        hideConditionPanel();
+        updateConditionInfoButtonVisibility();
+    })
+
+    $("#btnOpenConditionInfo").click(function () {
+        // Reload visible conditions when reopening
+        reloadActiveConditions();
+        showConditionPanel();
+        updateConditionInfoButtonVisibility();
+    })
 });
 
 async function start() {
     try {
+        // Initialize button visibility on startup
+        updateConditionInfoButtonVisibility();
+
         await connection.start();
 
         // Request tokens with refresh
@@ -260,6 +284,209 @@ async function start() {
         console.log(error);
     }
 };
+
+function addConditionInfo(conditionName, callback) {
+    $.ajax({
+        url: "Navigation/GetConditionInfo",
+        type: "GET",
+        data: { 'conditionName': conditionName },
+        success: function (response) {
+            let conditionData = JSON.parse(response);
+            let settings = getSettings();
+            let version = (settings && settings.ConditionVersion) ? settings.ConditionVersion : "5.5e";
+            
+            if (conditionData.versions && conditionData.versions[version]) {
+                let versionData = conditionData.versions[version];
+                
+                activeConditions[conditionName] = versionData;
+                renderConditionCard(conditionName, versionData);
+                
+                // Call the callback if provided
+                if (callback) {
+                    callback();
+                }
+            }
+        },
+        error: function (error) {
+            console.error("Error loading condition info:", error);
+            // Still call the callback even on error to prevent hanging
+            if (callback) {
+                callback();
+            }
+        }
+    });
+}
+
+function removeConditionInfo(conditionName) {
+    delete visibleConditions[conditionName];
+    closedConditions[conditionName] = true;
+    renderConditionCards();
+    
+    // Don't auto-close the panel when closing cards
+    // Let user manually close it if they want
+    updateConditionInfoButtonVisibility();
+}
+
+function syncConditionPanelWithAppliedConditions(appliedButtonIds) {
+    // Get the condition names from the applied button IDs
+    let appliedConditionNames = appliedButtonIds.map(buttonId => {
+        let button = document.getElementById(buttonId);
+        if (button) {
+            return button.querySelector('.span-condition').textContent;
+        }
+        return null;
+    }).filter(name => name !== null);
+
+    // Remove any conditions from visibleConditions that are no longer applied
+    for (const conditionName of Object.keys(visibleConditions)) {
+        if (!appliedConditionNames.includes(conditionName)) {
+            delete visibleConditions[conditionName];
+        }
+    }
+
+    // Clear closed conditions that are no longer applied (they can be re-added fresh)
+    for (const conditionName of Object.keys(closedConditions)) {
+        if (!appliedConditionNames.includes(conditionName)) {
+            delete closedConditions[conditionName];
+        }
+    }
+
+    // Track how many conditions need to be loaded
+    let conditionsToLoad = 0;
+    for (const conditionName of appliedConditionNames) {
+        // Only add to visible if it's not manually closed and not already visible
+        if (!closedConditions[conditionName] && !visibleConditions[conditionName]) {
+            visibleConditions[conditionName] = true;
+            if (!activeConditions[conditionName]) {
+                conditionsToLoad++;
+            }
+        }
+    }
+
+    // If there are no conditions to load, update immediately
+    if (conditionsToLoad === 0) {
+        renderConditionCards();
+        // Don't auto-open if user manually closed it
+        if (!isPanelManuallyHidden && Object.keys(visibleConditions).length > 0) {
+            showConditionPanel();
+        }
+        return;
+    }
+
+    // Add conditions and track when all are loaded
+    let loadedCount = 0;
+    for (const conditionName of appliedConditionNames) {
+        if (!closedConditions[conditionName] && !activeConditions[conditionName]) {
+            addConditionInfo(conditionName, () => {
+                loadedCount++;
+                // When all conditions are loaded, update the panel
+                if (loadedCount === conditionsToLoad) {
+                    renderConditionCards();
+                    // Only auto-open if user hasn't manually closed it
+                    if (!isPanelManuallyHidden && Object.keys(visibleConditions).length > 0) {
+                        showConditionPanel();
+                    }
+                }
+            });
+        }
+    }
+}
+
+function renderConditionCard(conditionName, versionData) {
+    let container = document.getElementById("conditionCardsContainer");
+    
+    if (!document.getElementById(`condition-card-${conditionName}`)) {
+        let card = document.createElement("div");
+        card.className = "condition-card";
+        card.id = `condition-card-${conditionName}`;
+        card.innerHTML = `
+            <div class="condition-card-header">
+                <img class="condition-card-icon" src="/ConditionIcons/${conditionName}.png" alt="${conditionName}" />
+                <h6 class="condition-card-title">${conditionName}</h6>
+                <button type="button" class="condition-card-close" data-condition="${conditionName}">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <p class="condition-card-description">${versionData.description}</p>
+            ${versionData.link && versionData.link !== "" ? `<a class="condition-card-link" href="${versionData.link}" target="_blank">Learn more</a>` : ""}
+        `;
+        container.appendChild(card);
+        
+        // Add event listener to close button
+        card.querySelector(".condition-card-close").addEventListener("click", function(e) {
+            e.stopPropagation();
+            removeConditionInfo(conditionName);
+        });
+    }
+}
+
+function renderConditionCards() {
+    let container = document.getElementById("conditionCardsContainer");
+    container.innerHTML = "";
+    
+    // Only render conditions that are both active AND visible
+    for (const [conditionName, versionData] of Object.entries(activeConditions)) {
+        if (visibleConditions[conditionName]) {
+            renderConditionCard(conditionName, versionData);
+        }
+    }
+}
+
+function showConditionPanel() {
+    document.getElementById("conditionInfoPanel").style.display = "block";
+    isPanelManuallyHidden = false;
+    updateConditionInfoButtonVisibility();
+}
+
+function hideConditionPanel() {
+    document.getElementById("conditionInfoPanel").style.display = "none";
+    isPanelManuallyHidden = true;
+    updateConditionInfoButtonVisibility();
+}
+
+function updateConditionInfoButtonVisibility() {
+    let btnOpenConditionInfo = document.getElementById("btnOpenConditionInfo");
+    let btnCollapsibleConditions = document.querySelector(".btn-collapsible-conditions");
+    let conditionPanel = document.getElementById("conditionInfoPanel");
+    let hasVisibleConditions = Object.keys(visibleConditions).length > 0;
+    let isPanelHidden = conditionPanel.style.display === "none";
+    
+    // Show the button if there are visible conditions AND the panel is hidden
+    if (hasVisibleConditions && isPanelHidden) {
+        btnOpenConditionInfo.style.display = "block";
+        btnCollapsibleConditions.classList.remove("btn-full-width");
+    } else {
+        btnOpenConditionInfo.style.display = "none";
+        btnCollapsibleConditions.classList.add("btn-full-width");
+    }
+}
+
+function reloadActiveConditions() {
+    // Reload only the conditions that are visible (were not closed by user)
+    let conditionsToLoad = 0;
+    for (const conditionName of Object.keys(visibleConditions)) {
+        if (!activeConditions[conditionName]) {
+            conditionsToLoad++;
+        }
+    }
+    
+    if (conditionsToLoad === 0) {
+        renderConditionCards();
+        return;
+    }
+    
+    let loadedCount = 0;
+    for (const conditionName of Object.keys(visibleConditions)) {
+        if (!activeConditions[conditionName]) {
+            addConditionInfo(conditionName, () => {
+                loadedCount++;
+                if (loadedCount === conditionsToLoad) {
+                    renderConditionCards();
+                }
+            });
+        }
+    }
+}
 
 start();
 

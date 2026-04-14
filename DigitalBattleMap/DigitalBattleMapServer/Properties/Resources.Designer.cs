@@ -69,6 +69,15 @@ namespace DigitalBattleMapServer.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Conditie Versie.
+        /// </summary>
+        public static string ConditionVersion {
+            get {
+                return ResourceManager.GetString("ConditionVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Naam.
         /// </summary>
         public static string Name {

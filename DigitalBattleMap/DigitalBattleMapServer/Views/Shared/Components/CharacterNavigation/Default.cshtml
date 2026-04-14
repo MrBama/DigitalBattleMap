@@ -48,6 +48,9 @@
 
             <div class="grid-container-collapsible">
                 <button class="btn btn-secondary btn-collapsible-conditions">Conditions</button>
+                <button class="btn btn-secondary btn-open-condition-info" id="btnOpenConditionInfo" style="display: none;">
+                    <i class="fa fa-info-circle"></i> Active Conditions
+                </button>
             </div>
             <div class="collapsible-conditions-content">
                 <div class="grid-container-conditions">
@@ -157,6 +160,15 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+    <div id="conditionInfoPanel" class="condition-info-panel">
+        <div class="condition-info-header">
+            <h5>Active Conditions</h5>
+            <button type="button" class="btn-close" id="closeConditionInfo"></button>
+        </div>
+        <div id="conditionCardsContainer" class="condition-cards-container">
+            <!-- Condition cards will be inserted here -->
         </div>
     </div>
 </div>

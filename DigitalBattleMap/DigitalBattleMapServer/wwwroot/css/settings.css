@@ -1,0 +1,71 @@
+/* Settings Page Styles */
+
+.settings-container {
+    max-width: 500px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+.settings-card {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.settings-card h2 {
+    margin-bottom: 25px;
+    color: #212529;
+    font-weight: 600;
+}
+
+/* Form Groups */
+.settings-form-group {
+    margin-bottom: 20px;
+}
+
+.settings-form-group label {
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
+    color: #212529;
+}
+
+.settings-form-group .form-control {
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    padding: 10px 12px;
+    font-size: 14px;
+}
+
+.settings-form-group .form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Helper Text and Validation */
+.settings-form-group .form-text {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+}
+
+.settings-form-group .text-danger {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+}
+
+/* Form Actions */
+.settings-form-actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.settings-form-actions .btn {
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 500;
+}

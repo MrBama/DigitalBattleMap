@@ -6,4 +6,5 @@ public class Settings
 {
     public string Name { get; set; }
     public Orientation Orientation { get; set; }
+    public string ConditionVersion { get; set; } = "5.5e";
 }
