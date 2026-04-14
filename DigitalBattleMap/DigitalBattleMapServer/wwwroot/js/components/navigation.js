@@ -115,16 +115,14 @@ connection.on("SetCampaign", (players) => {
 });
 
 $(document).ready(() => {
-    $(".btn-direction").click(function() {
-        const character = $("#tokens").val();
-        const direction = $(this).attr('direction');
+$(".btn-direction").click(function() {
+    const character = $("#tokens").val();
+    const direction = $(this).attr('direction');
 
-        $('.collapsible-conditions-content').hide();
-
-        if (direction && character) {
-            $.ajax({ url: "Navigation/Move", type: "POST", data: { 'character': character, 'direction': direction } });
-        }
-    });
+    if (direction && character) {
+        $.ajax({ url: "Navigation/Move", type: "POST", data: { 'character': character, 'direction': direction } });
+    }
+});
 
     $(".btn-condition").click(function () {
         const character = $("#tokens").val();

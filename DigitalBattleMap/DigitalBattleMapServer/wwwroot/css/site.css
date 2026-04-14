@@ -265,6 +265,7 @@ i.direction.SouthEast {
   height: 640px;
   min-width: 19%;
   display: none;
+  scrollbar-gutter: stable;
 }
 
 .map-buttons-container {
