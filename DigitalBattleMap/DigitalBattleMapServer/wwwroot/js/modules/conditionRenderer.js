@@ -6,16 +6,19 @@ const ConditionRenderer = (() => {
             const card = document.createElement("div");
             card.className = "condition-card";
             card.id = `condition-card-${conditionName}`;
+            const titleContent = versionData.link && versionData.link !== ""
+                ? `<div class="condition-card-title-wrapper"><a class="condition-card-title-link" href="${versionData.link}" target="_blank">${conditionName}</a></div>`
+                : `<h6 class="condition-card-title">${conditionName}</h6>`;
+            
             card.innerHTML = `
                 <div class="condition-card-header">
                     <img class="condition-card-icon" src="/ConditionIcons/${conditionName}.png" alt="${conditionName}" />
-                    <h6 class="condition-card-title">${conditionName}</h6>
+                    ${titleContent}
                     <button type="button" class="condition-card-close" data-condition="${conditionName}">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <p class="condition-card-description">${versionData.description}</p>
-                ${versionData.link && versionData.link !== "" ? `<a class="condition-card-link" href="${versionData.link}" target="_blank">Learn more</a>` : ""}
             `;
             container.appendChild(card);
             

@@ -346,6 +346,29 @@ i.direction.SouthEast {
     flex: 1;
 }
 
+.condition-card-title-wrapper {
+    flex: 1;
+}
+
+.condition-card-title-link {
+    font-weight: 600;
+    color: #0077cc;
+    margin: 0;
+    text-decoration: none;
+    cursor: pointer;
+    transition: text-decoration 0.2s ease;
+}
+
+.condition-card-title-link:hover {
+    text-decoration: underline;
+}
+
+.condition-card-title-link:focus {
+    outline: 2px solid #0077cc;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
 .condition-card-close {
     background: none;
     border: none;
@@ -372,12 +395,6 @@ i.direction.SouthEast {
     line-height: 1.5;
     color: #495057;
     margin: 0;
-}
-
-.condition-card-link {
-    display: inline-block;
-    margin-top: 8px;
-    font-size: 0.9rem;
 }
 
 @media (min-width: 768px) {
