@@ -85,7 +85,6 @@ public class FogShapeCollectionChangedEventArgs : EventArgs
 {
     public FogShape ChangedShape { get; set; }
     public CollectionChangedAction Action { get; set; }
-    public int Index { get; set; }
 }
 
 public class MouseDataEventArgs : EventArgs

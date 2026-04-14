@@ -461,7 +461,7 @@ public static class BitmapTools
         return bitmap;
     }
 
-    public static Bitmap CreateFogShapeOverviewBitmap(List<Point<double>> points, System.Windows.Media.Color shapeColor, double penSize, bool isFogEnabled)
+    public static Bitmap CreateFogShapeOverviewBitmap(List<Point<double>> points, FogShape shape, double penSize)
     {
         var penSizeF = (float)penSize;
         var pointsF = points.Select(p => Point<float>.Create(p)).ToList();
@@ -486,7 +486,7 @@ public static class BitmapTools
         // The fog becomes transparent black for the DM overview the
         // white polygons will become transparent places in the fog.
         var transparentBlack = Color.FromArgb(127, Color.Black);
-        var brush = isFogEnabled ? new SolidBrush(transparentBlack) : Brushes.White;
+        var brush = shape.IsFogEnabled ? new SolidBrush(transparentBlack) : Brushes.White;
         shapeGraphics.FillPolygon(brush, offsetPoints.ToArray());
         return bitmap;
     }

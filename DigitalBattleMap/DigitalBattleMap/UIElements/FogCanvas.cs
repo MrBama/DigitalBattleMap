@@ -18,11 +18,12 @@ namespace DigitalBattleMap.UIElements;
 
 public class FogCanvas : InkCanvas
 {
-    private static EventHandler<FogShapeCollectionChangedEventArgs> _shapeCollectionChangedHandler;
-    private static PropertyChangedEventHandler? _shapePropertyChangedHandler;
-    private static PropertyChangedEventHandler? _shapeCollectionPropertyChangedHandler;
-    private static NotifyCollectionChangedEventHandler? _shapePointsChangedHandler;
-    private Dictionary<FogShape, Stroke> _strokes = new();
+    private static EventHandler<FogShapeCollectionChangedEventArgs> _fogShapeCollectionChangedHandler;
+    private static PropertyChangedEventHandler? _fogShapePropertyChangedHandler;
+    private static PropertyChangedEventHandler? _fogShapeCollectionPropertyChangedHandler;
+    private static NotifyCollectionChangedEventHandler? _fogShapePointsChangedHandler;
+    private Dictionary<FogShape, Stroke> _strokesOuter = new();
+    private Dictionary<FogShape, Stroke> _strokesInner = new();
     private Dictionary<FogShape, Polygon> _polygons = new();
 
     private Dictionary<FogShape, PathGeometry> _innerPolygons = new(); // only used when background fill is enabled
@@ -31,10 +32,10 @@ public class FogCanvas : InkCanvas
 
     public FogCanvas()
     {
-        _shapeCollectionChangedHandler = OnFogShapeCollectionChanged;
-        _shapePropertyChangedHandler = OnShapePropertyChanged;
-        _shapePointsChangedHandler = OnShapePointsChanged;
-        _shapeCollectionPropertyChangedHandler = OnShapeCollectionPropertyChanged;
+        _fogShapeCollectionChangedHandler = OnFogShapeCollectionChanged;
+        _fogShapePropertyChangedHandler = OnShapePropertyChanged;
+        _fogShapePointsChangedHandler = OnShapePointsChanged;
+        _fogShapeCollectionPropertyChangedHandler = OnShapeCollectionPropertyChanged;
         ClipToBounds = true;
     }
 
@@ -59,15 +60,15 @@ public class FogCanvas : InkCanvas
 
         if (eventArgs.OldValue is FogShape oldShape)
         {
-            oldShape.PropertyChanged -= _shapePropertyChangedHandler;
-            oldShape.OnPointsChanged -= _shapePointsChangedHandler;
+            oldShape.PropertyChanged -= _fogShapePropertyChangedHandler;
+            oldShape.OnPointsChanged -= _fogShapePointsChangedHandler;
             canvas.EraseActiveShape(oldShape);
         }
 
         if (eventArgs.NewValue is FogShape newShape)
         {
-            newShape.PropertyChanged += _shapePropertyChangedHandler;
-            newShape.OnPointsChanged += _shapePointsChangedHandler;
+            newShape.PropertyChanged += _fogShapePropertyChangedHandler;
+            newShape.OnPointsChanged += _fogShapePointsChangedHandler;
         }
     }
 
@@ -77,19 +78,19 @@ public class FogCanvas : InkCanvas
 
         if (eventArgs.OldValue is FogShapeCollection oldShapeCollection)
         {
-            oldShapeCollection.OnFogShapeCollectionChanged -= _shapeCollectionChangedHandler;
-            oldShapeCollection.OnFogShapePropertyChanged -= _shapePropertyChangedHandler;
-            oldShapeCollection.OnFogShapePointsChanged -= _shapePointsChangedHandler;
-            oldShapeCollection.PropertyChanged -= _shapeCollectionPropertyChangedHandler;
+            oldShapeCollection.OnFogShapeCollectionChanged -= _fogShapeCollectionChangedHandler;
+            oldShapeCollection.OnFogShapePropertyChanged -= _fogShapePropertyChangedHandler;
+            oldShapeCollection.OnFogShapePointsChanged -= _fogShapePointsChangedHandler;
+            oldShapeCollection.PropertyChanged -= _fogShapeCollectionPropertyChangedHandler;
             canvas.EraseAll();
         }
 
         if (eventArgs.NewValue is FogShapeCollection newShapeCollection)
         {
-            newShapeCollection.OnFogShapeCollectionChanged += _shapeCollectionChangedHandler;
-            newShapeCollection.OnFogShapePropertyChanged += _shapePropertyChangedHandler;
-            newShapeCollection.OnFogShapePointsChanged += _shapePointsChangedHandler;
-            newShapeCollection.PropertyChanged += _shapeCollectionPropertyChangedHandler;
+            newShapeCollection.OnFogShapeCollectionChanged += _fogShapeCollectionChangedHandler;
+            newShapeCollection.OnFogShapePropertyChanged += _fogShapePropertyChangedHandler;
+            newShapeCollection.OnFogShapePointsChanged += _fogShapePointsChangedHandler;
+            newShapeCollection.PropertyChanged += _fogShapeCollectionPropertyChangedHandler;
             canvas.DrawShapes(newShapeCollection.GetFogShapes());
         }
     }
@@ -100,9 +101,6 @@ public class FogCanvas : InkCanvas
         {
             case CollectionChangedAction.Add:
                 DrawFinishedShape(e.ChangedShape);
-                break;
-            case CollectionChangedAction.Insert:
-                InsertShape(e.Index, e.ChangedShape);
                 break;
             case CollectionChangedAction.Remove:
                 EraseShape(e.ChangedShape);
@@ -123,11 +121,13 @@ public class FogCanvas : InkCanvas
             return;
         }
 
-        if (_strokes.ContainsKey(shape))
+        if (_strokesOuter.ContainsKey(shape))
         {
-            var index = Strokes.IndexOf(_strokes[shape]);
+            var indexPolygon = Children.IndexOf(_polygons[shape]);
+            var indexOuter = Strokes.IndexOf(_strokesOuter[shape]);
+            var indexInner = Strokes.IndexOf(_strokesInner[shape]);
             EraseShape(shape);
-            InsertShape(index, shape);
+            InsertShape(indexPolygon, indexOuter, indexInner, shape);
         }
         else
         {
@@ -221,7 +221,8 @@ public class FogCanvas : InkCanvas
     private void EraseAll()
     {
         Strokes.Clear();
-        _strokes.Clear();
+        _strokesOuter.Clear();
+        _strokesInner.Clear();
         Children.Clear();
         _polygons.Clear();
         _innerPolygons.Clear();
@@ -235,8 +236,10 @@ public class FogCanvas : InkCanvas
             Children.Remove(_polygons[shape]);
             _polygons.Remove(shape);
 
-            Strokes.Remove(_strokes[shape]);
-            _strokes.Remove(shape);
+            Strokes.Remove(_strokesOuter[shape]);
+            _strokesOuter.Remove(shape);
+            Strokes.Remove(_strokesInner[shape]);
+            _strokesInner.Remove(shape);
 
             _innerPolygons.Remove(shape);
             // Shapes are excluded from background fog by remove a shape
@@ -257,9 +260,11 @@ public class FogCanvas : InkCanvas
     {
         if (shape.Points.Count > 0)
         {
-            if (_strokes.ContainsKey(shape))
+            if (_strokesOuter.ContainsKey(shape))
             {
-                _strokes[shape].StylusPoints = ConvertToStylusPointCollection(shape);
+                var stylus = ConvertToStylusPointCollection(shape);
+                _strokesOuter[shape].StylusPoints = stylus;
+                _strokesInner[shape].StylusPoints = stylus;
             }
         }
         else
@@ -270,11 +275,15 @@ public class FogCanvas : InkCanvas
 
     private void DrawShape(FogShape shape)
     {
-        if (!_strokes.ContainsKey(shape) && shape.Points.Count > 0)
+        if (!_strokesOuter.ContainsKey(shape) && shape.Points.Count > 0)
         {
-            var stroke = CreateStroke(shape);
-            Strokes.Add(stroke);
-            _strokes[shape] = stroke;
+            var strokeOuter = CreateStrokeOuter(shape);
+            Strokes.Add(strokeOuter);
+            _strokesOuter[shape] = strokeOuter;
+
+            var strokeInner = CreateStrokeInner(shape);
+            Strokes.Add(strokeInner);
+            _strokesInner[shape] = strokeInner;
         }
     }
 
@@ -320,17 +329,21 @@ public class FogCanvas : InkCanvas
         return geometry;
     }
 
-    private void InsertShape(int index, FogShape shape)
+    private void InsertShape(int indexPolygon, int indexOuter, int indexInner, FogShape shape)
     {
         if (!_polygons.ContainsKey(shape) && shape.Points.Count > 0)
         {
             var polygon = CreatePolygon(shape);
-            Children.Insert(index, polygon);
+            Children.Insert(indexPolygon, polygon);
             _polygons[shape] = polygon;
 
-            var stroke = CreateStroke(shape);
-            Strokes.Insert(index, stroke);
-            _strokes[shape] = stroke;
+            var strokeOuter = CreateStrokeOuter(shape);
+            Strokes.Insert(indexOuter, strokeOuter);
+            _strokesOuter[shape] = strokeOuter;
+
+            var strokeInner = CreateStrokeInner(shape);
+            Strokes.Insert(indexInner, strokeInner);
+            _strokesInner[shape] = strokeInner;
 
             var inner = AddToInnerPolygons(shape);
             UpdateInnerPolygonFill(inner);
@@ -364,9 +377,11 @@ public class FogCanvas : InkCanvas
     {
         if (shape.Points.Count > 0)
         {
-            if (_strokes.ContainsKey(shape))
+            if (_strokesOuter.ContainsKey(shape))
             {
-                _strokes[shape].StylusPoints = ConvertToStylusPointCollection(shape);
+                var stylus = ConvertToStylusPointCollection(shape);
+                _strokesOuter[shape].StylusPoints = stylus;
+                _strokesInner[shape].StylusPoints = stylus;
             }
             else
             {
@@ -375,12 +390,23 @@ public class FogCanvas : InkCanvas
         }
     }
 
-    private Stroke CreateStroke(FogShape shape)
+    private Stroke CreateStrokeOuter(FogShape shape)
     {
         var stroke = new Stroke(ConvertToStylusPointCollection(shape));
         stroke.DrawingAttributes.Width = shape.PenSizeCanvas;
         stroke.DrawingAttributes.Height = shape.PenSizeCanvas;
-        stroke.DrawingAttributes.Color = shape.Color;
+        stroke.DrawingAttributes.Color = shape.ColorOuter;
+        stroke.DrawingAttributes.IgnorePressure = true;
+
+        return stroke;
+    }
+
+    private Stroke CreateStrokeInner(FogShape shape)
+    {
+        var stroke = new Stroke(ConvertToStylusPointCollection(shape));
+        stroke.DrawingAttributes.Width = shape.PenSizeCanvas / 2;
+        stroke.DrawingAttributes.Height = shape.PenSizeCanvas / 2;
+        stroke.DrawingAttributes.Color = shape.ColorInner;
         stroke.DrawingAttributes.IgnorePressure = true;
 
         return stroke;

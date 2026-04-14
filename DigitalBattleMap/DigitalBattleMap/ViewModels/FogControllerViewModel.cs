@@ -438,7 +438,7 @@ public class FogControllerViewModel : ControllerViewModelBase
                 points.Add(new Point<double>(resizedX * zoomFactor, resizedY * zoomFactor));
             }
 
-            shapeOverviewBitmap.Bitmap = BitmapTools.CreateFogShapeOverviewBitmap(points, shape.Color, penSize, shape.IsFogEnabled);
+            shapeOverviewBitmap.Bitmap = BitmapTools.CreateFogShapeOverviewBitmap(points, shape, penSize);
 
             var shapeMinX = points.Min(t => t.X);
             var shapeMinY = points.Min(t => t.Y);

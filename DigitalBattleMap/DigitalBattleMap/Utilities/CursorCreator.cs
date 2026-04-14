@@ -78,4 +78,60 @@ public static class CursorCreator
             return new Cursor(memortyStream);
         }
     }
+
+    public static Cursor CreateFogCursor(int size)
+    {
+        var drawingVisual = new DrawingVisual();
+
+        using (var dc = drawingVisual.RenderOpen())
+        {
+            dc.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, size, size));
+
+            double center = size / 2;
+            double radius = size / 2 - 2;
+
+            // Outer white ring
+            dc.DrawEllipse(
+                null,
+                new Pen(Brushes.White, 2),
+                new Point(center, center),
+                radius,
+                radius);
+
+            // Inner black ring
+            dc.DrawEllipse(
+                null,
+                new Pen(Brushes.Black, 2),
+                new Point(center, center),
+                radius - 2,
+                radius - 2);
+
+            // Crosshair (black + white for contrast)
+
+            // black
+            dc.DrawLine(new Pen(Brushes.Black, 1),
+                new Point(center - 6, center),
+                new Point(center + 6, center));
+
+            dc.DrawLine(new Pen(Brushes.Black, 1),
+                new Point(center, center - 6),
+                new Point(center, center + 6));
+
+            // white overlay
+            dc.DrawLine(new Pen(Brushes.White, 1),
+                new Point(center - 5, center),
+                new Point(center + 5, center));
+
+            dc.DrawLine(new Pen(Brushes.White, 1),
+                new Point(center, center - 5),
+                new Point(center, center + 5));
+        }
+
+        var bitmap = new RenderTargetBitmap(
+            size, size, 96, 96, PixelFormats.Pbgra32);
+
+        bitmap.Render(drawingVisual);
+
+        return CreateCursor(bitmap, size / 2, size / 2);
+    }
 }

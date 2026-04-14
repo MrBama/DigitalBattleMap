@@ -26,7 +26,8 @@ public abstract class FogShape : PropertyHandler
         _mapSize = mapSize;
         IsDrawingFog = false;
 
-        Color = Colors.Black;
+        ColorOuter = Colors.Black;
+        ColorInner = Colors.White;
         PenSize = 3;
         Points = new();
         Name = "Name";
@@ -39,8 +40,8 @@ public abstract class FogShape : PropertyHandler
     public event EventHandler<ControlInfoEventArgs> OnControlUpdated;
     public event EventHandler OnRenderChanged;
 
-    public Color Color { get => Get<Color>(); set => Set(value, () => NotifyPropertyChange(nameof(ColorBrush))); }
-    public Brush ColorBrush { get => new SolidColorBrush(Color); }
+    public Color ColorOuter { get => Get<Color>(); set => Set(value); }
+    public Color ColorInner { get => Get<Color>(); set => Set(value); }
     public double PenSize { get => Get<double>(); set => Set(Math.Clamp(value, 1, 100)); } // This is map size instead of canvas size because of UI reasons.
     public double PenSizeCanvas { get => PenSize.Map(0, _mapSize.Width, 0, _mapSize.CanvasWidth); }
     public string Size { get => Get<string>(); set => Set(value); }
@@ -48,7 +49,7 @@ public abstract class FogShape : PropertyHandler
     public bool SnapToGrid { get => Get<bool>(); set => Set(value); }
     public string Name { get => Get<string>(); set => Set(value); }
     public string ShapeType { get => Get<string>(); set => Set(value); }
-    public virtual Cursor Cursor { get => CursorCreator.Create(new SolidColorBrush(Color), (int)Math.Max(8, PenSize)); }
+    public virtual Cursor Cursor { get => CursorCreator.CreateFogCursor(32); }
     public bool IsFogEnabled { get => Get<bool>(); set => Set(value); }
     public bool IsDeleted { get => Get<bool>(); set => Set(value); }
     public Type Type { get => GetType(); }
