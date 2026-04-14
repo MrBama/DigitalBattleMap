@@ -53,6 +53,7 @@ button.accept-policy {
 
 html {
   font-size: 14px;
+  overflow-y: scroll;
 }
 
 @media (min-width: 768px) {
@@ -96,11 +97,65 @@ body {
   margin-bottom: 15px;
 }
 
+.height-control-section {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+}
+
 .grid-container-height {
     display: grid;
     grid-template-columns: 3fr 1fr;
     justify-content: center;
     grid-column-gap: 5px;
+}
+
+.input-height {
+    height: 50px;
+    border: 2px solid #dee2e6;
+    transition: all 0.2s ease;
+}
+
+.input-height[data-applied="true"] {
+    border-color: #28a745;
+    background-color: #f1f9f6;
+}
+
+.input-height[data-applied="false"] {
+    border-color: #ffc107;
+    background-color: #fffbf0;
+}
+
+.btn-apply-height {
+    height: 50px;
+    transition: all 0.2s ease;
+}
+
+.btn-apply-height[data-state="unapplied"] {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+}
+
+.btn-apply-height[data-state="unapplied"]:hover {
+    background-color: #ffb300;
+    border-color: #ffb300;
+}
+
+.btn-apply-height[data-state="applied"] {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: #fff;
+}
+
+.btn-apply-height[data-state="applied"]:hover {
+    background-color: #218838;
+    border-color: #218838;
+}
+
+.divider-section {
+    border-top: 1px solid #dee2e6;
+    margin: 15px 0;
 }
 
 .btn-direction {
@@ -112,14 +167,6 @@ body {
 }
 
 .btn-condition {
-  height: 50px;
-}
-
-.btn-apply-height {
-  height: 50px;
-}
-
-.input-height {
   height: 50px;
 }
 
@@ -346,6 +393,15 @@ i.direction.SouthEast {
         border-left: 1px solid #e5e5e5;
         border-top: none;
         box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+        transition: left 0.3s ease, right 0.3s ease;
+    }
+
+    .condition-info-panel.shift-left {
+        right: auto;
+        left: 0;
+        border-left: none;
+        border-right: 1px solid #e5e5e5;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
     }
 
     .condition-info-header {

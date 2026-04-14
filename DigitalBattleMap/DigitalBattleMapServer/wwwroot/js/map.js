@@ -106,6 +106,9 @@ $(document).ready(function () {
         type: "GET",
         success: function (result) {
             $("#controlsBody").html(result);
+            
+            // After controls are loaded, check their initial position and sync the condition panel
+            syncConditionPanelPosition();
         },
     })
 
@@ -122,20 +125,33 @@ $(document).ready(function () {
 
     $("#btnControls").click(function () {
         $('#controlsOverlay').toggle();
+        
+        // Sync condition panel position when controls are shown
+        if ($('#controlsOverlay').is(':visible')) {
+            syncConditionPanelPosition();
+        }
     });
 
     $("#btnMoveControls").click(function () {
         if (controlsPositionLeft) {
+            // Moving controls to LEFT
             $('.controls-overlay').css('left', '0');
             $('.controls-overlay').css('right', '');
             $('.controls-position-buttons').css('justify-content', 'start');
             document.getElementById("btnMoveControls").className = "btn btn-secondary fa fa-caret-right";
+            
+            // Move condition panel to RIGHT (default position)
+            $('#conditionInfoPanel').removeClass('shift-left');
         }
         else {
+            // Moving controls to RIGHT
             $('.controls-overlay').css('left', '');
             $('.controls-overlay').css('right', '0');
             $('.controls-position-buttons').css('justify-content', 'end');
             document.getElementById("btnMoveControls").className = "btn btn-secondary fa fa-caret-left";
+            
+            // Move condition panel to LEFT to avoid overlap
+            $('#conditionInfoPanel').addClass('shift-left');
         }
 
         controlsPositionLeft = !controlsPositionLeft;
@@ -148,3 +164,18 @@ $(document).ready(function () {
         }
     });
 })
+
+function syncConditionPanelPosition() {
+    // Check if controls overlay is visible and positioned on the right
+    var controlsOverlay = $('.controls-overlay');
+    var isVisible = controlsOverlay.is(':visible');
+    var isPositionedRight = controlsOverlay.css('right') !== 'auto' && controlsOverlay.css('right') !== '';
+    
+    if (isVisible && isPositionedRight) {
+        // Controls are on the right, move condition panel to left
+        $('#conditionInfoPanel').addClass('shift-left');
+    } else {
+        // Controls are on the left or hidden, condition panel should be on the right
+        $('#conditionInfoPanel').removeClass('shift-left');
+    }
+}
