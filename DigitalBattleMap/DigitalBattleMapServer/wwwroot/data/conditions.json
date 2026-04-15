@@ -1,22 +1,290 @@
-{
+﻿{
   "conditions": {
     "Baned": {
       "versions": {
         "5.5e": {
-          "description": "Subtract 1d4 from attack rolls and saving throws.",
+          "description": "Subtract 1d4 from attack rolls and saving throws",
           "link": "https://5e.tools/spells.html#bane_xphb"
         },
         "5e": {
-          "description": "Subtract 1d4 from attack rolls and saving throws.",
+          "description": "Subtract 1d4 from attack rolls and saving throws",
           "link": "https://2014.5e.tools/spells.html#bane_phb"
         }
       }
     },
     "Blessed": {
       "versions": {
+        "5e": {
+          "description": "Add 1d4 to all attack rolls and saving throws",
+          "link": "https://2014.5e.tools/spells.html#bless_phb"
+        },
         "5.5e": {
-          "description": "While a creature is blessed, whenever it makes an attack roll or saving throw, it must roll a d4 and subtract the number rolled from the result. Baned creatures also have disadvantage on ability checks made to resist effects that would move it.",
-          "link": "https://www.dndbeyond.com/en"
+          "description": "Add 1d4 to all attack rolls and saving throws",
+          "link": "https://5e.tools/spells.html#bless_xphb"
+        }
+      }
+    },
+    "Blinded": {
+      "versions": {
+        "5e": {
+          "description": "Automatically fail sight-based checks; attacks against you have advantage; your attacks have disadvantage",
+          "link": "https://2014.5e.tools/conditionsdiseases.html#blinded_phb"
+        },
+        "5.5e": {
+          "description": "Automatically fail sight-based checks; attacks against you have advantage; your attacks have disadvantage",
+          "link": "https://5e.tools/conditionsdiseases.html#blinded_xphb"
+        }
+      }
+    },
+    "Charmed": {
+      "versions": {
+        "5e": {
+          "description": "Can't attack or harm the charmer; charmer has advantage on social checks against you",
+          "link": "https://2014.5e.tools/conditionsdiseases.html#charmed_phb"
+        },
+        "5.5e": {
+          "description": "Can't attack or damage the charmer; charmer has advantage on social checks against you",
+          "link": "https://5e.tools/conditionsdiseases.html#charmed_xphb"
+        }
+      }
+    },
+    "Concentration": {
+      "versions": {
+        "5e": {
+          "description": "Lose effect if concentration ends; taking damage requires Con save (DC 10 or half damage) to maintain; ends if incapacitated, dead, or casting another concentration spell",
+          "link": "https://2014.5e.tools/conditionsdiseases.html#concentration_phb"
+        },
+        "5.5e": {
+          "description": "Lose effect if concentration ends; taking damage requires Con save (DC 10 or half damage) to maintain; ends if incapacitated, dead, or starting another concentration effect",
+          "link": "https://5e.tools/conditionsdiseases.html#concentration_xphb"
+        }
+      }
+    },
+    "Deafened": {
+      "versions": {
+        "5e": {
+          "description": "Can't hear; automatically fail hearing-based ability checks",
+          "link": "https://2014.5e.tools/conditionsdiseases.html#deafened_phb"
+        },
+        "5.5e": {
+          "description": "Can't hear; automatically fail hearing-based ability checks",
+          "link": "https://5e.tools/conditionsdiseases.html#deafened_xphb"
+        }
+      }
+    },
+    "Death": {
+      "versions": {
+        "5e": {
+          "description": "Incapacitated, prone, cannot move or speak, unaware; drop held items; auto-fail Str and Dex saves; attacks against you have advantage; 5ft melee hits are criticals; make death saving throws each turn (10+ success)",
+          "link": "https://2014.5e.tools/conditionsdiseases.html#unconscious_phb"
+        },
+        "5.5e": {
+          "description": "Incapacitated, prone, speed 0; drop held items; unaware; attacks against you have advantage; auto-fail Str and Dex saves; 5ft melee hits are criticals; make death saving throws each turn (10+ success)",
+          "link": "https://5e.tools/conditionsdiseases.html#unconscious_xphb"
+        }
+      }
+    },
+    "Exhausted": {
+      "versions": {
+        "5e": {
+          "description": "Cumulative exhaustion (1–6); die at 6; level 1 disadvantage ability checks; level 2 speed halved; level 3 disadvantage attacks and saves; level 4 max HP halved; level 5 speed 0; levels stack and include all lower effects; long rest or raise dead reduces level by 1 (ends at 0)",
+          "link": "https://2014.5e.tools/conditionsdiseases.html#exhaustion_phb"
+        },
+        "5.5e": {
+          "description": "Cumulative condition (levels); die at level 6; -2 per level to all d20 tests; speed reduced by 5 ft per level; long rest removes 1 level (ends at 0)",
+          "link": "https://5e.tools/conditionsdiseases.html#exhaustion_xphb"
+        }
+      }
+    },
+    "Flying": {
+      "versions": {
+        "5e": {
+          "description": "Fall if prone, speed 0, or unable to move; doesn’t fall if it can hover or is magically held aloft",
+          "link": "https://2014.5e.tools/quickreference.html#bookref-quick,3,flying%20movement"
+        },
+        "5.5e": {
+          "description": "Fall if incapacitated or prone or if fly speed becomes 0; can remain airborne if able to hover",
+          "link": "https://5e.tools/variantrules.html#flying_xphb"
+        }
+      }
+    },
+    "Frightened": {
+      "versions": {
+        "5e": {
+          "description": "Disadvantage on ability checks and attack rolls while source of fear is visible; can't move closer to source of fear",
+          "link": "https://2014.5e.tools/conditionsdiseases.html#frightened_phb"
+        },
+        "5.5e": {
+          "description": "Disadvantage on ability checks and attack rolls while source of fear is visible; can't move closer to source of fear",
+          "link": "https://5e.tools/conditionsdiseases.html#frightened_xphb"
+        }
+      }
+    },
+    "Grappled": {
+      "versions": {
+        "5e": {
+          "description": "Speed 0 (no speed bonuses); ends if grappler incapacitated or if removed from grappler’s reach/effect",
+          "link": "https://2014.5e.tools/conditionsdiseases.html#grappled_phb"
+        },
+        "5.5e": {
+          "description": "Speed 0; disadvantage on attacks against targets other than grappler; grappler can move you but costs extra movement (1:1 extra cost unless Tiny or much smaller)",
+          "link": "https://5e.tools/conditionsdiseases.html#grappled_xphb"
+        }
+      }
+    },
+    "Hasted": {
+      "versions": {
+        "5e": {
+          "description": "Speed doubled; +2 AC; advantage on Dex saves; +1 action per turn (Attack 1 weapon attack, Dash, Disengage, Hide, or Use Object); on end: can't move or take actions until after next turn",
+          "link": "https://2014.5e.tools/spells.html#haste_phb"
+        },
+        "5.5e": {
+          "description": "Speed doubled; +2 AC; advantage on Dex saves; one extra action per turn (Attack 1 hit, Dash, Disengage, Hide, or Utilize only); on end: incapacitated and speed 0 until end of next turn",
+          "link": "https://5e.tools/spells.html#haste_xphb"
+        }
+      }
+    },
+    "Hex": {
+      "versions": {
+        "5e": {
+          "description": "Disadvantage on ability checks with the chosen ability",
+          "link": "https://2014.5e.tools/spells.html#hex_phb"
+        },
+        "5.5e": {
+          "description": "Disadvantage on ability checks with the chosen ability",
+          "link": "https://5e.tools/spells.html#hex_xphb"
+        }
+      }
+    },
+    "Highlighted": {
+      "versions": {
+        "5e": {
+          "description": "Outlined in light; sheds 10-ft dim light; attacks against affected targets have advantage if visible; no benefit from invisibility",
+          "link": "https://2014.5e.tools/spells.html#faerie%20fire_phb"
+        },
+        "5.5e": {
+          "description": "Outlined in light; sheds 10-ft dim light; attacks against affected targets have advantage if visible; can't benefit from invisibility",
+          "link": "https://5e.tools/spells.html#faerie%20fire_phb"
+        }
+      }
+    },
+    "Incapacitated": {
+      "versions": {
+        "5e": {
+          "description": "Can't take actions or reactions",
+          "link": "https://2014.5e.tools/conditionsdiseases.html#incapacitated_phb"
+        },
+        "5.5e": {
+          "description": "Can't act (no actions, bonus actions, reactions); concentration ends; can't speak; disadvantage on initiative if incapacitated when rolling",
+          "link": "https://5e.tools/conditionsdiseases.html#incapacitated_xphb"
+        }
+      }
+    },
+    "Invisible": {
+      "versions": {
+        "5e": {
+          "description": "Can't be seen (except by special senses/magic); heavily obscured for hiding; location can be detected by sound/tracks; attacks against you have disadvantage; your attacks have advantage",
+          "link": "https://2014.5e.tools/conditionsdiseases.html#invisible_phb"
+        },
+        "5.5e": {
+          "description": "Advantage on initiative if invisible when rolling; can't be targeted by effects requiring sight unless creator can see you; equipment is also hidden; attacks against you have disadvantage; your attacks have advantage (only vs creatures that can't see you)",
+          "link": "https://5e.tools/conditionsdiseases.html#invisible_xphb"
+        }
+      }
+    },
+    "Paralyzed": {
+      "versions": {
+        "5e": {
+          "description": "Incapacitated; can't move or speak; auto-fail Str and Dex saves; attacks against you have advantage; melee hits are criticals if attacker is within 5 ft",
+          "link": "https://2014.5e.tools/conditionsdiseases.html#paralyzed_phb"
+        },
+        "5.5e": {
+          "description": "Incapacitated; speed 0; auto-fail Str and Dex saves; attacks against you have advantage; melee hits are criticals",
+          "link": "https://5e.tools/conditionsdiseases.html#paralyzed_xphb"
+        }
+      }
+    },
+    "Petrified": {
+      "versions": {
+        "5e": {
+          "description": "Turned into solid inanimate substance (usually stone; includes gear), weight ×10, stops aging; incapacitated, unaware, can't move or speak; auto-fail Str and Dex saves; attacks against you have advantage; resistance to all damage; immune to poison and disease (existing effects suspended)",
+          "link": "https://2014.5e.tools/conditionsdiseases.html#petrified_phb"
+        },
+        "5.5e": {
+          "description": "Turned into solid inanimate substance (usually stone; includes gear), weight ×10, stops aging; incapacitated; speed 0; auto-fail Str and Dex saves; attacks against you have advantage; resistance to all damage; immune to poisoned condition",
+          "link": "https://5e.tools/conditionsdiseases.html#petrified_xphb"
+        }
+      }
+    },
+    "Poisoned": {
+      "versions": {
+        "5e": {
+          "description": "Disadvantage on attack rolls and ability checks",
+          "link": "https://2014.5e.tools/conditionsdiseases.html#poisoned_phb"
+        },
+        "5.5e": {
+          "description": "Disadvantage on attack rolls and ability checks",
+          "link": "https://5e.tools/conditionsdiseases.html#poisoned_xphb"
+        }
+      }
+    },
+    "Prone": {
+      "versions": {
+        "5e": {
+          "description": "Must crawl or spend half speed to stand; disadvantage on attack rolls; 5ft melee attacks against you have advantage, others have disadvantage.",
+          "link": "https://2014.5e.tools/conditionsdiseases.html#prone_phb"
+        },
+        "5.5e": {
+          "description": "Must crawl or spend half speed to stand (can't stand if speed 0); disadvantage on attack rolls; 5ft melee attacks against you have advantage, others have disadvantage",
+          "link": "https://5e.tools/conditionsdiseases.html#prone_xphb"
+        }
+      }
+    },
+    "Restrained": {
+      "versions": {
+        "5e": {
+          "description": "Speed 0 (no speed bonuses); attacks against you have advantage; your attacks have disadvantage; disadvantage on Dexterity saving throws",
+          "link": "https://2014.5e.tools/conditionsdiseases.html#restrained_phb"
+        },
+        "5.5e": {
+          "description": "speed 0; attacks against you have advantage; your attacks have disadvantage; disadvantage on Dexterity saving throws",
+          "link": "https://5e.tools/conditionsdiseases.html#restrained_xphb"
+        }
+      }
+    },
+    "Stabilized": {
+      "versions": {
+        "5e": {
+          "description": "At 0 HP doesn't make death saves (stable) but remains unconscious; if damaged, resumes death saves; regains 1 HP after 1d4 hours if not healed",
+          "link": "lhttps://2014.5e.tools/actions.html#stabilize%20a%20creature_phbink"
+        },
+        "5.5e": {
+          "description": "At 0 HP but not making death saving throws (stable)",
+          "link": "https://5e.tools/variantrules.html#stable_xphb"
+        }
+      }
+    },
+    "Stunned": {
+      "versions": {
+        "5e": {
+          "description": "Incapacitated; can't move; can only speak falteringly; auto-fail Str and Dex saves; attacks against you have advantage",
+          "link": "https://2014.5e.tools/conditionsdiseases.html#stunned_phb"
+        },
+        "5.5e": {
+          "description": "Incapacitated; auto-fail Str and Dex saves; attacks against you have advantage",
+          "link": "https://5e.tools/conditionsdiseases.html#stunned_xphb"
+        }
+      }
+    },
+    "Unconcious": {
+      "versions": {
+        "5e": {
+          "description": "Incapacitated, prone, unaware; can't move or speak; drop held items; auto-fail Str and Dex saves; attacks against you have advantage; 5ft melee hits are criticals",
+          "link": "https://2014.5e.tools/conditionsdiseases.html#unconscious_phb"
+        },
+        "5.5e": {
+          "description": "Incapacitated, prone, unaware; speed 0; drop held items; auto-fail Str and Dex saves; attacks against you have advantage; 5ft melee hits are criticals",
+          "link": "https://5e.tools/conditionsdiseases.html#unconscious_xphb"
         }
       }
     }
