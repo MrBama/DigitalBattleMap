@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.FogShapes;
+using DigitalBattleMap.FogShapes.Region;
 using OpenCvSharp;
 using System;
 using System.Collections.Generic;
@@ -22,13 +23,21 @@ public class FogCanvas : InkCanvas
     private static PropertyChangedEventHandler? _fogShapePropertyChangedHandler;
     private static PropertyChangedEventHandler? _fogShapeCollectionPropertyChangedHandler;
     private static NotifyCollectionChangedEventHandler? _fogShapePointsChangedHandler;
-    private Dictionary<FogShape, Stroke> _strokesOuter = new();
-    private Dictionary<FogShape, Stroke> _strokesInner = new();
-    private Dictionary<FogShape, Polygon> _polygons = new();
+    private static EventHandler<FogShapeResolvedEventArgs>? _fogShapeResolvedHandler;
 
-    private Dictionary<FogShape, PathGeometry> _innerPolygons = new(); // only used when background fill is enabled
+    // Changed from FogShape keys to ResolvedFogRegion keys
+    private Dictionary<ResolvedFogRegion, Stroke> _strokesOuter = new();
+    private Dictionary<ResolvedFogRegion, Stroke> _strokesInner = new();
+    private Dictionary<ResolvedFogRegion, Polygon> _polygons = new();
+    private Dictionary<ResolvedFogRegion, PathGeometry> _innerPolygons = new();
+
+    // Map original FogShape to ResolvedFogRegion for tracking
+    private Dictionary<FogShape, ResolvedFogRegion> _fogShapeToResolvedRegion = new();
+
     private PathGeometry _outerGeometry;
     private Path _backgroundFillPath;
+    
+    private FogShapeResolver _fogShapeResolver;
 
     public FogCanvas()
     {
@@ -36,6 +45,9 @@ public class FogCanvas : InkCanvas
         _fogShapePropertyChangedHandler = OnShapePropertyChanged;
         _fogShapePointsChangedHandler = OnShapePointsChanged;
         _fogShapeCollectionPropertyChangedHandler = OnShapeCollectionPropertyChanged;
+        _fogShapeResolvedHandler = OnFogShapeResolved;
+        _fogShapeResolver = new FogShapeResolver();
+        _fogShapeResolver.OnFogShapeResolved += _fogShapeResolvedHandler;
         ClipToBounds = true;
     }
 
@@ -100,7 +112,8 @@ public class FogCanvas : InkCanvas
         switch (e.Action)
         {
             case CollectionChangedAction.Add:
-                DrawFinishedShape(e.ChangedShape);
+                // Route through resolver to create ResolvedFogRegion
+                _fogShapeResolver.ResolveShape(e.ChangedShape, ((FogShapeCollection)sender).GetFogShapes().ToList());
                 break;
             case CollectionChangedAction.Remove:
                 EraseShape(e.ChangedShape);
@@ -113,6 +126,16 @@ public class FogCanvas : InkCanvas
         }
     }
 
+    /// <summary>
+    /// Handles the resolved fog shape from FogShapeResolver.
+    /// This is called after the shape has been resolved and is ready for rendering.
+    /// </summary>
+    private void OnFogShapeResolved(object? sender, FogShapeResolvedEventArgs e)
+    {
+        _fogShapeToResolvedRegion[e.OriginalShape] = e.ResolvedRegion;
+        DrawFinishedShape(e.ResolvedRegion);
+    }
+
     private void OnShapePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         var watchedProperties = new List<string> { nameof(FogShape.Points), nameof(FogShape.IsFogEnabled) };
@@ -121,37 +144,38 @@ public class FogCanvas : InkCanvas
             return;
         }
 
-        if (_strokesOuter.ContainsKey(shape))
+        // Find the corresponding resolved region
+        if (_fogShapeToResolvedRegion.TryGetValue(shape, out var resolvedRegion))
         {
-            var indexPolygon = Children.IndexOf(_polygons[shape]);
-            var indexOuter = Strokes.IndexOf(_strokesOuter[shape]);
-            var indexInner = Strokes.IndexOf(_strokesInner[shape]);
-            EraseShape(shape);
-            InsertShape(indexPolygon, indexOuter, indexInner, shape);
-        }
-        else
-        {
-            DrawFinishedShape(shape);
+            if (_strokesOuter.ContainsKey(resolvedRegion))
+            {
+                var indexPolygon = Children.IndexOf(_polygons[resolvedRegion]);
+                var indexOuter = Strokes.IndexOf(_strokesOuter[resolvedRegion]);
+                var indexInner = Strokes.IndexOf(_strokesInner[resolvedRegion]);
+                EraseShape(shape);
+                // Re-resolve after property change
+                _fogShapeResolver.ResolveShape(shape, ShapeCollection.GetFogShapes().ToList());
+            }
+            else
+            {
+                _fogShapeResolver.ResolveShape(shape, ShapeCollection.GetFogShapes().ToList());
+            }
         }
         shape.ApplyShape();
     }
 
     private void OnShapePointsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (sender is FogShape shape)
+        if (sender is FogShape shape && _fogShapeToResolvedRegion.TryGetValue(shape, out var resolvedRegion))
         {
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    DrawPoints(shape);
+                    DrawPoints(resolvedRegion);
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                    ErasePoints(shape);
+                    ErasePoints(resolvedRegion);
                     break;
-                case NotifyCollectionChangedAction.Replace:
-                    throw new NotImplementedException();
-                case NotifyCollectionChangedAction.Move:
-                    throw new NotImplementedException();
                 case NotifyCollectionChangedAction.Reset:
                     EraseShape(shape);
                     break;
@@ -226,22 +250,32 @@ public class FogCanvas : InkCanvas
         Children.Clear();
         _polygons.Clear();
         _innerPolygons.Clear();
+        _fogShapeToResolvedRegion.Clear();
         _backgroundFillPath = null;
     }
 
-    private void EraseShape(FogShape shape)
+    private void EraseShape(FogShape fogShape)
     {
-        if (_polygons.ContainsKey(shape))
+        if (_fogShapeToResolvedRegion.TryGetValue(fogShape, out var resolvedRegion))
         {
-            Children.Remove(_polygons[shape]);
-            _polygons.Remove(shape);
+            EraseShape(resolvedRegion);
+            _fogShapeToResolvedRegion.Remove(fogShape);
+        }
+    }
 
-            Strokes.Remove(_strokesOuter[shape]);
-            _strokesOuter.Remove(shape);
-            Strokes.Remove(_strokesInner[shape]);
-            _strokesInner.Remove(shape);
+    private void EraseShape(ResolvedFogRegion resolvedRegion)
+    {
+        if (_polygons.ContainsKey(resolvedRegion))
+        {
+            Children.Remove(_polygons[resolvedRegion]);
+            _polygons.Remove(resolvedRegion);
 
-            _innerPolygons.Remove(shape);
+            Strokes.Remove(_strokesOuter[resolvedRegion]);
+            _strokesOuter.Remove(resolvedRegion);
+            Strokes.Remove(_strokesInner[resolvedRegion]);
+            _strokesInner.Remove(resolvedRegion);
+
+            _innerPolygons.Remove(resolvedRegion);
             // Shapes are excluded from background fog by remove a shape
             // we do not know what to add back so we need to recreate it.
             UpdateInnerPolygonsFill();
@@ -256,60 +290,60 @@ public class FogCanvas : InkCanvas
         }
     }
 
-    private void ErasePoints(FogShape shape)
+    private void ErasePoints(ResolvedFogRegion resolvedRegion)
     {
-        if (shape.Points.Count > 0)
+        if (resolvedRegion.Points.Count > 0)
         {
-            if (_strokesOuter.ContainsKey(shape))
+            if (_strokesOuter.ContainsKey(resolvedRegion))
             {
-                var stylus = ConvertToStylusPointCollection(shape);
-                _strokesOuter[shape].StylusPoints = stylus;
-                _strokesInner[shape].StylusPoints = stylus;
+                var stylus = ConvertToStylusPointCollection(resolvedRegion);
+                _strokesOuter[resolvedRegion].StylusPoints = stylus;
+                _strokesInner[resolvedRegion].StylusPoints = stylus;
             }
         }
         else
         {
-            EraseShape(shape);
+            EraseShape(resolvedRegion);
         }
     }
 
-    private void DrawShape(FogShape shape)
+    private void DrawShape(ResolvedFogRegion resolvedRegion)
     {
-        if (!_strokesOuter.ContainsKey(shape) && shape.Points.Count > 0)
+        if (!_strokesOuter.ContainsKey(resolvedRegion) && resolvedRegion.Points.Count > 0)
         {
-            var strokeOuter = CreateStrokeOuter(shape);
+            var strokeOuter = CreateStrokeOuter(resolvedRegion);
             Strokes.Add(strokeOuter);
-            _strokesOuter[shape] = strokeOuter;
+            _strokesOuter[resolvedRegion] = strokeOuter;
 
-            var strokeInner = CreateStrokeInner(shape);
+            var strokeInner = CreateStrokeInner(resolvedRegion);
             Strokes.Add(strokeInner);
-            _strokesInner[shape] = strokeInner;
+            _strokesInner[resolvedRegion] = strokeInner;
         }
     }
 
-    private void DrawFinishedShape(FogShape shape)
+    private void DrawFinishedShape(ResolvedFogRegion resolvedRegion)
     {
-        if (!_polygons.ContainsKey(shape) && shape.Points.Count > 0)
+        if (!_polygons.ContainsKey(resolvedRegion) && resolvedRegion.Points.Count > 0)
         {
-            var polygon = CreatePolygon(shape);
+            var polygon = CreatePolygon(resolvedRegion);
             Children.Add(polygon);
-            _polygons[shape] = polygon;
+            _polygons[resolvedRegion] = polygon;
 
-            DrawShape(shape);
+            DrawShape(resolvedRegion);
 
-            var inner = AddToInnerPolygons(shape);
+            var inner = AddToInnerPolygons(resolvedRegion);
             UpdateInnerPolygonFill(inner);
         }
     }
 
-    private PathGeometry AddToInnerPolygons(FogShape shape)
+    private PathGeometry AddToInnerPolygons(ResolvedFogRegion resolvedRegion)
     {
-        var inner = CreatePathGeometry(shape);
-        _innerPolygons.Add(shape, inner);
+        var inner = CreatePathGeometry(resolvedRegion);
+        _innerPolygons.Add(resolvedRegion, inner);
         return inner;
     }
 
-    private PathGeometry CreatePathGeometry(FogShape shape)
+    private PathGeometry CreatePathGeometry(ResolvedFogRegion resolvedRegion)
     {
         var geometry = new PathGeometry();
         var figure = new PathFigure();
@@ -318,8 +352,7 @@ public class FogCanvas : InkCanvas
         figure.IsClosed = true;
         figure.IsFilled = true;
 
-
-        foreach(var point in shape.Points)
+        foreach(var point in resolvedRegion.Points)
         {
             line.Points.Add(new System.Windows.Point(point.X, point.Y));
         }
@@ -329,93 +362,73 @@ public class FogCanvas : InkCanvas
         return geometry;
     }
 
-    private void InsertShape(int indexPolygon, int indexOuter, int indexInner, FogShape shape)
-    {
-        if (!_polygons.ContainsKey(shape) && shape.Points.Count > 0)
-        {
-            var polygon = CreatePolygon(shape);
-            Children.Insert(indexPolygon, polygon);
-            _polygons[shape] = polygon;
-
-            var strokeOuter = CreateStrokeOuter(shape);
-            Strokes.Insert(indexOuter, strokeOuter);
-            _strokesOuter[shape] = strokeOuter;
-
-            var strokeInner = CreateStrokeInner(shape);
-            Strokes.Insert(indexInner, strokeInner);
-            _strokesInner[shape] = strokeInner;
-
-            var inner = AddToInnerPolygons(shape);
-            UpdateInnerPolygonFill(inner);
-        }
-    }
-
     private void DrawShapes(IEnumerable<FogShape> shapes)
     {
         foreach (var shape in shapes)
         {
-            DrawShape(shape);
+            // Route through resolver to create ResolvedFogRegion
+            _fogShapeResolver.ResolveShape(shape, ShapeCollection.GetFogShapes().ToList());
         }
     }
 
-    private static Polygon CreatePolygon(FogShape shape)
+    private static Polygon CreatePolygon(ResolvedFogRegion resolvedRegion)
     {
         var polygon = new Polygon();
         var pointCollection = new PointCollection();
-        foreach (var point in shape.Points)
+        foreach (var point in resolvedRegion.Points)
         {
             pointCollection.Add(new System.Windows.Point(point.X, point.Y));
         }
 
         polygon.Points = pointCollection;
-        polygon.Fill = shape.IsFogEnabled ? Brushes.Black : Brushes.Transparent;
+        polygon.Fill = resolvedRegion.IsFogEnabled ? Brushes.Black : Brushes.Transparent;
         polygon.Opacity = 0.5;
         return polygon;
     }
 
-    private void DrawPoints(FogShape shape)
+    private void DrawPoints(ResolvedFogRegion resolvedRegion)
     {
-        if (shape.Points.Count > 0)
+        if (resolvedRegion.Points.Count > 0)
         {
-            if (_strokesOuter.ContainsKey(shape))
+            if (_strokesOuter.ContainsKey(resolvedRegion))
             {
-                var stylus = ConvertToStylusPointCollection(shape);
-                _strokesOuter[shape].StylusPoints = stylus;
-                _strokesInner[shape].StylusPoints = stylus;
+                var stylus = ConvertToStylusPointCollection(resolvedRegion);
+                _strokesOuter[resolvedRegion].StylusPoints = stylus;
+                _strokesInner[resolvedRegion].StylusPoints = stylus;
             }
             else
             {
-                DrawShape(shape);
+                DrawShape(resolvedRegion);
             }
         }
     }
 
-    private Stroke CreateStrokeOuter(FogShape shape)
+    private Stroke CreateStrokeOuter(ResolvedFogRegion resolvedRegion)
     {
-        var stroke = new Stroke(ConvertToStylusPointCollection(shape));
-        stroke.DrawingAttributes.Width = shape.PenSizeCanvas;
-        stroke.DrawingAttributes.Height = shape.PenSizeCanvas;
-        stroke.DrawingAttributes.Color = shape.ColorOuter;
+        var stroke = new Stroke(ConvertToStylusPointCollection(resolvedRegion));
+        stroke.DrawingAttributes.Width = resolvedRegion.PenSizeCanvas;
+        stroke.DrawingAttributes.Height = resolvedRegion.PenSizeCanvas;
+        stroke.DrawingAttributes.Color = resolvedRegion.ColorOuter;
         stroke.DrawingAttributes.IgnorePressure = true;
 
         return stroke;
     }
 
-    private Stroke CreateStrokeInner(FogShape shape)
+    private Stroke CreateStrokeInner(ResolvedFogRegion resolvedRegion)
     {
-        var stroke = new Stroke(ConvertToStylusPointCollection(shape));
-        stroke.DrawingAttributes.Width = shape.PenSizeCanvas / 2;
-        stroke.DrawingAttributes.Height = shape.PenSizeCanvas / 2;
-        stroke.DrawingAttributes.Color = shape.ColorInner;
+        var stroke = new Stroke(ConvertToStylusPointCollection(resolvedRegion));
+        stroke.DrawingAttributes.Width = resolvedRegion.PenSizeCanvas / 2;
+        stroke.DrawingAttributes.Height = resolvedRegion.PenSizeCanvas / 2;
+        stroke.DrawingAttributes.Color = resolvedRegion.ColorInner;
         stroke.DrawingAttributes.IgnorePressure = true;
 
         return stroke;
     }
 
-    private static StylusPointCollection ConvertToStylusPointCollection(FogShape shape)
+    private static StylusPointCollection ConvertToStylusPointCollection(ResolvedFogRegion resolvedRegion)
     {
         var stylusPoints = new StylusPointCollection();
-        foreach (var point in shape.Points)
+        foreach (var point in resolvedRegion.Points)
         {
             stylusPoints.Add(new StylusPoint(point.X, point.Y));
         }
