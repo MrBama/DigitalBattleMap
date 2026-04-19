@@ -80,6 +80,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public DrawingControllerViewModel DrawingController { get; set; }
     public TokenControllerViewModel TokenController { get; set; }
     public MapOverviewViewModel MapOverview { get; set; }
+    public UIElements.ShapeComposer ShapeComposer { get => Get<UIElements.ShapeComposer>(); set => Set(value); }
     public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToBitmapImage(); }
     public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
     public BitmapSource MapArrowLeftBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Left).ToBitmapImage(); }
@@ -136,6 +137,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         _autoSaveTimer = new Timer(Constants.AutoSaveIntervalInMs);
         _autoSaveTimer.Elapsed += AutoSaveMap;
 
+        ShapeComposer = new UIElements.ShapeComposer();
         MapOverview = new MapOverviewViewModel(this);
         MapOverview.OnZoomAndEnhance += OnZoomAndEnhance;
 
@@ -150,6 +152,9 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         FogController.OnZoomAndEnhance += OnZoomAndEnhance;
         FogController.OnFogShapeUpdated += FogShapesUpdated;
         FogController.OnControlUpdated += ControlUpdated;
+        
+        // Connect ShapeComposer to FogShapeCollection
+        ShapeComposer.SetShapeCollection(FogController.FogShapeCollection);
 
         TokenController = new TokenControllerViewModel(_windowService, _connectionManager, this, _monsterTokens, CampaignController, _settings);
         TokenController.OnZoomAndEnhance += OnZoomAndEnhance;

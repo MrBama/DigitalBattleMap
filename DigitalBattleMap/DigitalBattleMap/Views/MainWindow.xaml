@@ -175,10 +175,22 @@
                                 <Image Source="{Binding BackgroundController.BackgroundBitmapSource}"/>
                                 <Image Source="{Binding BackgroundController.GMOverlayBitmapSource}" Opacity="0.5"/>
                                 <Image x:Name="GridLayer" Source="{Binding BackgroundController.GridBitmapSource}"/>
+                                <!-- Outer stroke with ColorOuter and PenSize from fog shapes -->
+                                <Path Data="{Binding ShapeComposer.ComposedGeometry}" 
+                                    Stroke="{Binding ShapeComposer.ComposedGeometryOuterStrokeBrush}"
+                                    StrokeThickness="{Binding ShapeComposer.ComposedGeometryOuterStrokeThickness}"
+                                    StrokeLineJoin="Round"/>
+                                <!-- Inner stroke with ColorInner and half PenSize from fog shapes -->
+                                <Path Data="{Binding ShapeComposer.ComposedGeometry}" 
+                                    Stroke="{Binding ShapeComposer.ComposedGeometryInnerStrokeBrush}"
+                                    StrokeThickness="{Binding ShapeComposer.ComposedGeometryInnerStrokeThickness}"
+                                    StrokeLineJoin="Round"/>
+                                <!-- Filled fog shapes -->
+                                <Path Fill="Black" Opacity="0.5"
+                                    Data="{Binding ShapeComposer.ComposedGeometry}"/>
                                 <uielements:FogCanvas
                                     Background="Transparent" 
                                     ActiveShape="{Binding FogController.ActiveFogShape}" 
-                                    ShapeCollection="{Binding FogController.FogShapeCollection}" 
                                     Cursor="{Binding FogController.ActiveFogShape.Cursor}"
                                     Visibility="{Binding FogCanvasVisibility}"
                                     Panel.ZIndex="{Binding DrawingCanvasZIndex}"
