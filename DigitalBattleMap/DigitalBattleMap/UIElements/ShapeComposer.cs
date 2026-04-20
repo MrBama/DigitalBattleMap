@@ -40,6 +40,16 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
     }
 
     /// <summary>
+    /// Gets individual stroke geometries for each enabled fog shape.
+    /// Each geometry is rendered separately to preserve internal boundaries.
+    /// </summary>
+    public List<Geometry> StrokesGeometries
+    {
+        get => Get<List<Geometry>>();
+        private set => Set(value);
+    }
+
+    /// <summary>
     /// Gets the outer stroke brush (from fog shapes' ColorOuter).
     /// </summary>
     public Brush ComposedGeometryOuterStrokeBrush
@@ -230,6 +240,7 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
         {
             ComposedGeometry = null;
             StrokesGeometry = null;
+            StrokesGeometries = null;
             ComposedGeometryOuterStrokeBrush = null;
             ComposedGeometryOuterStrokeThickness = 0;
             ComposedGeometryInnerStrokeBrush = null;
@@ -238,7 +249,7 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
         }
 
         ComposedGeometry = RebuildComposedGeometry();
-        StrokesGeometry = RebuildStrokesGeometry();
+        RebuildStrokesGeometry();
         UpdateStrokeProperties();
     }
 
@@ -310,6 +321,8 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
         _shapesData.Clear();
         _outerGeometry = null;
         ComposedGeometry = null;
+        StrokesGeometry = null;
+        StrokesGeometries = null;
         ComposedGeometryOuterStrokeBrush = null;
         ComposedGeometryOuterStrokeThickness = 0;
         ComposedGeometryInnerStrokeBrush = null;
@@ -356,11 +369,10 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Builds the strokes geometry from all enabled shapes' points.
-    /// This represents the outlines/boundaries of each fog shape.
-    /// Uses Xor combine mode to preserve internal boundaries where shapes overlap.
+    /// Builds individual stroke geometries from all enabled shapes' points.
+    /// Each geometry is stored separately to preserve internal boundaries.
     /// </summary>
-    private Geometry RebuildStrokesGeometry()
+    private void RebuildStrokesGeometry()
     {
         var enabledShapeData = _shapesData
             .Where(sd => sd.Key.IsFogEnabled)
@@ -369,27 +381,39 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
 
         if (enabledShapeData.Count == 0)
         {
-            return null;
+            StrokesGeometry = null;
+            StrokesGeometries = null;
+            return;
         }
 
-        // Build geometry from each shape's points
+        // Build individual geometries from each shape's points
         var strokeGeometries = enabledShapeData
-            .Select(sd => CreatePathGeometryFromPoints(sd.Points))
+            .Select(sd => (Geometry)CreatePathGeometryFromPoints(sd.Points))
+            .Where(g => g != null)
             .ToList();
 
-        if (strokeGeometries.Count == 1)
-        {
-            return strokeGeometries[0];
-        }
+        // Store the list of individual geometries for XAML rendering
+        StrokesGeometries = strokeGeometries.Count > 0 ? strokeGeometries : null;
 
-        // Combine all stroke geometries using Xor to preserve internal boundaries
-        Geometry result = strokeGeometries[0];
-        for (int i = 1; i < strokeGeometries.Count; i++)
+        // Also keep a combined version for backward compatibility if needed
+        if (strokeGeometries.Count == 0)
         {
-            result = new CombinedGeometry(GeometryCombineMode.Xor, result, strokeGeometries[i]);
+            StrokesGeometry = null;
         }
-
-        return result;
+        else if (strokeGeometries.Count == 1)
+        {
+            StrokesGeometry = strokeGeometries[0];
+        }
+        else
+        {
+            // Combine all for the single geometry property
+            Geometry result = strokeGeometries[0];
+            for (int i = 1; i < strokeGeometries.Count; i++)
+            {
+                result = new CombinedGeometry(GeometryCombineMode.Union, result, strokeGeometries[i]);
+            }
+            StrokesGeometry = result;
+        }
     }
     private PathGeometry CreatePathGeometryFromPoints(List<Point<double>> points)
     {

@@ -141,6 +141,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Clipper2" Version="2.0.0" />
     <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="14.0.0" />
     <PackageReference Include="Magick.NET.Core" Version="14.0.0" />
     <PackageReference Include="Markdig" Version="0.33.0" />

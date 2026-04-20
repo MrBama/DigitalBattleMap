@@ -1,4 +1,6 @@
+using Clipper2Lib;
 using DigitalBattleMap.DataClasses;
+using ImageMagick.Drawing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,108 +56,39 @@ public static class PolygonUnionHelper
     /// </summary>
     public static List<Point<double>> SubtractPolygon(List<Point<double>> polygon1, List<Point<double>> polygon2)
     {
-        if (polygon1.Count < 3 || polygon2.Count < 3)
-            return new List<Point<double>>(polygon1);
+        const double scale = 1000.0;
 
-        var tolerance = 0.001;
-        var resultPoints = new List<Point<double>>();
+        var subject = new Paths64 { ToPath64(polygon1, scale) };
+        var clip = new Paths64 { ToPath64(polygon2, scale) };
 
-        // Walk around polygon1's edges
-        for (int i = 0; i < polygon1.Count; i++)
+        var solution = Clipper.Difference(subject, clip, FillRule.NonZero);
+
+        return FromPaths(solution, scale).FirstOrDefault();
+    }
+
+    private static Path64 ToPath64(List<Point<double>> points, double scale)
+    {
+        var path = new Path64(points.Count);
+
+        foreach (var p in points)
         {
-            var currentPoint = polygon1[i];
-            var nextPoint = polygon1[(i + 1) % polygon1.Count];
-
-            var currentInside = PointInPolygon(currentPoint, polygon2);
-
-            // Find intersections with polygon2 on this edge, including edge indices
-            var intersections = GetEdgePolygonIntersectionsWithIndices(currentPoint, nextPoint, polygon2)
-                .OrderBy(p => Distance(currentPoint, p.point))
-                .ToList();
-
-            if (!currentInside)
-            {
-                // Starting outside
-                if (resultPoints.Count == 0 || Distance(resultPoints.Last(), currentPoint) > tolerance)
-                {
-                    resultPoints.Add(currentPoint);
-                }
-
-                // Handle intersections on this edge
-                if (intersections.Count >= 2)
-                {
-                    // Edge crosses polygon2
-                    var entryIntersection = intersections[0];
-                    var exitIntersection = intersections[intersections.Count - 1];
-
-                    // Add entry point
-                    if (Distance(resultPoints.Last(), entryIntersection.point) > tolerance)
-                    {
-                        resultPoints.Add(entryIntersection.point);
-                    }
-
-                    // Trace polygon2's boundary from entry to exit using edge indices
-                    var boundary = TracePolygonBoundary(polygon2, entryIntersection.point, exitIntersection.point,
-                        entryIntersection.poly2EdgeIdx, exitIntersection.poly2EdgeIdx);
-
-                    foreach (var bp in boundary)
-                    {
-                        if (Distance(resultPoints.Last(), bp) > tolerance)
-                        {
-                            resultPoints.Add(bp);
-                        }
-                    }
-                }
-                else if (intersections.Count == 1)
-                {
-                    // Single intersection - entering polygon2
-                    var entryPoint = intersections[0];
-                    if (Distance(resultPoints.Last(), entryPoint.point) > tolerance)
-                    {
-                        resultPoints.Add(entryPoint.point);
-                    }
-                }
-            }
-            else
-            {
-                // Currently inside polygon2
-                if (intersections.Count > 0)
-                {
-                    // Exiting polygon2
-                    var exitIntersection = intersections[0];
-
-                    // Trace from current point to exit
-                    var boundary = TracePolygonBoundary(polygon2, currentPoint, exitIntersection.point,
-                        polygon2.Count - 1, exitIntersection.poly2EdgeIdx);
-
-                    foreach (var bp in boundary)
-                    {
-                        if (resultPoints.Count == 0 || Distance(resultPoints.Last(), bp) > tolerance)
-                        {
-                            resultPoints.Add(bp);
-                        }
-                    }
-                }
-            }
+            path.Add(new Point64(
+                (long)(p.X * scale),
+                (long)(p.Y * scale)
+            ));
         }
 
-        // Clean up
-        var uniquePoints = new List<Point<double>>();
-        foreach (var point in resultPoints)
-        {
-            if (uniquePoints.Count == 0 || Distance(uniquePoints.Last(), point) > tolerance)
-            {
-                uniquePoints.Add(point);
-            }
-        }
+        return path;
+    }
 
-        // Remove last point if closing (implicit polygon closure)
-        if (uniquePoints.Count > 1 && Distance(uniquePoints.First(), uniquePoints.Last()) < tolerance)
-        {
-            uniquePoints.RemoveAt(uniquePoints.Count - 1);
-        }
-
-        return uniquePoints.Count >= 3 ? uniquePoints : new List<Point<double>>();
+    private static List<List<Point<double>>> FromPaths(Paths64 paths, double scale)
+    {
+        return paths.Select(path =>
+            path.Select(p => new Point<double>(
+                p.X / scale,
+                p.Y / scale
+            )).ToList()
+        ).ToList();
     }
 
     /// <summary>

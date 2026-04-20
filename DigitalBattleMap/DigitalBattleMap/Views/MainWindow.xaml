@@ -175,16 +175,40 @@
                                 <Image Source="{Binding BackgroundController.BackgroundBitmapSource}"/>
                                 <Image Source="{Binding BackgroundController.GMOverlayBitmapSource}" Opacity="0.5"/>
                                 <Image x:Name="GridLayer" Source="{Binding BackgroundController.GridBitmapSource}"/>
-                                <!-- Outer stroke with ColorOuter and PenSize from fog shapes -->
-                                <Path Data="{Binding ShapeComposer.StrokesGeometry}" 
-                                    Stroke="{Binding ShapeComposer.ComposedGeometryOuterStrokeBrush}"
-                                    StrokeThickness="{Binding ShapeComposer.ComposedGeometryOuterStrokeThickness}"
-                                    StrokeLineJoin="Round"/>
-                                <!-- Inner stroke with ColorInner and half PenSize from fog shapes -->
-                                <Path Data="{Binding ShapeComposer.StrokesGeometry}" 
-                                    Stroke="{Binding ShapeComposer.ComposedGeometryInnerStrokeBrush}"
-                                    StrokeThickness="{Binding ShapeComposer.ComposedGeometryInnerStrokeThickness}"
-                                    StrokeLineJoin="Round"/>
+                                <!-- Individual stroke geometries to preserve all boundaries -->
+                                <ItemsControl ItemsSource="{Binding ShapeComposer.StrokesGeometries}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <Canvas/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <!-- Outer stroke for each geometry -->
+                                            <Path Data="{Binding}" 
+                                                Stroke="{Binding DataContext.ShapeComposer.ComposedGeometryOuterStrokeBrush, RelativeSource={RelativeSource AncestorType=Grid}}"
+                                                StrokeThickness="{Binding DataContext.ShapeComposer.ComposedGeometryOuterStrokeThickness, RelativeSource={RelativeSource AncestorType=Grid}}"
+                                                StrokeLineJoin="Round"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <!-- Inner stroke geometries -->
+                                <ItemsControl ItemsSource="{Binding ShapeComposer.StrokesGeometries}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <Canvas/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <!-- Inner stroke for each geometry -->
+                                            <Path Data="{Binding}" 
+                                                Stroke="{Binding DataContext.ShapeComposer.ComposedGeometryInnerStrokeBrush, RelativeSource={RelativeSource AncestorType=Grid}}"
+                                                StrokeThickness="{Binding DataContext.ShapeComposer.ComposedGeometryInnerStrokeThickness, RelativeSource={RelativeSource AncestorType=Grid}}"
+                                                StrokeLineJoin="Round"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                                 <!-- Filled fog shapes -->
                                 <Path Fill="Black" Opacity="0.5"
                                     Data="{Binding ShapeComposer.ComposedGeometry}"/>
