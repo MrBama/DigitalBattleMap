@@ -1,4 +1,8 @@
+using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.FogShapes;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Media;
 
 namespace DigitalBattleMap.UIElements;
@@ -39,6 +43,11 @@ public class ShapeData
     /// </summary>
     public bool IsFogEnabled { get; set; }
 
+    /// <summary>
+    /// A copy of the points from the FogShape.
+    /// </summary>
+    public List<Point<double>> Points { get; set; }
+
     public ShapeData(FogShape fogShape, PathGeometry geometry)
     {
         FogShape = fogShape;
@@ -47,6 +56,7 @@ public class ShapeData
         ColorInner = fogShape.ColorInner;
         PenSizeCanvas = fogShape.PenSizeCanvas;
         IsFogEnabled = fogShape.IsFogEnabled;
+        Points = new List<Point<double>>(fogShape.Points);
     }
 
     /// <summary>
@@ -58,5 +68,6 @@ public class ShapeData
         ColorInner = FogShape.ColorInner;
         PenSizeCanvas = FogShape.PenSizeCanvas;
         IsFogEnabled = FogShape.IsFogEnabled;
+        Points = new List<Point<double>>(FogShape.Points);
     }
 }

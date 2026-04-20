@@ -21,9 +21,19 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
     private FogShapeCollection _shapeCollection;
 
     /// <summary>
-    /// Gets the composed geometry containing all fog shapes and background fill.
+    /// Gets the composed geometry containing all fog shapes.
     /// </summary>
     public Geometry ComposedGeometry
+    {
+        get => Get<Geometry>();
+        private set => Set(value);
+    }
+
+    /// <summary>
+    /// Gets the strokes geometry containing outlines of all enabled fog shapes.
+    /// Built from individual shape data points to show all shape boundaries.
+    /// </summary>
+    public Geometry StrokesGeometry
     {
         get => Get<Geometry>();
         private set => Set(value);
@@ -107,6 +117,8 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
 
     /// <summary>
     /// Handles when shapes are added/removed/cleared from the collection.
+    /// When adding: Only modifies the new shape's points to avoid overlapping existing shapes.
+    /// Existing shapes are never modified - they retain their original points.
     /// </summary>
     private void OnFogShapeCollectionChanged(object? sender, FogShapeCollectionChangedEventArgs e)
     {
@@ -115,7 +127,45 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
             case CollectionChangedAction.Add:
                 var geometry = CreatePathGeometry(e.ChangedShape);
                 var shapeData = new ShapeData(e.ChangedShape, geometry);
+                var newPoints = new List<Point<double>>(e.ChangedShape.Points);
+
+                // Subtract all existing enabled shapes from the new shape's points
+                foreach (var existingShapeEntry in _shapesData)
+                {
+                    var existingShape = existingShapeEntry.Key;
+                    var existingShapeData = existingShapeEntry.Value;
+
+                    // Only process enabled shapes that aren't the new one
+                    if (existingShape.IsFogEnabled && existingShape != e.ChangedShape)
+                    {
+                        if (PolygonUnionHelper.PolygonsOverlap(existingShapeData.Points, newPoints))
+                        {
+                            // Subtract existing shape from new shape's points
+                            newPoints = PolygonUnionHelper.SubtractPolygon(newPoints, existingShapeData.Points);
+                            
+                            // If new shape is completely covered, stop processing
+                            if (newPoints.Count < 3)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // If new shape is completely covered by existing shapes, remove it
+                if (newPoints.Count < 3)
+                {
+                    _shapeCollection?.Remove(e.ChangedShape);
+                    return;
+                }
+
+                // Update the new shape's data with the modified points
+                shapeData.Points = newPoints;
+                shapeData.Geometry = CreatePathGeometryFromPoints(newPoints);
+
+                // Add the new shape
                 _shapesData[e.ChangedShape] = shapeData;
+
                 UpdateComposedGeometry();
                 break;
 
@@ -151,6 +201,7 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
                 {
                     var updatedGeometry = CreatePathGeometry(shape);
                     shapeData.Geometry = updatedGeometry;
+                    shapeData.Points = new List<Point<double>>(shape.Points);
                 }
                 
                 shapeData.UpdateFromFogShape();
@@ -171,13 +222,14 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Updates the composed geometry after shape changes.
+    /// Updates the composed geometry and strokes geometry after shape changes.
     /// </summary>
     private void UpdateComposedGeometry()
     {
         if (_shapeCollection == null || _shapesData.Count == 0)
         {
             ComposedGeometry = null;
+            StrokesGeometry = null;
             ComposedGeometryOuterStrokeBrush = null;
             ComposedGeometryOuterStrokeThickness = 0;
             ComposedGeometryInnerStrokeBrush = null;
@@ -186,6 +238,7 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
         }
 
         ComposedGeometry = RebuildComposedGeometry();
+        StrokesGeometry = RebuildStrokesGeometry();
         UpdateStrokeProperties();
     }
 
@@ -266,6 +319,7 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
     /// <summary>
     /// Combines all inner polygons into a single composed geometry.
     /// Only includes shapes where IsFogEnabled is true.
+    /// Overlaps are already resolved at shape addition time, so this just combines the non-overlapping shapes.
     /// </summary>
     private Geometry RebuildComposedGeometry()
     {
@@ -291,6 +345,7 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
         }
 
         // Combine multiple geometries using Union
+        // (These should already be non-overlapping due to subtraction at add time)
         Geometry result = enabledGeometries[0];
         for (int i = 1; i < enabledGeometries.Count; i++)
         {
@@ -298,6 +353,73 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Builds the strokes geometry from all enabled shapes' points.
+    /// This represents the outlines/boundaries of each fog shape.
+    /// Uses Xor combine mode to preserve internal boundaries where shapes overlap.
+    /// </summary>
+    private Geometry RebuildStrokesGeometry()
+    {
+        var enabledShapeData = _shapesData
+            .Where(sd => sd.Key.IsFogEnabled)
+            .Select(sd => sd.Value)
+            .ToList();
+
+        if (enabledShapeData.Count == 0)
+        {
+            return null;
+        }
+
+        // Build geometry from each shape's points
+        var strokeGeometries = enabledShapeData
+            .Select(sd => CreatePathGeometryFromPoints(sd.Points))
+            .ToList();
+
+        if (strokeGeometries.Count == 1)
+        {
+            return strokeGeometries[0];
+        }
+
+        // Combine all stroke geometries using Xor to preserve internal boundaries
+        Geometry result = strokeGeometries[0];
+        for (int i = 1; i < strokeGeometries.Count; i++)
+        {
+            result = new CombinedGeometry(GeometryCombineMode.Xor, result, strokeGeometries[i]);
+        }
+
+        return result;
+    }
+    private PathGeometry CreatePathGeometryFromPoints(List<Point<double>> points)
+    {
+        var geometry = new PathGeometry();
+        
+        if (points.Count < 3)
+        {
+            return geometry;
+        }
+
+        var figure = new PathFigure();
+        figure.StartPoint = new System.Windows.Point(points[0].X, points[0].Y);
+        figure.IsClosed = true;
+        figure.IsFilled = true;
+
+        if (points.Count > 1)
+        {
+            var line = new PolyLineSegment();
+            
+            for (int i = 1; i < points.Count; i++)
+            {
+                line.Points.Add(new System.Windows.Point(points[i].X, points[i].Y));
+            }
+            
+            line.IsStroked = true;
+            figure.Segments.Add(line);
+        }
+
+        geometry.Figures.Add(figure);
+        return geometry;
     }
 
     /// <summary>
