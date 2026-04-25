@@ -32,6 +32,7 @@ public class FogShapeCollection : PropertyHandler, IEnumerable, INotifyCollectio
         fogShape.PropertyChanged += FogShapePropertyChanged;
         fogShape.OnPointsChanged += FogShapePointsChanged;
         fogShape.OnRenderChanged += RenderShapes;
+
         FogShapeCollectionChanged(new FogShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Add, ChangedShape = fogShape });
         FogShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, fogShape));
     }
@@ -46,6 +47,19 @@ public class FogShapeCollection : PropertyHandler, IEnumerable, INotifyCollectio
 
         FogShapeCollectionChanged(new FogShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Remove, ChangedShape = fogShape });
         FogShapeUICollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, fogShape, index));
+        fogShape.ApplyShape(); // remove from map
+    }
+
+    public void RemoveByUI(FogShape fogShape)
+    {
+        var index = _fogShapes.ToList().IndexOf(fogShape);
+        fogShape.PropertyChanged -= FogShapePropertyChanged;
+        fogShape.OnPointsChanged -= FogShapePointsChanged;
+        fogShape.OnRenderChanged -= RenderShapes;
+        _fogShapes.Remove(fogShape);
+
+        FogShapeCollectionChanged(new FogShapeCollectionChangedEventArgs { Action = CollectionChangedAction.Remove, ChangedShape = fogShape });
+
         fogShape.ApplyShape(); // remove from map
     }
 

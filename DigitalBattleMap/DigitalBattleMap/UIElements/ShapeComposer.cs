@@ -154,7 +154,7 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
                             newPoints = PolygonUnionHelper.SubtractPolygon(newPoints, existingShapeData.Points);
                             
                             // If new shape is completely covered, stop processing
-                            if (newPoints.Count < 3)
+                            if (newPoints == null || newPoints.Count < 3)
                             {
                                 break;
                             }
@@ -163,8 +163,9 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
                 }
 
                 // If new shape is completely covered by existing shapes, remove it
-                if (newPoints.Count < 3)
+                if (newPoints == null || newPoints.Count < 3)
                 {
+                    _shapesData[e.ChangedShape] = shapeData;
                     _shapeCollection?.Remove(e.ChangedShape);
                     return;
                 }
