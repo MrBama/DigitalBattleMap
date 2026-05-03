@@ -95,11 +95,6 @@ public class MouseCanvasViewModel : ViewModelBase
         Cursor = Cursors.Hand;
     }
 
-    public void ResetMode()
-    {
-        SetMode(_previousMode);
-    }
-
     private void LeftButtonDown(MouseDataEventArgs e)
     {
         switch (_mode)
@@ -210,6 +205,10 @@ public class MouseCanvasViewModel : ViewModelBase
             SelectionWidth = Math.Max(_selectionStartPosition.X, point.X) - SelectionX;
             SelectionHeight = Math.Max(_selectionStartPosition.Y, point.Y) - SelectionY;
 
+            var minSize = 20;
+            SelectionWidth = Math.Max(SelectionWidth, minSize);
+            SelectionHeight = Math.Max(SelectionHeight, minSize);
+
             if (fixedRatio)
             {
                 var widthRatio = 0.5625;
@@ -238,8 +237,8 @@ public class MouseCanvasViewModel : ViewModelBase
     private void MouseUpRectangleSelection(EventHandler<RectangleF> handler)
     {
         IsSelectionStarted = false;
-        var area = new RectangleF((float)SelectionX, (float)SelectionY, (float)SelectionWidth, (float)SelectionHeight);
-        handler?.Invoke(this, area);
+        var rectangle = new RectangleF((float)SelectionX, (float)SelectionY, (float)SelectionWidth, (float)SelectionHeight);
+        handler?.Invoke(this, rectangle);
     }
 
     private void MouseDownPolygonSelection(MouseDataEventArgs e)

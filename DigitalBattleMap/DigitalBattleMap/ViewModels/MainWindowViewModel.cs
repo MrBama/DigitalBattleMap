@@ -245,9 +245,9 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         // Reset mouse canvas
         MouseCanvas.ResetSelection();
-        MouseCanvas.ResetMode();
+        MouseCanvas.SetMode(MouseCanvasMode.Click);
         MapOverview.MouseCanvas.ResetSelection();
-        MapOverview.MouseCanvas.ResetMode();
+        MapOverview.MouseCanvas.SetMode(MouseCanvasMode.Click);
         CropColor = System.Windows.Media.Brushes.LightGray;
         SelectedMapTabIndex = TabMapIndex.Map;
     }
