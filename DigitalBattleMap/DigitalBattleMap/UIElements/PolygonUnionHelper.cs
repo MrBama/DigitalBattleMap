@@ -37,12 +37,12 @@ public static class PolygonUnionHelper
                 return true;
         }
 
-        // Check if any edges intersect
-        for (int i = 0; i < polygon1.Count - 1; i++)
+        // Check if any edges intersect (including closing edges back to first point)
+        for (int i = 0; i < polygon1.Count; i++)
         {
-            for (int j = 0; j < polygon2.Count - 1; j++)
+            for (int j = 0; j < polygon2.Count; j++)
             {
-                if (SegmentsIntersect(polygon1[i], polygon1[i + 1], polygon2[j], polygon2[j + 1]))
+                if (SegmentsIntersect(polygon1[i], polygon1[(i + 1) % polygon1.Count], polygon2[j], polygon2[(j + 1) % polygon2.Count]))
                     return true;
             }
         }

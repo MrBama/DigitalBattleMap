@@ -1,8 +1,6 @@
 using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.FogShapes;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows.Media;
 
 namespace DigitalBattleMap.UIElements;
@@ -24,16 +22,6 @@ public class ShapeData
     public PathGeometry Geometry { get; set; }
 
     /// <summary>
-    /// The outer stroke color (from FogShape.ColorOuter).
-    /// </summary>
-    public Color ColorOuter { get; set; }
-
-    /// <summary>
-    /// The inner stroke color (from FogShape.ColorInner).
-    /// </summary>
-    public Color ColorInner { get; set; }
-
-    /// <summary>
     /// The pen size in canvas coordinates (from FogShape.PenSizeCanvas).
     /// </summary>
     public double PenSizeCanvas { get; set; }
@@ -44,19 +32,24 @@ public class ShapeData
     public bool IsFogEnabled { get; set; }
 
     /// <summary>
-    /// A copy of the points from the FogShape.
+    /// The trimmed (smart-fog clipped) points used for rendering.
     /// </summary>
     public List<Point<double>> Points { get; set; }
+
+    /// <summary>
+    /// Snapshot of FogShape.Points at the last known state, used to compute
+    /// transform deltas so the trimmed Points stay in sync with pan/zoom.
+    /// </summary>
+    public List<Point<double>> OriginalFogPoints { get; set; }
 
     public ShapeData(FogShape fogShape, PathGeometry geometry)
     {
         FogShape = fogShape;
         Geometry = geometry;
-        ColorOuter = fogShape.ColorOuter;
-        ColorInner = fogShape.ColorInner;
         PenSizeCanvas = fogShape.PenSizeCanvas;
         IsFogEnabled = fogShape.IsFogEnabled;
         Points = new List<Point<double>>(fogShape.Points);
+        OriginalFogPoints = new List<Point<double>>(fogShape.Points);
     }
 
     /// <summary>
@@ -64,10 +57,7 @@ public class ShapeData
     /// </summary>
     public void UpdateFromFogShape()
     {
-        ColorOuter = FogShape.ColorOuter;
-        ColorInner = FogShape.ColorInner;
         PenSizeCanvas = FogShape.PenSizeCanvas;
         IsFogEnabled = FogShape.IsFogEnabled;
-        Points = new List<Point<double>>(FogShape.Points);
     }
 }

@@ -21,6 +21,7 @@ namespace DigitalBattleMap.ViewModels;
 
 public class FogControllerViewModel : ControllerViewModelBase
 {
+    private double _currentPenSize = 3.0;
 
     public FogControllerViewModel()
     {
@@ -48,6 +49,7 @@ public class FogControllerViewModel : ControllerViewModelBase
         MouseCanvas.OnRightButtonUp += RightButtonUp;
         MouseCanvas.OnMouseMove += MouseMove;
         MouseCanvas.OnMouseWheel += MouseWheel;
+        ActiveFogShape.PenSize = _currentPenSize;
         MouseCanvas.Cursor = ActiveFogShape.Cursor;
         MouseCanvas.OnFixRatioRectangleAreaSelected += FixRatioRectangleAreaSelected;
         IsDrawPolygonChecked = true;
@@ -176,6 +178,8 @@ public class FogControllerViewModel : ControllerViewModelBase
             FogShapeCollection.Transform(matrix);
         }
 
+        _currentPenSize = FogShapeCollection.GetFogShapes().FirstOrDefault()?.PenSize ?? _currentPenSize;
+
         NotifyFogShapesUpdated();
     }
 
@@ -234,6 +238,7 @@ public class FogControllerViewModel : ControllerViewModelBase
         }
 
         ActiveFogShape = ActiveFogShape.Clone();
+        ActiveFogShape.PenSize = _currentPenSize;
         NotifyFogShapesUpdated();
     }
 
@@ -313,6 +318,7 @@ public class FogControllerViewModel : ControllerViewModelBase
     private void DrawPolygonShape()
     {
         ActiveFogShape = new DrawPolygonFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled, IsSnapToGridEnabled);
+        ActiveFogShape.PenSize = _currentPenSize;
         ActiveFogShape.OnControlUpdated += NotifyControlUpdated;
         ActiveFogShape.UpdateControls();
     }
@@ -320,6 +326,7 @@ public class FogControllerViewModel : ControllerViewModelBase
     private void AngularPolygonShape()
     {
         ActiveFogShape = new AngularPolygonFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled, IsSnapToGridEnabled);
+        ActiveFogShape.PenSize = _currentPenSize;
         ActiveFogShape.OnControlUpdated += NotifyControlUpdated;
         ActiveFogShape.UpdateControls();
     }
@@ -327,6 +334,7 @@ public class FogControllerViewModel : ControllerViewModelBase
     private void RectangleShape()
     {
         ActiveFogShape = new RectangleFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled, IsSnapToGridEnabled);
+        ActiveFogShape.PenSize = _currentPenSize;
         ActiveFogShape.OnControlUpdated += NotifyControlUpdated;
         ActiveFogShape.UpdateControls();
     }
@@ -334,6 +342,7 @@ public class FogControllerViewModel : ControllerViewModelBase
     private void CircleShape()
     {
         ActiveFogShape = new CircleFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled, IsSnapToGridEnabled);
+        ActiveFogShape.PenSize = _currentPenSize;
         ActiveFogShape.OnControlUpdated += NotifyControlUpdated;
         ActiveFogShape.UpdateControls();
     }
@@ -341,6 +350,7 @@ public class FogControllerViewModel : ControllerViewModelBase
     private void NGonShape()
     {
         ActiveFogShape = new NGonFogShape(ApplyActiveFogShape, _mapSize, !FogShapeCollection.IsFillFogEnabled, IsSnapToGridEnabled);
+        ActiveFogShape.PenSize = _currentPenSize;
         ActiveFogShape.OnControlUpdated += NotifyControlUpdated;
         ActiveFogShape.UpdateControls();
     }
@@ -386,10 +396,14 @@ public class FogControllerViewModel : ControllerViewModelBase
         {
             var zoomFactor = eventArgs.NewSize.Width / eventArgs.OldSize.Width;
 
+            _currentPenSize *= zoomFactor;
+
             foreach (var shape in FogShapeCollection.GetFogShapes())
             {
                 shape.PenSize *= zoomFactor;
             }
+
+            ActiveFogShape.PenSize = _currentPenSize;
 
             var matrix = new Matrix();
             matrix.Scale(zoomFactor, zoomFactor);

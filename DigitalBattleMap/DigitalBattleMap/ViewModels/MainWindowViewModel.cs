@@ -370,6 +370,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         sizeChangedEventArgs.NewSize = _canvasSize;
         OnCanvasSizeChanged?.Invoke(this, sizeChangedEventArgs);
+        ShapeComposer?.SetCanvasSize(_canvasSize);
     }
 
     private void CanvasSizeChanged(SizeChangedEventArgs eventArgs)
