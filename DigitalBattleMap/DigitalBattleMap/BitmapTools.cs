@@ -6,6 +6,8 @@ using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Numerics;
 
@@ -30,12 +32,12 @@ public static class BitmapTools
 
     public static Bitmap CreateBlackBitmap()
     {
-        var bitmap = new Bitmap(Constants.MapSize.Width, Constants.MapSize.Height);
-        using (Graphics gfx = Graphics.FromImage(bitmap))
-        using (SolidBrush brush = new SolidBrush(Color.Black))
-        {
-            gfx.FillRectangle(brush, 0, 0, Constants.MapSize.Width, Constants.MapSize.Height);
-        }
+        var bitmap = new Bitmap(
+            Constants.MapSize.Width,
+            Constants.MapSize.Height,
+            PixelFormat.Format32bppArgb);
+        using var gfx = Graphics.FromImage(bitmap);
+        gfx.Clear(Color.Black);
         return bitmap;
     }
 
@@ -310,14 +312,12 @@ public static class BitmapTools
     public static void DrawFogShapes(Bitmap bitmap, List<FogShape> shapes, Size<double> canvasSize)
     {
         using var graphics = Graphics.FromImage(bitmap);
-        graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias; // fix for 1 pixel shift in map drawing vs dm overview
+        graphics.SmoothingMode = SmoothingMode.AntiAlias; // fix for 1 pixel shift in map drawing vs dm overview
 
         foreach (var shape in shapes.OrderBy(s => s.IsFogEnabled))
         {
             FogPolygon(canvasSize, graphics, shape);
         }
-
-        bitmap.MakeTransparent(Color.White);
     }
 
     private static void FogPolygon(Size<double> canvasSize, Graphics graphics, FogShape shape)
@@ -338,10 +338,20 @@ public static class BitmapTools
             pointsF.Add(new PointF(resizedX, resizedY));
         }
 
-        // The fog becomes solid black for the players the
-        // white polygons will become transparent places in the fog.
-        var brush = shape.IsFogEnabled ? Brushes.Black : Brushes.White;
-        graphics.FillPolygon(brush, pointsF.ToArray());
+        if (shape.IsFogEnabled)
+        {
+            graphics.FillPolygon(Brushes.Black, pointsF.ToArray());
+        }
+        else
+        {
+            // Use CompositingMode.SourceCopy to punch through to true transparency,
+            // bypassing alpha blending — this kills the anti-alias fringe.
+            var previousMode = graphics.CompositingMode;
+            graphics.CompositingMode = CompositingMode.SourceCopy;
+            using var transparentBrush = new SolidBrush(Color.FromArgb(0, 0, 0, 0));
+            graphics.FillPolygon(transparentBrush, pointsF.ToArray());
+            graphics.CompositingMode = previousMode;
+        }
     }
 
     public static void DrawShapes(Bitmap bitmap, List<DrawingShape> shapes, Size<double> canvasSize)
@@ -461,33 +471,80 @@ public static class BitmapTools
         return bitmap;
     }
 
+    public static Bitmap CreateFogOverviewBitmap(List<FogOverviewBitmap> shapeOverviewBitmaps, bool isFillFogEnabled, int width, int height, Point<int> backgroundOffset)
+    {
+        var bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+        using var graphics = Graphics.FromImage(bitmap);
+
+        if (isFillFogEnabled)
+        {
+            graphics.Clear(Color.FromArgb(127, Color.Black));
+
+            var previousMode = graphics.CompositingMode;
+            graphics.CompositingMode = CompositingMode.SourceCopy;
+            using var transparentBrush = new SolidBrush(Color.FromArgb(0, 0, 0, 0));
+            foreach (var shape in shapeOverviewBitmaps.Where(s => !s.IsFogEnabled))
+            {
+                // Shift shape points from player-viewport space into background image space
+                var shiftedPoints = shape.ScaledPoints
+                    .Select(p => new PointF(
+                        p.X - backgroundOffset.X,
+                        p.Y - backgroundOffset.Y))
+                    .ToArray();
+                graphics.FillPolygon(transparentBrush, shiftedPoints);
+            }
+            graphics.CompositingMode = previousMode;
+        }
+        else
+        {
+            foreach (var shape in shapeOverviewBitmaps.Where(s => s.IsFogEnabled))
+            {
+                graphics.DrawImage(
+                    shape.Bitmap,
+                    shape.OffsetFromOrigin.X - backgroundOffset.X,
+                    shape.OffsetFromOrigin.Y - backgroundOffset.Y);
+            }
+        }
+
+        return bitmap;
+    }
+
     public static Bitmap CreateFogShapeOverviewBitmap(List<Point<double>> points, FogShape shape, double penSize)
     {
         var penSizeF = (float)penSize;
         var pointsF = points.Select(p => Point<float>.Create(p)).ToList();
 
-        // Calculate the bounding box around the shape
         var halfPenSize = penSizeF / 2;
         var minX = (int)Math.Round(points.Min(t => t.X) - halfPenSize);
         var maxX = (int)Math.Round(points.Max(t => t.X) + halfPenSize);
         var minY = (int)Math.Round(points.Min(t => t.Y) - halfPenSize);
         var maxY = (int)Math.Round(points.Max(t => t.Y) + halfPenSize);
 
-        // Offset points into bitmap-local space
         var offsetPoints = pointsF.Select(p =>
             new PointF(
                 p.X - minX - halfPenSize,
                 p.Y - minY - halfPenSize))
             .ToList();
 
-        var bitmap = new Bitmap(maxX - minX, maxY - minY);
+        var bitmap = new Bitmap(maxX - minX, maxY - minY, PixelFormat.Format32bppArgb);
         using var shapeGraphics = Graphics.FromImage(bitmap);
 
-        // The fog becomes transparent black for the DM overview the
-        // white polygons will become transparent places in the fog.
-        var transparentBlack = Color.FromArgb(127, Color.Black);
-        var brush = shape.IsFogEnabled ? new SolidBrush(transparentBlack) : Brushes.White;
-        shapeGraphics.FillPolygon(brush, offsetPoints.ToArray());
+        if (shape.IsFogEnabled)
+        {
+            var transparentBlack = Color.FromArgb(127, Color.Black);
+            using var brush = new SolidBrush(transparentBlack);
+            shapeGraphics.FillPolygon(brush, offsetPoints.ToArray());
+        }
+        else
+        {
+            // Punch to fully transparent — no white fringe survives
+            var previousMode = shapeGraphics.CompositingMode;
+            shapeGraphics.CompositingMode = CompositingMode.SourceCopy;
+            using var transparentBrush = new SolidBrush(Color.FromArgb(0, 0, 0, 0));
+            shapeGraphics.FillPolygon(transparentBrush, offsetPoints.ToArray());
+            shapeGraphics.CompositingMode = previousMode;
+        }
+
         return bitmap;
     }
 
@@ -499,15 +556,12 @@ public static class BitmapTools
         var maxX = Mathematics.Max(overviewBitmaps.Select(l => l.OffsetFromOrigin.X + l.Bitmap.Width));
         var maxY = Mathematics.Max(overviewBitmaps.Select(l => l.OffsetFromOrigin.Y + l.Bitmap.Height));
 
-        var bitmap = new Bitmap(Math.Abs(maxX - minX), Math.Abs(maxY - minY));
+        var bitmap = new Bitmap(Math.Abs(maxX - minX), Math.Abs(maxY - minY), PixelFormat.Format32bppArgb);
         using var graphics = Graphics.FromImage(bitmap);
 
-        // Shape points can be negative but bitmap positions always start at 0
         var bitmapToOrigin = new Point<int>(-minX, -minY);
-
         foreach (var shapeOverviewBitmap in overviewBitmaps)
         {
-            // Offset = shift from player view origin to bitmap origin + offset from player view origin to shape
             var offsetX = bitmapToOrigin.X + shapeOverviewBitmap.OffsetFromOrigin.X;
             var offsetY = bitmapToOrigin.Y + shapeOverviewBitmap.OffsetFromOrigin.Y;
             graphics.DrawImage(shapeOverviewBitmap.Bitmap, offsetX, offsetY);
