@@ -185,13 +185,19 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     /**
      * Initial bitmap is black when 'fill with fog' is enabled else empty.
-     * Returns a bitmap with all fog shapes applied. 
+     * Returns a bitmap with all fog shapes applied.
+     * When trimmedShapes is provided the smart-fog clipped geometry is used instead of raw shape points.
      * The shape will be filled in black or cut out depending on the fog shape 'IsFogEnabled' setting.
      */
-    public Bitmap GetFogBitmap()
+    public Bitmap GetFogBitmap(IReadOnlyList<(List<Point<double>> Points, bool IsFogEnabled, double PenSizeCanvas)> trimmedShapes = null)
     {
         var bitmap = FogShapeCollection.IsFillFogEnabled ? BitmapTools.CreateBlackBitmap() : BitmapTools.CreateEmptyBitmap();
-        BitmapTools.DrawFogShapes(bitmap, FogShapeCollection.GetFogShapes().ToList(), _mapSize.GetCanvasSize());
+
+        if (trimmedShapes != null)
+            BitmapTools.DrawFogShapes(bitmap, trimmedShapes, _mapSize.GetCanvasSize());
+        else
+            BitmapTools.DrawFogShapes(bitmap, FogShapeCollection.GetFogShapes().ToList(), _mapSize.GetCanvasSize());
+
         return bitmap;
     }
 
@@ -428,32 +434,34 @@ public class FogControllerViewModel : ControllerViewModelBase
         IsNGonChecked = false;
     }
 
-    public bool GetOverviewBitmap(double zoomFactor, out OverviewBitmap overviewBitmap)
+    public bool GetOverviewBitmap(double zoomFactor, out OverviewBitmap overviewBitmap,
+        IReadOnlyList<(List<Point<double>> Points, bool IsFogEnabled, double PenSizeCanvas)> trimmedShapes = null)
     {
         overviewBitmap = new OverviewBitmap();
-        var shapes = FogShapeCollection.GetFogShapes().ToList();
-        if (!shapes.Any())
-        {
+
+        // Use smart-fog trimmed shapes when provided, otherwise fall back to raw fog shapes
+        IReadOnlyList<(List<Point<double>> Points, bool IsFogEnabled, double PenSizeCanvas)> fogData = trimmedShapes
+            ?? FogShapeCollection.GetFogShapes()
+                .Select(s => (s.Points.ToList(), s.IsFogEnabled, s.PenSizeCanvas))
+                .ToList<(List<Point<double>>, bool, double)>();
+
+        if (!fogData.Any())
             return false;
-        }
 
         var shapeOverviewBitmaps = new List<FogOverviewBitmap>();
-        foreach (var shape in shapes)
+        foreach (var shape in fogData)
         {
             var shapeOverviewBitmap = new FogOverviewBitmap();
-            var penSize = shape.PenSize.Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width);
-            var points = new List<Point<double>>();
-            foreach (var point in shape.Points)
-            {
-                var resizedX = point.X.Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width);
-                var resizedY = point.Y.Map(0, _mapSize.CanvasHeight, 0, Constants.MapSize.Height);
-                points.Add(new Point<double>(resizedX * zoomFactor, resizedY * zoomFactor));
-            }
+            var penSize = shape.PenSizeCanvas.Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width);
+            var points = shape.Points.Select(p => new Point<double>(
+                p.X.Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width) * zoomFactor,
+                p.Y.Map(0, _mapSize.CanvasHeight, 0, Constants.MapSize.Height) * zoomFactor))
+                .ToList();
 
             var shapeMinX = points.Min(t => t.X) - (penSize / 2);
             var shapeMinY = points.Min(t => t.Y) - (penSize / 2);
 
-            shapeOverviewBitmap.Bitmap = BitmapTools.CreateFogShapeOverviewBitmap(points, shape, penSize);
+            shapeOverviewBitmap.Bitmap = BitmapTools.CreateFogShapeOverviewBitmap(points, shape.IsFogEnabled, penSize);
             shapeOverviewBitmap.OffsetFromOrigin = new Point<int>((int)Math.Round(shapeMinX), (int)Math.Round(shapeMinY));
             shapeOverviewBitmap.IsFogEnabled = shape.IsFogEnabled;
 

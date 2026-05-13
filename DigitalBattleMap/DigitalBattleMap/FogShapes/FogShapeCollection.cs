@@ -124,6 +124,11 @@ public class FogShapeCollection : PropertyHandler, IEnumerable, INotifyCollectio
         else
         {
             OnFogShapePropertyChanged?.Invoke(sender, e);
+
+            if (e.PropertyName == nameof(FogShape.IsFogEnabled))
+            {
+                OnRenderShapes?.Invoke(this, new EventArgs());
+            }
         }
     }
 

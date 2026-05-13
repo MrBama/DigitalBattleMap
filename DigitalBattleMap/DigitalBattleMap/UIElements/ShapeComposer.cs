@@ -280,6 +280,13 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
         ComposedGeometryInnerStrokeThickness = 0;
     }
 
+    public IReadOnlyList<(List<Point<double>> Points, bool IsFogEnabled, double PenSizeCanvas)> GetTrimmedFogData()
+    {
+        return _shapesData.Values
+            .Select(sd => (sd.Points, sd.IsFogEnabled, sd.PenSizeCanvas))
+            .ToList();
+    }
+
     private Geometry RebuildComposedGeometry()
     {
         var enabledGeometries = _shapesData
@@ -329,7 +336,7 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
         Geometry result = outer;
         foreach (var entry in _shapesData)
         {
-            if (entry.Key.IsFogEnabled)
+            if (!entry.Key.IsFogEnabled)
             {
                 result = new CombinedGeometry(GeometryCombineMode.Exclude, result, entry.Value.Geometry);
             }

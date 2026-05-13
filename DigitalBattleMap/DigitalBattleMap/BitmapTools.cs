@@ -306,17 +306,26 @@ public static class BitmapTools
     }
 
     /**
-     * First draws all transparent polygon aftewords the black polygons. 
+     * First draws all transparent polygon aftewords the black polygons.
      * This gives fog priority on overlapping shaps and aligns with the visuals in the UI.
      */
     public static void DrawFogShapes(Bitmap bitmap, List<FogShape> shapes, Size<double> canvasSize)
     {
         using var graphics = Graphics.FromImage(bitmap);
-        graphics.SmoothingMode = SmoothingMode.AntiAlias; // fix for 1 pixel shift in map drawing vs dm overview
 
         foreach (var shape in shapes.OrderBy(s => s.IsFogEnabled))
         {
             FogPolygon(canvasSize, graphics, shape);
+        }
+    }
+
+    public static void DrawFogShapes(Bitmap bitmap, IReadOnlyList<(List<Point<double>> Points, bool IsFogEnabled, double PenSizeCanvas)> shapes, Size<double> canvasSize)
+    {
+        using var graphics = Graphics.FromImage(bitmap);
+
+        foreach (var shape in shapes.OrderBy(s => s.IsFogEnabled))
+        {
+            FogPolygon(canvasSize, graphics, shape.Points, shape.IsFogEnabled, shape.PenSizeCanvas);
         }
     }
 
@@ -350,6 +359,31 @@ public static class BitmapTools
             graphics.CompositingMode = CompositingMode.SourceCopy;
             using var transparentBrush = new SolidBrush(Color.FromArgb(0, 0, 0, 0));
             graphics.FillPolygon(transparentBrush, pointsF.ToArray());
+            graphics.CompositingMode = previousMode;
+        }
+    }
+
+    private static void FogPolygon(Size<double> canvasSize, Graphics graphics, List<Point<double>> points, bool isFogEnabled, double penSizeCanvas)
+    {
+        if (!points.Any())
+            return;
+
+        var halfSize = penSizeCanvas / 2;
+        var pointsF = points.Select(p => new PointF(
+            (float)(p.X - halfSize).Map(0, canvasSize.Width, 0, Constants.MapSize.Width),
+            (float)(p.Y - halfSize).Map(0, canvasSize.Height, 0, Constants.MapSize.Height)))
+            .ToArray();
+
+        if (isFogEnabled)
+        {
+            graphics.FillPolygon(Brushes.Black, pointsF);
+        }
+        else
+        {
+            var previousMode = graphics.CompositingMode;
+            graphics.CompositingMode = CompositingMode.SourceCopy;
+            using var transparentBrush = new SolidBrush(Color.FromArgb(0, 0, 0, 0));
+            graphics.FillPolygon(transparentBrush, pointsF);
             graphics.CompositingMode = previousMode;
         }
     }
@@ -510,6 +544,9 @@ public static class BitmapTools
     }
 
     public static Bitmap CreateFogShapeOverviewBitmap(List<Point<double>> points, FogShape shape, double penSize)
+        => CreateFogShapeOverviewBitmap(points, shape.IsFogEnabled, penSize);
+
+    public static Bitmap CreateFogShapeOverviewBitmap(List<Point<double>> points, bool isFogEnabled, double penSize)
     {
         var penSizeF = (float)penSize;
         var pointsF = points.Select(p => Point<float>.Create(p)).ToList();
@@ -529,7 +566,7 @@ public static class BitmapTools
         var bitmap = new Bitmap(maxX - minX, maxY - minY, PixelFormat.Format32bppArgb);
         using var shapeGraphics = Graphics.FromImage(bitmap);
 
-        if (shape.IsFogEnabled)
+        if (isFogEnabled)
         {
             var transparentBlack = Color.FromArgb(127, Color.Black);
             using var brush = new SolidBrush(transparentBlack);

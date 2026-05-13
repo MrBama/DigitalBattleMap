@@ -185,7 +185,9 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <!-- Outer stroke for each geometry -->
-                                            <Path Data="{Binding}" 
+                                            <Path Data="{Binding}"
+                                                SnapsToDevicePixels="True"
+                                                RenderOptions.EdgeMode="Aliased"
                                                 Stroke="{Binding DataContext.ShapeComposer.ComposedGeometryOuterStrokeBrush, RelativeSource={RelativeSource AncestorType=Grid}}"
                                                 StrokeThickness="{Binding DataContext.ShapeComposer.ComposedGeometryOuterStrokeThickness, RelativeSource={RelativeSource AncestorType=Grid}}"
                                                 StrokeLineJoin="Round"/>
@@ -202,7 +204,9 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <!-- Inner stroke for each geometry -->
-                                            <Path Data="{Binding}" 
+                                            <Path Data="{Binding}"
+                                                SnapsToDevicePixels="True"
+                                                RenderOptions.EdgeMode="Aliased"
                                                 Stroke="{Binding DataContext.ShapeComposer.ComposedGeometryInnerStrokeBrush, RelativeSource={RelativeSource AncestorType=Grid}}"
                                                 StrokeThickness="{Binding DataContext.ShapeComposer.ComposedGeometryInnerStrokeThickness, RelativeSource={RelativeSource AncestorType=Grid}}"
                                                 StrokeLineJoin="Round"/>
