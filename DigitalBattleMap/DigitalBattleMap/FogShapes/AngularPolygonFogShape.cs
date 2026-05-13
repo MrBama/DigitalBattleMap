@@ -30,7 +30,7 @@ public class AngularPolygonFogShape : FogShape
     {
         previousMoves.Clear(); // new history from latest point.
         var snappedPosition = SnapToGrid
-            ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2)
+            ? Mathematics.SnapPointToCanvasGridExact(position, _mapSize, _mapSize.GridSize / 2.0)
             : position;
 
         // start equals end, early exit

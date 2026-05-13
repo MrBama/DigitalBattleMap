@@ -27,7 +27,7 @@ public class DrawPolygonFogShape : FogShape
     {
         IsDrawingFog = true;
         var snappedPosition = SnapToGrid
-            ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize)
+            ? Mathematics.SnapPointToCanvasGridExact(position, _mapSize, _mapSize.GridSize)
             : position;
         Points.Add(snappedPosition);
     }
@@ -43,7 +43,7 @@ public class DrawPolygonFogShape : FogShape
         if (buttonDown)
         {
             var snappedPosition = SnapToGrid
-                ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize)
+                ? Mathematics.SnapPointToCanvasGridExact(position, _mapSize, _mapSize.GridSize)
                 : position;
 
             if (!Points.Contains(snappedPosition))

@@ -28,7 +28,7 @@ internal class CircleFogShape : FogShape
     protected override void ButtonDown(Point<double> position)
     {
         IsDrawingFog = true;
-        _startPosition = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2) : position;
+        _startPosition = SnapToGrid ? Mathematics.SnapPointToCanvasGridExact(position, _mapSize, _mapSize.GridSize / 2.0) : position;
         Points.Add(position);
     }
 
@@ -42,7 +42,7 @@ internal class CircleFogShape : FogShape
     {
         if (buttonDown)
         {
-            var snappedPosition = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2) : position;
+            var snappedPosition = SnapToGrid ? Mathematics.SnapPointToCanvasGridExact(position, _mapSize, _mapSize.GridSize / 2.0) : position;
             if (snappedPosition != _previousMovePosition)
             {
                 _previousMovePosition = snappedPosition;

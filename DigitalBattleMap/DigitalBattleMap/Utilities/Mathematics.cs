@@ -73,16 +73,7 @@ public static class Mathematics
 
     public static Point<int> CalculateGridOffset(int gridSize, Point<int> gridOrigin)
     {
-        var middleGridCellX = gridOrigin.X - (gridSize / 2);
-        var middleGridCellY = gridOrigin.Y - (gridSize / 2);
-
-        var xModulo = middleGridCellX % gridSize;
-        var yModulo = middleGridCellY % gridSize;
-
-        var startX = xModulo == 0 ? 0 : xModulo;
-        var startY = yModulo == 0 ? 0 : yModulo;
-
-        return new(startX, startY);
+        return new(gridOrigin.X % gridSize, gridOrigin.Y % gridSize);
     }
 
     public static List<Point<double>> SnapPointsToCanvasGrid(List<Point<double>> points, IMapSize mapSize)
@@ -95,6 +86,22 @@ public static class Mathematics
     {
         var canvasGridOffset = CalculateCanvasGridOffset(mapSize);
         return SnapPointToGrid(point, canvasGridOffset, snapPointGridSize);
+    }
+
+    // Snaps via integer map space so the result matches the exact pixel position the grid bitmap uses.
+    // mapSpaceGridSize should be mapSize.GridSize (full grid) or mapSize.GridSize / 2.0 (half grid).
+    public static Point<double> SnapPointToCanvasGridExact(Point<double> canvasPoint, IMapSize mapSize, double mapSpaceGridSize)
+    {
+        var gridOffset = CalculateGridOffset(mapSize.GridSize);
+        var mapX = canvasPoint.X.Map(0.0, mapSize.CanvasWidth, 0.0, (double)mapSize.Width);
+        var mapY = canvasPoint.Y.Map(0.0, mapSize.CanvasHeight, 0.0, (double)mapSize.Height);
+
+        var snappedMapX = Math.Round((mapX - gridOffset.X) / mapSpaceGridSize, MidpointRounding.AwayFromZero) * mapSpaceGridSize + gridOffset.X;
+        var snappedMapY = Math.Round((mapY - gridOffset.Y) / mapSpaceGridSize, MidpointRounding.AwayFromZero) * mapSpaceGridSize + gridOffset.Y;
+
+        return new Point<double>(
+            snappedMapX.Map(0.0, (double)mapSize.Width, 0.0, mapSize.CanvasWidth),
+            snappedMapY.Map(0.0, (double)mapSize.Height, 0.0, mapSize.CanvasHeight));
     }
 
     public static Point<double> CalculateCanvasGridOffset(IMapSize mapSize)
