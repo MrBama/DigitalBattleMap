@@ -129,6 +129,10 @@ public class FogControllerViewModel : ControllerViewModelBase
         }
 
         FogShapeCollection.Transform(matrix);
+        if (ActiveFogShape.IsDrawingFog)
+        {
+            ActiveFogShape.Transform(matrix);
+        }
         NotifyFogShapesUpdated();
     }
 
@@ -139,6 +143,10 @@ public class FogControllerViewModel : ControllerViewModelBase
         matrix.Scale(zoomFactor, zoomFactor);
         matrix.Translate((_mapSize.CanvasWidth / 2), (_mapSize.CanvasHeight / 2));
         FogShapeCollection.Transform(matrix);
+        if (ActiveFogShape.IsDrawingFog)
+        {
+            ActiveFogShape.Transform(matrix);
+        }
     }
 
     public void ClearFog()
@@ -223,11 +231,17 @@ public class FogControllerViewModel : ControllerViewModelBase
         }
     }
 
+    public bool IsDrawingFog { get => Get<bool>(); private set => Set(value); }
+
     private void ActiveShapePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(FogShape.Cursor))
         {
             MouseCanvas.Cursor = ActiveFogShape.Cursor;
+        }
+        else if (e.PropertyName == nameof(FogShape.IsDrawingFog))
+        {
+            IsDrawingFog = ActiveFogShape.IsDrawingFog;
         }
     }
 
@@ -414,6 +428,11 @@ public class FogControllerViewModel : ControllerViewModelBase
             var matrix = new Matrix();
             matrix.Scale(zoomFactor, zoomFactor);
             FogShapeCollection.Transform(matrix);
+
+            if (ActiveFogShape.IsDrawingFog)
+            {
+                ActiveFogShape.Transform(matrix);
+            }
 
             NotifyFogShapesUpdated();
         }

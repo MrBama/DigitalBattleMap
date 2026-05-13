@@ -114,7 +114,7 @@ public abstract class FogShape : PropertyHandler
         _mapSize = mapSize;
     }
 
-    public void Transform(Matrix matrix)
+    public virtual void Transform(Matrix matrix)
     {
         var points = ToWindowsPointArray(Points);
         matrix.Transform(points);

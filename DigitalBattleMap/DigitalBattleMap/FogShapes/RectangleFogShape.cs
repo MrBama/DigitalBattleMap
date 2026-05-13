@@ -73,6 +73,14 @@ public class RectangleFogShape : FogShape
         }
     }
 
+    public override void Transform(System.Windows.Media.Matrix matrix)
+    {
+        base.Transform(matrix);
+        var wp = new System.Windows.Point(_startPosition.X, _startPosition.Y);
+        wp = matrix.Transform(wp);
+        _startPosition = new Point<double>(wp.X, wp.Y);
+    }
+
     public override void UpdateControls()
     {
         var infoBlock1 = new InfoBlock(ControlType.LMB, ControlType.Down, "Start drawing the rectangle from the corner of the start position");

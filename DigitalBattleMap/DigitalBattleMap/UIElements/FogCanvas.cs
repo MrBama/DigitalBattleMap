@@ -15,8 +15,8 @@ namespace DigitalBattleMap.UIElements;
 /// </summary>
 public class FogCanvas : InkCanvas
 {
-    private static PropertyChangedEventHandler? _activeShapePropertyChangedHandler;
-    private static NotifyCollectionChangedEventHandler? _activeShapePointsChangedHandler;
+    private PropertyChangedEventHandler? _activeShapePropertyChangedHandler;
+    private NotifyCollectionChangedEventHandler? _activeShapePointsChangedHandler;
 
     public FogCanvas()
     {
@@ -44,15 +44,15 @@ public class FogCanvas : InkCanvas
 
         if (eventArgs.OldValue is FogShape oldShape)
         {
-            oldShape.PropertyChanged -= _activeShapePropertyChangedHandler;
-            oldShape.OnPointsChanged -= _activeShapePointsChangedHandler;
+            oldShape.PropertyChanged -= canvas._activeShapePropertyChangedHandler;
+            oldShape.OnPointsChanged -= canvas._activeShapePointsChangedHandler;
             canvas.ClearActiveShape();
         }
 
         if (eventArgs.NewValue is FogShape newShape)
         {
-            newShape.PropertyChanged += _activeShapePropertyChangedHandler;
-            newShape.OnPointsChanged += _activeShapePointsChangedHandler;
+            newShape.PropertyChanged += canvas._activeShapePropertyChangedHandler;
+            newShape.OnPointsChanged += canvas._activeShapePointsChangedHandler;
             canvas.DrawActiveShape(newShape);
         }
     }

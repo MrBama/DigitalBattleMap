@@ -34,6 +34,11 @@ public class DrawPolygonFogShape : FogShape
 
     protected override void ButtonUp(Point<double> position)
     {
+        if (Points.Count < 3)
+        {
+            Points.Clear();
+            return;
+        }
         Points.Add(Points.First());
         ApplyShape();
     }
@@ -46,7 +51,7 @@ public class DrawPolygonFogShape : FogShape
                 ? Mathematics.SnapPointToCanvasGridExact(position, _mapSize, _mapSize.GridSize)
                 : position;
 
-            if (!Points.Contains(snappedPosition))
+            if (!Points.Any() || !snappedPosition.Equals(Points.Last()))
             {
                 Points.Add(snappedPosition);
             }

@@ -67,6 +67,14 @@ internal class NGonFogShape : FogShape
         Points.Insert(0, _startPosition); // Draw middle
     }
 
+    public override void Transform(System.Windows.Media.Matrix matrix)
+    {
+        base.Transform(matrix);
+        var wp = new System.Windows.Point(_startPosition.X, _startPosition.Y);
+        wp = matrix.Transform(wp);
+        _startPosition = new Point<double>(wp.X, wp.Y);
+    }
+
     protected override void MouseWheel(Point<double> position, int mouseDelta)
     {
         if (!_buttonDown)

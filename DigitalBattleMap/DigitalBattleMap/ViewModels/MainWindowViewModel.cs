@@ -155,6 +155,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         FogController.OnZoomAndEnhance += OnZoomAndEnhance;
         FogController.OnFogShapeUpdated += FogShapesUpdated;
         FogController.OnControlUpdated += ControlUpdated;
+        FogController.PropertyChanged += OnFogControllerPropertyChanged;
         
         // Connect ShapeComposer to FogShapeCollection
         ShapeComposer.SetShapeCollection(FogController.FogShapeCollection);
@@ -197,14 +198,14 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         CanvasSizeChangedCommand = new RelayCommand(p => CanvasSizeChanged((SizeChangedEventArgs)p));
         ClearAllCommand = new RelayCommand(p => ClearMap());
         SettingsCommand = new RelayCommand(p => OpenSettings());
-        MoveMapArrowCommand = new RelayCommand(p => MoveMap((ArrowDirection)p));
+        MoveMapArrowCommand = new RelayCommand(p => MoveMap((ArrowDirection)p), _ => !IsFogShapeBeingDrawn);
         SaveMapCommand = new RelayCommand(p => SaveMap());
         OpenMapCommand = new RelayCommand(p => OpenMap());
         ServerConnectionCommand = new RelayCommand(p => ServerConnectionButton());
-        MapZoomInCommand = new RelayCommand(p => ZoomIn());
-        MapZoomOutCommand = new RelayCommand(p => ZoomOut());
+        MapZoomInCommand = new RelayCommand(p => ZoomIn(), _ => !IsFogShapeBeingDrawn);
+        MapZoomOutCommand = new RelayCommand(p => ZoomOut(), _ => !IsFogShapeBeingDrawn);
         MapCropCommand = new RelayCommand(p => SetCropMode());
-        MapRevertZoomAndMoveCommand = new RelayCommand(p => RevertZoomAndMove());
+        MapRevertZoomAndMoveCommand = new RelayCommand(p => RevertZoomAndMove(), _ => !IsFogShapeBeingDrawn);
         HideConfigurationCommand = new RelayCommand(p => { IsConfigurationMenuExpanded = false; });
         KeyDownCommand = new RelayCommand(p => KeyDown((KeyEventArgs)p));
         KeyUpCommand = new RelayCommand(p => KeyUp((KeyEventArgs)p));
@@ -218,6 +219,8 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void OnZoomAndEnhance(object? sender, ZoomAndEnhanceEventArgs e)
     {
+        if (IsFogShapeBeingDrawn) return;
+
         var selectedArea = e.rectangle;
 
         // Move to the Middle of the selected area (in steps of Gridsize)
@@ -445,6 +448,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 TokenVisibility = Visibility.Hidden;
 
                 MouseCanvas = FogController.MouseCanvas;
+                FogController.MouseCanvas.Cursor = FogController.ActiveFogShape.Cursor;
                 FogController.ActiveFogShape.UpdateControls();
                 DrawingCanvasZIndex = 1;
                 break;
@@ -471,6 +475,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         }
 
         SetMapTabControlText();
+        CommandManager.InvalidateRequerySuggested();
     }
 
     public Size<int> GetSize()
@@ -808,6 +813,16 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             {
                 _autoSaveTimer.Stop();
             }
+        }
+    }
+
+    private bool IsFogShapeBeingDrawn => SelectedTabIndex == TabIndex.Fog && FogController?.IsDrawingFog == true;
+
+    private void OnFogControllerPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(FogControllerViewModel.IsDrawingFog))
+        {
+            Application.Current.Dispatcher.Invoke(CommandManager.InvalidateRequerySuggested);
         }
     }
 

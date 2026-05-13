@@ -38,15 +38,20 @@ public class AngularPolygonFogShape : FogShape
         {
             Points.Add(Points.First());
             ApplyShape();
+            return;
         }
+
+        if (Points.Any() && snappedPosition.Equals(Points.Last()))
+            return;
 
         Points.Add(snappedPosition);
     }
 
     protected override void CancelButton()
     {
-        if (!Points.Any())
+        if (Points.Count < 3)
         {
+            Points.Clear();
             return;
         }
         Points.Add(Points.First());
@@ -87,6 +92,12 @@ public class AngularPolygonFogShape : FogShape
     {
         var infoBlock1 = new InfoBlock(ControlType.LMB, ControlType.Click, "Start drawing angular polygon");
         NotifyControlUpdated("Angular polygon drawing", new List<InfoBlock> { infoBlock1 });
+    }
+
+    public override void Transform(System.Windows.Media.Matrix matrix)
+    {
+        base.Transform(matrix);
+        previousMoves.Clear();
     }
 
     protected override void MouseMove(Point<double> position, bool mouseDelta)

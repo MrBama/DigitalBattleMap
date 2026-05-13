@@ -153,7 +153,6 @@ public class FogShapeCollection : PropertyHandler, IEnumerable, INotifyCollectio
      */
     internal void ToggleFog(Point<double> position)
     {
-        var test = _fogShapes.Where(fog => fog.PositionInside(position)).ToList();
         foreach (var fogShape in _fogShapes.Where(fog => fog.PositionInside(position)))
         {
             fogShape.IsFogEnabled = !fogShape.IsFogEnabled;
