@@ -190,6 +190,27 @@ public static class PolygonUnionHelper
     }
 
     /// <summary>
+    /// Checks if all vertices of inner are inside outer (i.e. inner is fully contained by outer).
+    /// </summary>
+    public static bool IsFullyContained(List<Point<double>> inner, List<Point<double>> outer)
+    {
+        if (inner.Count < 3 || outer.Count < 3)
+        {
+            return false;
+        }
+
+        foreach (var point in inner)
+        {
+            if (!PointInPolygon(point, outer))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Determines if a point is inside a polygon using the ray casting algorithm.
     /// </summary>
     public static bool PointInPolygon(Point<double> point, List<Point<double>> polygon)

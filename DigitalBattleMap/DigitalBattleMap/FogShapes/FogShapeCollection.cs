@@ -147,15 +147,28 @@ public class FogShapeCollection : PropertyHandler, IEnumerable, INotifyCollectio
         OnRenderShapes?.Invoke(this, new EventArgs());
     }
 
-    /**
-     * Finds the fog(s) at the toggled position.
-     * Toggles the isFogEnabled indicator.
-     */
     internal void ToggleFog(Point<double> position)
     {
-        foreach (var fogShape in _fogShapes.Where(fog => fog.PositionInside(position)))
+        var containingShapes = _fogShapes.Where(fog => fog.PositionInside(position)).ToList();
+        if (!containingShapes.Any())
         {
-            fogShape.IsFogEnabled = !fogShape.IsFogEnabled;
+            return;
         }
+
+        var smallest = containingShapes.OrderBy(fog => PolygonArea(fog.Points.ToList())).First();
+        smallest.IsFogEnabled = !smallest.IsFogEnabled;
+    }
+
+    private static double PolygonArea(List<Point<double>> points)
+    {
+        double area = 0;
+        int n = points.Count;
+        for (int i = 0; i < n; i++)
+        {
+            int j = (i + 1) % n;
+            area += points[i].X * points[j].Y;
+            area -= points[j].X * points[i].Y;
+        }
+        return Math.Abs(area) / 2.0;
     }
 }

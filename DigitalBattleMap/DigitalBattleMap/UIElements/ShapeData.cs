@@ -5,10 +5,6 @@ using System.Windows.Media;
 
 namespace DigitalBattleMap.UIElements;
 
-/// <summary>
-/// Represents tracked data for a fog shape needed for visualization.
-/// Decouples the visualization layer from the FogShape class.
-/// </summary>
 public class ShapeData
 {
     /// <summary>
@@ -17,9 +13,9 @@ public class ShapeData
     public FogShape FogShape { get; set; }
 
     /// <summary>
-    /// The path geometry representation of the shape.
+    /// The geometry representation of the shape (may include holes via CombinedGeometry).
     /// </summary>
-    public PathGeometry Geometry { get; set; }
+    public Geometry Geometry { get; set; }
 
     /// <summary>
     /// The pen size in canvas coordinates (from FogShape.PenSizeCanvas).
@@ -32,15 +28,20 @@ public class ShapeData
     public bool IsFogEnabled { get; set; }
 
     /// <summary>
-    /// The trimmed (smart-fog clipped) points used for rendering.
+    /// The stored (clipped) boundary points used for rendering.
     /// </summary>
     public List<Point<double>> Points { get; set; }
 
     /// <summary>
     /// Snapshot of FogShape.Points at the last known state, used to compute
-    /// transform deltas so the trimmed Points stay in sync with pan/zoom.
+    /// transform deltas so the clipped Points stay in sync with pan/zoom.
     /// </summary>
     public List<Point<double>> OriginalFogPoints { get; set; }
+
+    /// <summary>
+    /// Shapes that are fully contained within this shape and rendered as holes.
+    /// </summary>
+    public List<FogShape> HoleShapes { get; set; } = new();
 
     public ShapeData(FogShape fogShape, PathGeometry geometry)
     {

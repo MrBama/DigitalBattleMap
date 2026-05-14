@@ -319,13 +319,13 @@ public static class BitmapTools
         }
     }
 
-    public static void DrawFogShapes(Bitmap bitmap, IReadOnlyList<(List<Point<double>> Points, bool IsFogEnabled, double PenSizeCanvas)> shapes, Size<double> canvasSize)
+    public static void DrawFogShapes(Bitmap bitmap, IReadOnlyList<(List<Point<double>> Points, List<List<Point<double>>> Holes, bool IsFogEnabled, double PenSizeCanvas)> shapes, Size<double> canvasSize)
     {
         using var graphics = Graphics.FromImage(bitmap);
 
         foreach (var shape in shapes.OrderBy(s => s.IsFogEnabled))
         {
-            FogPolygon(canvasSize, graphics, shape.Points, shape.IsFogEnabled, shape.PenSizeCanvas);
+            FogPolygon(canvasSize, graphics, shape.Points, shape.Holes, shape.IsFogEnabled, shape.PenSizeCanvas);
         }
     }
 
@@ -363,27 +363,60 @@ public static class BitmapTools
         }
     }
 
-    private static void FogPolygon(Size<double> canvasSize, Graphics graphics, List<Point<double>> points, bool isFogEnabled, double penSizeCanvas)
+    private static void FogPolygon(Size<double> canvasSize, Graphics graphics, List<Point<double>> points, List<List<Point<double>>> holes, bool isFogEnabled, double penSizeCanvas)
     {
         if (!points.Any())
+        {
             return;
+        }
 
         var halfSize = penSizeCanvas / 2;
-        var pointsF = points.Select(p => new PointF(
+        var outerPointsF = points.Select(p => new PointF(
             (float)(p.X - halfSize).Map(0, canvasSize.Width, 0, Constants.MapSize.Width),
             (float)(p.Y - halfSize).Map(0, canvasSize.Height, 0, Constants.MapSize.Height)))
             .ToArray();
 
+        if (holes.Count == 0)
+        {
+            if (isFogEnabled)
+            {
+                graphics.FillPolygon(Brushes.Black, outerPointsF);
+            }
+            else
+            {
+                var previousMode = graphics.CompositingMode;
+                graphics.CompositingMode = CompositingMode.SourceCopy;
+                using var transparentBrush = new SolidBrush(Color.FromArgb(0, 0, 0, 0));
+                graphics.FillPolygon(transparentBrush, outerPointsF);
+                graphics.CompositingMode = previousMode;
+            }
+            return;
+        }
+
+        using var path = new GraphicsPath(FillMode.Alternate);
+        path.AddPolygon(outerPointsF);
+        foreach (var hole in holes)
+        {
+            if (hole.Count >= 3)
+            {
+                var holePointsF = hole.Select(p => new PointF(
+                    (float)(p.X - halfSize).Map(0, canvasSize.Width, 0, Constants.MapSize.Width),
+                    (float)(p.Y - halfSize).Map(0, canvasSize.Height, 0, Constants.MapSize.Height)))
+                    .ToArray();
+                path.AddPolygon(holePointsF);
+            }
+        }
+
         if (isFogEnabled)
         {
-            graphics.FillPolygon(Brushes.Black, pointsF);
+            graphics.FillPath(Brushes.Black, path);
         }
         else
         {
             var previousMode = graphics.CompositingMode;
             graphics.CompositingMode = CompositingMode.SourceCopy;
             using var transparentBrush = new SolidBrush(Color.FromArgb(0, 0, 0, 0));
-            graphics.FillPolygon(transparentBrush, pointsF);
+            graphics.FillPath(transparentBrush, path);
             graphics.CompositingMode = previousMode;
         }
     }

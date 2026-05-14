@@ -1,4 +1,4 @@
-﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.FogShapes;
 using DigitalBattleMap.Utilities;
 using System;
@@ -93,8 +93,7 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
     {
         foreach (var shape in _shapeCollection.GetFogShapes())
         {
-            var geometry = CreatePathGeometry(shape);
-            var shapeData = new ShapeData(shape, geometry);
+            var shapeData = new ShapeData(shape, CreatePathGeometryFromPoints(shape.Points.ToList()));
             _shapesData[shape] = shapeData;
         }
 
@@ -106,38 +105,40 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
         switch (e.Action)
         {
             case CollectionChangedAction.Add:
-                var geometry = CreatePathGeometry(e.ChangedShape);
-                var shapeData = new ShapeData(e.ChangedShape, geometry);
                 var newPoints = new List<Point<double>>(e.ChangedShape.Points);
+                var shapeData = new ShapeData(e.ChangedShape, new System.Windows.Media.PathGeometry());
 
-                foreach (var existingShapeEntry in _shapesData)
+                // Clip new shape against partially overlapping existing shapes
+                foreach (var existingEntry in _shapesData)
                 {
-                    var existingShape = existingShapeEntry.Key;
-                    var existingShapeData = existingShapeEntry.Value;
-
-                    if (existingShape != e.ChangedShape)
+                    var existingPoints = existingEntry.Value.Points;
+                    if (!PolygonUnionHelper.IsFullyContained(existingPoints, newPoints)
+                        && PolygonUnionHelper.PolygonsOverlap(existingPoints, newPoints))
                     {
-                        if (PolygonUnionHelper.PolygonsOverlap(existingShapeData.Points, newPoints))
-                        {
-                            newPoints = PolygonUnionHelper.SubtractPolygon(newPoints, existingShapeData.Points);
+                        newPoints = PolygonUnionHelper.SubtractPolygon(newPoints, existingPoints);
 
-                            if (newPoints == null || newPoints.Count < 3)
-                            {
-                                break;
-                            }
+                        if (newPoints == null || newPoints.Count < 3)
+                        {
+                            break;
                         }
                     }
                 }
 
-                if (newPoints == null || newPoints.Count < 3)
+                shapeData.Points = newPoints ?? new List<Point<double>>();
+
+                // Find holes: existing shapes fully contained within the clipped new shape
+                if (newPoints != null && newPoints.Count >= 3)
                 {
-                    _shapesData[e.ChangedShape] = shapeData;
-                    _shapeCollection?.Remove(e.ChangedShape);
-                    return;
+                    foreach (var existingEntry in _shapesData)
+                    {
+                        if (PolygonUnionHelper.IsFullyContained(existingEntry.Value.Points, newPoints))
+                        {
+                            shapeData.HoleShapes.Add(existingEntry.Key);
+                        }
+                    }
                 }
 
-                shapeData.Points = newPoints;
-                shapeData.Geometry = CreatePathGeometryFromPoints(newPoints);
+                shapeData.Geometry = BuildGeometryWithHoles(shapeData);
                 _shapesData[e.ChangedShape] = shapeData;
 
                 UpdateComposedGeometry();
@@ -145,6 +146,15 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
 
             case CollectionChangedAction.Remove:
                 _shapesData.Remove(e.ChangedShape);
+
+                foreach (var entry in _shapesData)
+                {
+                    if (entry.Value.HoleShapes.Remove(e.ChangedShape))
+                    {
+                        entry.Value.Geometry = BuildGeometryWithHoles(entry.Value);
+                    }
+                }
+
                 UpdateComposedGeometry();
                 break;
 
@@ -168,6 +178,7 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
                 if (e.PropertyName == nameof(FogShape.Points))
                 {
                     var newFogPoints = new List<Point<double>>(shape.Points);
+
                     if (shapeData.Points.Count >= 3)
                     {
                         var matrix = ComputeTransformMatrix(shapeData.OriginalFogPoints, newFogPoints);
@@ -177,8 +188,17 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
                         matrix.Transform(pts);
                         shapeData.Points = pts.Select(p => new Point<double>(p.X, p.Y)).ToList();
                     }
+
                     shapeData.OriginalFogPoints = newFogPoints;
-                    shapeData.Geometry = CreatePathGeometryFromPoints(shapeData.Points);
+                    shapeData.Geometry = BuildGeometryWithHoles(shapeData);
+
+                    foreach (var entry in _shapesData)
+                    {
+                        if (entry.Key != shape && entry.Value.HoleShapes.Contains(shape))
+                        {
+                            entry.Value.Geometry = BuildGeometryWithHoles(entry.Value);
+                        }
+                    }
                 }
 
                 shapeData.UpdateFromFogShape();
@@ -239,33 +259,7 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
 
     public PathGeometry CreatePathGeometry(FogShape shape)
     {
-        var geometry = new PathGeometry();
-
-        if (shape.Points.Count == 0)
-        {
-            return geometry;
-        }
-
-        var figure = new PathFigure();
-        figure.StartPoint = new System.Windows.Point(shape.Points[0].X, shape.Points[0].Y);
-        figure.IsClosed = true;
-        figure.IsFilled = true;
-
-        if (shape.Points.Count > 1)
-        {
-            var line = new PolyLineSegment();
-
-            for (int i = 1; i < shape.Points.Count; i++)
-            {
-                line.Points.Add(new System.Windows.Point(shape.Points[i].X, shape.Points[i].Y));
-            }
-
-            line.IsStroked = true;
-            figure.Segments.Add(line);
-        }
-
-        geometry.Figures.Add(figure);
-        return geometry;
+        return CreatePathGeometryFromPoints(shape.Points.ToList());
     }
 
     public void Clear()
@@ -280,11 +274,32 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
         ComposedGeometryInnerStrokeThickness = 0;
     }
 
-    public IReadOnlyList<(List<Point<double>> Points, bool IsFogEnabled, double PenSizeCanvas)> GetTrimmedFogData()
+    public IReadOnlyList<(List<Point<double>> Points, List<List<Point<double>>> Holes, bool IsFogEnabled, double PenSizeCanvas)> GetTrimmedFogData()
     {
         return _shapesData.Values
-            .Select(sd => (sd.Points, sd.IsFogEnabled, sd.PenSizeCanvas))
+            .Select(sd => (
+                sd.Points,
+                sd.HoleShapes
+                    .Where(h => _shapesData.ContainsKey(h))
+                    .Select(h => _shapesData[h].Points)
+                    .ToList(),
+                sd.IsFogEnabled,
+                sd.PenSizeCanvas))
             .ToList();
+    }
+
+    private Geometry BuildGeometryWithHoles(ShapeData shapeData)
+    {
+        Geometry result = CreatePathGeometryFromPoints(shapeData.Points);
+        foreach (var holeShape in shapeData.HoleShapes)
+        {
+            if (_shapesData.TryGetValue(holeShape, out var holeData) && holeData.Points.Count >= 3)
+            {
+                var holeGeometry = CreatePathGeometryFromPoints(holeData.Points);
+                result = new CombinedGeometry(GeometryCombineMode.Exclude, result, holeGeometry);
+            }
+        }
+        return result;
     }
 
     private Geometry RebuildComposedGeometry()
@@ -385,9 +400,10 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
     private static Matrix ComputeTransformMatrix(List<Point<double>> oldPoints, List<Point<double>> newPoints)
     {
         if (oldPoints.Count == 0 || oldPoints.Count != newPoints.Count)
+        {
             return Matrix.Identity;
+        }
 
-        // Try to find a second point distinct from the first to recover scale.
         for (int i = 1; i < oldPoints.Count; i++)
         {
             double dxOld = oldPoints[i].X - oldPoints[0].X;
@@ -405,7 +421,6 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
             }
         }
 
-        // All points coincide — pure translation.
         return new Matrix(1, 0, 0, 1,
             newPoints[0].X - oldPoints[0].X,
             newPoints[0].Y - oldPoints[0].Y);
@@ -414,7 +429,9 @@ public class ShapeComposer : PropertyHandler, INotifyPropertyChanged
     private Geometry ClipToCanvas(Geometry geometry)
     {
         if (geometry == null || _canvasSize.Width <= 0 || _canvasSize.Height <= 0)
+        {
             return geometry;
+        }
         var clip = new RectangleGeometry(new System.Windows.Rect(0, 0, _canvasSize.Width, _canvasSize.Height));
         return new CombinedGeometry(GeometryCombineMode.Intersect, geometry, clip);
     }

@@ -197,7 +197,7 @@ public class FogControllerViewModel : ControllerViewModelBase
      * When trimmedShapes is provided the smart-fog clipped geometry is used instead of raw shape points.
      * The shape will be filled in black or cut out depending on the fog shape 'IsFogEnabled' setting.
      */
-    public Bitmap GetFogBitmap(IReadOnlyList<(List<Point<double>> Points, bool IsFogEnabled, double PenSizeCanvas)> trimmedShapes = null)
+    public Bitmap GetFogBitmap(IReadOnlyList<(List<Point<double>> Points, List<List<Point<double>>> Holes, bool IsFogEnabled, double PenSizeCanvas)> trimmedShapes = null)
     {
         var bitmap = FogShapeCollection.IsFillFogEnabled ? BitmapTools.CreateBlackBitmap() : BitmapTools.CreateEmptyBitmap();
 
@@ -377,12 +377,22 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     private void LeftButtonDown(object? sender, MouseButtonDataEventArgs e)
     {
+        foreach (var shape in FogShapeCollection.GetFogShapes())
+        {
+            if (shape.PositionInside(e.Position))
+            {
+                return;
+            }
+        }
         ActiveFogShape.LeftButtonDown(e);
     }
 
     private void LeftButtonUp(object? sender, MouseButtonDataEventArgs e)
     {
-        ActiveFogShape.LeftButtonUp(e);
+        if (ActiveFogShape.IsDrawingFog)
+        {
+            ActiveFogShape.LeftButtonUp(e);
+        }
     }
 
     private void RightButtonUp(object? sender, MouseButtonDataEventArgs e)
@@ -392,7 +402,10 @@ public class FogControllerViewModel : ControllerViewModelBase
 
     private void MouseMove(object? sender, MouseMoveDataEventArgs e)
     {
-        ActiveFogShape.MouseMove(e);
+        if (ActiveFogShape.IsDrawingFog || !e.LeftButtonDown)
+        {
+            ActiveFogShape.MouseMove(e);
+        }
     }
 
     private void MouseWheel(object? sender, MouseWheelDataEventArgs e)
@@ -454,15 +467,23 @@ public class FogControllerViewModel : ControllerViewModelBase
     }
 
     public bool GetOverviewBitmap(double zoomFactor, out OverviewBitmap overviewBitmap,
-        IReadOnlyList<(List<Point<double>> Points, bool IsFogEnabled, double PenSizeCanvas)> trimmedShapes = null)
+        IReadOnlyList<(List<Point<double>> Points, List<List<Point<double>>> Holes, bool IsFogEnabled, double PenSizeCanvas)> trimmedShapes = null)
     {
         overviewBitmap = new OverviewBitmap();
 
-        // Use smart-fog trimmed shapes when provided, otherwise fall back to raw fog shapes
-        IReadOnlyList<(List<Point<double>> Points, bool IsFogEnabled, double PenSizeCanvas)> fogData = trimmedShapes
-            ?? FogShapeCollection.GetFogShapes()
+        IReadOnlyList<(List<Point<double>> Points, bool IsFogEnabled, double PenSizeCanvas)> fogData;
+        if (trimmedShapes != null)
+        {
+            fogData = trimmedShapes
+                .Select(s => (s.Points, s.IsFogEnabled, s.PenSizeCanvas))
+                .ToList<(List<Point<double>>, bool, double)>();
+        }
+        else
+        {
+            fogData = FogShapeCollection.GetFogShapes()
                 .Select(s => (s.Points.ToList(), s.IsFogEnabled, s.PenSizeCanvas))
                 .ToList<(List<Point<double>>, bool, double)>();
+        }
 
         if (!fogData.Any())
             return false;
