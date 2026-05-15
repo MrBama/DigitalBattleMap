@@ -220,8 +220,15 @@ i.direction.SouthEast {
   height: 40px;
 }
 
-.btn-collapsible-conditions.btn-full-width {
-  grid-column: 1 / -1;
+.btn-open-condition-info.active {
+  background-color: #303538;
+  border-color: #303538;
+  color: #fff;
+}
+
+.btn-open-condition-info.active:hover {
+  background-color: #303538;
+  border-color: #303538;
 }
 
 .collapsible-conditions-content {
@@ -229,6 +236,11 @@ i.direction.SouthEast {
 }
 
 /* Map css */
+.controls-overlay .grid-container-collapsible {
+  grid-template-columns: 1fr;
+}
+
+
 .map-view {
   background-color: white;
 }

@@ -165,7 +165,6 @@ $(".btn-direction").click(function() {
 
 async function start() {
     try {
-        PanelManager.updateConditionInfoButtonVisibility();
         await connection.start();
 
         const settings = SettingsManager.getSettings();

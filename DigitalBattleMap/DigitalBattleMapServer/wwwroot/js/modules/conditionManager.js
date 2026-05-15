@@ -17,8 +17,7 @@ const ConditionManager = (() => {
                 if (conditionData.versions && conditionData.versions[version]) {
                     const versionData = conditionData.versions[version];
                     state.activeConditions[conditionName] = versionData;
-                    ConditionRenderer.renderConditionCard(conditionName, versionData);
-                    
+
                     if (callback) callback();
                 }
             },
@@ -33,7 +32,6 @@ const ConditionManager = (() => {
         delete state.visibleConditions[conditionName];
         state.closedConditions[conditionName] = true;
         ConditionRenderer.renderConditionCards();
-        PanelManager.updateConditionInfoButtonVisibility();
     };
 
     const syncWithAppliedConditions = (appliedButtonIds) => {
@@ -66,7 +64,6 @@ const ConditionManager = (() => {
 
         if (conditionsToLoad.length === 0) {
             ConditionRenderer.renderConditionCards();
-            PanelManager.showPanelIfNotHidden();
             return;
         }
 
@@ -76,7 +73,6 @@ const ConditionManager = (() => {
                 loadedCount++;
                 if (loadedCount === conditionsToLoad.length) {
                     ConditionRenderer.renderConditionCards();
-                    PanelManager.showPanelIfNotHidden();
                 }
             });
         });
@@ -102,7 +98,6 @@ const ConditionManager = (() => {
     };
 
     return {
-        addConditionInfo,
         removeConditionInfo,
         syncWithAppliedConditions,
         reloadActiveConditions,

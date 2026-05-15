@@ -42,7 +42,6 @@ const ConditionRenderer = (() => {
     };
 
     return {
-        renderConditionCard,
         renderConditionCards
     };
 })();
