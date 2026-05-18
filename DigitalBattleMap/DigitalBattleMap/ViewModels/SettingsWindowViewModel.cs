@@ -25,6 +25,7 @@ public class SettingsWindowViewModel : ViewModelBase
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
         SelectedBackgroundColor = _settings.DefaultBackgroundColor;
         IsAutoSaveEnabled = _settings.IsAutoSaveEnabled;
+        IsHexcrawlEnabled = _settings.IsHexcrawlEnabled;
 
         foreach (var screenPosition in ScreenWrapper.GetScreenPositions())
         {
@@ -58,6 +59,7 @@ public class SettingsWindowViewModel : ViewModelBase
     public bool ShowMapWindow { get => Get<bool>(); set => Set(value); }
     public bool HideDungeonMasterFeatures { get => Get<bool>(); set => Set(value); }
     public bool IsAutoSaveEnabled { get => Get<bool>(); set => Set(value); }
+    public bool IsHexcrawlEnabled { get => Get<bool>(); set => Set(value); }
 
     private void SaveButtonClicked()
     {
@@ -68,6 +70,7 @@ public class SettingsWindowViewModel : ViewModelBase
         _settings.HideDungeonMasterFeatures = HideDungeonMasterFeatures;
         _settings.DefaultBackgroundColor = SelectedBackgroundColor;
         _settings.IsAutoSaveEnabled = IsAutoSaveEnabled;
+        _settings.IsHexcrawlEnabled = IsHexcrawlEnabled;
 
         _settings.Save();
     }

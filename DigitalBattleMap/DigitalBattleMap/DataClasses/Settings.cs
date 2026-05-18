@@ -20,6 +20,7 @@ public class Settings
     public bool IsSoftwareInstalled { get; set; }
     public bool ShowMapWindow { get; set; } = true;
     public bool HideDungeonMasterFeatures { get; set; }
+    public bool IsHexcrawlEnabled { get; set; }
     public BackgroundColor DefaultBackgroundColor { get; set; } = BackgroundColor.Black;
     public bool IsAutoSaveEnabled { get; set; } = true;
     public string ServerAddress { get; set; } = "http://localhost:8000";

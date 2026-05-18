@@ -61,6 +61,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public bool IsConfigurationMenuExpanded { get => Get<bool>(); set => Set(value); }
     public bool IsMultiMove { get => Get<bool>(); set => Set(value); }
     public bool HideDungeonMasterFeatures { get => Get<bool>(); set => Set(value); }
+    public bool IsHexcrawlEnabled { get => Get<bool>(); set => Set(value); }
     public bool IsInfoEnabled { get => Get<bool>(); set => Set(value); }
     public string ServerConnectionButtonText { get => Get<string>(); set => Set(value); }
     public string ServerConnectionStatus { get => Get<string>(); set => Set(value); }
@@ -93,6 +94,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public BitmapSource BackgroundEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.BackgroundEmblem.png")).ToBitmapImage(); }
     public BitmapSource FogEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.FogEmblem.png")).ToBitmapImage(); }
     public BitmapSource DrawingEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.DrawingEmblem.png")).ToBitmapImage(); }
+    public BitmapSource HexcrawlEditorEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.HexcrawlEditorEmblem.png")).ToBitmapImage(); }
     public BitmapSource TokenEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.TokenEmblem.png")).ToBitmapImage(); }
     public BitmapSource InfoIconBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.InfoIcon.png")).ToBitmapImage(); }
 
@@ -171,6 +173,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         // settings
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
+        IsHexcrawlEnabled = _settings.IsHexcrawlEnabled;
         CropColor = System.Windows.Media.Brushes.LightGray;
         MouseCanvas = BackgroundController.MouseCanvas;
         ControlInfoText = CampaingInfoText;
@@ -461,6 +464,14 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 MouseCanvas = DrawingController.MouseCanvas;
                 ControlInfoText = GetDrawingInfoText();
                 DrawingCanvasZIndex = 1;
+                break;
+            case TabIndex.HexcrawlEditor:
+            case TabIndex.HexcrawlPlay:
+                MouseInputCanvasVisibility = Visibility.Hidden;
+                FogCanvasVisibility = Visibility.Hidden;
+                DrawingCanvasVisibility = Visibility.Hidden;
+                TokenVisibility = Visibility.Hidden;
+                ControlInfoText = string.Empty;
                 break;
             case TabIndex.Tokens:
                 DrawingCanvasVisibility = Visibility.Visible;
@@ -801,6 +812,14 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         else if (e.SettingName == nameof(Settings.HideDungeonMasterFeatures))
         {
             HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
+        }
+        else if (e.SettingName == nameof(Settings.IsHexcrawlEnabled))
+        {
+            IsHexcrawlEnabled = _settings.IsHexcrawlEnabled;
+            if (!IsHexcrawlEnabled && (SelectedTabIndex == TabIndex.HexcrawlEditor || SelectedTabIndex == TabIndex.HexcrawlPlay))
+            {
+                SelectedTabIndex = TabIndex.Campaign;
+            }
         }
         else if (e.SettingName == nameof(Settings.IsAutoSaveEnabled))
         {
