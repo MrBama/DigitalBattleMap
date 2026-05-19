@@ -17,6 +17,7 @@ public class HexcrawlMapViewModel : ViewModelBase
     private readonly Dictionary<(int, int), HexCell> _cells = new();
     private readonly Dictionary<(int, int), string> _gestureOriginals = new();
     private readonly HashSet<(int, int)> _paintedThisGesture = new();
+    private readonly HashSet<(int, int)> _exploredHexes = new();
     private bool _isPainting;
     private bool _needsInitialCenter = true;
 
@@ -200,6 +201,7 @@ public class HexcrawlMapViewModel : ViewModelBase
     public void LoadFromData(HexcrawlGridData data)
     {
         _cells.Clear();
+        _exploredHexes.Clear();
         HexSize = data.HexSize;
         _needsInitialCenter = true;
         // Set without triggering CenterGrid until canvas size is known
@@ -207,6 +209,8 @@ public class HexcrawlMapViewModel : ViewModelBase
         Set(data.GridHeight, nameof(GridHeight));
         foreach (var cell in data.Cells)
             _cells[(cell.Q, cell.R)] = cell;
+        foreach (var coord in data.ExploredHexes)
+            _exploredHexes.Add((coord.Q, coord.R));
         PaintHistory.Clear();
         RenderRequested?.Invoke();
     }
@@ -215,27 +219,60 @@ public class HexcrawlMapViewModel : ViewModelBase
     {
         return new HexcrawlGridData
         {
-            HexSize    = HexSize,
-            GridWidth  = GridWidth,
-            GridHeight = GridHeight,
-            Cells      = _cells.Values.ToList()
+            HexSize       = HexSize,
+            GridWidth     = GridWidth,
+            GridHeight    = GridHeight,
+            Cells         = _cells.Values.ToList(),
+            ExploredHexes = _exploredHexes.Select(e => new HexCoord { Q = e.Item1, R = e.Item2 }).ToList()
         };
+    }
+
+    // --- Fog of exploration ---
+
+    public bool IsExplored(int q, int r) => _exploredHexes.Contains((q, r));
+
+    // Marks the hex and all in-bounds neighbors as explored.
+    public void Explore(int q, int r, bool includeNeighbors)
+    {
+        _exploredHexes.Add((q, r));
+        if (includeNeighbors)
+            foreach (var n in HexGeometry.GetNeighbors(q, r, GridWidth, GridHeight))
+                _exploredHexes.Add(n);
+        RenderRequested?.Invoke();
+    }
+
+    // Removes exploration from the hex and all in-bounds neighbors.
+    public void Cover(int q, int r, bool includeNeighbors)
+    {
+        _exploredHexes.Remove((q, r));
+        if (includeNeighbors)
+            foreach (var n in HexGeometry.GetNeighbors(q, r, GridWidth, GridHeight))
+                _exploredHexes.Remove(n);
+        RenderRequested?.Invoke();
+    }
+
+    // Covers the entire map (full fog).
+    public void ResetFog()
+    {
+        _exploredHexes.Clear();
+        RenderRequested?.Invoke();
     }
 
     // Renders the current hex map view to a System.Drawing.Bitmap for sending to players.
     // Falls back to 1280x720 if the canvas size is not yet known (hex tab never opened).
-    public System.Drawing.Bitmap RenderToBitmap()
+    // includeFog=true renders unexplored hexes with fully opaque fog (player view).
+    public System.Drawing.Bitmap RenderToBitmap(bool includeFog = false)
     {
         int width  = CanvasSize.Width  > 0 ? (int)CanvasSize.Width  : 1280;
         int height = CanvasSize.Height > 0 ? (int)CanvasSize.Height : 720;
 
-        var visual = BuildDrawingVisual(width, height);
+        var visual = BuildDrawingVisual(width, height, includeFog);
         var rtb    = RenderToTarget(visual, width, height);
         return ConvertToBitmap(rtb);
     }
 
     // Draws the full hex grid into a DrawingVisual using the current pan/zoom state.
-    private DrawingVisual BuildDrawingVisual(int width, int height)
+    private DrawingVisual BuildDrawingVisual(int width, int height, bool includeFog = false)
     {
         double scale   = Scale;
         double ox      = OffsetX;
@@ -263,6 +300,27 @@ public class HexcrawlMapViewModel : ViewModelBase
 
             for (int q = qMin; q <= qMax; q++)
                 DrawColumn(ctx, q, hexSize, worldTop, worldBottom, outlinePen);
+
+            if (includeFog)
+            {
+                // Fully opaque fog for the player: unexplored hexes are completely hidden.
+                var fogBrush = new SolidColorBrush(Color.FromArgb(255, 40, 40, 40));
+                fogBrush.Freeze();
+                double rScale = hexSize * HexGeometry.Sqrt3;
+                for (int q = qMin; q <= qMax; q++)
+                {
+                    int rOff = q / 2;
+                    double halfQ = q / 2.0;
+                    int rMin = Math.Max((int)Math.Floor(worldTop    / rScale - halfQ) - 1, -rOff);
+                    int rMax = Math.Min((int)Math.Ceiling(worldBottom / rScale - halfQ) + 1, GridHeight - 1 - rOff);
+                    for (int r = rMin; r <= rMax; r++)
+                    {
+                        if (IsExplored(q, r)) continue;
+                        var (wx, wy) = HexGeometry.AxialToPixel(q, r, hexSize);
+                        ctx.DrawGeometry(fogBrush, null, HexGeometry.CreateStreamGeometry(wx, wy, hexSize));
+                    }
+                }
+            }
 
             ctx.Pop(); // ScaleTransform
             ctx.Pop(); // TranslateTransform

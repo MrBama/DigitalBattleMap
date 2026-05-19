@@ -6,9 +6,9 @@ public static class TabIndex
     public const int Background = 1;
     public const int Fog = 2;
     public const int Drawing = 3;
-    public const int HexcrawlEditor = 4;
-    public const int HexcrawlPlay = 5;
-    public const int Tokens = 6;
+    public const int Tokens = 4;
+    public const int HexcrawlEditor = 5;
+    public const int HexcrawlPlay = 6;
 }
 
 public static class TabMapIndex

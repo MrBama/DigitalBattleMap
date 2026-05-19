@@ -12,6 +12,17 @@ public class HexMapCanvas : FrameworkElement
         DependencyProperty.Register(nameof(ViewModel), typeof(HexcrawlMapViewModel), typeof(HexMapCanvas),
             new PropertyMetadata(null, OnViewModelChanged));
 
+    public static readonly DependencyProperty ShowFogProperty =
+        DependencyProperty.Register(nameof(ShowFog), typeof(bool), typeof(HexMapCanvas),
+            new PropertyMetadata(false, (d, _) => ((HexMapCanvas)d).InvalidateVisual()));
+
+    // When true: unexplored hexes are drawn with a semi-transparent dark gray overlay (DM view).
+    public bool ShowFog
+    {
+        get => (bool)GetValue(ShowFogProperty);
+        set => SetValue(ShowFogProperty, value);
+    }
+
     public HexcrawlMapViewModel ViewModel
     {
         get => (HexcrawlMapViewModel)GetValue(ViewModelProperty);
@@ -116,23 +127,76 @@ public class HexMapCanvas : FrameworkElement
             }
         }
 
+        if (ShowFog)
+        {
+            // Semi-transparent dark gray so the DM can still see what tile type is underneath.
+            var fogBrush = new SolidColorBrush(Color.FromArgb(180, 40, 40, 40));
+            fogBrush.Freeze();
+
+            for (int q = qMin; q <= qMax; q++)
+            {
+                int rOff = q / 2;
+                double halfQ = (double)q / 2.0;
+                int rMin2 = Math.Max((int)Math.Floor(worldTop    / rScale - halfQ) - 1, -rOff);
+                int rMax2 = Math.Min((int)Math.Ceiling(worldBottom / rScale - halfQ) + 1, vm.GridHeight - 1 - rOff);
+
+                for (int r = rMin2; r <= rMax2; r++)
+                {
+                    if (vm.IsExplored(q, r)) continue;
+                    var (wx, wy) = HexGeometry.AxialToPixel(q, r, hexSize);
+                    dc.DrawGeometry(fogBrush, null, HexGeometry.CreateStreamGeometry(wx, wy, hexSize));
+                }
+            }
+        }
+
         dc.Pop(); // scale
         dc.Pop(); // translate
         dc.Pop(); // clip
     }
 
+    public static readonly DependencyProperty FogExploreCommandProperty =
+        DependencyProperty.Register(nameof(FogExploreCommand), typeof(ICommand), typeof(HexMapCanvas));
+    public static readonly DependencyProperty FogCoverCommandProperty =
+        DependencyProperty.Register(nameof(FogCoverCommand), typeof(ICommand), typeof(HexMapCanvas));
+
+    // Bound to HexPlayViewModel.ExploreCommand / CoverCommand when ShowFog is true.
+    // Parameter passed is a ValueTuple<int,int> (q, r).
+    public ICommand FogExploreCommand
+    {
+        get => (ICommand)GetValue(FogExploreCommandProperty);
+        set => SetValue(FogExploreCommandProperty, value);
+    }
+    public ICommand FogCoverCommand
+    {
+        get => (ICommand)GetValue(FogCoverCommandProperty);
+        set => SetValue(FogCoverCommandProperty, value);
+    }
+
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         if (ViewModel == null) return;
+        if (ShowFog)
+        {
+            FogClickAt(e.GetPosition(this), explore: true);
+            e.Handled = true;
+            return;
+        }
         CaptureMouse();
         ViewModel.BeginPaint();
         PaintAt(e.GetPosition(this));
         e.Handled = true;
     }
 
+    protected override void OnMouseRightButtonDown(MouseButtonEventArgs e)
+    {
+        if (ViewModel == null || !ShowFog) return;
+        FogClickAt(e.GetPosition(this), explore: false);
+        e.Handled = true;
+    }
+
     protected override void OnMouseMove(MouseEventArgs e)
     {
-        if (e.LeftButton == MouseButtonState.Pressed && ViewModel != null)
+        if (e.LeftButton == MouseButtonState.Pressed && ViewModel != null && !ShowFog)
         {
             PaintAt(e.GetPosition(this));
             e.Handled = true;
@@ -141,6 +205,7 @@ public class HexMapCanvas : FrameworkElement
 
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
     {
+        if (ShowFog) return;
         ReleaseMouseCapture();
         ViewModel?.EndPaint();
         e.Handled = true;
@@ -152,5 +217,14 @@ public class HexMapCanvas : FrameworkElement
         double worldY = (screenPos.Y - ViewModel.OffsetY) / ViewModel.Scale;
         var (q, r) = HexGeometry.PixelToAxial(worldX, worldY, ViewModel.HexSize);
         ViewModel.PaintCell(q, r);
+    }
+
+    private void FogClickAt(Point screenPos, bool explore)
+    {
+        double worldX = (screenPos.X - ViewModel.OffsetX) / ViewModel.Scale;
+        double worldY = (screenPos.Y - ViewModel.OffsetY) / ViewModel.Scale;
+        var (q, r) = HexGeometry.PixelToAxial(worldX, worldY, ViewModel.HexSize);
+        var cmd = explore ? FogExploreCommand : FogCoverCommand;
+        cmd?.Execute((q, r));
     }
 }

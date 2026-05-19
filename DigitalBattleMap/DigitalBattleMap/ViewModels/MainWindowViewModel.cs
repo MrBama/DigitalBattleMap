@@ -59,6 +59,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public int MultiMoveCount { get => Get<int>(); set => Set(value); }
     public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, IsShowMapLockedChanged); }
     public bool IsHexAutoUpdate { get => Get<bool>(); set => Set(value, IsHexAutoUpdateChanged); }
+    public bool IsHexPlayMode   { get => SelectedTabIndex == TabIndex.HexcrawlPlay; }
     public bool ServerConnectionButtonEnabled { get => Get<bool>(); set => Set(value); }
     public bool IsConfigurationMenuExpanded { get => Get<bool>(); set => Set(value); }
     public bool IsMultiMove { get => Get<bool>(); set => Set(value); }
@@ -84,6 +85,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public TokenControllerViewModel TokenController { get; set; }
     public MapOverviewViewModel MapOverview { get; set; }
     public HexcrawlEditorViewModel HexcrawlEditor { get; private set; }
+    public HexcrawlPlayViewModel   HexcrawlPlay   { get; private set; }
     public UIElements.ShapeComposer ShapeComposer { get => Get<UIElements.ShapeComposer>(); set => Set(value); }
     public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToBitmapImage(); }
     public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
@@ -177,6 +179,8 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         HexcrawlEditor = new HexcrawlEditorViewModel(_windowService);
         HexcrawlEditor.Map.RenderRequested += OnHexMapRenderRequested;
+        HexcrawlPlay = new HexcrawlPlayViewModel();
+        HexcrawlPlay.SetMap(HexcrawlEditor.Map);
 
         // settings
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
@@ -488,6 +492,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 DrawingCanvasVisibility = Visibility.Hidden;
                 TokenVisibility = Visibility.Hidden;
                 ControlInfoText = string.Empty;
+                SelectedMapTabIndex = TabMapIndex.Hex;
                 break;
             case TabIndex.Tokens:
                 DrawingCanvasVisibility = Visibility.Visible;
@@ -501,6 +506,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 break;
         }
 
+        NotifyPropertyChange(nameof(IsHexPlayMode));
         SetMapTabControlText();
         CommandManager.InvalidateRequerySuggested();
     }
@@ -829,8 +835,16 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     {
         if (_mapWindowViewModel == null) return;
         IsShowMapLocked = false;
-        var bitmap = HexcrawlEditor.Map.RenderToBitmap();
+        var bitmap = HexcrawlEditor.Map.RenderToBitmap(includeFog: true);
         if (bitmap == null) return;
+
+        // Clear the three battle-map layers locally so they don't sit on top of the hex view
+        _mapWindowViewModel.FogBitmapSource   = null;
+        _mapWindowViewModel.GridBitmapSource  = null;
+        _mapWindowViewModel.TokenBitmapSource = null;
+
+        // Remotely: clear all layers first, then push just the hex background
+        _connectionManager?.ClearMap();
         _mapWindowViewModel.BackgroundBitmapSource = bitmap.ToBitmapImage();
         _connectionManager?.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = bitmap });
     }

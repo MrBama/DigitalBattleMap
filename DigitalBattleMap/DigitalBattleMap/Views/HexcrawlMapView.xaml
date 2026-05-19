@@ -7,6 +7,9 @@
              mc:Ignorable="d"
              d:DesignHeight="1080" d:DesignWidth="1440">
     <Grid>
-        <uielements:HexMapCanvas ViewModel="{Binding}"/>
+        <uielements:HexMapCanvas ViewModel="{Binding}"
+                               ShowFog="{Binding DataContext.IsHexPlayMode, RelativeSource={RelativeSource AncestorType=Window}}"
+                               FogExploreCommand="{Binding DataContext.HexcrawlPlay.ExploreCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                               FogCoverCommand="{Binding DataContext.HexcrawlPlay.CoverCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
     </Grid>
 </UserControl>
