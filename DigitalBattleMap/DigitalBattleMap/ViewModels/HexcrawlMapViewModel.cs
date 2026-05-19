@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace DigitalBattleMap.ViewModels;
 
@@ -26,6 +27,13 @@ public class HexcrawlMapViewModel : ViewModelBase
     private int? _partyR;
     private string _partyTokenImagePath;
 
+    // --- Ping ---
+    private double _pingCenterX;
+    private double _pingCenterY;
+    private double _pingRadiusWorld;
+    private bool _pingVisible;
+    private DispatcherTimer _pingTimer;
+
     // --- Place names ---
     private readonly Dictionary<(int, int), string> _cellLabels = new();
     private readonly HashSet<(int, int)> _revealedLabels = new();
@@ -33,6 +41,11 @@ public class HexcrawlMapViewModel : ViewModelBase
     private double _placeNameCacheHexSize = -1;
     private int? _selectedQ;
     private int? _selectedR;
+
+    // --- Zoom revert ---
+    private double? _prevScale;
+    private double? _prevOffsetX;
+    private double? _prevOffsetY;
 
     // --- Label cache ---
     private readonly Dictionary<int, Geometry> _labelCache = new();
@@ -113,6 +126,10 @@ public class HexcrawlMapViewModel : ViewModelBase
         }
     }
 
+    // Exposed so HexMapCanvas can highlight the selected hex without a DP binding.
+    public int? SelectedQ => _selectedQ;
+    public int? SelectedR => _selectedR;
+
     // Display string for the editor panel, e.g. "0304". Empty dash when nothing is selected.
     public string SelectedHexInfo =>
         _selectedQ.HasValue && _selectedR.HasValue
@@ -136,6 +153,14 @@ public class HexcrawlMapViewModel : ViewModelBase
     }
 
     public event Action RenderRequested;
+    public event Action RectZoomModeChanged;
+    public event Action CanRevertZoomChanged;
+
+    public bool IsRectZoomMode
+    {
+        get => Get<bool>();
+        set => Set(value, () => RectZoomModeChanged?.Invoke());
+    }
 
     public void SetCanvasSize(double w, double h)
     {
@@ -239,14 +264,38 @@ public class HexcrawlMapViewModel : ViewModelBase
         RenderRequested?.Invoke();
     }
 
-    public void ZoomIn()
+    public void ZoomIn()  => ApplyZoom(1.25);
+    public void ZoomOut() => ApplyZoom(1.0 / 1.25);
+
+    // Zooms and centers so that the given world rectangle fills the canvas.
+    public void ZoomToRect(double worldLeft, double worldTop, double worldRight, double worldBottom)
     {
-        ApplyZoom(1.1);
+        double worldW = worldRight  - worldLeft;
+        double worldH = worldBottom - worldTop;
+        if (worldW < 1 || worldH < 1) return;
+
+        _prevScale   = Scale;
+        _prevOffsetX = OffsetX;
+        _prevOffsetY = OffsetY;
+
+        Scale   = Math.Min(CanvasSize.Width / worldW, CanvasSize.Height / worldH);
+        OffsetX = CanvasSize.Width  / 2.0 - (worldLeft + worldRight)  / 2.0 * Scale;
+        OffsetY = CanvasSize.Height / 2.0 - (worldTop  + worldBottom) / 2.0 * Scale;
+        CanRevertZoomChanged?.Invoke();
+        RenderRequested?.Invoke();
     }
 
-    public void ZoomOut()
+    public bool CanRevertZoom => _prevScale.HasValue;
+
+    public void RevertZoom()
     {
-        ApplyZoom(1.0 / 1.1);
+        if (!_prevScale.HasValue) return;
+        Scale   = _prevScale.Value;
+        OffsetX = _prevOffsetX.Value;
+        OffsetY = _prevOffsetY.Value;
+        _prevScale = _prevOffsetX = _prevOffsetY = null;
+        CanRevertZoomChanged?.Invoke();
+        RenderRequested?.Invoke();
     }
 
     private void ApplyZoom(double factor)
@@ -261,13 +310,14 @@ public class HexcrawlMapViewModel : ViewModelBase
 
     public void Pan(ArrowDirection direction, int steps)
     {
-        double step = HexSize * Scale * 0.5 * steps;
+        double colStep = HexSize * Scale * 1.5       * steps; // one full column pitch
+        double rowStep = HexSize * Scale * HexGeometry.Sqrt3 * steps; // one full row pitch
         switch (direction)
         {
-            case ArrowDirection.Up:    OffsetY += step; break;
-            case ArrowDirection.Down:  OffsetY -= step; break;
-            case ArrowDirection.Left:  OffsetX += step; break;
-            case ArrowDirection.Right: OffsetX -= step; break;
+            case ArrowDirection.Up:    OffsetY += rowStep; break;
+            case ArrowDirection.Down:  OffsetY -= rowStep; break;
+            case ArrowDirection.Left:  OffsetX += colStep; break;
+            case ArrowDirection.Right: OffsetX -= colStep; break;
         }
         RenderRequested?.Invoke();
     }
@@ -475,6 +525,7 @@ public class HexcrawlMapViewModel : ViewModelBase
             }
 
             DrawPartyToken(ctx, hexSize, scale);
+            DrawPing(ctx, scale);
 
             // Draw revealed place names on top of fog (player bitmap shows only revealed+explored).
             {
@@ -526,6 +577,52 @@ public class HexcrawlMapViewModel : ViewModelBase
         }
     }
 
+    // --- Ping ---
+
+    // Fired when the ping is set or cleared so MainWindowViewModel can push a fresh bitmap to players.
+    public event Action PingSendRequired;
+
+    public double PingCenterX    => _pingCenterX;
+    public double PingCenterY    => _pingCenterY;
+    public double PingRadiusWorld => _pingRadiusWorld;
+    public bool   IsPingVisible  => _pingVisible;
+
+    // Activates a ping at the given world position and radius, auto-clears after 4 seconds.
+    public void SetPing(double worldX, double worldY, double radius)
+    {
+        _pingCenterX    = worldX;
+        _pingCenterY    = worldY;
+        _pingRadiusWorld = Math.Max(radius, 1.0);
+        _pingVisible    = true;
+
+        _pingTimer?.Stop();
+        _pingTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(4) };
+        _pingTimer.Tick += (_, _) => { _pingTimer.Stop(); ClearPing(); };
+        _pingTimer.Start();
+
+        RenderRequested?.Invoke();
+        PingSendRequired?.Invoke();
+    }
+
+    public void ClearPing()
+    {
+        _pingVisible = false;
+        RenderRequested?.Invoke();
+        PingSendRequired?.Invoke();
+    }
+
+    // Draws the active ping circle. Called from both BuildDrawingVisual (player bitmap) and HexMapCanvas.
+    public void DrawPing(DrawingContext ctx, double scale)
+    {
+        if (!_pingVisible) return;
+        var ellipse = new EllipseGeometry(new Point(_pingCenterX, _pingCenterY), _pingRadiusWorld, _pingRadiusWorld);
+        var fill = new SolidColorBrush(Color.FromArgb(50, 220, 30, 30));
+        fill.Freeze();
+        var stroke = new Pen(new SolidColorBrush(Color.FromRgb(210, 30, 30)), 2.5 / scale);
+        stroke.Freeze();
+        ctx.DrawGeometry(fill, stroke, ellipse);
+    }
+
     // --- Place names ---
 
     // Reveals the place name of a hex (and optionally neighbors) to players.
@@ -554,6 +651,7 @@ public class HexcrawlMapViewModel : ViewModelBase
         _selectedR = r;
         NotifyPropertyChange(nameof(SelectedCellLabel));
         NotifyPropertyChange(nameof(SelectedHexInfo));
+        RenderRequested?.Invoke();
     }
 
     // Draws the place name (if any) at the lower-center of a hex. Text is not clipped to the hex.

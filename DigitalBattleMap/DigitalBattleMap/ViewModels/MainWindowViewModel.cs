@@ -76,6 +76,10 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public System.Windows.Media.Brush ServerConnectionStatusColor { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
     public System.Windows.Media.Brush CropColor { get => Get<System.Windows.Media.Brush>(); set => Set(value); }
     public CommandHistory<ZoomAndMoveCommand> ZoomAndMoveHistory { get; set; } = new(30);
+    public bool CanRevertZoomOrMove =>
+        (SelectedTabIndex == TabIndex.HexcrawlEditor || SelectedTabIndex == TabIndex.HexcrawlPlay)
+            ? HexcrawlEditor?.Map.CanRevertZoom ?? false
+            : ZoomAndMoveHistory.IsPreviousCommandAvailable;
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); set => Set(value); }
 
     public CampaignControllerViewModel CampaignController { get; set; }
@@ -178,7 +182,10 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         DrawingController.OnDrawingShapesUpdated += DrawingShapesUpdated;
 
         HexcrawlEditor = new HexcrawlEditorViewModel(_windowService);
-        HexcrawlEditor.Map.RenderRequested += OnHexMapRenderRequested;
+        HexcrawlEditor.Map.RenderRequested     += OnHexMapRenderRequested;
+        HexcrawlEditor.Map.PingSendRequired   += SendHexBitmapToPlayers;
+        HexcrawlEditor.Map.CanRevertZoomChanged += () => NotifyPropertyChange(nameof(CanRevertZoomOrMove));
+        HexcrawlEditor.Map.RectZoomModeChanged  += () => { if (!HexcrawlEditor.Map.IsRectZoomMode) CropColor = System.Windows.Media.Brushes.LightGray; };
         HexcrawlPlay = new HexcrawlPlayViewModel(_windowService);
         HexcrawlPlay.SetMap(HexcrawlEditor.Map);
 
@@ -507,6 +514,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         }
 
         NotifyPropertyChange(nameof(IsHexPlayMode));
+        NotifyPropertyChange(nameof(CanRevertZoomOrMove));
         SetMapTabControlText();
         CommandManager.InvalidateRequerySuggested();
     }
@@ -523,7 +531,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void MoveMap(ArrowDirection arrowDirection)
     {
-        if (SelectedTabIndex == TabIndex.HexcrawlEditor)
+        if (SelectedTabIndex == TabIndex.HexcrawlEditor || SelectedTabIndex == TabIndex.HexcrawlPlay)
         {
             if (!IsMultiMove)
             {
@@ -637,7 +645,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void ZoomIn()
     {
-        if (SelectedTabIndex == TabIndex.HexcrawlEditor)
+        if (SelectedTabIndex == TabIndex.HexcrawlEditor || SelectedTabIndex == TabIndex.HexcrawlPlay)
         {
             HexcrawlEditor.Map.ZoomIn();
             return;
@@ -659,7 +667,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void ZoomOut()
     {
-        if (SelectedTabIndex == TabIndex.HexcrawlEditor)
+        if (SelectedTabIndex == TabIndex.HexcrawlEditor || SelectedTabIndex == TabIndex.HexcrawlPlay)
         {
             HexcrawlEditor.Map.ZoomOut();
             return;
@@ -681,6 +689,15 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void SetCropMode()
     {
+        if (SelectedTabIndex == TabIndex.HexcrawlEditor || SelectedTabIndex == TabIndex.HexcrawlPlay)
+        {
+            HexcrawlEditor.Map.IsRectZoomMode = !HexcrawlEditor.Map.IsRectZoomMode;
+            CropColor = HexcrawlEditor.Map.IsRectZoomMode
+                ? System.Windows.Media.Brushes.LightBlue
+                : System.Windows.Media.Brushes.LightGray;
+            return;
+        }
+
         if (SelectedMapTabIndex == TabMapIndex.Map)
         {
             if (MouseCanvas.GetMode() != MouseCanvasMode.FixedRatioRectangleSelection)
@@ -702,6 +719,12 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void RevertZoomAndMove()
     {
+        if (SelectedTabIndex == TabIndex.HexcrawlEditor || SelectedTabIndex == TabIndex.HexcrawlPlay)
+        {
+            HexcrawlEditor.Map.RevertZoom();
+            return;
+        }
+
         if (ZoomAndMoveHistory.TryDequeuePreviousCommand(out var previousCommand))
         {
             ZoomAndMoveHistory.PauseEnqueueing = true;
@@ -860,6 +883,22 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     {
         if (IsHexAutoUpdate)
             ShowHexMapToPlayers();
+    }
+
+    // Sends a fresh hex bitmap to players without touching IsShowMapLocked.
+    // Used by the ping feature so the circle always reaches players regardless of live-update state.
+    private void SendHexBitmapToPlayers()
+    {
+        if (_mapWindowViewModel == null) return;
+        System.Drawing.Bitmap bitmap = null;
+        try { bitmap = HexcrawlEditor.Map.RenderToBitmap(includeFog: true); }
+        catch { return; }
+        if (bitmap == null) return;
+        using (bitmap)
+        {
+            _mapWindowViewModel.BackgroundBitmapSource = bitmap.ToBitmapImage();
+            _connectionManager?.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new System.Drawing.Bitmap(bitmap) });
+        }
     }
 
     private void KeyDown(KeyEventArgs keyEventArgs)

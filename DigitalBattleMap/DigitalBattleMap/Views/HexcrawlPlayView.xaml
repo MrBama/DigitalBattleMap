@@ -46,6 +46,16 @@
                    Visibility="{Binding IsTokenMode, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
                    Foreground="Gray" FontSize="12" Margin="0 0 0 8"/>
 
+        <!--Ping mode-->
+        <Separator Margin="0 4 0 8"/>
+        <ToggleButton Content="Ping mode"
+                      IsChecked="{Binding IsPingMode}"
+                      HorizontalAlignment="Left"
+                      Margin="0 0 0 4"/>
+        <TextBlock Text="Left-click and drag to draw a ping circle"
+                   Visibility="{Binding IsPingMode, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
+                   Foreground="Gray" FontSize="12" Margin="0 0 0 4"/>
+
         <!--Place names toggle-->
         <Separator Margin="0 4 0 8"/>
         <CheckBox Content="Reveal names on explore"

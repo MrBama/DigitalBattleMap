@@ -26,6 +26,9 @@ public class HexcrawlPlayViewModel : ViewModelBase
     // When true, any explore action also reveals the place name of those hexes to players.
     public bool RevealNamesOnExplore { get => Get<bool>(); set => Set(value); }
 
+    // When true, left-click+drag on the canvas draws a ping circle instead of exploring.
+    public bool IsPingMode { get => Get<bool>(); set => Set(value); }
+
     public ICommand ExploreCommand      { get; private set; }
     public ICommand CoverCommand        { get; private set; }
     public ICommand ResetFogCommand     { get; private set; }

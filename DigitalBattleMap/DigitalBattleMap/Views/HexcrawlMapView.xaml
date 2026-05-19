@@ -13,6 +13,7 @@
                                FogCoverCommand="{Binding DataContext.HexcrawlPlay.CoverCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                IsTokenMode="{Binding DataContext.HexcrawlPlay.IsTokenMode, RelativeSource={RelativeSource AncestorType=Window}}"
                                PlaceTokenCommand="{Binding DataContext.HexcrawlPlay.PlaceTokenCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                               IsPingMode="{Binding DataContext.HexcrawlPlay.IsPingMode, RelativeSource={RelativeSource AncestorType=Window}}"
                                SelectCellCommand="{Binding SelectCellCommand}"/>
     </Grid>
 </UserControl>

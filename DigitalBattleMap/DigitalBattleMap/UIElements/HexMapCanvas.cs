@@ -174,6 +174,36 @@ public class HexMapCanvas : FrameworkElement
             }
         }
 
+        // Ping drag preview — DM-only dashed circle while the button is held.
+        if (_pingDragging && _pingDragRadiusWorld > 0)
+        {
+            var prevEllipse = new EllipseGeometry(
+                new Point(_pingCenterWorld.X, _pingCenterWorld.Y),
+                _pingDragRadiusWorld, _pingDragRadiusWorld);
+            var prevFill = new SolidColorBrush(Color.FromArgb(30, 255, 50, 50));
+            prevFill.Freeze();
+            var prevBrush = new SolidColorBrush(Color.FromArgb(200, 255, 50, 50));
+            prevBrush.Freeze();
+            var prevPen = new Pen(prevBrush, 2.0 / scale) { DashStyle = DashStyles.Dash };
+            prevPen.Freeze();
+            dc.DrawGeometry(prevFill, prevPen, prevEllipse);
+        }
+
+        // Finalized ping circle — visible on both DM canvas and player bitmap.
+        if (ShowFog) vm.DrawPing(dc, scale);
+
+        // Selected hex highlight in editor mode.
+        if (!ShowFog && vm.SelectedQ.HasValue && vm.SelectedR.HasValue)
+        {
+            var (sx, sy) = HexGeometry.AxialToPixel(vm.SelectedQ.Value, vm.SelectedR.Value, hexSize);
+            var selGeom = HexGeometry.CreateStreamGeometry(sx, sy, hexSize);
+            var selFill = new SolidColorBrush(Color.FromArgb(60, 255, 220, 0));
+            selFill.Freeze();
+            var selPen = new Pen(new SolidColorBrush(Color.FromRgb(255, 220, 0)), 2.5 / scale);
+            selPen.Freeze();
+            dc.DrawGeometry(selFill, selPen, selGeom);
+        }
+
         // Place names: editor shows all as revealed; play mode shows all with reveal-status styling
         // (white = player can see it, gray = DM-only hint that the name is still hidden).
         {
@@ -193,6 +223,23 @@ public class HexMapCanvas : FrameworkElement
 
         dc.Pop(); // scale
         dc.Pop(); // translate
+
+        // Rectangle zoom selection — drawn in screen space, clipped to canvas.
+        if (_rectDragging)
+        {
+            double rx = Math.Min(_rectStartScreen.X, _rectCurrentScreen.X);
+            double ry = Math.Min(_rectStartScreen.Y, _rectCurrentScreen.Y);
+            double rw = Math.Abs(_rectCurrentScreen.X - _rectStartScreen.X);
+            double rh = Math.Abs(_rectCurrentScreen.Y - _rectStartScreen.Y);
+            var selFill = new SolidColorBrush(Color.FromArgb(30, 100, 180, 255));
+            selFill.Freeze();
+            var selBrush = new SolidColorBrush(Color.FromArgb(200, 80, 150, 255));
+            selBrush.Freeze();
+            var selPen = new Pen(selBrush, 1.5) { DashStyle = DashStyles.Dash };
+            selPen.Freeze();
+            dc.DrawRectangle(selFill, selPen, new Rect(rx, ry, rw, rh));
+        }
+
         dc.Pop(); // clip
     }
 
@@ -207,6 +254,9 @@ public class HexMapCanvas : FrameworkElement
             new PropertyMetadata(false));
     public static readonly DependencyProperty SelectCellCommandProperty =
         DependencyProperty.Register(nameof(SelectCellCommand), typeof(ICommand), typeof(HexMapCanvas));
+    public static readonly DependencyProperty IsPingModeProperty =
+        DependencyProperty.Register(nameof(IsPingMode), typeof(bool), typeof(HexMapCanvas),
+            new PropertyMetadata(false));
 
     // Bound to HexPlayViewModel.ExploreCommand / CoverCommand when ShowFog is true.
     // Parameter passed is a ValueTuple<int,int> (q, r).
@@ -238,13 +288,39 @@ public class HexMapCanvas : FrameworkElement
         get => (ICommand)GetValue(SelectCellCommandProperty);
         set => SetValue(SelectCellCommandProperty, value);
     }
+    // When true, left-click+drag draws a ping circle instead of exploring / placing token.
+    public bool IsPingMode
+    {
+        get => (bool)GetValue(IsPingModeProperty);
+        set => SetValue(IsPingModeProperty, value);
+    }
+
+    // Ping drag state (canvas-local; not part of the view model).
+    private bool   _pingDragging;
+    private Point  _pingCenterWorld;
+    private double _pingDragRadiusWorld;
+
+    // Rectangle zoom drag state (screen coordinates).
+    private bool  _rectDragging;
+    private Point _rectStartScreen;
+    private Point _rectCurrentScreen;
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         if (ViewModel == null) return;
+        if (ViewModel.IsRectZoomMode)
+        {
+            _rectStartScreen = _rectCurrentScreen = e.GetPosition(this);
+            _rectDragging = true;
+            CaptureMouse();
+            e.Handled = true;
+            return;
+        }
         if (ShowFog)
         {
-            if (IsTokenMode)
+            if (IsPingMode)
+                BeginPingDrag(e.GetPosition(this));
+            else if (IsTokenMode)
                 TokenClickAt(e.GetPosition(this));
             else
                 FogClickAt(e.GetPosition(this), explore: true);
@@ -269,6 +345,19 @@ public class HexMapCanvas : FrameworkElement
 
     protected override void OnMouseMove(MouseEventArgs e)
     {
+        if (_pingDragging && ViewModel != null)
+        {
+            UpdatePingDrag(e.GetPosition(this));
+            e.Handled = true;
+            return;
+        }
+        if (_rectDragging)
+        {
+            _rectCurrentScreen = e.GetPosition(this);
+            InvalidateVisual();
+            e.Handled = true;
+            return;
+        }
         if (e.LeftButton == MouseButtonState.Pressed && ViewModel != null && !ShowFog)
         {
             PaintAt(e.GetPosition(this));
@@ -278,6 +367,20 @@ public class HexMapCanvas : FrameworkElement
 
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
     {
+        if (_rectDragging)
+        {
+            _rectDragging = false;
+            ReleaseMouseCapture();
+            FinalizeRectZoom();
+            e.Handled = true;
+            return;
+        }
+        if (_pingDragging)
+        {
+            FinalizePingDrag();
+            e.Handled = true;
+            return;
+        }
         if (ShowFog) return;
         ReleaseMouseCapture();
         ViewModel?.EndPaint();
@@ -315,5 +418,56 @@ public class HexMapCanvas : FrameworkElement
         double worldY = (screenPos.Y - ViewModel.OffsetY) / ViewModel.Scale;
         var (q, r) = HexGeometry.PixelToAxial(worldX, worldY, ViewModel.HexSize);
         SelectCellCommand?.Execute((q, r));
+    }
+
+    private void FinalizeRectZoom()
+    {
+        double screenLeft   = Math.Min(_rectStartScreen.X, _rectCurrentScreen.X);
+        double screenTop    = Math.Min(_rectStartScreen.Y, _rectCurrentScreen.Y);
+        double screenRight  = Math.Max(_rectStartScreen.X, _rectCurrentScreen.X);
+        double screenBottom = Math.Max(_rectStartScreen.Y, _rectCurrentScreen.Y);
+
+        if (screenRight - screenLeft < 10 || screenBottom - screenTop < 10)
+        {
+            InvalidateVisual();
+            return;
+        }
+
+        double worldLeft   = (screenLeft   - ViewModel.OffsetX) / ViewModel.Scale;
+        double worldTop    = (screenTop    - ViewModel.OffsetY) / ViewModel.Scale;
+        double worldRight  = (screenRight  - ViewModel.OffsetX) / ViewModel.Scale;
+        double worldBottom = (screenBottom - ViewModel.OffsetY) / ViewModel.Scale;
+        ViewModel.ZoomToRect(worldLeft, worldTop, worldRight, worldBottom);
+        ViewModel.IsRectZoomMode = false;
+    }
+
+    private void BeginPingDrag(Point screenPos)
+    {
+        double worldX = (screenPos.X - ViewModel.OffsetX) / ViewModel.Scale;
+        double worldY = (screenPos.Y - ViewModel.OffsetY) / ViewModel.Scale;
+        _pingCenterWorld     = new Point(worldX, worldY);
+        _pingDragRadiusWorld = 0;
+        _pingDragging        = true;
+        CaptureMouse();
+        InvalidateVisual();
+    }
+
+    private void UpdatePingDrag(Point screenPos)
+    {
+        double worldX = (screenPos.X - ViewModel.OffsetX) / ViewModel.Scale;
+        double worldY = (screenPos.Y - ViewModel.OffsetY) / ViewModel.Scale;
+        double dx = worldX - _pingCenterWorld.X;
+        double dy = worldY - _pingCenterWorld.Y;
+        _pingDragRadiusWorld = Math.Sqrt(dx * dx + dy * dy);
+        InvalidateVisual();
+    }
+
+    private void FinalizePingDrag()
+    {
+        _pingDragging = false;
+        ReleaseMouseCapture();
+        if (_pingDragRadiusWorld > 0)
+            ViewModel?.SetPing(_pingCenterWorld.X, _pingCenterWorld.Y, _pingDragRadiusWorld);
+        InvalidateVisual();
     }
 }
