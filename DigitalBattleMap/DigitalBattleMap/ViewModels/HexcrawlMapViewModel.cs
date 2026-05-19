@@ -246,7 +246,7 @@ public class HexcrawlMapViewModel : ViewModelBase
             GridHeight         = GridHeight,
             Cells              = _cells.Values.ToList(),
             ExploredHexes      = _exploredHexes.Select(e => new HexCoord { Q = e.Item1, R = e.Item2 }).ToList(),
-            PartyTokenPos      = _partyQ.HasValue ? new HexCoord { Q = _partyQ.Value, R = _partyR.Value } : null,
+            PartyTokenPos      = _partyQ.HasValue && _partyR.HasValue ? new HexCoord { Q = _partyQ.Value, R = _partyR.Value } : null,
             PartyTokenImagePath = _partyTokenImagePath
         };
     }
@@ -302,15 +302,22 @@ public class HexcrawlMapViewModel : ViewModelBase
     public void LoadPartyTokenImage(string path)
     {
         _partyTokenImagePath = path;
-        if (path == null) { PartyTokenImage = null; return; }
-        var img = new BitmapImage();
-        img.BeginInit();
-        img.UriSource = new Uri(path);
-        img.CacheOption = BitmapCacheOption.OnLoad;
-        img.EndInit();
-        img.Freeze();
-        PartyTokenImage = img;
-        RenderRequested?.Invoke();
+        if (string.IsNullOrEmpty(path)) { PartyTokenImage = null; return; }
+        try
+        {
+            var img = new BitmapImage();
+            img.BeginInit();
+            img.UriSource = new Uri(path);
+            img.CacheOption = BitmapCacheOption.OnLoad;
+            img.EndInit();
+            img.Freeze();
+            PartyTokenImage = img;
+            RenderRequested?.Invoke();
+        }
+        catch
+        {
+            PartyTokenImage = null;
+        }
     }
 
     // Renders the current hex map view to a System.Drawing.Bitmap for sending to players.

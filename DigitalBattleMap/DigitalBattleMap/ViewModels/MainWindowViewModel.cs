@@ -834,19 +834,26 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     private void ShowHexMapToPlayers()
     {
         if (_mapWindowViewModel == null) return;
-        IsShowMapLocked = false;
-        var bitmap = HexcrawlEditor.Map.RenderToBitmap(includeFog: true);
+        if (IsShowMapLocked) IsShowMapLocked = false;
+
+        System.Drawing.Bitmap bitmap = null;
+        try { bitmap = HexcrawlEditor.Map.RenderToBitmap(includeFog: true); }
+        catch { return; }
         if (bitmap == null) return;
 
-        // Clear the three battle-map layers locally so they don't sit on top of the hex view
-        _mapWindowViewModel.FogBitmapSource   = null;
-        _mapWindowViewModel.GridBitmapSource  = null;
-        _mapWindowViewModel.TokenBitmapSource = null;
+        using (bitmap)
+        {
+            // Clear the three battle-map layers locally so they don't sit on top of the hex view
+            _mapWindowViewModel.FogBitmapSource   = null;
+            _mapWindowViewModel.GridBitmapSource  = null;
+            _mapWindowViewModel.TokenBitmapSource = null;
 
-        // Remotely: clear all layers first, then push just the hex background
-        _connectionManager?.ClearMap();
-        _mapWindowViewModel.BackgroundBitmapSource = bitmap.ToBitmapImage();
-        _connectionManager?.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = bitmap });
+            // Remotely: clear all layers first, then push just the hex background.
+            // A copy is passed to SendMapUpdate in case the send is asynchronous.
+            _connectionManager?.ClearMap();
+            _mapWindowViewModel.BackgroundBitmapSource = bitmap.ToBitmapImage();
+            _connectionManager?.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new System.Drawing.Bitmap(bitmap) });
+        }
     }
 
     private void OnHexMapRenderRequested()

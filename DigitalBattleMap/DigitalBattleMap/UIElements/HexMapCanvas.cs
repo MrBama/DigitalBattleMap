@@ -149,8 +149,8 @@ public class HexMapCanvas : FrameworkElement
             }
         }
 
-        // Draw party token on top of fog
-        if (vm.PartyQ.HasValue && vm.PartyR.HasValue)
+        // Draw party token on top of fog (play mode only)
+        if (ShowFog && vm.PartyQ.HasValue && vm.PartyR.HasValue)
         {
             var (tx, ty) = HexGeometry.AxialToPixel(vm.PartyQ.Value, vm.PartyR.Value, hexSize);
             double tokenR = hexSize * 0.4;

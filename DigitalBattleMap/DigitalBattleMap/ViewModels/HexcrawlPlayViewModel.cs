@@ -45,7 +45,7 @@ public class HexcrawlPlayViewModel : ViewModelBase
         ResetFogCommand       = new RelayCommand(_ => Map?.ResetFog());
         PlaceTokenCommand     = new RelayCommand(p => PlaceToken(p));
         LoadTokenImageCommand = new RelayCommand(_ => LoadTokenImage());
-        ClearTokenCommand     = new RelayCommand(_ => Map?.ClearPartyToken(), _ => Map?.PartyQ != null);
+        ClearTokenCommand     = new RelayCommand(_ => { Map?.ClearPartyToken(); CommandManager.InvalidateRequerySuggested(); }, _ => Map?.PartyQ != null);
     }
 
     private void ExecuteOnCell(object param, bool explore)
@@ -60,6 +60,7 @@ public class HexcrawlPlayViewModel : ViewModelBase
         if (Map == null || param is not (int q, int r)) return;
         Map.PlacePartyToken(q, r);
         Map.Explore(q, r, IncludeNeighbors);
+        CommandManager.InvalidateRequerySuggested();
     }
 
     private void LoadTokenImage()
