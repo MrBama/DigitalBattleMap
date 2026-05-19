@@ -149,6 +149,30 @@ public class HexMapCanvas : FrameworkElement
             }
         }
 
+        // Draw party token on top of fog
+        if (vm.PartyQ.HasValue && vm.PartyR.HasValue)
+        {
+            var (tx, ty) = HexGeometry.AxialToPixel(vm.PartyQ.Value, vm.PartyR.Value, hexSize);
+            double tokenR = hexSize * 0.4;
+            var ellipse = new EllipseGeometry(new Point(tx, ty), tokenR, tokenR);
+            var tokenOutline = new Pen(Brushes.White, 2.5 / scale);
+            tokenOutline.Freeze();
+
+            if (vm.PartyTokenImage != null)
+            {
+                dc.PushClip(ellipse);
+                dc.DrawImage(vm.PartyTokenImage, new Rect(tx - tokenR, ty - tokenR, tokenR * 2, tokenR * 2));
+                dc.Pop();
+                dc.DrawGeometry(null, tokenOutline, ellipse);
+            }
+            else
+            {
+                var fill = new SolidColorBrush(Color.FromRgb(255, 200, 0));
+                fill.Freeze();
+                dc.DrawGeometry(fill, tokenOutline, ellipse);
+            }
+        }
+
         dc.Pop(); // scale
         dc.Pop(); // translate
         dc.Pop(); // clip
@@ -158,6 +182,11 @@ public class HexMapCanvas : FrameworkElement
         DependencyProperty.Register(nameof(FogExploreCommand), typeof(ICommand), typeof(HexMapCanvas));
     public static readonly DependencyProperty FogCoverCommandProperty =
         DependencyProperty.Register(nameof(FogCoverCommand), typeof(ICommand), typeof(HexMapCanvas));
+    public static readonly DependencyProperty PlaceTokenCommandProperty =
+        DependencyProperty.Register(nameof(PlaceTokenCommand), typeof(ICommand), typeof(HexMapCanvas));
+    public static readonly DependencyProperty IsTokenModeProperty =
+        DependencyProperty.Register(nameof(IsTokenMode), typeof(bool), typeof(HexMapCanvas),
+            new PropertyMetadata(false));
 
     // Bound to HexPlayViewModel.ExploreCommand / CoverCommand when ShowFog is true.
     // Parameter passed is a ValueTuple<int,int> (q, r).
@@ -171,13 +200,28 @@ public class HexMapCanvas : FrameworkElement
         get => (ICommand)GetValue(FogCoverCommandProperty);
         set => SetValue(FogCoverCommandProperty, value);
     }
+    // Bound to HexPlayViewModel.PlaceTokenCommand; parameter is ValueTuple<int,int> (q, r).
+    public ICommand PlaceTokenCommand
+    {
+        get => (ICommand)GetValue(PlaceTokenCommandProperty);
+        set => SetValue(PlaceTokenCommandProperty, value);
+    }
+    // When true, left-click places the party token instead of exploring.
+    public bool IsTokenMode
+    {
+        get => (bool)GetValue(IsTokenModeProperty);
+        set => SetValue(IsTokenModeProperty, value);
+    }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         if (ViewModel == null) return;
         if (ShowFog)
         {
-            FogClickAt(e.GetPosition(this), explore: true);
+            if (IsTokenMode)
+                TokenClickAt(e.GetPosition(this));
+            else
+                FogClickAt(e.GetPosition(this), explore: true);
             e.Handled = true;
             return;
         }
@@ -226,5 +270,13 @@ public class HexMapCanvas : FrameworkElement
         var (q, r) = HexGeometry.PixelToAxial(worldX, worldY, ViewModel.HexSize);
         var cmd = explore ? FogExploreCommand : FogCoverCommand;
         cmd?.Execute((q, r));
+    }
+
+    private void TokenClickAt(Point screenPos)
+    {
+        double worldX = (screenPos.X - ViewModel.OffsetX) / ViewModel.Scale;
+        double worldY = (screenPos.Y - ViewModel.OffsetY) / ViewModel.Scale;
+        var (q, r) = HexGeometry.PixelToAxial(worldX, worldY, ViewModel.HexSize);
+        PlaceTokenCommand?.Execute((q, r));
     }
 }

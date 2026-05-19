@@ -10,6 +10,8 @@
         <uielements:HexMapCanvas ViewModel="{Binding}"
                                ShowFog="{Binding DataContext.IsHexPlayMode, RelativeSource={RelativeSource AncestorType=Window}}"
                                FogExploreCommand="{Binding DataContext.HexcrawlPlay.ExploreCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                               FogCoverCommand="{Binding DataContext.HexcrawlPlay.CoverCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                               FogCoverCommand="{Binding DataContext.HexcrawlPlay.CoverCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                               IsTokenMode="{Binding DataContext.HexcrawlPlay.IsTokenMode, RelativeSource={RelativeSource AncestorType=Window}}"
+                               PlaceTokenCommand="{Binding DataContext.HexcrawlPlay.PlaceTokenCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
     </Grid>
 </UserControl>

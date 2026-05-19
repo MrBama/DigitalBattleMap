@@ -20,6 +20,9 @@ public class HexcrawlMapViewModel : ViewModelBase
     private readonly HashSet<(int, int)> _exploredHexes = new();
     private bool _isPainting;
     private bool _needsInitialCenter = true;
+    private int? _partyQ;
+    private int? _partyR;
+    private string _partyTokenImagePath;
 
     public HexcrawlMapViewModel(HexTileStore tileStore)
     {
@@ -44,6 +47,12 @@ public class HexcrawlMapViewModel : ViewModelBase
     public double HexSize { get; set; } = 80.0;
     public string ActiveTileId { get; set; }
     public Size CanvasSize { get; private set; }
+
+    public int? PartyQ => _partyQ;
+    public int? PartyR => _partyR;
+
+    // Bound to the play view token image preview.
+    public BitmapSource PartyTokenImage { get => Get<BitmapSource>(); private set => Set(value); }
 
     public double Scale   { get => Get<double>(); private set => Set(value); }
     public double OffsetX { get => Get<double>(); private set => Set(value); }
@@ -211,6 +220,19 @@ public class HexcrawlMapViewModel : ViewModelBase
             _cells[(cell.Q, cell.R)] = cell;
         foreach (var coord in data.ExploredHexes)
             _exploredHexes.Add((coord.Q, coord.R));
+
+        if (data.PartyTokenPos != null)
+        {
+            _partyQ = data.PartyTokenPos.Q;
+            _partyR = data.PartyTokenPos.R;
+        }
+        else
+        {
+            _partyQ = null;
+            _partyR = null;
+        }
+        LoadPartyTokenImage(data.PartyTokenImagePath);
+
         PaintHistory.Clear();
         RenderRequested?.Invoke();
     }
@@ -219,11 +241,13 @@ public class HexcrawlMapViewModel : ViewModelBase
     {
         return new HexcrawlGridData
         {
-            HexSize       = HexSize,
-            GridWidth     = GridWidth,
-            GridHeight    = GridHeight,
-            Cells         = _cells.Values.ToList(),
-            ExploredHexes = _exploredHexes.Select(e => new HexCoord { Q = e.Item1, R = e.Item2 }).ToList()
+            HexSize            = HexSize,
+            GridWidth          = GridWidth,
+            GridHeight         = GridHeight,
+            Cells              = _cells.Values.ToList(),
+            ExploredHexes      = _exploredHexes.Select(e => new HexCoord { Q = e.Item1, R = e.Item2 }).ToList(),
+            PartyTokenPos      = _partyQ.HasValue ? new HexCoord { Q = _partyQ.Value, R = _partyR.Value } : null,
+            PartyTokenImagePath = _partyTokenImagePath
         };
     }
 
@@ -255,6 +279,37 @@ public class HexcrawlMapViewModel : ViewModelBase
     public void ResetFog()
     {
         _exploredHexes.Clear();
+        RenderRequested?.Invoke();
+    }
+
+    // --- Party token ---
+
+    public void PlacePartyToken(int q, int r)
+    {
+        _partyQ = q;
+        _partyR = r;
+        RenderRequested?.Invoke();
+    }
+
+    public void ClearPartyToken()
+    {
+        _partyQ = null;
+        _partyR = null;
+        RenderRequested?.Invoke();
+    }
+
+    // Loads an image from disk and stores the path for persistence. Pass null to clear the image.
+    public void LoadPartyTokenImage(string path)
+    {
+        _partyTokenImagePath = path;
+        if (path == null) { PartyTokenImage = null; return; }
+        var img = new BitmapImage();
+        img.BeginInit();
+        img.UriSource = new Uri(path);
+        img.CacheOption = BitmapCacheOption.OnLoad;
+        img.EndInit();
+        img.Freeze();
+        PartyTokenImage = img;
         RenderRequested?.Invoke();
     }
 
@@ -322,11 +377,38 @@ public class HexcrawlMapViewModel : ViewModelBase
                 }
             }
 
+            DrawPartyToken(ctx, hexSize, scale);
+
             ctx.Pop(); // ScaleTransform
             ctx.Pop(); // TranslateTransform
             ctx.Pop(); // clip
         }
         return visual;
+    }
+
+    // Draws the party token circle (with custom image or gold fallback) at its current position.
+    private void DrawPartyToken(DrawingContext ctx, double hexSize, double scale)
+    {
+        if (_partyQ == null || _partyR == null) return;
+        var (wx, wy) = HexGeometry.AxialToPixel(_partyQ.Value, _partyR.Value, hexSize);
+        double r = hexSize * 0.4;
+        var ellipse = new EllipseGeometry(new Point(wx, wy), r, r);
+        var outlinePen = new Pen(Brushes.White, 2.5 / scale);
+        outlinePen.Freeze();
+
+        if (PartyTokenImage != null)
+        {
+            ctx.PushClip(ellipse);
+            ctx.DrawImage(PartyTokenImage, new Rect(wx - r, wy - r, r * 2, r * 2));
+            ctx.Pop();
+            ctx.DrawGeometry(null, outlinePen, ellipse);
+        }
+        else
+        {
+            var fill = new SolidColorBrush(Color.FromRgb(255, 200, 0));
+            fill.Freeze();
+            ctx.DrawGeometry(fill, outlinePen, ellipse);
+        }
     }
 
     // Returns the inclusive column (q) range that intersects the visible world area.

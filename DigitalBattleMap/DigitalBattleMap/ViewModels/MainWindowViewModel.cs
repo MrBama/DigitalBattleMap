@@ -179,7 +179,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         HexcrawlEditor = new HexcrawlEditorViewModel(_windowService);
         HexcrawlEditor.Map.RenderRequested += OnHexMapRenderRequested;
-        HexcrawlPlay = new HexcrawlPlayViewModel();
+        HexcrawlPlay = new HexcrawlPlayViewModel(_windowService);
         HexcrawlPlay.SetMap(HexcrawlEditor.Map);
 
         // settings
@@ -953,7 +953,8 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 MapOverview.ClearMap();
                 break;
             case TabMapIndex.Hex:
-                SelectedTabIndex = TabIndex.HexcrawlEditor;
+                if (SelectedTabIndex != TabIndex.HexcrawlPlay)
+                    SelectedTabIndex = TabIndex.HexcrawlEditor;
                 MapOverview.ClearMap();
                 break;
         }

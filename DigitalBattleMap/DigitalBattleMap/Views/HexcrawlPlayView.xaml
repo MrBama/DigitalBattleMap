@@ -3,17 +3,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements"
              mc:Ignorable="d"
              d:DesignHeight="1080" d:DesignWidth="480"
              Background="White"
              FontSize="17">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-        </Grid.RowDefinitions>
+    <UserControl.Resources>
+        <uielements:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <uielements:BoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter" IsInverted="True"/>
+    </UserControl.Resources>
+
+    <StackPanel>
 
         <!--Fog controls-->
         <Grid Margin="0 0 0 8">
@@ -32,9 +32,49 @@
                     Command="{Binding ResetFogCommand}"/>
         </Grid>
 
-        <!--Hint-->
-        <TextBlock Grid.Row="1"
-                   Text="Left-click: explore  |  Right-click: cover"
+        <!--Mode toggle: single toggle button, off = fog mode, on = token mode-->
+        <ToggleButton IsChecked="{Binding IsTokenMode}"
+                      Content="Token placement mode"
+                      HorizontalAlignment="Left"
+                      Margin="0 0 0 4"/>
+
+        <!--Context-sensitive hint-->
+        <TextBlock Text="Left-click: explore  |  Right-click: cover"
+                   Visibility="{Binding IsTokenMode, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
                    Foreground="Gray" FontSize="12" Margin="0 0 0 4"/>
-    </Grid>
+        <TextBlock Text="Left-click: place party token"
+                   Visibility="{Binding IsTokenMode, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
+                   Foreground="Gray" FontSize="12" Margin="0 0 0 8"/>
+
+        <!--Party token section-->
+        <Separator Margin="0 4 0 8"/>
+        <TextBlock Text="Party token" FontWeight="SemiBold" Margin="0 0 0 6"/>
+
+        <Grid Margin="0 0 0 6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="Load image"
+                    Command="{Binding LoadTokenImageCommand}"
+                    HorizontalAlignment="Left"/>
+
+            <Button Grid.Column="1" Content="Clear token"
+                    Command="{Binding ClearTokenCommand}"
+                    Margin="6 0 0 0"/>
+        </Grid>
+
+        <!--Token image preview (empty when no image is loaded)-->
+        <Image Source="{Binding Map.PartyTokenImage}"
+               Width="48" Height="48"
+               HorizontalAlignment="Left"
+               Stretch="UniformToFill"
+               Margin="0 0 0 4">
+            <Image.Clip>
+                <EllipseGeometry Center="24,24" RadiusX="24" RadiusY="24"/>
+            </Image.Clip>
+        </Image>
+
+    </StackPanel>
 </UserControl>

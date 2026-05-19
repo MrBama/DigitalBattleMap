@@ -9,6 +9,8 @@ public class HexcrawlGridData
     public int GridHeight { get; set; } = 20;
     public List<HexCell> Cells { get; set; } = new();
     public List<HexCoord> ExploredHexes { get; set; } = new();
+    public HexCoord PartyTokenPos { get; set; }
+    public string PartyTokenImagePath { get; set; }
 }
 
 public class HexCoord
