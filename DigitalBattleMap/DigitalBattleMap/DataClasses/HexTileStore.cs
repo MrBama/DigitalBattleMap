@@ -61,6 +61,31 @@ public class HexTileStore
         SaveIndex();
     }
 
+    // Copies an external image into the tiles folder as the party token.
+    // Returns the logical filename to store in save data, or null on failure.
+    public string ImportPartyTokenImage(string sourcePath)
+    {
+        const string fileName = "party_token.png";
+        try
+        {
+            Directory.CreateDirectory(TilesPath);
+            File.Copy(sourcePath, Path.Combine(TilesPath, fileName), overwrite: true);
+            return fileName;
+        }
+        catch { return null; }
+    }
+
+    // Resolves a party token path from save data to a full file path.
+    // Logical names (no root) are resolved from TilesPath; absolute paths pass through for backward compat.
+    public string ResolvePartyTokenPath(string savedPath)
+    {
+        if (string.IsNullOrEmpty(savedPath)) return null;
+        var fullPath = Path.IsPathRooted(savedPath)
+            ? savedPath
+            : Path.Combine(TilesPath, savedPath);
+        return File.Exists(fullPath) ? fullPath : null;
+    }
+
     public void RenameTile(string id, string newName)
     {
         if (!_tiles.TryGetValue(id, out var tile)) return;

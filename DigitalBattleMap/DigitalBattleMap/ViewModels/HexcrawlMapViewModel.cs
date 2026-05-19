@@ -3,6 +3,7 @@ using DigitalBattleMap.UIElements;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -23,6 +24,24 @@ public class HexcrawlMapViewModel : ViewModelBase
     private int? _partyQ;
     private int? _partyR;
     private string _partyTokenImagePath;
+
+    // --- Label cache ---
+    private readonly Dictionary<int, Geometry> _labelCache = new();
+    private bool _labelCacheDirty = true;
+    private double _labelCacheHexSize = -1;
+
+    private static readonly Brush LabelFillBrush = MakeFrozenBrush(Color.FromArgb(210, 255, 255, 255));
+    private static readonly Pen   LabelStrokePen  = MakeFrozenPen(Color.FromArgb(150, 0, 0, 0), 1.5);
+    private static readonly Typeface LabelTypeface = new(
+        new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Bold, FontStretches.Normal);
+
+    private static Brush MakeFrozenBrush(Color c) { var b = new SolidColorBrush(c); b.Freeze(); return b; }
+    private static Pen   MakeFrozenPen(Color c, double t)
+    {
+        var brush = new SolidColorBrush(c); brush.Freeze();
+        var pen   = new Pen(brush, t);      pen.Freeze();
+        return pen;
+    }
 
     public HexcrawlMapViewModel(HexTileStore tileStore)
     {
@@ -61,13 +80,13 @@ public class HexcrawlMapViewModel : ViewModelBase
     public int GridWidth
     {
         get => Get<int>();
-        set { Set(value); CenterGrid(); RenderRequested?.Invoke(); }
+        set { Set(value); _labelCacheDirty = true; CenterGrid(); RenderRequested?.Invoke(); }
     }
 
     public int GridHeight
     {
         get => Get<int>();
-        set { Set(value); CenterGrid(); RenderRequested?.Invoke(); }
+        set { Set(value); _labelCacheDirty = true; CenterGrid(); RenderRequested?.Invoke(); }
     }
 
     public event Action RenderRequested;
@@ -298,16 +317,28 @@ public class HexcrawlMapViewModel : ViewModelBase
         RenderRequested?.Invoke();
     }
 
-    // Loads an image from disk and stores the path for persistence. Pass null to clear the image.
-    public void LoadPartyTokenImage(string path)
+    // Copies an external image into the tiles folder and loads it.
+    public void ImportPartyTokenImage(string sourcePath)
     {
-        _partyTokenImagePath = path;
-        if (string.IsNullOrEmpty(path)) { PartyTokenImage = null; return; }
+        var logicalName = _tileStore.ImportPartyTokenImage(sourcePath);
+        if (logicalName != null)
+            LoadPartyTokenImage(logicalName);
+    }
+
+    // Loads from a saved path or logical filename. Pass null to clear the image.
+    public void LoadPartyTokenImage(string pathOrLogicalName)
+    {
+        _partyTokenImagePath = pathOrLogicalName;
+        if (string.IsNullOrEmpty(pathOrLogicalName)) { PartyTokenImage = null; return; }
+
+        var fullPath = _tileStore.ResolvePartyTokenPath(pathOrLogicalName);
+        if (fullPath == null) { PartyTokenImage = null; return; }
+
         try
         {
             var img = new BitmapImage();
             img.BeginInit();
-            img.UriSource = new Uri(path);
+            img.UriSource = new Uri(fullPath);
             img.CacheOption = BitmapCacheOption.OnLoad;
             img.EndInit();
             img.Freeze();
@@ -418,6 +449,64 @@ public class HexcrawlMapViewModel : ViewModelBase
         }
     }
 
+    // --- Hex labels (CCRR wargame convention: first two digits = column, last two = row) ---
+
+    // Returns the 4-digit label for a hex: column*100 + visualRow, both 1-based.
+    public static int GetHexLabel(int q, int r) => (q + 1) * 100 + (r + q / 2 + 1);
+
+    // Draws the CCRR label at the top-center of a hex. Uses a per-grid frozen geometry cache.
+    public void DrawHexLabel(DrawingContext ctx, int q, int r, double hexSize)
+    {
+        EnsureLabelCache(hexSize);
+        int label = GetHexLabel(q, r);
+        if (!_labelCache.TryGetValue(label, out var geom) || geom == null) return;
+
+        var (wx, wy) = HexGeometry.AxialToPixel(q, r, hexSize);
+        double tx = wx - geom.Bounds.Width  / 2.0;
+        double ty = wy - hexSize * 0.72;
+        ctx.PushTransform(new TranslateTransform(tx, ty));
+        ctx.DrawGeometry(LabelFillBrush, LabelStrokePen, geom);
+        ctx.Pop();
+    }
+
+    private void EnsureLabelCache(double hexSize)
+    {
+        if (!_labelCacheDirty && Math.Abs(_labelCacheHexSize - hexSize) < 0.001) return;
+        BuildLabelCache(hexSize);
+    }
+
+    private void BuildLabelCache(double hexSize)
+    {
+        _labelCache.Clear();
+        double fontSize = hexSize * 0.22;
+
+        for (int q = 0; q < GridWidth; q++)
+        {
+            int rOff = q / 2;
+            for (int r = -rOff; r < GridHeight - rOff; r++)
+            {
+                int label = GetHexLabel(q, r);
+                if (_labelCache.ContainsKey(label)) continue;
+
+                var ft = new FormattedText(
+                    label.ToString("D4"),
+                    CultureInfo.InvariantCulture,
+                    FlowDirection.LeftToRight,
+                    LabelTypeface,
+                    fontSize,
+                    LabelFillBrush,
+                    1.0);
+
+                var geom = ft.BuildGeometry(new Point(0, 0));
+                geom?.Freeze();
+                _labelCache[label] = geom;
+            }
+        }
+
+        _labelCacheDirty    = false;
+        _labelCacheHexSize  = hexSize;
+    }
+
     // Returns the inclusive column (q) range that intersects the visible world area.
     private (int qMin, int qMax) GetVisibleColumnRange(double worldLeft, double worldRight, double hexSize)
     {
@@ -454,6 +543,7 @@ public class HexcrawlMapViewModel : ViewModelBase
             DrawTileFill(ctx, hexGeom, wx, wy, hexSize, GetTile(cell.TileId));
 
         ctx.DrawGeometry(null, outlinePen, hexGeom);
+        DrawHexLabel(ctx, q, r, hexSize);
     }
 
     // Fills a hex with either a solid colour (preset tile) or a clipped bitmap (custom tile).

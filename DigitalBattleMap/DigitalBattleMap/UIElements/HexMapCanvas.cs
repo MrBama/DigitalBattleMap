@@ -124,6 +124,7 @@ public class HexMapCanvas : FrameworkElement
                 }
 
                 dc.DrawGeometry(null, outlinePen, hexGeom);
+                if (ShowFog) vm.DrawHexLabel(dc, q, r, hexSize);
             }
         }
 

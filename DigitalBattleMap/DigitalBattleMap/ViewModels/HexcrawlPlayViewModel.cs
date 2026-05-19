@@ -67,6 +67,6 @@ public class HexcrawlPlayViewModel : ViewModelBase
     {
         if (_windowService == null) return;
         if (_windowService.ShowOpenFileDialog(out var path, "Image files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp"))
-            Map?.LoadPartyTokenImage(path);
+            Map?.ImportPartyTokenImage(path);
     }
 }
