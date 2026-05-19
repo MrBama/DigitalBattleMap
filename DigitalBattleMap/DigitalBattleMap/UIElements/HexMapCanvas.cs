@@ -1,0 +1,156 @@
+using DigitalBattleMap.ViewModels;
+using System;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Media;
+
+namespace DigitalBattleMap.UIElements;
+
+public class HexMapCanvas : FrameworkElement
+{
+    public static readonly DependencyProperty ViewModelProperty =
+        DependencyProperty.Register(nameof(ViewModel), typeof(HexcrawlMapViewModel), typeof(HexMapCanvas),
+            new PropertyMetadata(null, OnViewModelChanged));
+
+    public HexcrawlMapViewModel ViewModel
+    {
+        get => (HexcrawlMapViewModel)GetValue(ViewModelProperty);
+        set => SetValue(ViewModelProperty, value);
+    }
+
+    private static void OnViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var canvas = (HexMapCanvas)d;
+        if (e.OldValue is HexcrawlMapViewModel old)
+            old.RenderRequested -= canvas.RequestRender;
+        if (e.NewValue is HexcrawlMapViewModel vm)
+        {
+            vm.RenderRequested += canvas.RequestRender;
+            vm.SetCanvasSize(canvas.ActualWidth, canvas.ActualHeight);
+        }
+        canvas.InvalidateVisual();
+    }
+
+    private void RequestRender() => InvalidateVisual();
+
+    protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
+    {
+        base.OnRenderSizeChanged(sizeInfo);
+        ViewModel?.SetCanvasSize(ActualWidth, ActualHeight);
+        InvalidateVisual();
+    }
+
+    protected override void OnRender(DrawingContext dc)
+    {
+        var vm = ViewModel;
+        double w = ActualWidth;
+        double h = ActualHeight;
+
+        dc.DrawRectangle(Brushes.White, null, new Rect(0, 0, w, h));
+
+        if (vm == null) return;
+
+        dc.PushClip(new RectangleGeometry(new Rect(0, 0, w, h)));
+
+        double scale   = vm.Scale;
+        double ox      = vm.OffsetX;
+        double oy      = vm.OffsetY;
+        double hexSize = vm.HexSize;
+
+        double worldLeft   = (0 - ox) / scale;
+        double worldRight  = (w - ox) / scale;
+        double worldTop    = (0 - oy) / scale;
+        double worldBottom = (h - oy) / scale;
+
+        // Clamp columns to grid and viewport
+        int qMin = Math.Max(0,                (int)Math.Floor(worldLeft   / (hexSize * 1.5)) - 2);
+        int qMax = Math.Min(vm.GridWidth - 1, (int)Math.Ceiling(worldRight / (hexSize * 1.5)) + 2);
+
+        double rScale = hexSize * HexGeometry.Sqrt3; // wy = rScale*r + rScale/2*q
+
+        var outlinePen = new Pen(new SolidColorBrush(Color.FromRgb(100, 100, 100)), 1.0 / scale);
+        outlinePen.Freeze();
+
+        dc.PushTransform(new TranslateTransform(ox, oy));
+        dc.PushTransform(new ScaleTransform(scale, scale));
+
+        for (int q = qMin; q <= qMax; q++)
+        {
+            // Even-q offset: each column shifts its row range up by floor(q/2).
+            // Visible r for column q: wy = hexSize*(√3/2*q + √3*r)
+            //   → r = worldY/(hexSize*√3) - q/2
+            int rOff = q / 2;
+            double halfQ = (double)q / 2.0;
+            int rMin = Math.Max((int)Math.Floor(worldTop    / rScale - halfQ) - 1, -rOff);
+            int rMax = Math.Min((int)Math.Ceiling(worldBottom / rScale - halfQ) + 1, vm.GridHeight - 1 - rOff);
+
+            for (int r = rMin; r <= rMax; r++)
+            {
+                var (wx, wy) = HexGeometry.AxialToPixel(q, r, hexSize);
+                if (wx + hexSize < worldLeft  || wx - hexSize > worldRight)  continue;
+                if (wy + hexSize < worldTop   || wy - hexSize > worldBottom) continue;
+
+                var hexGeom = HexGeometry.CreateStreamGeometry(wx, wy, hexSize);
+                var cell    = vm.GetCell(q, r);
+
+                if (cell != null)
+                {
+                    var tile = vm.GetTile(cell.TileId);
+                    if (tile != null)
+                    {
+                        if (tile.IsPreset)
+                        {
+                            dc.DrawGeometry(new SolidColorBrush(tile.PresetColor), null, hexGeom);
+                        }
+                        else if (tile.Bitmap != null)
+                        {
+                            var bounds = new Rect(wx - hexSize, wy - hexSize, hexSize * 2, hexSize * 2);
+                            dc.PushClip(hexGeom);
+                            dc.DrawImage(tile.Bitmap, bounds);
+                            dc.Pop();
+                        }
+                    }
+                }
+
+                dc.DrawGeometry(null, outlinePen, hexGeom);
+            }
+        }
+
+        dc.Pop(); // scale
+        dc.Pop(); // translate
+        dc.Pop(); // clip
+    }
+
+    protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
+    {
+        if (ViewModel == null) return;
+        CaptureMouse();
+        ViewModel.BeginPaint();
+        PaintAt(e.GetPosition(this));
+        e.Handled = true;
+    }
+
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        if (e.LeftButton == MouseButtonState.Pressed && ViewModel != null)
+        {
+            PaintAt(e.GetPosition(this));
+            e.Handled = true;
+        }
+    }
+
+    protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
+    {
+        ReleaseMouseCapture();
+        ViewModel?.EndPaint();
+        e.Handled = true;
+    }
+
+    private void PaintAt(Point screenPos)
+    {
+        double worldX = (screenPos.X - ViewModel.OffsetX) / ViewModel.Scale;
+        double worldY = (screenPos.Y - ViewModel.OffsetY) / ViewModel.Scale;
+        var (q, r) = HexGeometry.PixelToAxial(worldX, worldY, ViewModel.HexSize);
+        ViewModel.PaintCell(q, r);
+    }
+}

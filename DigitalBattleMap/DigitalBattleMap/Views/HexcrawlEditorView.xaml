@@ -3,15 +3,78 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels"
              mc:Ignorable="d"
              d:DesignHeight="1080" d:DesignWidth="480"
              Background="White"
              FontSize="17">
-    <UserControl.DataContext>
-        <viewmodels:HexcrawlEditorViewModel/>
-    </UserControl.DataContext>
     <Grid>
-        <Label Content="Hexcrawl Editor" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <!--Tile list-->
+        <ListView ItemsSource="{Binding TileList}"
+                  SelectedItem="{Binding SelectedTile}"
+                  HorizontalContentAlignment="Stretch">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="36"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <!--Colour/image preview-->
+                        <Border Width="28" Height="28" Margin="0 2 6 2"
+                                Background="{Binding PreviewBrush}"
+                                BorderThickness="1" BorderBrush="Gray"
+                                ClipToBounds="True">
+                            <Border.Clip>
+                                <EllipseGeometry Center="14,14" RadiusX="14" RadiusY="14"/>
+                            </Border.Clip>
+                        </Border>
+                        <Label Grid.Column="1" Content="{Binding Name}" VerticalContentAlignment="Center" Padding="0"/>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <!--Tile buttons-->
+        <Grid Grid.Row="1" Margin="0 8 0 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Content="Add tile"    Margin="0 0 4 0" Command="{Binding AddTileCommand}"/>
+            <Button Content="Remove tile" Grid.Column="1" Margin="4 0 0 0" Command="{Binding RemoveTileCommand}"/>
+        </Grid>
+
+        <!--Grid size-->
+        <Grid Grid.Row="2" Margin="0 8 0 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Content="W:" VerticalContentAlignment="Center" Padding="0 0 4 0"/>
+            <TextBox Grid.Column="1" Text="{Binding Map.GridWidth, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
+            <Label Grid.Column="2" Content="H:" VerticalContentAlignment="Center" Padding="8 0 4 0"/>
+            <TextBox Grid.Column="3" Text="{Binding Map.GridHeight, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
+        </Grid>
+
+        <!--Undo / Redo-->
+        <Grid Grid.Row="3" Margin="0 6 0 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Content="Undo" Margin="0 0 4 0" Command="{Binding UndoCommand}"
+                    IsEnabled="{Binding Map.PaintHistory.IsPreviousCommandAvailable}"/>
+            <Button Content="Redo" Grid.Column="1" Margin="4 0 0 0" Command="{Binding RedoCommand}"
+                    IsEnabled="{Binding Map.PaintHistory.IsNextCommandAvailable}"/>
+        </Grid>
     </Grid>
 </UserControl>

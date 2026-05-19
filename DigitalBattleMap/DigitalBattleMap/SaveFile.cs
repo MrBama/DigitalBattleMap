@@ -42,6 +42,8 @@ public class SaveFile
 
     public bool IsFillFogEnabled { get; set; }
 
+    public DataClasses.HexcrawlGridData HexcrawlData { get; set; } = new();
+
     [JsonIgnore]
     public Bitmap FullBackground { get; set; }
 

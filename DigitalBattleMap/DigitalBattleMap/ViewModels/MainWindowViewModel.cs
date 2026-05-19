@@ -46,6 +46,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         FogController = new();
         DrawingController = new();
         TokenController = new();
+        HexcrawlEditor = new HexcrawlEditorViewModel();
         InitializeProperties();
     }
 
@@ -81,6 +82,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public DrawingControllerViewModel DrawingController { get; set; }
     public TokenControllerViewModel TokenController { get; set; }
     public MapOverviewViewModel MapOverview { get; set; }
+    public HexcrawlEditorViewModel HexcrawlEditor { get; private set; }
     public UIElements.ShapeComposer ShapeComposer { get => Get<UIElements.ShapeComposer>(); set => Set(value); }
     public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToBitmapImage(); }
     public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
@@ -170,6 +172,8 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         DrawingController = new DrawingControllerViewModel(this, TokenController);
         DrawingController.OnZoomAndEnhance += OnZoomAndEnhance;
         DrawingController.OnDrawingShapesUpdated += DrawingShapesUpdated;
+
+        HexcrawlEditor = new HexcrawlEditorViewModel(_windowService);
 
         // settings
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
@@ -466,6 +470,13 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 DrawingCanvasZIndex = 1;
                 break;
             case TabIndex.HexcrawlEditor:
+                MouseInputCanvasVisibility = Visibility.Hidden;
+                FogCanvasVisibility = Visibility.Hidden;
+                DrawingCanvasVisibility = Visibility.Hidden;
+                TokenVisibility = Visibility.Hidden;
+                ControlInfoText = string.Empty;
+                SelectedMapTabIndex = TabMapIndex.Hex;
+                break;
             case TabIndex.HexcrawlPlay:
                 MouseInputCanvasVisibility = Visibility.Hidden;
                 FogCanvasVisibility = Visibility.Hidden;
@@ -501,6 +512,20 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void MoveMap(ArrowDirection arrowDirection)
     {
+        if (SelectedTabIndex == TabIndex.HexcrawlEditor)
+        {
+            if (!IsMultiMove)
+            {
+                HexcrawlEditor.Map.Pan(arrowDirection, 1);
+            }
+            else
+            {
+                MultiMoveCount++;
+                _multiMoveAction = () => HexcrawlEditor.Map.Pan(arrowDirection, MultiMoveCount);
+            }
+            return;
+        }
+
         if (!IsMultiMove)
         {
             MoveMap(arrowDirection, 1);
@@ -549,6 +574,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             DrawingController.AddToSaveFile(saveFile);
             TokenController.AddToSaveFile(saveFile);
             FogController.AddToSaveFile(saveFile);
+            saveFile.HexcrawlData = HexcrawlEditor.Map.GetGridData();
             saveFile.Save(path);
         }
     }
@@ -562,6 +588,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         DrawingController.AddToSaveFile(saveFile);
         TokenController.AddToSaveFile(saveFile);
         FogController.AddToSaveFile(saveFile);
+        saveFile.HexcrawlData = HexcrawlEditor.Map.GetGridData();
         saveFile.AutoSave();
         _autoSaveTimer.Start();
     }
@@ -587,6 +614,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         DrawingController.OpenObjectLinks(saveFile.ObjectLinks);
         TokenController.OpenObjectLinks(saveFile.ObjectLinks);
+        HexcrawlEditor.Map.LoadFromData(saveFile.HexcrawlData);
 
         SelectedTabIndex = TabIndex.Tokens;
         SelectedMapTabIndex = 0;
@@ -598,6 +626,12 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void ZoomIn()
     {
+        if (SelectedTabIndex == TabIndex.HexcrawlEditor)
+        {
+            HexcrawlEditor.Map.ZoomIn();
+            return;
+        }
+
         if (!IsMultiMove)
         {
             Zoom(BackgroundController.ZoomSize);
@@ -614,6 +648,12 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void ZoomOut()
     {
+        if (SelectedTabIndex == TabIndex.HexcrawlEditor)
+        {
+            HexcrawlEditor.Map.ZoomOut();
+            return;
+        }
+
         if (!IsMultiMove)
         {
             Zoom(-BackgroundController.ZoomSize);
@@ -865,6 +905,10 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 GenerateMapOverview();
                 break;
             case TabMapIndex.Statblocks:
+                MapOverview.ClearMap();
+                break;
+            case TabMapIndex.Hex:
+                SelectedTabIndex = TabIndex.HexcrawlEditor;
                 MapOverview.ClearMap();
                 break;
         }

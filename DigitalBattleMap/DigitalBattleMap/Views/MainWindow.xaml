@@ -139,7 +139,7 @@
                         <Image Source="{Binding HexcrawlEditorEmblemBitmapSource}" MaxHeight="35" Margin="2"/>
                     </TabItem.Header>
                     <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
-                        <views:HexcrawlEditorView Margin="10"/>
+                        <views:HexcrawlEditorView DataContext="{Binding HexcrawlEditor}" Margin="10"/>
                     </Border>
                 </TabItem>
                 <TabItem Visibility="{Binding IsHexcrawlEnabled, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}">
@@ -307,6 +307,14 @@
                         </TabItem.Header>
                         <Border BorderThickness="3" BorderBrush="Black" Width="{Binding ElementName=MapBorder, Path=ActualWidth}" Height="{Binding ElementName=MapBorder, Path=ActualHeight}">
                             <views:StatblocksView DataContext="{Binding TokenController.StatblocksViewModel}"/>
+                        </Border>
+                    </TabItem>
+                    <TabItem Visibility="{Binding IsHexcrawlEnabled, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}">
+                        <TabItem.Header>
+                            <TextBlock Text="Hex" FontSize="20" FontWeight="Bold"/>
+                        </TabItem.Header>
+                        <Border BorderThickness="3" BorderBrush="Black" Width="{Binding ElementName=MapBorder, Path=ActualWidth}" Height="{Binding ElementName=MapBorder, Path=ActualHeight}">
+                            <views:HexcrawlMapView DataContext="{Binding HexcrawlEditor.Map}"/>
                         </Border>
                     </TabItem>
                 </TabControl>

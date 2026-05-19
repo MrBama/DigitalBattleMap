@@ -16,6 +16,7 @@ public static class TabMapIndex
     public const int Map = 0;
     public const int Overview = 1;
     public const int Statblocks = 2;
+    public const int Hex = 3;
 }
 
 public enum ArrowDirection
