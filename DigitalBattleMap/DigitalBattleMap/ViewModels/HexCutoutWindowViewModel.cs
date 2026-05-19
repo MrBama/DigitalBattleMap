@@ -12,14 +12,24 @@ namespace DigitalBattleMap.ViewModels;
 
 public class HexCutoutWindowViewModel : ViewModelBase
 {
-    private const double DisplayMaxSize = 480.0;
+    private const double DisplayMaxSize  = 480.0;
+    private const int    MaxOutputPixels = 512;
+
     private BitmapImage _sourceImage;
+    private double _dcx; // hex center in canvas/display space
+    private double _dcy;
 
     public HexCutoutWindowViewModel(string imagePath)
     {
-        _sourceImage = new BitmapImage(new Uri(imagePath));
-        SourceImage = _sourceImage;
-        TileName = Path.GetFileNameWithoutExtension(imagePath);
+        var bmp = new BitmapImage();
+        bmp.BeginInit();
+        bmp.UriSource    = new Uri(imagePath, UriKind.Absolute);
+        bmp.CacheOption  = BitmapCacheOption.OnLoad;
+        bmp.EndInit();
+        bmp.Freeze();
+        _sourceImage = bmp;
+        SourceImage  = _sourceImage;
+        TileName     = Path.GetFileNameWithoutExtension(imagePath);
 
         double aspect = _sourceImage.PixelWidth / (double)_sourceImage.PixelHeight;
         if (aspect >= 1)
@@ -32,15 +42,15 @@ public class HexCutoutWindowViewModel : ViewModelBase
             DisplayHeight = DisplayMaxSize;
             DisplayWidth  = DisplayMaxSize * aspect;
         }
-        DisplayOffsetX = (DisplayMaxSize - DisplayWidth)  / 2;
-        DisplayOffsetY = (DisplayMaxSize - DisplayHeight) / 2;
+        DisplayOffsetX = (DisplayMaxSize - DisplayWidth)  / 2.0;
+        DisplayOffsetY = (DisplayMaxSize - DisplayHeight) / 2.0;
 
-        HexCenterX = _sourceImage.PixelWidth  / 2.0;
-        HexCenterY = _sourceImage.PixelHeight / 2.0;
-        HexRadius  = Math.Min(_sourceImage.PixelWidth, _sourceImage.PixelHeight) * 0.4;
-        MaxRadius  = Math.Min(_sourceImage.PixelWidth, _sourceImage.PixelHeight) / 2.0;
+        // Set center before radius so the HexRadius setter's UpdateOverlayPoints call is correct
+        _dcx = DisplayOffsetX + DisplayWidth  / 2.0;
+        _dcy = DisplayOffsetY + DisplayHeight / 2.0;
 
-        UpdateOverlayPoints();
+        MaxRadius = Math.Min(DisplayWidth, DisplayHeight) / 2.0;
+        HexRadius = MaxRadius * 0.8;
     }
 
     public HexCutoutWindowViewModel() { }
@@ -48,28 +58,17 @@ public class HexCutoutWindowViewModel : ViewModelBase
     protected override void InitializeCommands()
     {
         ConfirmCommand = new RelayCommand(_ => Confirm(), _ => !string.IsNullOrWhiteSpace(TileName));
-        CancelCommand  = new RelayCommand(_ => { });
     }
 
-    public BitmapImage SourceImage    { get => Get<BitmapImage>(); private set => Set(value); }
-    public string TileName            { get => Get<string>();      set => Set(value); }
-    public string OverlayPoints       { get => Get<string>();      private set => Set(value); }
-    public double DisplayWidth        { get => Get<double>();      private set => Set(value); }
-    public double DisplayHeight       { get => Get<double>();      private set => Set(value); }
-    public double DisplayOffsetX      { get => Get<double>();      private set => Set(value); }
-    public double DisplayOffsetY      { get => Get<double>();      private set => Set(value); }
-    public double MaxRadius           { get => Get<double>();      private set => Set(value); }
+    public BitmapImage SourceImage { get => Get<BitmapImage>(); private set => Set(value); }
+    public string      TileName    { get => Get<string>();      set => Set(value); }
+    public string      OverlayPoints  { get => Get<string>();   private set => Set(value); }
+    public double      DisplayWidth   { get => Get<double>();   private set => Set(value); }
+    public double      DisplayHeight  { get => Get<double>();   private set => Set(value); }
+    public double      DisplayOffsetX { get => Get<double>();   private set => Set(value); }
+    public double      DisplayOffsetY { get => Get<double>();   private set => Set(value); }
+    public double      MaxRadius      { get => Get<double>();   private set => Set(value); }
 
-    public double HexCenterX
-    {
-        get => Get<double>();
-        set { Set(value); UpdateOverlayPoints(); }
-    }
-    public double HexCenterY
-    {
-        get => Get<double>();
-        set { Set(value); UpdateOverlayPoints(); }
-    }
     public double HexRadius
     {
         get => Get<double>();
@@ -79,42 +78,55 @@ public class HexCutoutWindowViewModel : ViewModelBase
     public BitmapSource Result { get; private set; }
 
     public ICommand ConfirmCommand { get; private set; }
-    public ICommand CancelCommand  { get; private set; }
 
+    public (double cx, double cy) GetDisplayCenter() => (_dcx, _dcy);
+
+    // Called from code-behind while the user drags on the canvas
     public void SetHexCenterFromDisplayCoords(double dx, double dy)
     {
-        if (_sourceImage == null || DisplayWidth <= 0 || DisplayHeight <= 0) return;
-        HexCenterX = (dx - DisplayOffsetX) / DisplayWidth  * _sourceImage.PixelWidth;
-        HexCenterY = (dy - DisplayOffsetY) / DisplayHeight * _sourceImage.PixelHeight;
+        if (_sourceImage == null) return;
+        _dcx = dx;
+        _dcy = dy;
+        UpdateOverlayPoints();
     }
 
     private void UpdateOverlayPoints()
     {
-        if (_sourceImage == null || DisplayWidth <= 0 || DisplayHeight <= 0) return;
-        double scaleX = DisplayWidth  / _sourceImage.PixelWidth;
-        double scaleY = DisplayHeight / _sourceImage.PixelHeight;
-        double dcx = HexCenterX * scaleX + DisplayOffsetX;
-        double dcy = HexCenterY * scaleY + DisplayOffsetY;
-        double dr  = HexRadius  * Math.Min(scaleX, scaleY);
-        var corners = HexGeometry.GetCorners(dcx, dcy, dr);
+        if (_sourceImage == null) return;
+        var corners = HexGeometry.GetCorners(_dcx, _dcy, HexRadius);
         OverlayPoints = string.Join(" ", corners.Select(p => $"{p.X:F1},{p.Y:F1}"));
     }
 
     private void Confirm()
     {
-        int outputSize = Math.Max(1, (int)(HexRadius * 2));
-        var hexGeom = HexGeometry.CreateStreamGeometry(outputSize / 2.0, outputSize / 2.0, HexRadius);
+        if (_sourceImage == null) return;
+
+        double scaleX       = DisplayWidth  / _sourceImage.PixelWidth;
+        double scaleY       = DisplayHeight / _sourceImage.PixelHeight;
+        double displayScale = Math.Min(scaleX, scaleY);
+
+        // Convert display-space values back to source pixels
+        double srcRadius = HexRadius / displayScale;
+        double srcCX     = (_dcx - DisplayOffsetX) / scaleX;
+        double srcCY     = (_dcy - DisplayOffsetY) / scaleY;
+
+        // Cap output size to avoid huge bitmaps
+        int    outputSize    = Math.Min((int)(srcRadius * 2), MaxOutputPixels);
+        if (outputSize < 2) return;
+        double renderRadius  = outputSize / 2.0;
+        double renderScale   = renderRadius / srcRadius;
+
+        var hexGeom = HexGeometry.CreateStreamGeometry(renderRadius, renderRadius, renderRadius);
 
         var visual = new DrawingVisual();
         using (var ctx = visual.RenderOpen())
         {
             ctx.PushClip(hexGeom);
-            var destRect = new Rect(
-                outputSize / 2.0 - HexCenterX,
-                outputSize / 2.0 - HexCenterY,
-                _sourceImage.PixelWidth,
-                _sourceImage.PixelHeight);
-            ctx.DrawImage(_sourceImage, destRect);
+            ctx.DrawImage(_sourceImage, new Rect(
+                renderRadius - srcCX  * renderScale,
+                renderRadius - srcCY  * renderScale,
+                _sourceImage.PixelWidth  * renderScale,
+                _sourceImage.PixelHeight * renderScale));
             ctx.Pop();
         }
 

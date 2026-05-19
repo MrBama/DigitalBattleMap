@@ -4,6 +4,7 @@
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements"
         mc:Ignorable="d"
         Title="Add hex tile"
         SizeToContent="WidthAndHeight"
@@ -13,24 +14,26 @@
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="500"/>
-            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="200"/>
         </Grid.ColumnDefinitions>
 
         <!--Image with hex overlay-->
         <Border BorderThickness="1" BorderBrush="Gray" Width="500" Height="500"
                 HorizontalAlignment="Left" VerticalAlignment="Top">
             <Canvas x:Name="ImageCanvas" Width="500" Height="500" ClipToBounds="True"
-                    Cursor="Cross" Background="Transparent"
-                    MouseLeftButtonDown="ImageCanvas_MouseLeftButtonDown">
+                    Cursor="Hand" Background="Transparent"
+                    MouseLeftButtonDown="ImageCanvas_MouseLeftButtonDown"
+                    MouseMove="ImageCanvas_MouseMove"
+                    MouseLeftButtonUp="ImageCanvas_MouseLeftButtonUp">
                 <Image Source="{Binding SourceImage}"
                        Width="{Binding DisplayWidth}"
                        Height="{Binding DisplayHeight}"
                        Canvas.Left="{Binding DisplayOffsetX}"
                        Canvas.Top="{Binding DisplayOffsetY}"
                        Stretch="Fill"/>
-                <Polygon Points="{Binding OverlayPoints}"
-                         Stroke="Red" StrokeThickness="2"
-                         Fill="#22FF0000"/>
+                <uielements:HexOverlayElement ViewModel="{Binding}"
+                                             Width="500" Height="500"
+                                             IsHitTestVisible="False"/>
             </Canvas>
         </Border>
 
@@ -41,33 +44,27 @@
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
 
             <Label Content="Tile name" Padding="0 0 0 2"/>
-            <TextBox Grid.Row="1" Text="{Binding TileName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 12"/>
+            <TextBox Grid.Row="1" Text="{Binding TileName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 16"/>
 
-            <Label Grid.Row="2" Content="Hex radius (px)" Padding="0 0 0 2"/>
+            <Label Grid.Row="2" Content="Hex size" Padding="0 0 0 2"/>
             <Slider Grid.Row="3" Minimum="10" Maximum="{Binding MaxRadius}"
                     Value="{Binding HexRadius, UpdateSourceTrigger=PropertyChanged}"
-                    TickFrequency="1" IsSnapToTickEnabled="True" Margin="0 0 0 2"/>
-            <TextBox Grid.Row="4" Text="{Binding HexRadius, UpdateSourceTrigger=PropertyChanged, StringFormat=F0}"
-                     Margin="0 0 0 12"/>
+                    TickFrequency="1" IsSnapToTickEnabled="True"/>
 
-            <Label Grid.Row="5" Content="Center X (px)" Padding="0 0 0 2"/>
-            <TextBox Grid.Row="6" Text="{Binding HexCenterX, UpdateSourceTrigger=PropertyChanged, StringFormat=F0}"
-                     Margin="0 0 0 6"/>
+            <TextBlock Grid.Row="5"
+                       Text="Drag to reposition hex"
+                       Foreground="Gray" FontSize="12"
+                       TextWrapping="Wrap"
+                       Margin="0 0 0 8"/>
 
-            <Label Grid.Row="7" Content="Center Y (px)" Padding="0 0 0 2"/>
-            <TextBox Grid.Row="8" Text="{Binding HexCenterY, UpdateSourceTrigger=PropertyChanged, StringFormat=F0}"/>
-
-            <Button Grid.Row="9" Content="Save" Margin="0 12 0 6"
+            <Button Grid.Row="6" Content="Save" Margin="0 0 0 6"
                     Command="{Binding ConfirmCommand}" IsDefault="True">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="Click">
@@ -76,7 +73,7 @@
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </Button>
-            <Button Grid.Row="10" Content="Cancel" IsCancel="True"/>
+            <Button Grid.Row="7" Content="Cancel" IsCancel="True"/>
         </Grid>
     </Grid>
 </Window>
