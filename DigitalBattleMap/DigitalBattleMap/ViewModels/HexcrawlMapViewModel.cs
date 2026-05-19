@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -25,6 +26,14 @@ public class HexcrawlMapViewModel : ViewModelBase
     private int? _partyR;
     private string _partyTokenImagePath;
 
+    // --- Place names ---
+    private readonly Dictionary<(int, int), string> _cellLabels = new();
+    private readonly HashSet<(int, int)> _revealedLabels = new();
+    private readonly Dictionary<string, Geometry> _placeNameCache = new();
+    private double _placeNameCacheHexSize = -1;
+    private int? _selectedQ;
+    private int? _selectedR;
+
     // --- Label cache ---
     private readonly Dictionary<int, Geometry> _labelCache = new();
     private bool _labelCacheDirty = true;
@@ -34,6 +43,12 @@ public class HexcrawlMapViewModel : ViewModelBase
     private static readonly Pen   LabelStrokePen  = MakeFrozenPen(Color.FromArgb(150, 0, 0, 0), 1.5);
     private static readonly Typeface LabelTypeface = new(
         new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Bold, FontStretches.Normal);
+
+    // Place name rendering: revealed (player-visible) vs hidden (DM-only hint).
+    private static readonly Brush PlaceNameRevealedFill   = MakeFrozenBrush(Color.FromArgb(220, 255, 255, 255));
+    private static readonly Pen   PlaceNameRevealedStroke  = MakeFrozenPen(Color.FromArgb(160, 0, 0, 0), 1.5);
+    private static readonly Brush PlaceNameHiddenFill     = MakeFrozenBrush(Color.FromArgb(130, 210, 210, 210));
+    private static readonly Pen   PlaceNameHiddenStroke   = MakeFrozenPen(Color.FromArgb(100, 120, 120, 120), 1.0);
 
     private static Brush MakeFrozenBrush(Color c) { var b = new SolidColorBrush(c); b.Freeze(); return b; }
     private static Pen   MakeFrozenPen(Color c, double t)
@@ -60,6 +75,7 @@ public class HexcrawlMapViewModel : ViewModelBase
         Scale = 1.0;
         GridWidth = 30;
         GridHeight = 20;
+        SelectCellCommand = new RelayCommand(SelectCell);
     }
 
     public CommandHistory<HexPaintCommand> PaintHistory { get; }
@@ -72,6 +88,36 @@ public class HexcrawlMapViewModel : ViewModelBase
 
     // Bound to the play view token image preview.
     public BitmapSource PartyTokenImage { get => Get<BitmapSource>(); private set => Set(value); }
+
+    // Right-click a hex in the editor to select it for labeling; parameter is ValueTuple<int,int> (q, r).
+    public ICommand SelectCellCommand { get; private set; }
+
+    // Label of the currently right-clicked hex. Setting it writes to _cellLabels immediately.
+    public string SelectedCellLabel
+    {
+        get
+        {
+            if (_selectedQ == null || _selectedR == null) return string.Empty;
+            _cellLabels.TryGetValue((_selectedQ.Value, _selectedR.Value), out var l);
+            return l ?? string.Empty;
+        }
+        set
+        {
+            if (_selectedQ == null || _selectedR == null) return;
+            var key = (_selectedQ.Value, _selectedR.Value);
+            var label = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+            if (label == null) _cellLabels.Remove(key);
+            else _cellLabels[key] = label;
+            NotifyPropertyChange(nameof(SelectedCellLabel));
+            RenderRequested?.Invoke();
+        }
+    }
+
+    // Display string for the editor panel, e.g. "0304". Empty dash when nothing is selected.
+    public string SelectedHexInfo =>
+        _selectedQ.HasValue && _selectedR.HasValue
+            ? GetHexLabel(_selectedQ.Value, _selectedR.Value).ToString("D4")
+            : "—";
 
     public double Scale   { get => Get<double>(); private set => Set(value); }
     public double OffsetX { get => Get<double>(); private set => Set(value); }
@@ -230,6 +276,8 @@ public class HexcrawlMapViewModel : ViewModelBase
     {
         _cells.Clear();
         _exploredHexes.Clear();
+        _cellLabels.Clear();
+        _revealedLabels.Clear();
         HexSize = data.HexSize;
         _needsInitialCenter = true;
         // Set without triggering CenterGrid until canvas size is known
@@ -239,6 +287,11 @@ public class HexcrawlMapViewModel : ViewModelBase
             _cells[(cell.Q, cell.R)] = cell;
         foreach (var coord in data.ExploredHexes)
             _exploredHexes.Add((coord.Q, coord.R));
+        foreach (var entry in data.HexLabels ?? new List<HexLabelEntry>())
+            if (!string.IsNullOrEmpty(entry.Label))
+                _cellLabels[(entry.Q, entry.R)] = entry.Label;
+        foreach (var coord in data.RevealedLabels ?? new List<HexCoord>())
+            _revealedLabels.Add((coord.Q, coord.R));
 
         if (data.PartyTokenPos != null)
         {
@@ -266,7 +319,13 @@ public class HexcrawlMapViewModel : ViewModelBase
             Cells              = _cells.Values.ToList(),
             ExploredHexes      = _exploredHexes.Select(e => new HexCoord { Q = e.Item1, R = e.Item2 }).ToList(),
             PartyTokenPos      = _partyQ.HasValue && _partyR.HasValue ? new HexCoord { Q = _partyQ.Value, R = _partyR.Value } : null,
-            PartyTokenImagePath = _partyTokenImagePath
+            PartyTokenImagePath = _partyTokenImagePath,
+            HexLabels      = _cellLabels
+                .Select(kv => new HexLabelEntry { Q = kv.Key.Item1, R = kv.Key.Item2, Label = kv.Value })
+                .ToList(),
+            RevealedLabels = _revealedLabels
+                .Select(e => new HexCoord { Q = e.Item1, R = e.Item2 })
+                .ToList()
         };
     }
 
@@ -417,6 +476,24 @@ public class HexcrawlMapViewModel : ViewModelBase
 
             DrawPartyToken(ctx, hexSize, scale);
 
+            // Draw revealed place names on top of fog (player bitmap shows only revealed+explored).
+            {
+                double rScalePn = hexSize * HexGeometry.Sqrt3;
+                for (int q = qMin; q <= qMax; q++)
+                {
+                    int rOff = q / 2;
+                    double halfQ = q / 2.0;
+                    int rMin = Math.Max((int)Math.Floor(worldTop    / rScalePn - halfQ) - 1, -rOff);
+                    int rMax = Math.Min((int)Math.Ceiling(worldBottom / rScalePn - halfQ) + 1, GridHeight - 1 - rOff);
+                    for (int r = rMin; r <= rMax; r++)
+                    {
+                        if (!IsLabelRevealed(q, r)) continue;
+                        if (includeFog && !IsExplored(q, r)) continue;
+                        DrawPlaceName(ctx, q, r, hexSize, revealed: true);
+                    }
+                }
+            }
+
             ctx.Pop(); // ScaleTransform
             ctx.Pop(); // TranslateTransform
             ctx.Pop(); // clip
@@ -447,6 +524,78 @@ public class HexcrawlMapViewModel : ViewModelBase
             fill.Freeze();
             ctx.DrawGeometry(fill, outlinePen, ellipse);
         }
+    }
+
+    // --- Place names ---
+
+    // Reveals the place name of a hex (and optionally neighbors) to players.
+    // Only adds hexes that actually have a label; no-ops otherwise.
+    public void RevealLabel(int q, int r, bool includeNeighbors)
+    {
+        if (_cellLabels.ContainsKey((q, r)))
+            _revealedLabels.Add((q, r));
+        if (includeNeighbors)
+            foreach (var n in HexGeometry.GetNeighbors(q, r, GridWidth, GridHeight))
+                if (_cellLabels.ContainsKey(n))
+                    _revealedLabels.Add(n);
+        RenderRequested?.Invoke();
+    }
+
+    public bool IsLabelRevealed(int q, int r) => _revealedLabels.Contains((q, r));
+
+    // Sets the selected hex for place-name editing (called via SelectCellCommand from right-click).
+    private void SelectCell(object param)
+    {
+        if (param is not (int q, int r)) return;
+        if (q < 0 || q >= GridWidth) return;
+        int rOff = q / 2;
+        if (r < -rOff || r >= GridHeight - rOff) return;
+        _selectedQ = q;
+        _selectedR = r;
+        NotifyPropertyChange(nameof(SelectedCellLabel));
+        NotifyPropertyChange(nameof(SelectedHexInfo));
+    }
+
+    // Draws the place name (if any) at the lower-center of a hex. Text is not clipped to the hex.
+    // revealed=true → normal white style (visible to players);
+    // revealed=false → dimmed gray style (DM-only hint that the name is still hidden).
+    public void DrawPlaceName(DrawingContext ctx, int q, int r, double hexSize, bool revealed)
+    {
+        if (!_cellLabels.TryGetValue((q, r), out var label) || string.IsNullOrEmpty(label)) return;
+        var geom = GetOrCreatePlaceNameGeom(label, hexSize);
+        if (geom == null) return;
+        var (wx, wy) = HexGeometry.AxialToPixel(q, r, hexSize);
+        double tx = wx - geom.Bounds.Width / 2.0;
+        double ty = wy + hexSize * 0.50;
+        ctx.PushTransform(new TranslateTransform(tx, ty));
+        ctx.DrawGeometry(
+            revealed ? PlaceNameRevealedFill : PlaceNameHiddenFill,
+            revealed ? PlaceNameRevealedStroke : PlaceNameHiddenStroke,
+            geom);
+        ctx.Pop();
+    }
+
+    // Lazy per-text geometry cache; cleared whenever hexSize changes.
+    private Geometry GetOrCreatePlaceNameGeom(string text, double hexSize)
+    {
+        if (Math.Abs(_placeNameCacheHexSize - hexSize) > 0.001)
+        {
+            _placeNameCache.Clear();
+            _placeNameCacheHexSize = hexSize;
+        }
+        if (_placeNameCache.TryGetValue(text, out var cached)) return cached;
+        var ft = new FormattedText(
+            text,
+            CultureInfo.InvariantCulture,
+            FlowDirection.LeftToRight,
+            LabelTypeface,
+            hexSize * 0.28,
+            LabelFillBrush,
+            1.0);
+        var geom = ft.BuildGeometry(new Point(0, 0));
+        geom?.Freeze();
+        _placeNameCache[text] = geom;
+        return geom;
     }
 
     // --- Hex labels (CCRR wargame convention: first two digits = column, last two = row) ---

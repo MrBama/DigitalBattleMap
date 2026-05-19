@@ -23,6 +23,9 @@ public class HexcrawlPlayViewModel : ViewModelBase
     // When true, Explore/Cover and token placement also affect the 6 neighboring hexes.
     public bool IncludeNeighbors { get => Get<bool>(); set => Set(value); }
 
+    // When true, any explore action also reveals the place name of those hexes to players.
+    public bool RevealNamesOnExplore { get => Get<bool>(); set => Set(value); }
+
     public ICommand ExploreCommand      { get; private set; }
     public ICommand CoverCommand        { get; private set; }
     public ICommand ResetFogCommand     { get; private set; }
@@ -51,8 +54,16 @@ public class HexcrawlPlayViewModel : ViewModelBase
     private void ExecuteOnCell(object param, bool explore)
     {
         if (Map == null || param is not (int q, int r)) return;
-        if (explore) Map.Explore(q, r, IncludeNeighbors);
-        else         Map.Cover(q, r, IncludeNeighbors);
+        if (explore)
+        {
+            Map.Explore(q, r, IncludeNeighbors);
+            if (RevealNamesOnExplore)
+                Map.RevealLabel(q, r, IncludeNeighbors);
+        }
+        else
+        {
+            Map.Cover(q, r, IncludeNeighbors);
+        }
     }
 
     private void PlaceToken(object param)
@@ -60,6 +71,8 @@ public class HexcrawlPlayViewModel : ViewModelBase
         if (Map == null || param is not (int q, int r)) return;
         Map.PlacePartyToken(q, r);
         Map.Explore(q, r, IncludeNeighbors);
+        if (RevealNamesOnExplore)
+            Map.RevealLabel(q, r, IncludeNeighbors);
         CommandManager.InvalidateRequerySuggested();
     }
 

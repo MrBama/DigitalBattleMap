@@ -174,6 +174,23 @@ public class HexMapCanvas : FrameworkElement
             }
         }
 
+        // Place names: editor shows all as revealed; play mode shows all with reveal-status styling
+        // (white = player can see it, gray = DM-only hint that the name is still hidden).
+        {
+            for (int q = qMin; q <= qMax; q++)
+            {
+                int rOff = q / 2;
+                double halfQ = (double)q / 2.0;
+                int rMinL = Math.Max((int)Math.Floor(worldTop    / rScale - halfQ) - 1, -rOff);
+                int rMaxL = Math.Min((int)Math.Ceiling(worldBottom / rScale - halfQ) + 1, vm.GridHeight - 1 - rOff);
+                for (int r = rMinL; r <= rMaxL; r++)
+                {
+                    bool revealed = !ShowFog || vm.IsLabelRevealed(q, r);
+                    vm.DrawPlaceName(dc, q, r, hexSize, revealed);
+                }
+            }
+        }
+
         dc.Pop(); // scale
         dc.Pop(); // translate
         dc.Pop(); // clip
@@ -188,6 +205,8 @@ public class HexMapCanvas : FrameworkElement
     public static readonly DependencyProperty IsTokenModeProperty =
         DependencyProperty.Register(nameof(IsTokenMode), typeof(bool), typeof(HexMapCanvas),
             new PropertyMetadata(false));
+    public static readonly DependencyProperty SelectCellCommandProperty =
+        DependencyProperty.Register(nameof(SelectCellCommand), typeof(ICommand), typeof(HexMapCanvas));
 
     // Bound to HexPlayViewModel.ExploreCommand / CoverCommand when ShowFog is true.
     // Parameter passed is a ValueTuple<int,int> (q, r).
@@ -213,6 +232,12 @@ public class HexMapCanvas : FrameworkElement
         get => (bool)GetValue(IsTokenModeProperty);
         set => SetValue(IsTokenModeProperty, value);
     }
+    // Right-click in editor mode calls this to select a hex for place-name editing.
+    public ICommand SelectCellCommand
+    {
+        get => (ICommand)GetValue(SelectCellCommandProperty);
+        set => SetValue(SelectCellCommandProperty, value);
+    }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
@@ -234,8 +259,11 @@ public class HexMapCanvas : FrameworkElement
 
     protected override void OnMouseRightButtonDown(MouseButtonEventArgs e)
     {
-        if (ViewModel == null || !ShowFog) return;
-        FogClickAt(e.GetPosition(this), explore: false);
+        if (ViewModel == null) return;
+        if (ShowFog)
+            FogClickAt(e.GetPosition(this), explore: false);
+        else
+            SelectCellAt(e.GetPosition(this));
         e.Handled = true;
     }
 
@@ -279,5 +307,13 @@ public class HexMapCanvas : FrameworkElement
         double worldY = (screenPos.Y - ViewModel.OffsetY) / ViewModel.Scale;
         var (q, r) = HexGeometry.PixelToAxial(worldX, worldY, ViewModel.HexSize);
         PlaceTokenCommand?.Execute((q, r));
+    }
+
+    private void SelectCellAt(Point screenPos)
+    {
+        double worldX = (screenPos.X - ViewModel.OffsetX) / ViewModel.Scale;
+        double worldY = (screenPos.Y - ViewModel.OffsetY) / ViewModel.Scale;
+        var (q, r) = HexGeometry.PixelToAxial(worldX, worldY, ViewModel.HexSize);
+        SelectCellCommand?.Execute((q, r));
     }
 }

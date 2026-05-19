@@ -46,6 +46,12 @@
                    Visibility="{Binding IsTokenMode, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
                    Foreground="Gray" FontSize="12" Margin="0 0 0 8"/>
 
+        <!--Place names toggle-->
+        <Separator Margin="0 4 0 8"/>
+        <CheckBox Content="Reveal names on explore"
+                  IsChecked="{Binding RevealNamesOnExplore}"
+                  Margin="0 0 0 8"/>
+
         <!--Party token section-->
         <Separator Margin="0 4 0 8"/>
         <TextBlock Text="Party token" FontWeight="SemiBold" Margin="0 0 0 6"/>

@@ -11,10 +11,19 @@ public class HexcrawlGridData
     public List<HexCoord> ExploredHexes { get; set; } = new();
     public HexCoord PartyTokenPos { get; set; }
     public string PartyTokenImagePath { get; set; }
+    public List<HexLabelEntry> HexLabels { get; set; } = new();
+    public List<HexCoord> RevealedLabels { get; set; } = new();
 }
 
 public class HexCoord
 {
     public int Q { get; set; }
     public int R { get; set; }
+}
+
+public class HexLabelEntry
+{
+    public int Q { get; set; }
+    public int R { get; set; }
+    public string Label { get; set; }
 }
