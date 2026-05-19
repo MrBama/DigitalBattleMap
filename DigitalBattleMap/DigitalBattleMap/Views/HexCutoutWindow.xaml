@@ -20,7 +20,7 @@
         <Border BorderThickness="1" BorderBrush="Gray" Width="500" Height="500"
                 HorizontalAlignment="Left" VerticalAlignment="Top">
             <Canvas x:Name="ImageCanvas" Width="500" Height="500" ClipToBounds="True"
-                    Cursor="Crosshair" Background="Transparent"
+                    Cursor="Cross" Background="Transparent"
                     MouseLeftButtonDown="ImageCanvas_MouseLeftButtonDown">
                 <Image Source="{Binding SourceImage}"
                        Width="{Binding DisplayWidth}"
