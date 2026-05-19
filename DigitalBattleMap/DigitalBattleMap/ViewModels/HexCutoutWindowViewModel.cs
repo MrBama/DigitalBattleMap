@@ -49,7 +49,7 @@ public class HexCutoutWindowViewModel : ViewModelBase
         _dcx = DisplayOffsetX + DisplayWidth  / 2.0;
         _dcy = DisplayOffsetY + DisplayHeight / 2.0;
 
-        MaxRadius = Math.Min(DisplayWidth, DisplayHeight) / 2.0;
+        MaxRadius = Math.Min(DisplayWidth / 2.0, DisplayHeight / HexGeometry.Sqrt3);
         HexRadius = MaxRadius * 0.8;
     }
 

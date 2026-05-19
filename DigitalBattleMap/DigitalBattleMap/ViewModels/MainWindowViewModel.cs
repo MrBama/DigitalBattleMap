@@ -58,6 +58,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public int DrawingCanvasZIndex { get => Get<int>(); set => Set(value); }
     public int MultiMoveCount { get => Get<int>(); set => Set(value); }
     public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, IsShowMapLockedChanged); }
+    public bool IsHexAutoUpdate { get => Get<bool>(); set => Set(value, IsHexAutoUpdateChanged); }
     public bool ServerConnectionButtonEnabled { get => Get<bool>(); set => Set(value); }
     public bool IsConfigurationMenuExpanded { get => Get<bool>(); set => Set(value); }
     public bool IsMultiMove { get => Get<bool>(); set => Set(value); }
@@ -115,6 +116,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     string OverviewInfoText => "Active Mode: Map Overview \n \n Press reset to reset the overview";
 
     public ICommand ShowMapCommand { get; set; }
+    public ICommand ShowHexMapCommand { get; set; }
     public ICommand WindowClosingCommand { get; set; }
     public ICommand CanvasSizeOnStartupCommand { get; set; }
     public ICommand CanvasSizeChangedCommand { get; set; }
@@ -174,6 +176,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         DrawingController.OnDrawingShapesUpdated += DrawingShapesUpdated;
 
         HexcrawlEditor = new HexcrawlEditorViewModel(_windowService);
+        HexcrawlEditor.Map.RenderRequested += OnHexMapRenderRequested;
 
         // settings
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
@@ -199,7 +202,8 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     protected override void InitializeCommands()
     {
-        ShowMapCommand = new RelayCommand(p => ShowMapToPlayers());
+        ShowMapCommand    = new RelayCommand(p => ShowMapToPlayers());
+        ShowHexMapCommand = new RelayCommand(p => ShowHexMapToPlayers());
         WindowClosingCommand = new RelayCommand(p => WindowClosing());
         CanvasSizeOnStartupCommand = new RelayCommand(p => SetCanvasSize((double)p));
         CanvasSizeChangedCommand = new RelayCommand(p => CanvasSizeChanged((SizeChangedEventArgs)p));
@@ -312,6 +316,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void ShowMapToPlayers()
     {
+        IsHexAutoUpdate = false;
         UpdatePauseStatus();
         ShowMap();
     }
@@ -805,9 +810,35 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void IsShowMapLockedChanged()
     {
+        if (IsShowMapLocked && IsHexAutoUpdate)
+            IsHexAutoUpdate = false;
         _connectionManager?.UpdatePlayerControlAllowed(IsShowMapLocked);
         UpdatePauseStatus();
         UpdateMap(DrawLayer.All);
+    }
+
+    private void IsHexAutoUpdateChanged()
+    {
+        if (IsHexAutoUpdate && IsShowMapLocked)
+            IsShowMapLocked = false;
+        if (IsHexAutoUpdate)
+            ShowHexMapToPlayers();
+    }
+
+    private void ShowHexMapToPlayers()
+    {
+        if (_mapWindowViewModel == null) return;
+        IsShowMapLocked = false;
+        var bitmap = HexcrawlEditor.Map.RenderToBitmap();
+        if (bitmap == null) return;
+        _mapWindowViewModel.BackgroundBitmapSource = bitmap.ToBitmapImage();
+        _connectionManager?.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = bitmap });
+    }
+
+    private void OnHexMapRenderRequested()
+    {
+        if (IsHexAutoUpdate)
+            ShowHexMapToPlayers();
     }
 
     private void KeyDown(KeyEventArgs keyEventArgs)

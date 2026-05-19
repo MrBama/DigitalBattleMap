@@ -13,6 +13,7 @@
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
         <!--Tile list-->
@@ -51,8 +52,19 @@
             <Button Content="Remove tile" Grid.Column="1" Margin="4 0 0 0" Command="{Binding RemoveTileCommand}"/>
         </Grid>
 
+        <!--Rename-->
+        <Grid Grid.Row="2" Margin="0 6 0 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Text="{Binding EditingName, UpdateSourceTrigger=PropertyChanged}"
+                     VerticalContentAlignment="Center" Margin="0 0 4 0"/>
+            <Button Grid.Column="1" Content="Rename" Command="{Binding RenameTileCommand}" MinWidth="80"/>
+        </Grid>
+
         <!--Grid size-->
-        <Grid Grid.Row="2" Margin="0 8 0 0">
+        <Grid Grid.Row="3" Margin="0 8 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
@@ -66,7 +78,7 @@
         </Grid>
 
         <!--Undo / Redo-->
-        <Grid Grid.Row="3" Margin="0 6 0 0">
+        <Grid Grid.Row="4" Margin="0 6 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>

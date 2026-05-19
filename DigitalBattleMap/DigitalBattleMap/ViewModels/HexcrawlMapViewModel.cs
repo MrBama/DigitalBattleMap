@@ -3,8 +3,11 @@ using DigitalBattleMap.UIElements;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.ViewModels;
 
@@ -217,5 +220,131 @@ public class HexcrawlMapViewModel : ViewModelBase
             GridHeight = GridHeight,
             Cells      = _cells.Values.ToList()
         };
+    }
+
+    // Renders the current hex map view to a System.Drawing.Bitmap for sending to players.
+    // Falls back to 1280x720 if the canvas size is not yet known (hex tab never opened).
+    public System.Drawing.Bitmap RenderToBitmap()
+    {
+        int width  = CanvasSize.Width  > 0 ? (int)CanvasSize.Width  : 1280;
+        int height = CanvasSize.Height > 0 ? (int)CanvasSize.Height : 720;
+
+        var visual = BuildDrawingVisual(width, height);
+        var rtb    = RenderToTarget(visual, width, height);
+        return ConvertToBitmap(rtb);
+    }
+
+    // Draws the full hex grid into a DrawingVisual using the current pan/zoom state.
+    private DrawingVisual BuildDrawingVisual(int width, int height)
+    {
+        double scale   = Scale;
+        double ox      = OffsetX;
+        double oy      = OffsetY;
+        double hexSize = HexSize;
+
+        // Convert screen bounds to world coordinates so only visible columns/rows are drawn.
+        double worldLeft   = (0      - ox) / scale;
+        double worldRight  = (width  - ox) / scale;
+        double worldTop    = (0      - oy) / scale;
+        double worldBottom = (height - oy) / scale;
+
+        var (qMin, qMax) = GetVisibleColumnRange(worldLeft, worldRight, hexSize);
+
+        var outlinePen = new Pen(new SolidColorBrush(Color.FromRgb(100, 100, 100)), 1.0 / scale);
+        outlinePen.Freeze();
+
+        var visual = new DrawingVisual();
+        using (var ctx = visual.RenderOpen())
+        {
+            ctx.DrawRectangle(Brushes.White, null, new Rect(0, 0, width, height));
+            ctx.PushClip(new RectangleGeometry(new Rect(0, 0, width, height)));
+            ctx.PushTransform(new TranslateTransform(ox, oy));
+            ctx.PushTransform(new ScaleTransform(scale, scale));
+
+            for (int q = qMin; q <= qMax; q++)
+                DrawColumn(ctx, q, hexSize, worldTop, worldBottom, outlinePen);
+
+            ctx.Pop(); // ScaleTransform
+            ctx.Pop(); // TranslateTransform
+            ctx.Pop(); // clip
+        }
+        return visual;
+    }
+
+    // Returns the inclusive column (q) range that intersects the visible world area.
+    private (int qMin, int qMax) GetVisibleColumnRange(double worldLeft, double worldRight, double hexSize)
+    {
+        // Flat-top hex: column pitch is hexSize * 1.5 along x.
+        int qMin = Math.Max(0,             (int)Math.Floor(worldLeft   / (hexSize * 1.5)) - 2);
+        int qMax = Math.Min(GridWidth - 1, (int)Math.Ceiling(worldRight / (hexSize * 1.5)) + 2);
+        return (qMin, qMax);
+    }
+
+    // Draws all visible rows in one column.
+    private void DrawColumn(DrawingContext ctx, int q, double hexSize,
+                            double worldTop, double worldBottom, Pen outlinePen)
+    {
+        // Even-q offset layout: odd columns are shifted down by half a hex.
+        // Row world-y for axial (q,r): wy = hexSize * Sqrt3 * (r + q/2)
+        double rScale = hexSize * HexGeometry.Sqrt3;
+        int rOff  = q / 2;
+        double halfQ = q / 2.0;
+        int rMin = Math.Max((int)Math.Floor(worldTop    / rScale - halfQ) - 1, -rOff);
+        int rMax = Math.Min((int)Math.Ceiling(worldBottom / rScale - halfQ) + 1, GridHeight - 1 - rOff);
+
+        for (int r = rMin; r <= rMax; r++)
+            DrawHex(ctx, q, r, hexSize, outlinePen);
+    }
+
+    // Draws a single hex cell: fill (if painted) then outline.
+    private void DrawHex(DrawingContext ctx, int q, int r, double hexSize, Pen outlinePen)
+    {
+        var (wx, wy) = HexGeometry.AxialToPixel(q, r, hexSize);
+        var hexGeom  = HexGeometry.CreateStreamGeometry(wx, wy, hexSize);
+
+        var cell = GetCell(q, r);
+        if (cell != null)
+            DrawTileFill(ctx, hexGeom, wx, wy, hexSize, GetTile(cell.TileId));
+
+        ctx.DrawGeometry(null, outlinePen, hexGeom);
+    }
+
+    // Fills a hex with either a solid colour (preset tile) or a clipped bitmap (custom tile).
+    private static void DrawTileFill(DrawingContext ctx, Geometry hexGeom,
+                                     double wx, double wy, double hexSize, HexTile tile)
+    {
+        if (tile == null) return;
+
+        if (tile.IsPreset)
+        {
+            ctx.DrawGeometry(new SolidColorBrush(tile.PresetColor), null, hexGeom);
+        }
+        else if (tile.Bitmap != null)
+        {
+            // Clip bitmap to hex shape; bitmap rect is centred on the hex centre.
+            ctx.PushClip(hexGeom);
+            ctx.DrawImage(tile.Bitmap, new Rect(wx - hexSize, wy - hexSize, hexSize * 2, hexSize * 2));
+            ctx.Pop();
+        }
+    }
+
+    // Rasterises the DrawingVisual to a WPF RenderTargetBitmap.
+    private static RenderTargetBitmap RenderToTarget(DrawingVisual visual, int width, int height)
+    {
+        var rtb = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
+        rtb.Render(visual);
+        rtb.Freeze();
+        return rtb;
+    }
+
+    // Converts a WPF BitmapSource to a System.Drawing.Bitmap via PNG encoding.
+    private static System.Drawing.Bitmap ConvertToBitmap(BitmapSource source)
+    {
+        using var ms = new MemoryStream();
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(source));
+        encoder.Save(ms);
+        ms.Position = 0;
+        return new System.Drawing.Bitmap(ms);
     }
 }

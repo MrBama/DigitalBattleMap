@@ -37,6 +37,48 @@
         <SolidColorBrush x:Key="Button.Disabled.Background" Color="#FFF4F4F4"/>
         <SolidColorBrush x:Key="Button.Disabled.Border" Color="#FFADB2B5"/>
         <SolidColorBrush x:Key="Button.Disabled.Foreground" Color="#FF838383"/>
+        <Style x:Key="PlayerViewToggleStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
+            <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
+                            <ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.MouseOver.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.MouseOver.Border}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" TargetName="border" Value="#FF90EE90"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="#FF228B22"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsChecked" Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Background" TargetName="border" Value="#FF50C850"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="#FF228B22"/>
+                            </MultiTrigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
+                                <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="InfoToggleStyle" TargetType="{x:Type ToggleButton}"> <!-- I wanted a round button :( -->
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
             <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>
@@ -429,15 +471,34 @@
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="auto"/>
                                 <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
                             </Grid.RowDefinitions>
 
-                            <Button Grid.Row="1" Content="Show map" Command="{Binding ShowMapCommand}" MinWidth="150"/>
-                            <CheckBox Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0 0 2 0" IsChecked="{Binding IsShowMapLocked}">
-                                <CheckBox.LayoutTransform>
-                                    <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
-                                </CheckBox.LayoutTransform>
-                            </CheckBox>
-                            <Button Grid.Row="2" Content="Clear all" Margin="0 10 0 0" Command="{Binding ClearAllCommand}"/>
+                            <!-- Hex Map -->
+                            <Grid Grid.Row="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Content="Show Hex Map" Command="{Binding ShowHexMapCommand}"/>
+                                <ToggleButton Grid.Column="1" Content="Auto" IsChecked="{Binding IsHexAutoUpdate}"
+                                              Style="{StaticResource PlayerViewToggleStyle}"
+                                              MinWidth="50" Margin="5 0 0 0"/>
+                            </Grid>
+
+                            <!-- Battle Map -->
+                            <Grid Grid.Row="2" Margin="0 10 0 0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Content="Show Battle Map" Command="{Binding ShowMapCommand}"/>
+                                <ToggleButton Grid.Column="1" Content="Live" IsChecked="{Binding IsShowMapLocked}"
+                                              Style="{StaticResource PlayerViewToggleStyle}"
+                                              MinWidth="50" Margin="5 0 0 0"/>
+                            </Grid>
+
+                            <Button Grid.Row="3" Content="Clear Battle Map" Margin="0 10 0 0" Command="{Binding ClearAllCommand}"/>
                         </Grid>
                     </Grid>
                 </Border>

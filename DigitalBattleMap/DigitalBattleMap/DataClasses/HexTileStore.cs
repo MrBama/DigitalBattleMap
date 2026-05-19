@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,6 +15,8 @@ public class HexTileStore
     private static string IndexPath => Path.Combine(TilesPath, "index.json");
 
     private readonly Dictionary<string, HexTile> _tiles = new();
+    private readonly HashSet<string> _removedPresets = new();
+    private readonly Dictionary<string, string> _presetNameOverrides = new();
 
     public IReadOnlyList<HexTile> GetAll() => _tiles.Values.ToList();
 
@@ -21,8 +24,8 @@ public class HexTileStore
 
     public void Initialize()
     {
+        LoadCustomTiles(); // must load removedPresets / overrides before AddPresets
         AddPresets();
-        LoadCustomTiles();
     }
 
     public void AddCustomTile(HexTile tile, BitmapSource bitmap)
@@ -39,12 +42,31 @@ public class HexTileStore
         SaveIndex();
     }
 
-    public void RemoveCustomTile(string id)
+    public void RemoveTile(string id)
     {
-        if (!_tiles.TryGetValue(id, out var tile) || tile.IsPreset) return;
+        if (!_tiles.TryGetValue(id, out var tile)) return;
         _tiles.Remove(id);
-        var path = Path.Combine(TilesPath, $"{id}.png");
-        if (File.Exists(path)) File.Delete(path);
+
+        if (tile.IsPreset)
+        {
+            _removedPresets.Add(id);
+            _presetNameOverrides.Remove(id);
+        }
+        else
+        {
+            var path = Path.Combine(TilesPath, $"{id}.png");
+            if (File.Exists(path)) File.Delete(path);
+        }
+
+        SaveIndex();
+    }
+
+    public void RenameTile(string id, string newName)
+    {
+        if (!_tiles.TryGetValue(id, out var tile)) return;
+        tile.Name = newName;
+        if (tile.IsPreset)
+            _presetNameOverrides[id] = newName;
         SaveIndex();
     }
 
@@ -63,7 +85,11 @@ public class HexTileStore
         };
 
         foreach (var (id, name, color) in presets)
-            _tiles[id] = new HexTile { Id = id, Name = name, IsPreset = true, PresetColor = color };
+        {
+            if (_removedPresets.Contains(id)) continue;
+            var displayName = _presetNameOverrides.TryGetValue(id, out var n) ? n : name;
+            _tiles[id] = new HexTile { Id = id, Name = displayName, IsPreset = true, PresetColor = color };
+        }
     }
 
     private void LoadCustomTiles()
@@ -73,12 +99,28 @@ public class HexTileStore
         try
         {
             var json = File.ReadAllText(IndexPath);
-            var entries = JsonConvert.DeserializeObject<List<TileEntry>>(json) ?? new();
-            foreach (var entry in entries)
+            var token = JToken.Parse(json);
+
+            List<TileEntry> tileEntries;
+            if (token is JObject)
+            {
+                var index = token.ToObject<TileIndex>() ?? new TileIndex();
+                foreach (var id in index.RemovedPresets)
+                    _removedPresets.Add(id);
+                foreach (var kv in index.PresetNameOverrides)
+                    _presetNameOverrides[kv.Key] = kv.Value;
+                tileEntries = index.Tiles;
+            }
+            else
+            {
+                // backward-compat: old format was a bare array
+                tileEntries = token.ToObject<List<TileEntry>>() ?? new();
+            }
+
+            foreach (var entry in tileEntries)
             {
                 var imgPath = Path.Combine(TilesPath, $"{entry.Id}.png");
                 if (!File.Exists(imgPath)) continue;
-
                 var bitmap = new BitmapImage(new Uri(imgPath));
                 _tiles[entry.Id] = new HexTile { Id = entry.Id, Name = entry.Name, IsPreset = false, Bitmap = bitmap };
             }
@@ -88,11 +130,24 @@ public class HexTileStore
 
     private void SaveIndex()
     {
-        var entries = _tiles.Values
-            .Where(t => !t.IsPreset)
-            .Select(t => new TileEntry { Id = t.Id, Name = t.Name })
-            .ToList();
-        File.WriteAllText(IndexPath, JsonConvert.SerializeObject(entries, Formatting.Indented));
+        Directory.CreateDirectory(TilesPath);
+        var index = new TileIndex
+        {
+            RemovedPresets = _removedPresets.ToList(),
+            PresetNameOverrides = new Dictionary<string, string>(_presetNameOverrides),
+            Tiles = _tiles.Values
+                .Where(t => !t.IsPreset)
+                .Select(t => new TileEntry { Id = t.Id, Name = t.Name })
+                .ToList()
+        };
+        File.WriteAllText(IndexPath, JsonConvert.SerializeObject(index, Formatting.Indented));
+    }
+
+    private class TileIndex
+    {
+        public List<string> RemovedPresets { get; set; } = new();
+        public Dictionary<string, string> PresetNameOverrides { get; set; } = new();
+        public List<TileEntry> Tiles { get; set; } = new();
     }
 
     private class TileEntry
