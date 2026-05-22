@@ -13,6 +13,7 @@ public class HexcrawlGridData
     public string PartyTokenImagePath { get; set; }
     public List<HexLabelEntry> HexLabels { get; set; } = new();
     public List<HexCoord> RevealedLabels { get; set; } = new();
+    public List<HexEdge> Edges { get; set; } = new();
 }
 
 public class HexCoord

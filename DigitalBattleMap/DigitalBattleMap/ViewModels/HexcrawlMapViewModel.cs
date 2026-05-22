@@ -17,11 +17,19 @@ namespace DigitalBattleMap.ViewModels;
 public class HexcrawlMapViewModel : ViewModelBase
 {
     private readonly HexTileStore _tileStore;
+    private readonly HexEdgeTypeStore _edgeStore;
     private readonly Dictionary<(int, int), HexCell> _cells = new();
     private readonly Dictionary<(int, int), string> _gestureOriginals = new();
     private readonly HashSet<(int, int)> _paintedThisGesture = new();
     private readonly HashSet<(int, int)> _exploredHexes = new();
     private bool _isPainting;
+
+    // Canonical edge storage: key = (q, r, dir) from CanonicalizeEdge, value = typeId
+    private readonly Dictionary<(int, int, int), string> _edges = new();
+    // Edge paint gesture state
+    private bool _isEdgePainting;
+    private readonly Dictionary<(int, int, int), string> _edgeGestureOriginals = new();
+    private readonly HashSet<(int, int, int)> _edgePaintedThisGesture = new();
     private bool _needsInitialCenter = true;
     private int? _partyQ;
     private int? _partyR;
@@ -33,6 +41,10 @@ public class HexcrawlMapViewModel : ViewModelBase
     private double _pingRadiusWorld;
     private bool _pingVisible;
     private DispatcherTimer _pingTimer;
+
+    // --- Edge pen cache (keyed by typeId, invalidated on hexSize change) ---
+    private readonly Dictionary<string, Pen> _edgePenCache = new();
+    private double _edgePenCacheHexSize = -1;
 
     // --- Place names ---
     private readonly Dictionary<(int, int), string> _cellLabels = new();
@@ -71,16 +83,25 @@ public class HexcrawlMapViewModel : ViewModelBase
         return pen;
     }
 
+    public HexcrawlMapViewModel(HexTileStore tileStore, HexEdgeTypeStore edgeStore)
+    {
+        _tileStore = tileStore;
+        _edgeStore = edgeStore;
+        PaintHistory = new CommandHistory<IHexMapCommand>(50);
+    }
+
     public HexcrawlMapViewModel(HexTileStore tileStore)
     {
         _tileStore = tileStore;
-        PaintHistory = new CommandHistory<HexPaintCommand>(50);
+        _edgeStore = new HexEdgeTypeStore();
+        PaintHistory = new CommandHistory<IHexMapCommand>(50);
     }
 
     public HexcrawlMapViewModel()
     {
         _tileStore = new HexTileStore();
-        PaintHistory = new CommandHistory<HexPaintCommand>(50);
+        _edgeStore = new HexEdgeTypeStore();
+        PaintHistory = new CommandHistory<IHexMapCommand>(50);
     }
 
     protected override void InitializeCommands()
@@ -91,9 +112,11 @@ public class HexcrawlMapViewModel : ViewModelBase
         SelectCellCommand = new RelayCommand(SelectCell);
     }
 
-    public CommandHistory<HexPaintCommand> PaintHistory { get; }
+    public CommandHistory<IHexMapCommand> PaintHistory { get; }
     public double HexSize { get; set; } = 80.0;
     public string ActiveTileId { get; set; }
+    public string ActiveEdgeTypeId { get; set; }
+    public bool IsEdgePaintMode => ActiveEdgeTypeId != null;
     public Size CanvasSize { get; private set; }
 
     public int? PartyQ => _partyQ;
@@ -245,24 +268,115 @@ public class HexcrawlMapViewModel : ViewModelBase
     public void Undo()
     {
         if (!PaintHistory.TryDequeuePreviousCommand(out var cmd)) return;
-        foreach (var c in cmd.Changes)
-        {
-            if (c.OldTileId == null) _cells.Remove((c.Q, c.R));
-            else _cells[(c.Q, c.R)] = new HexCell(c.Q, c.R, c.OldTileId);
-        }
+        if (cmd is HexPaintCommand tc)
+            foreach (var c in tc.Changes)
+            {
+                if (c.OldTileId == null) _cells.Remove((c.Q, c.R));
+                else _cells[(c.Q, c.R)] = new HexCell(c.Q, c.R, c.OldTileId);
+            }
+        else if (cmd is HexEdgePaintCommand ec)
+            foreach (var c in ec.Changes)
+                ApplyEdgeValue(c.Q, c.R, c.EdgeDir, c.OldTypeId);
         RenderRequested?.Invoke();
     }
 
     public void Redo()
     {
         if (!PaintHistory.TryDequeueNextCommand(out var cmd)) return;
-        foreach (var c in cmd.Changes)
-        {
-            if (c.NewTileId == null) _cells.Remove((c.Q, c.R));
-            else _cells[(c.Q, c.R)] = new HexCell(c.Q, c.R, c.NewTileId);
-        }
+        if (cmd is HexPaintCommand tc)
+            foreach (var c in tc.Changes)
+            {
+                if (c.NewTileId == null) _cells.Remove((c.Q, c.R));
+                else _cells[(c.Q, c.R)] = new HexCell(c.Q, c.R, c.NewTileId);
+            }
+        else if (cmd is HexEdgePaintCommand ec)
+            foreach (var c in ec.Changes)
+                ApplyEdgeValue(c.Q, c.R, c.EdgeDir, c.NewTypeId);
         RenderRequested?.Invoke();
     }
+
+    private void ApplyEdgeValue(int q, int r, int dir, string typeId)
+    {
+        var key = HexGeometry.CanonicalizeEdge(q, r, dir);
+        if (typeId == null) _edges.Remove(key);
+        else _edges[key] = typeId;
+    }
+
+    // --- Edge painting ---
+
+    public void BeginEdgePaint()
+    {
+        _isEdgePainting = true;
+        _edgeGestureOriginals.Clear();
+        _edgePaintedThisGesture.Clear();
+    }
+
+    // Paints (or erases when ActiveEdgeTypeId==null) the edge between (q,r) and its dir-neighbour.
+    public void PaintEdge(int q, int r, int dir)
+    {
+        if (!_isEdgePainting) return;
+        var key = HexGeometry.CanonicalizeEdge(q, r, dir);
+
+        if (_edgePaintedThisGesture.Contains(key)) return;
+        if (!_edgeGestureOriginals.ContainsKey(key))
+            _edgeGestureOriginals[key] = _edges.TryGetValue(key, out var ex) ? ex : null;
+
+        if (ActiveEdgeTypeId == null) _edges.Remove(key);
+        else _edges[key] = ActiveEdgeTypeId;
+
+        _edgePaintedThisGesture.Add(key);
+        RenderRequested?.Invoke();
+    }
+
+    public void EndEdgePaint()
+    {
+        if (!_isEdgePainting) return;
+        _isEdgePainting = false;
+
+        if (_edgePaintedThisGesture.Count == 0) return;
+
+        var cmd = new HexEdgePaintCommand();
+        foreach (var key in _edgePaintedThisGesture)
+        {
+            _edgeGestureOriginals.TryGetValue(key, out var oldId);
+            _edges.TryGetValue(key, out var newId);
+            cmd.Changes.Add(new HexEdgePaintCommand.HexEdgeChange(key.Item1, key.Item2, key.Item3, oldId, newId));
+        }
+        PaintHistory.Enqueue(cmd);
+    }
+
+    // Immediately removes a single edge and creates a one-shot undo entry.
+    public void RemoveEdgeAt(int q, int r, int dir)
+    {
+        var key = HexGeometry.CanonicalizeEdge(q, r, dir);
+        if (!_edges.TryGetValue(key, out var oldId)) return;
+
+        _edges.Remove(key);
+
+        var cmd = new HexEdgePaintCommand();
+        cmd.Changes.Add(new HexEdgePaintCommand.HexEdgeChange(key.Item1, key.Item2, key.Item3, oldId, null));
+        PaintHistory.Enqueue(cmd);
+        RenderRequested?.Invoke();
+    }
+
+    // Returns all edge directions and their typeId for a given hex (up to 6).
+    public System.Collections.Generic.List<(int dir, string typeId)> GetEdgesForHex(int q, int r)
+    {
+        var result = new System.Collections.Generic.List<(int, string)>();
+        for (int dir = 0; dir < 6; dir++)
+        {
+            var key = HexGeometry.CanonicalizeEdge(q, r, dir);
+            if (_edges.TryGetValue(key, out var typeId))
+                result.Add((dir, typeId));
+        }
+        return result;
+    }
+
+    public HexEdgeType GetEdgeType(string id) => _edgeStore.GetById(id);
+
+    public void InvalidateEdgePenCache() => _edgePenCache.Clear();
+
+    public void RaiseRenderRequested() => RenderRequested?.Invoke();
 
     public void ZoomIn()  => ApplyZoom(1.25);
     public void ZoomOut() => ApplyZoom(1.0 / 1.25);
@@ -328,6 +442,7 @@ public class HexcrawlMapViewModel : ViewModelBase
         _exploredHexes.Clear();
         _cellLabels.Clear();
         _revealedLabels.Clear();
+        _edges.Clear();
         HexSize = data.HexSize;
         _needsInitialCenter = true;
         // Set without triggering CenterGrid until canvas size is known
@@ -355,6 +470,12 @@ public class HexcrawlMapViewModel : ViewModelBase
         }
         LoadPartyTokenImage(data.PartyTokenImagePath);
 
+        foreach (var edge in data.Edges ?? new System.Collections.Generic.List<HexEdge>())
+        {
+            var key = HexGeometry.CanonicalizeEdge(edge.Q, edge.R, edge.EdgeDir);
+            _edges[key] = edge.TypeId;
+        }
+
         PaintHistory.Clear();
         RenderRequested?.Invoke();
     }
@@ -375,6 +496,9 @@ public class HexcrawlMapViewModel : ViewModelBase
                 .ToList(),
             RevealedLabels = _revealedLabels
                 .Select(e => new HexCoord { Q = e.Item1, R = e.Item2 })
+                .ToList(),
+            Edges = _edges
+                .Select(kv => new HexEdge { Q = kv.Key.Item1, R = kv.Key.Item2, EdgeDir = kv.Key.Item3, TypeId = kv.Value })
                 .ToList()
         };
     }
@@ -502,6 +626,10 @@ public class HexcrawlMapViewModel : ViewModelBase
 
             for (int q = qMin; q <= qMax; q++)
                 DrawColumn(ctx, q, hexSize, worldTop, worldBottom, outlinePen);
+
+            // Second pass: edges on top of all tile fills
+            for (int q = qMin; q <= qMax; q++)
+                DrawColumnEdges(ctx, q, hexSize, worldTop, worldBottom);
 
             if (includeFog)
             {
@@ -696,6 +824,184 @@ public class HexcrawlMapViewModel : ViewModelBase
         return geom;
     }
 
+    // --- Edge rendering ---
+
+    // Draws all edge features touching hex (q,r). Called from both OnRender and BuildDrawingVisual.
+    // Only draws from the canonical (owning) side of each shared border to avoid double-drawing.
+    public void DrawEdgesForHex(DrawingContext ctx, int q, int r, double hexSize)
+    {
+        var edgesOnHex = GetEdgesForHex(q, r);
+        if (edgesOnHex.Count == 0) return;
+
+        var (wx, wy) = HexGeometry.AxialToPixel(q, r, hexSize);
+        var corners  = HexGeometry.GetCorners(wx, wy, hexSize);
+
+        foreach (var (dir, typeId) in edgesOnHex)
+        {
+            var canonical = HexGeometry.CanonicalizeEdge(q, r, dir);
+            if (canonical.Q != q || canonical.R != r) continue;
+
+            var edgeType = _edgeStore.GetById(typeId);
+            if (edgeType == null) continue;
+
+            var pen = GetEdgePen(edgeType, hexSize);
+            var (ca, cb) = HexGeometry.GetEdgeCornerIndices(dir);
+
+            if (!edgeType.IsCurved)
+            {
+                ctx.DrawLine(pen, corners[ca], corners[cb]);
+                continue;
+            }
+
+            // Curved: draw two quadratic bezier halves, one from each end corner.
+            var M = new Point((corners[ca].X + corners[cb].X) / 2.0,
+                              (corners[ca].Y + corners[cb].Y) / 2.0);
+            DrawCurvedHalf(ctx, pen, q, r, dir, ca, M, corners[ca], typeId, hexSize);
+            DrawCurvedHalf(ctx, pen, q, r, dir, cb, M, corners[cb], typeId, hexSize);
+        }
+    }
+
+    // Draws one half of a curved edge from the edge midpoint M toward corner at cornerIdx.
+    // For each same-type adjacent edge at that corner where this edge is the canonical owner,
+    // draws a quadratic bezier M → corner (control) → M_adj.
+    // At a three-way junction (two adjacents), also fills the central gap with the edge color.
+    // If no adjacent same-type edges exist, draws a straight half-line M → corner.
+    // If adjacent edges exist but none are owned by this edge, draws nothing.
+    private void DrawCurvedHalf(DrawingContext ctx, Pen pen,
+        int q, int r, int dir, int cornerIdx,
+        Point M, Point corner, string typeId, double hexSize)
+    {
+        var adjacents = FindSameTypeEdgesAtCorner(q, r, cornerIdx, dir, typeId);
+
+        if (adjacents.Count == 0)
+        {
+            ctx.DrawLine(pen, M, corner);
+            return;
+        }
+
+        var selfKey = HexGeometry.CanonicalizeEdge(q, r, dir);
+
+        Point AdjMidpoint((int Q, int R, int Dir) e)
+        {
+            var (wx, wy) = HexGeometry.AxialToPixel(e.Q, e.R, hexSize);
+            return HexGeometry.GetEdgeMidpoint(wx, wy, hexSize, e.Dir);
+        }
+
+        // Three-way junction: fill the central gap before drawing the arcs.
+        if (adjacents.Count == 2
+            && IsCanonicallySmaller(selfKey, adjacents[0])
+            && IsCanonicallySmaller(selfKey, adjacents[1]))
+        {
+            DrawThreeWayFill(ctx, pen.Brush, M, AdjMidpoint(adjacents[0]), AdjMidpoint(adjacents[1]), corner);
+        }
+
+        foreach (var adj in adjacents)
+        {
+            if (!IsCanonicallySmaller(selfKey, adj)) continue;
+            DrawQuadBezier(ctx, pen, M, corner, AdjMidpoint(adj));
+        }
+    }
+
+    private static void DrawThreeWayFill(DrawingContext ctx, Brush brush,
+        Point m1, Point m2, Point m3, Point corner)
+    {
+        var pf = new System.Windows.Media.PathFigure
+        {
+            StartPoint = m1,
+            IsClosed   = true,
+            IsFilled   = true
+        };
+        pf.Segments.Add(new System.Windows.Media.QuadraticBezierSegment(corner, m2, false));
+        pf.Segments.Add(new System.Windows.Media.QuadraticBezierSegment(corner, m3, false));
+        pf.Segments.Add(new System.Windows.Media.QuadraticBezierSegment(corner, m1, false));
+        var pg = new System.Windows.Media.PathGeometry();
+        pg.Figures.Add(pf);
+        pg.Freeze();
+        ctx.DrawGeometry(brush, null, pg);
+    }
+
+    // Returns all same-type edges (up to 2) adjacent at cornerIdx of hex (q,r),
+    // excluding the current edge direction. Handles three-way junctions.
+    private List<(int Q, int R, int Dir)> FindSameTypeEdgesAtCorner(
+        int q, int r, int cornerIdx, int excludeDir, string typeId)
+    {
+        var result = new List<(int Q, int R, int Dir)>(2);
+
+        var (d1, d2) = HexGeometry.GetCornerEdgeDirs(cornerIdx);
+        int otherDir = (d1 == excludeDir) ? d2 : d1;
+
+        var canonOther = HexGeometry.CanonicalizeEdge(q, r, otherDir);
+        if (_edges.TryGetValue(canonOther, out var tid1) && tid1 == typeId)
+            result.Add(canonOther);
+
+        var (dq, dr, thirdDir) = HexGeometry.GetThirdEdgeAtCorner(cornerIdx);
+        var thirdKey = (q + dq, r + dr, thirdDir);
+        if (_edges.TryGetValue(thirdKey, out var tid2) && tid2 == typeId)
+            result.Add(thirdKey);
+
+        return result;
+    }
+
+    private static bool IsCanonicallySmaller(
+        (int Q, int R, int Dir) a, (int Q, int R, int Dir) b)
+    {
+        if (a.Q != b.Q) return a.Q < b.Q;
+        if (a.R != b.R) return a.R < b.R;
+        return a.Dir < b.Dir;
+    }
+
+    private static void DrawQuadBezier(DrawingContext ctx, Pen pen,
+        Point start, Point control, Point end)
+    {
+        var sg = new StreamGeometry();
+        using (var sgc = sg.Open())
+        {
+            sgc.BeginFigure(start, false, false);
+            sgc.QuadraticBezierTo(control, end, true, false);
+        }
+        sg.Freeze();
+        ctx.DrawGeometry(null, pen, sg);
+    }
+
+    private Pen GetEdgePen(HexEdgeType edgeType, double hexSize)
+    {
+        if (Math.Abs(_edgePenCacheHexSize - hexSize) > 0.001)
+        {
+            _edgePenCache.Clear();
+            _edgePenCacheHexSize = hexSize;
+        }
+        if (_edgePenCache.TryGetValue(edgeType.Id, out var cached)) return cached;
+
+        var color = ParseHexColor(edgeType.Color);
+        var brush = new SolidColorBrush(color);
+        brush.Freeze();
+        var pen = new Pen(brush, edgeType.StrokeWidth * hexSize)
+        {
+            StartLineCap = PenLineCap.Round,
+            EndLineCap   = PenLineCap.Round,
+            LineJoin      = PenLineJoin.Round
+        };
+        pen.Freeze();
+        _edgePenCache[edgeType.Id] = pen;
+        return pen;
+    }
+
+    private static Color ParseHexColor(string hex)
+    {
+        try
+        {
+            if (hex?.StartsWith("#") == true && hex.Length == 7)
+            {
+                byte r = Convert.ToByte(hex.Substring(1, 2), 16);
+                byte g = Convert.ToByte(hex.Substring(3, 2), 16);
+                byte b = Convert.ToByte(hex.Substring(5, 2), 16);
+                return Color.FromRgb(r, g, b);
+            }
+        }
+        catch { }
+        return Colors.DodgerBlue;
+    }
+
     // --- Hex labels (CCRR wargame convention: first two digits = column, last two = row) ---
 
     // Returns the 4-digit label for a hex: column*100 + visualRow, both 1-based.
@@ -779,7 +1085,7 @@ public class HexcrawlMapViewModel : ViewModelBase
             DrawHex(ctx, q, r, hexSize, outlinePen);
     }
 
-    // Draws a single hex cell: fill (if painted) then outline.
+    // Draws a single hex cell: fill (if painted) then outline. Edges are drawn in a separate pass.
     private void DrawHex(DrawingContext ctx, int q, int r, double hexSize, Pen outlinePen)
     {
         var (wx, wy) = HexGeometry.AxialToPixel(q, r, hexSize);
@@ -791,6 +1097,19 @@ public class HexcrawlMapViewModel : ViewModelBase
 
         ctx.DrawGeometry(null, outlinePen, hexGeom);
         DrawHexLabel(ctx, q, r, hexSize);
+    }
+
+    // Second-pass edge drawing for one column — called after all hex fills so edges are always on top.
+    private void DrawColumnEdges(DrawingContext ctx, int q, double hexSize,
+                                 double worldTop, double worldBottom)
+    {
+        double rScale = hexSize * HexGeometry.Sqrt3;
+        int rOff  = q / 2;
+        double halfQ = q / 2.0;
+        int rMin = Math.Max((int)Math.Floor(worldTop    / rScale - halfQ) - 1, -rOff);
+        int rMax = Math.Min((int)Math.Ceiling(worldBottom / rScale - halfQ) + 1, GridHeight - 1 - rOff);
+        for (int r = rMin; r <= rMax; r++)
+            DrawEdgesForHex(ctx, q, r, hexSize);
     }
 
     // Fills a hex with either a solid colour (preset tile) or a clipped bitmap (custom tile).

@@ -15,6 +15,7 @@ public static class Constants
     public static readonly string TempSaveFileDirectoryPath = Path.Combine(SettingsPath, "TempSaveFile");
     public static readonly string AutoSavesPath = Path.Combine(SettingsPath, "AutoSaves");
     public static readonly string HexTilesPath = Path.Combine(SettingsPath, "HexTiles");
+    public static readonly string HexEdgeTypesPath = Path.Combine(SettingsPath, "HexEdgeTypes");
     public static readonly int FeetPerGridCell = 5;
     public static readonly int MinGridSize = 10;
     public static readonly int MaxGridSize = 20000;

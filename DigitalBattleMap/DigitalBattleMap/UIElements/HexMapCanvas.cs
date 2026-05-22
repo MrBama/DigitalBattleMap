@@ -128,6 +128,17 @@ public class HexMapCanvas : FrameworkElement
             }
         }
 
+        // Second pass: edges drawn on top of all tile fills
+        for (int q = qMin; q <= qMax; q++)
+        {
+            int rOff = q / 2;
+            double halfQ2 = (double)q / 2.0;
+            int rMinE = Math.Max((int)Math.Floor(worldTop    / rScale - halfQ2) - 1, -rOff);
+            int rMaxE = Math.Min((int)Math.Ceiling(worldBottom / rScale - halfQ2) + 1, vm.GridHeight - 1 - rOff);
+            for (int r = rMinE; r <= rMaxE; r++)
+                vm.DrawEdgesForHex(dc, q, r, hexSize);
+        }
+
         if (ShowFog)
         {
             // Semi-transparent dark gray so the DM can still see what tile type is underneath.
@@ -305,6 +316,9 @@ public class HexMapCanvas : FrameworkElement
     private Point _rectStartScreen;
     private Point _rectCurrentScreen;
 
+    // Edge paint gesture state (canvas-local).
+    private bool _edgePainting;
+
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         if (ViewModel == null) return;
@@ -328,8 +342,17 @@ public class HexMapCanvas : FrameworkElement
             return;
         }
         CaptureMouse();
-        ViewModel.BeginPaint();
-        PaintAt(e.GetPosition(this));
+        if (ViewModel.IsEdgePaintMode)
+        {
+            _edgePainting = true;
+            ViewModel.BeginEdgePaint();
+            PaintEdgeAt(e.GetPosition(this));
+        }
+        else
+        {
+            ViewModel.BeginPaint();
+            PaintAt(e.GetPosition(this));
+        }
         e.Handled = true;
     }
 
@@ -338,6 +361,8 @@ public class HexMapCanvas : FrameworkElement
         if (ViewModel == null) return;
         if (ShowFog)
             FogClickAt(e.GetPosition(this), explore: false);
+        else if (ViewModel.IsEdgePaintMode)
+            RemoveEdgeAt(e.GetPosition(this));
         else
             SelectCellAt(e.GetPosition(this));
         e.Handled = true;
@@ -360,7 +385,10 @@ public class HexMapCanvas : FrameworkElement
         }
         if (e.LeftButton == MouseButtonState.Pressed && ViewModel != null && !ShowFog)
         {
-            PaintAt(e.GetPosition(this));
+            if (_edgePainting)
+                PaintEdgeAt(e.GetPosition(this));
+            else
+                PaintAt(e.GetPosition(this));
             e.Handled = true;
         }
     }
@@ -383,7 +411,15 @@ public class HexMapCanvas : FrameworkElement
         }
         if (ShowFog) return;
         ReleaseMouseCapture();
-        ViewModel?.EndPaint();
+        if (_edgePainting)
+        {
+            _edgePainting = false;
+            ViewModel?.EndEdgePaint();
+        }
+        else
+        {
+            ViewModel?.EndPaint();
+        }
         e.Handled = true;
     }
 
@@ -393,6 +429,43 @@ public class HexMapCanvas : FrameworkElement
         double worldY = (screenPos.Y - ViewModel.OffsetY) / ViewModel.Scale;
         var (q, r) = HexGeometry.PixelToAxial(worldX, worldY, ViewModel.HexSize);
         ViewModel.PaintCell(q, r);
+    }
+
+    private void PaintEdgeAt(Point screenPos)
+    {
+        double worldX = (screenPos.X - ViewModel.OffsetX) / ViewModel.Scale;
+        double worldY = (screenPos.Y - ViewModel.OffsetY) / ViewModel.Scale;
+        var (q, r) = HexGeometry.PixelToAxial(worldX, worldY, ViewModel.HexSize);
+        int dir = NearestEdgeDir(worldX, worldY, q, r, ViewModel.HexSize);
+        if (dir >= 0) ViewModel.PaintEdge(q, r, dir);
+    }
+
+    private void RemoveEdgeAt(Point screenPos)
+    {
+        double worldX = (screenPos.X - ViewModel.OffsetX) / ViewModel.Scale;
+        double worldY = (screenPos.Y - ViewModel.OffsetY) / ViewModel.Scale;
+        var (q, r) = HexGeometry.PixelToAxial(worldX, worldY, ViewModel.HexSize);
+        int dir = NearestEdgeDir(worldX, worldY, q, r, ViewModel.HexSize);
+        if (dir >= 0) ViewModel.RemoveEdgeAt(q, r, dir);
+    }
+
+    // Returns the direction index (0-5) of the nearest edge midpoint within 45% of hexSize,
+    // or -1 if the cursor is too far from any edge midpoint.
+    private static int NearestEdgeDir(double worldX, double worldY, int q, int r, double hexSize)
+    {
+        var (wx, wy) = HexGeometry.AxialToPixel(q, r, hexSize);
+        double threshold = 0.45 * hexSize;
+        int bestDir = -1;
+        double bestDist = threshold;
+        for (int dir = 0; dir < 6; dir++)
+        {
+            var mid = HexGeometry.GetEdgeMidpoint(wx, wy, hexSize, dir);
+            double dx = worldX - mid.X;
+            double dy = worldY - mid.Y;
+            double dist = Math.Sqrt(dx * dx + dy * dy);
+            if (dist < bestDist) { bestDist = dist; bestDir = dir; }
+        }
+        return bestDir;
     }
 
     private void FogClickAt(Point screenPos, bool explore)

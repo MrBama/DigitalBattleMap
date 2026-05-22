@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace DigitalBattleMap.DataClasses;
 
-public class HexPaintCommand
+public class HexPaintCommand : IHexMapCommand
 {
     public List<HexCellChange> Changes { get; } = new();
 
