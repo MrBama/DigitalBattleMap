@@ -423,14 +423,12 @@ public class FogControllerViewModel : ControllerViewModelBase
             return false;
         }
 
-        var shapeOverviewBitmaps = new List<OverviewBitmap>();
-
+        var shapeOverviewBitmaps = new List<FogOverviewBitmap>();
         foreach (var shape in shapes)
         {
-            var shapeOverviewBitmap = new OverviewBitmap();
+            var shapeOverviewBitmap = new FogOverviewBitmap();
             var penSize = shape.PenSize.Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width);
             var points = new List<Point<double>>();
-
             foreach (var point in shape.Points)
             {
                 var resizedX = point.X.Map(0, _mapSize.CanvasWidth, 0, Constants.MapSize.Width);
@@ -438,25 +436,42 @@ public class FogControllerViewModel : ControllerViewModelBase
                 points.Add(new Point<double>(resizedX * zoomFactor, resizedY * zoomFactor));
             }
 
-            shapeOverviewBitmap.Bitmap = BitmapTools.CreateFogShapeOverviewBitmap(points, shape.Color, penSize, shape.IsFogEnabled);
+            var shapeMinX = points.Min(t => t.X) - (penSize / 2);
+            var shapeMinY = points.Min(t => t.Y) - (penSize / 2);
 
-            var shapeMinX = points.Min(t => t.X);
-            var shapeMinY = points.Min(t => t.Y);
-            shapeMinX -= (penSize / 2);
-            shapeMinY -= (penSize / 2);
-
+            shapeOverviewBitmap.Bitmap = BitmapTools.CreateFogShapeOverviewBitmap(points, shape, penSize);
             shapeOverviewBitmap.OffsetFromOrigin = new Point<int>((int)Math.Round(shapeMinX), (int)Math.Round(shapeMinY));
+            shapeOverviewBitmap.IsFogEnabled = shape.IsFogEnabled;
+
+            // Points adjusted into the full bitmap coordinate space (origin = player view top left)
+            shapeOverviewBitmap.ScaledPoints = points.Select(p => new PointF(
+                (float)(p.X - shapeMinX + shapeOverviewBitmap.OffsetFromOrigin.X),
+                (float)(p.Y - shapeMinY + shapeOverviewBitmap.OffsetFromOrigin.Y)))
+                .ToList();
 
             shapeOverviewBitmaps.Add(shapeOverviewBitmap);
         }
-        overviewBitmap.Bitmap = BitmapTools.CreateShapesOverviewBitmap(shapeOverviewBitmaps);
-        overviewBitmap.Bitmap.MakeTransparent(System.Drawing.Color.White);
+        var playerViewWidth = (int)Math.Round(Constants.MapSize.Width * zoomFactor);
+        var playerViewHeight = (int)Math.Round(Constants.MapSize.Height * zoomFactor);
 
-        // OffsetFromOrigin = top left of player view to top left of shapes bounding box
-        // Shape positions are always relative to top left of the player view (=origin)
-        var minX = Mathematics.Min(shapeOverviewBitmaps.Select(l => l.OffsetFromOrigin.X));
-        var minY = Mathematics.Min(shapeOverviewBitmaps.Select(l => l.OffsetFromOrigin.Y));
-        overviewBitmap.OffsetFromOrigin = new Point<int>(minX, minY);
+        var fullWidth = _mapSize.BackgroundWidth.HasValue
+            ? Math.Max(playerViewWidth, _mapSize.BackgroundWidth.Value)
+            : playerViewWidth;
+        var fullHeight = _mapSize.BackgroundHeight.HasValue
+            ? Math.Max(playerViewHeight, _mapSize.BackgroundHeight.Value)
+            : playerViewHeight;
+
+        var backgroundOffset = _mapSize.BackgroundOffset ?? new Point<int>(0, 0);
+        overviewBitmap.OffsetFromOrigin = backgroundOffset;
+
+        overviewBitmap.Bitmap = BitmapTools.CreateFogOverviewBitmap(
+            shapeOverviewBitmaps,
+            FogShapeCollection.IsFillFogEnabled,
+            fullWidth,
+            fullHeight,
+            backgroundOffset);
+
+        overviewBitmap.OffsetFromOrigin = backgroundOffset;
 
         return true;
     }

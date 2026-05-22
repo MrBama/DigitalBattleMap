@@ -6,6 +6,7 @@
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
              xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels" 
              xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements"
+             xmlns:enums="clr-namespace:DigitalBattleMap.DataClasses" 
              mc:Ignorable="d" 
              d:DesignHeight="1080" d:DesignWidth="480"
              Background="White"
@@ -18,6 +19,7 @@
         <uielements:BoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter" IsInverted="True"/>
         <uielements:BoolToInvertedBoolConverter x:Key="InvertBoolConverter"/>
         <uielements:NullToBoolConverter x:Key="NullToBoolConverter"/>
+        <uielements:DrawingColorToBoolConverter x:Key="DrawingColorToBoolConverter"/>
     </UserControl.Resources>
 
     <!--Drawing grid-->
@@ -27,8 +29,6 @@
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="0.5*"/>
@@ -50,35 +50,35 @@
             <Image Source="{Binding BlackButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="MouseLeftButtonUp">
-                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="Black" />
+                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Black}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </Image>
             <Image Grid.Column="1" Source="{Binding RedButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="MouseLeftButtonUp">
-                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="Red" />
+                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Red}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </Image>
             <Image Grid.Column="2" Source="{Binding GreenButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="MouseLeftButtonUp">
-                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="Green" />
+                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Green}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </Image>
             <Image Grid.Column="3" Source="{Binding BlueButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="MouseLeftButtonUp">
-                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="Blue" />
+                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Blue}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </Image>
             <Image Grid.Row="1" Source="{Binding EraserButtonBitmapSource}" Margin="5 10 15 10" Cursor="Hand">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="MouseLeftButtonUp">
-                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="Eraser" />
+                        <i:InvokeCommandAction Command="{Binding SelectedDrawingButtonChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Eraser}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </Image>
@@ -113,7 +113,30 @@
                 <DataTemplate>
                     <Grid Background="Transparent">
                         <Grid.ContextMenu>
-                            <ContextMenu>
+                            <ContextMenu >
+                                <MenuItem Header="Color">
+                                    <MenuItem Header="Black" IsChecked="{Binding Color, Converter={StaticResource DrawingColorToBoolConverter}, ConverterParameter={x:Static enums:DrawingButton.Black}}" Command="{Binding ColorChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Black}"/>
+                                    <MenuItem Header="Red" IsChecked="{Binding Color, Converter={StaticResource DrawingColorToBoolConverter}, ConverterParameter={x:Static enums:DrawingButton.Red}}" Command="{Binding ColorChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Red}"/>
+                                    <MenuItem Header="Green" IsChecked="{Binding Color, Converter={StaticResource DrawingColorToBoolConverter}, ConverterParameter={x:Static enums:DrawingButton.Green}}" Command="{Binding ColorChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Green}"/>
+                                    <MenuItem Header="Blue" IsChecked="{Binding Color, Converter={StaticResource DrawingColorToBoolConverter}, ConverterParameter={x:Static enums:DrawingButton.Blue}}" Command="{Binding ColorChangedCommand}" CommandParameter="{x:Static enums:DrawingButton.Blue}"/>
+                                </MenuItem>
+                                <MenuItem>
+                                    <MenuItem.Header>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Label Content="Pen size" Padding="0"/>
+                                            <TextBox x:Name="ContextMenuPenSizeText" Grid.Column="1" MinWidth="50" Margin="5 0 0 0" Text="{Binding ContextMenuPenSize, UpdateSourceTrigger=PropertyChanged}" >
+                                                <TextBox.InputBindings>
+                                                    <KeyBinding Command="{Binding PenSizeChangedCommand}" Key="Enter"/>
+                                                </TextBox.InputBindings>
+                                            </TextBox>
+                                        </Grid>
+                                    </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Header="Snap to grid" IsChecked="{Binding SnapToGrid}" Command="{Binding SnapToGridChangedCommand}"/>
                                 <MenuItem Header="{Binding LinkableObject.LinkToTokenButtonText}" Command="{Binding LinkToTokenCommand}"/>
                             </ContextMenu>
                         </Grid.ContextMenu>
@@ -124,24 +147,33 @@
                         </Grid.ColumnDefinitions>
                         <Label Content="{Binding Name}"/>
 
-                        <!--Shape size grid-->
-                        <Grid Grid.Column="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Content="{Binding Size}" Padding="5 5 0 5"/>
-                            <Label Grid.Column="1" Content=" ft" Padding="0 5 5 5"/>
-                        </Grid>
-                        
+                        <Label Grid.Column="1" Content="{Binding SizeLabel}"/>
                         <Label Grid.Column="2" Background="{Binding ColorBrush}"/>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
 
-        <!--Shape selection grid-->
+        <!--Drawing history grid-->
         <Grid Grid.Row="4" Margin="0 10 0 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Content="Remove" Grid.ColumnSpan="2" Margin="0 0 5 0" Command="{Binding RemoveShapeCommand}" IsEnabled="{Binding SelectedShape, Converter={StaticResource NullToBoolConverter}}"/>
+            <Button Grid.Column="2" Margin="5 0 2.5 0" Command="{Binding UndoCommand}" Height="{Binding ElementName=DrawRectangleButton, Path=ActualHeight}" IsEnabled="{Binding DrawingHistory.IsPreviousCommandAvailable}">
+                <Image Source="{Binding UndoBitmapSource}"/>
+            </Button>
+            <Button Grid.Column="3" Margin="7.5 0 0 0" Command="{Binding RedoCommand}" Height="{Binding ElementName=DrawRectangleButton, Path=ActualHeight}" IsEnabled="{Binding DrawingHistory.IsNextCommandAvailable}">
+                <Image Source="{Binding RedoBitmapSource}"/>
+            </Button>
+        </Grid>
+
+        <!--Shape selection grid-->
+        <Grid Grid.Row="5" Margin="0 20 0 0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
@@ -151,43 +183,13 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!--Size grid-->
-            <Grid Grid.ColumnSpan="2" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="auto"/>
-                </Grid.ColumnDefinitions>
-
-                <Label Content="Size: " Padding="0"/>
-                <Label Grid.Column="1" Content="{Binding ActiveShape.Size}" Padding="0"/>
-                <Label Grid.Column="2" Content=" ft" Padding="0"/>
-            </Grid>
-            
-            <Button Grid.Row="1" Grid.ColumnSpan="4" Margin="0 10 0 0" Content="Cancel" Command="{Binding CancelDrawShapeCommand}" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
-            <Button Content="Rectangle" Margin="0 0 5 0" Command="{Binding DrawRectangleCommand}" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
+            <Button Grid.ColumnSpan="2" Grid.RowSpan="2" Content="Cancel" Command="{Binding CancelDrawShapeCommand}" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
+            <Button x:Name="DrawRectangleButton"  Content="Rectangle" Margin="0 0 5 0" Command="{Binding DrawRectangleCommand}" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
             <Button Grid.Column="1" Content="Circle" Margin="5 0 0 0" Command="{Binding DrawCircleCommand}" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
             <Button Grid.Row="1" Content="Cone" Margin="0 10 5 0" Command="{Binding DrawConeCommand}" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
             <Button Grid.Row="1" Grid.Column="1" Content="Line" Margin="5 10 0 0" Command="{Binding DrawLineCommand}" Visibility="{Binding IsDrawShapeActive, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
         </Grid>
 
-        <Separator Grid.Row="5" Margin="0 10 0 0" BorderThickness="1" BorderBrush="Gray"/>
-
-        <!--Draw shape grid-->
-        <Grid Grid.Row="6" Margin="0 10 0 0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Button Grid.ColumnSpan="2" Content="Edit shape" Command="{Binding EditShapeCommand}" IsEnabled="{Binding SelectedShape, Converter={StaticResource NullToBoolConverter}}" Visibility="{Binding IsEditShapeActive, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
-            <Button Content="Cancel" Margin="0 0 5 0" Visibility="{Binding IsEditShapeActive, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}" Command="{Binding CancelEditShapeCommand}"/>
-            <Button Grid.Column="1" Content="Apply" Margin="5 0 0 0" Visibility="{Binding IsEditShapeActive, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}" Command="{Binding ApplyEditShapeCommand}"/>
-        </Grid>
-
-        <Button Grid.Row="7" Content="Remove shape" Command="{Binding RemoveShapeCommand}" Margin="0 10 0 0" IsEnabled="{Binding SelectedShape, Converter={StaticResource NullToBoolConverter}}"/>
-        <Button Grid.Row="8" Content="Clear" Command="{Binding ClearDrawingCommand}" Margin="0 10 0 0" VerticalAlignment="Bottom"/>
+        <Button Grid.Row="6" Content="Clear" Command="{Binding ClearDrawingCommand}" Margin="0 10 0 0" VerticalAlignment="Bottom"/>
     </Grid>
 </UserControl>

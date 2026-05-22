@@ -85,7 +85,6 @@ public class FogShapeCollectionChangedEventArgs : EventArgs
 {
     public FogShape ChangedShape { get; set; }
     public CollectionChangedAction Action { get; set; }
-    public int Index { get; set; }
 }
 
 public class MouseDataEventArgs : EventArgs
@@ -128,4 +127,16 @@ public class ControlInfoEventArgs : EventArgs
 {
     public string controlName { get; set; }
     public List<InfoBlock> infoBlocks { get; set; }
+}
+
+public class DrawingShapeErasedEventArgs : EventArgs
+{
+    public List<DrawingShapeCommand> EraseCommands { get; set; } = new();
+}
+
+public class DrawingShapeEditedEventArgs : EventArgs
+{
+    public DrawingShape DrawingShape { get; set; }
+    public DrawingShapeInfo OldInfo { get; set; }
+    public DrawingShapeInfo NewInfo { get; set; }
 }

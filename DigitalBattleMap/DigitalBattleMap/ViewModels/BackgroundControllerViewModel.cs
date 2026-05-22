@@ -95,6 +95,9 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public string BackgroundZoomPercentageLabel { get => $"{BackgroundZoomPercentage}%"; }
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
     public ObservableCollection<BackgroundColor> BackgroundColors { get; set; } = new() { BackgroundColor.Black, BackgroundColor.White };
+    public int? FullBackgroundWidth => _fullBackgroundBitmap?.Width;
+    public int? FullBackgroundHeight => _fullBackgroundBitmap?.Height;
+    public Point<int>? BackgroundOffset => _fullBackgroundBitmap != null ? new Point<int>(-_area.X, -_area.Y) : null;
 
     public ICommand OpenBackgroundCommand { get; set; }
     public ICommand OpenBackgroundFromClipboardCommand { get; set; }

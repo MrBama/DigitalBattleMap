@@ -101,6 +101,9 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     double IMapSize.CanvasWidth => _canvasSize.Width;
     double IMapSize.CanvasHeight => _canvasSize.Height;
     double IMapSize.CanvasGridSize => CalculateCanvasGridSize();
+    int? IMapSize.BackgroundWidth => BackgroundController.FullBackgroundWidth;
+    int? IMapSize.BackgroundHeight => BackgroundController.FullBackgroundHeight;
+    Point<int>? IMapSize.BackgroundOffset => BackgroundController.BackgroundOffset;
     string CampaingInfoText => "Active Mode: None \n \n Campaign tab contains no mouse controls";
     // Oneliner because webpage elements exist on top of all other ui elements including any info text after a new line.
     string StatBlockInfoText => "\t \t Select the header of a statblock to keep it focused. Switching between tabs will return you to the focused statblock."; 
@@ -189,7 +192,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         CanvasSizeChangedCommand = new RelayCommand(p => CanvasSizeChanged((SizeChangedEventArgs)p));
         ClearAllCommand = new RelayCommand(p => ClearMap());
         SettingsCommand = new RelayCommand(p => OpenSettings());
-        MoveMapArrowCommand = new RelayCommand(p => MoveMap((string)p));
+        MoveMapArrowCommand = new RelayCommand(p => MoveMap((ArrowDirection)p));
         SaveMapCommand = new RelayCommand(p => SaveMap());
         OpenMapCommand = new RelayCommand(p => OpenMap());
         ServerConnectionCommand = new RelayCommand(p => ServerConnectionButton());
@@ -242,9 +245,9 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         // Reset mouse canvas
         MouseCanvas.ResetSelection();
-        MouseCanvas.ResetMode();
+        MouseCanvas.SetMode(MouseCanvasMode.Click);
         MapOverview.MouseCanvas.ResetSelection();
-        MapOverview.MouseCanvas.ResetMode();
+        MapOverview.MouseCanvas.SetMode(MouseCanvasMode.Click);
         CropColor = System.Windows.Media.Brushes.LightGray;
         SelectedMapTabIndex = TabMapIndex.Map;
     }
@@ -444,7 +447,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 TokenVisibility = Visibility.Visible;
 
                 MouseCanvas = DrawingController.MouseCanvas;
-                ControlInfoText = string.Empty; // todo: update to active controls for this tab on tab switch
+                ControlInfoText = GetDrawingInfoText();
                 DrawingCanvasZIndex = 1;
                 break;
             case TabIndex.Tokens:
@@ -470,12 +473,6 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public Size<double> GetCanvasSize()
     {
         return _canvasSize;
-    }
-
-    private void MoveMap(string direction)
-    {
-        var arrowDirection = Enum.Parse<ArrowDirection>(direction);
-        MoveMap(arrowDirection);
     }
 
     private void MoveMap(ArrowDirection arrowDirection)
@@ -908,6 +905,20 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         return GetControlInfoText(info);
     }
 
+    private string GetDrawingInfoText()
+    {
+        var info = new ControlInfoEventArgs()
+        {
+            controlName = "Drawing Controls",
+            infoBlocks = new List<InfoBlock>()
+            {
+                new InfoBlock(ControlType.LMB, "Hold to draw a stroke"),
+                new InfoBlock(ControlType.RMB, "Move the selected shape")
+            }
+        };
+        return GetControlInfoText(info);
+    }
+
     private string GetControlInfoText(ControlInfoEventArgs e)
     {
         var controlInfoText = new StringBuilder();
@@ -920,7 +931,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 string.Empty : // ignore type info in control info text
                 string.Format("{0}{1}: ", controlInfo.Type.ToString(), additional); // adds type info in control info text + adds additional if present.
 
-            var info = string.Format("{0}{1}\n", typeInfo, controlInfo.ControlInfo);
+            var info = string.Format("{0}{1}\n", typeInfo, controlInfo!.ControlInfo);
             controlInfoText.Append(info);
         }
         return controlInfoText.ToString();
