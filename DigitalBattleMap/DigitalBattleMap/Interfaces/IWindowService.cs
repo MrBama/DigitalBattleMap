@@ -12,5 +12,6 @@ public interface IWindowService
     public bool ShowOpenFileDialog(out string path, string filter = "All files (*.*)|*.*");
     public bool ShowOpenFilesDialog(out List<string> paths, string filter = "All files (*.*)|*.*");
     public bool ShowSaveFileDialog(out string path, string defaultFileName = "", string filter = "All files (*.*)|*.*");
+    public bool ShowFolderBrowserDialog(out string path);
     public void CloseAllWindows();
 }

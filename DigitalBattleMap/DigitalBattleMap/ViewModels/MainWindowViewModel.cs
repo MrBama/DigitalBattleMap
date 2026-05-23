@@ -47,6 +47,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         DrawingController = new();
         TokenController = new();
         HexcrawlEditor = new HexcrawlEditorViewModel();
+        NotesTab = new NotesTabViewModel();
         InitializeProperties();
     }
 
@@ -90,6 +91,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public MapOverviewViewModel MapOverview { get; set; }
     public HexcrawlEditorViewModel HexcrawlEditor { get; private set; }
     public HexcrawlPlayViewModel   HexcrawlPlay   { get; private set; }
+    public NotesTabViewModel       NotesTab       { get; private set; }
     public UIElements.ShapeComposer ShapeComposer { get => Get<UIElements.ShapeComposer>(); set => Set(value); }
     public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToBitmapImage(); }
     public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
@@ -188,6 +190,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         HexcrawlEditor.Map.RectZoomModeChanged  += () => { if (!HexcrawlEditor.Map.IsRectZoomMode) CropColor = System.Windows.Media.Brushes.LightGray; };
         HexcrawlPlay = new HexcrawlPlayViewModel(_windowService);
         HexcrawlPlay.SetMap(HexcrawlEditor.Map);
+        NotesTab = new NotesTabViewModel(_windowService);
 
         // settings
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
@@ -511,6 +514,14 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 ControlInfoText = GetTokenInfoText();
                 DrawingCanvasZIndex = 0;
                 break;
+            case TabIndex.Notes:
+                MouseInputCanvasVisibility = Visibility.Visible;
+                FogCanvasVisibility = Visibility.Visible;
+                DrawingCanvasVisibility = Visibility.Visible;
+                TokenVisibility = Visibility.Visible;
+                ControlInfoText = string.Empty;
+                DrawingCanvasZIndex = 0;
+                break;
         }
 
         NotifyPropertyChange(nameof(IsHexPlayMode));
@@ -594,6 +605,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             TokenController.AddToSaveFile(saveFile);
             FogController.AddToSaveFile(saveFile);
             saveFile.HexcrawlData = HexcrawlEditor.Map.GetGridData();
+            saveFile.Notes = NotesTab.GetConfig();
             saveFile.Save(path);
         }
     }
@@ -608,6 +620,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         TokenController.AddToSaveFile(saveFile);
         FogController.AddToSaveFile(saveFile);
         saveFile.HexcrawlData = HexcrawlEditor.Map.GetGridData();
+        saveFile.Notes = NotesTab.GetConfig();
         saveFile.AutoSave();
         _autoSaveTimer.Start();
     }
@@ -634,6 +647,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         DrawingController.OpenObjectLinks(saveFile.ObjectLinks);
         TokenController.OpenObjectLinks(saveFile.ObjectLinks);
         HexcrawlEditor.Map.LoadFromData(saveFile.HexcrawlData);
+        NotesTab.LoadConfig(saveFile.Notes ?? new DataClasses.NotesConfig());
 
         SelectedTabIndex = TabIndex.Tokens;
         SelectedMapTabIndex = 0;

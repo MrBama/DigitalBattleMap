@@ -44,6 +44,8 @@ public class SaveFile
 
     public DataClasses.HexcrawlGridData HexcrawlData { get; set; } = new();
 
+    public DataClasses.NotesConfig Notes { get; set; } = new();
+
     [JsonIgnore]
     public Bitmap FullBackground { get; set; }
 

@@ -1,0 +1,89 @@
+<UserControl x:Class="DigitalBattleMap.Views.NotesTabView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             mc:Ignorable="d"
+             d:DesignHeight="1080" d:DesignWidth="480"
+             Background="White"
+             FontSize="17">
+    <UserControl.InputBindings>
+        <KeyBinding Key="S" Modifiers="Ctrl" Command="{Binding SaveFileCommand}"/>
+    </UserControl.InputBindings>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*" MinHeight="60"/>
+            <RowDefinition Height="6"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*" MinHeight="80"/>
+        </Grid.RowDefinitions>
+
+        <!--Folder buttons-->
+        <Grid Grid.Row="0" Margin="0 0 0 6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Content="Add folder"    Margin="0 0 4 0" Command="{Binding AddFolderCommand}"/>
+            <Button Content="Remove folder" Grid.Column="1" Margin="4 0 0 0" Command="{Binding RemoveFolderCommand}"/>
+        </Grid>
+
+        <!--File tree-->
+        <TreeView Grid.Row="1"
+                  ItemsSource="{Binding RootNodes}"
+                  BorderThickness="1" BorderBrush="Gray">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="SelectedItemChanged">
+                    <i:InvokeCommandAction Command="{Binding NodeSelectedCommand}" PassEventArgsToCommand="True"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                    <TextBlock Text="{Binding Name}" Padding="2 1"/>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                </Style>
+            </TreeView.ItemContainerStyle>
+        </TreeView>
+
+        <!--Splitter-->
+        <GridSplitter Grid.Row="2"
+                      Height="6"
+                      HorizontalAlignment="Stretch"
+                      Background="LightGray"
+                      ShowsPreview="True"/>
+
+        <!--File name + Save-->
+        <Grid Grid.Row="3" Margin="0 4 0 4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="{Binding SelectedFileName}"
+                       VerticalAlignment="Center"
+                       FontWeight="SemiBold"
+                       TextTrimming="CharacterEllipsis"/>
+            <Button Grid.Column="1" Content="Save" MinWidth="60" Margin="6 0 0 0"
+                    Command="{Binding SaveFileCommand}"/>
+        </Grid>
+
+        <!--Content editor-->
+        <TextBox Grid.Row="4"
+                 Text="{Binding FileContent, UpdateSourceTrigger=PropertyChanged}"
+                 AcceptsReturn="True"
+                 AcceptsTab="True"
+                 TextWrapping="Wrap"
+                 VerticalScrollBarVisibility="Auto"
+                 HorizontalScrollBarVisibility="Disabled"
+                 FontFamily="Consolas"
+                 FontSize="14"
+                 BorderThickness="1"
+                 BorderBrush="Gray"/>
+    </Grid>
+</UserControl>

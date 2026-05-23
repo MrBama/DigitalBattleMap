@@ -9,6 +9,7 @@ public static class TabIndex
     public const int Tokens = 4;
     public const int HexcrawlEditor = 5;
     public const int HexcrawlPlay = 6;
+    public const int Notes = 7;
 }
 
 public static class TabMapIndex
