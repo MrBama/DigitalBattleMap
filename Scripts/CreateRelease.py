@@ -16,12 +16,11 @@ from py7zr import pack_7zarchive
 git_repo = git.Repo(os.getcwd(), search_parent_directories=True)
 
 git_branch = git_repo.active_branch.name
-#TODO: enable this
-# if git_branch != 'main':
-#     exit('ERROR: You can only create a release from the main branch!')
+if git_branch != 'main':
+    exit('ERROR: You can only create a release from the main branch!')
 
-# if git_repo.is_dirty():
-#     exit('ERROR: You can not have uncommited changes!')
+if git_repo.is_dirty():
+    exit('ERROR: You can not have uncommited changes!')
 
 # Initialize Github connection
 print('Enter Github access token:')
@@ -30,7 +29,7 @@ github_token = input()
 print('Initialize Github connection')
 auth = Auth.Token(github_token)
 github = Github(auth=auth)
-repo = github.get_repo('MrBama/DigitalBattleMap')
+github_repo = github.get_repo('MrBama/DigitalBattleMap')
 
 # Fetch data from git
 print('Fetch data from git...')
@@ -74,6 +73,9 @@ if input() == 'y':
 
     with open(application_updater_path, 'w') as new_file:
         new_file.writelines(lines)
+
+    git_repo.index.add(application_updater_path)
+    commit = git_repo.index.commit(f'Update application version to v{release_version}')
     
     # Build solution
     print('Build solution...')
@@ -125,8 +127,8 @@ if input() == 'y':
 
     # Create draft release
     print('\nCreate draft release...')
-    release_notes = repo.generate_release_notes(release_name)
-    release = repo.create_git_release(release_name, f'DigitalBattleMap v{release_version}', release_notes.body, draft=True)
+    release_notes = github_repo.generate_release_notes(release_name)
+    release = github_repo.create_git_release(release_name, f'DigitalBattleMap v{release_version}', release_notes.body, draft=True)
     release.upload_asset(f'{dbm_release_path}.7z')
     release.upload_asset(f'{server_release_path}.7z')
 
@@ -137,15 +139,18 @@ if input() == 'y':
     print('\nAre you sure you want to publish the release? (y/n)')
     if input() == 'y':
         print('Publishing release')
-        #TODO: enable this part
-        # git_repo.index.add(application_updater_path)
-        # git_repo.index.commit(f'Update application version to v{release_version}')
-        # git_repo.remote().push()
-        # release.update_release(draft=False)
-
+        git_repo.remote(name="origin").push()
+        git_repo.remote(name="origin").push(release_name)
+        draft_release = None
+        for r in github_repo.get_releases():
+            if r.draft and r.tag_name == release_name:
+                draft_release = r
+                break
+        draft_release.update_release(name=draft_release.name, message=draft_release.body, draft=False)
         print('Release published!')
     else:
         print('Removing release')
+        git_repo.head.reset(commit="HEAD~1", index=True, working_tree=False)
         git_repo.index.checkout(application_updater_path, force=True)
         git_repo.delete_tag(release_name)
         release.delete_release()
