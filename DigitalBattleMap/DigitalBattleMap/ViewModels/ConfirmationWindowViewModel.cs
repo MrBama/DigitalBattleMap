@@ -1,5 +1,7 @@
 ﻿using DigitalBattleMap.Utilities;
 using System;
+using System.Collections.ObjectModel;
+using System.Windows.Documents;
 using System.Windows.Input;
 
 namespace DigitalBattleMap.ViewModels;
@@ -13,6 +15,7 @@ public class ConfirmationWindowViewModel : ViewModelBase
         RightButtonCommand = new RelayCommand(p => RightButtonClicked());
     }
 
+    public ObservableCollection<Inline> Inlines { get; set; } = new() { new Run("test")};
     public string Content { get; set; } = "Are you sure?";
     public string LeftButtonContent { get; set; } = "Yes";
     public string MiddleButtonContent { get; set; } = "Ok";

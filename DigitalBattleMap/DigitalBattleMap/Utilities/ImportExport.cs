@@ -35,7 +35,7 @@ public static class ImportExport
         string tempDirectoryPath = Constants.TempDirectoryPath + "CampaignExport";
         string campaignFilePath = Path.Combine(tempDirectoryPath, "Campaign.json");
 
-        using var tempDirectory = new TempDirectory(tempDirectoryPath);
+        using var tempDirectory = new TempDirectory();
 
         FileManager.SaveFile(campaign, campaignFilePath);
 
@@ -68,7 +68,7 @@ public static class ImportExport
         string tempDirectoryPath = Constants.TempDirectoryPath + "TokenGroupExport";
         string tokenGroupFilePath = Path.Combine(tempDirectoryPath, "TokenGroup.json");
 
-        using var tempDirectory = new TempDirectory(tempDirectoryPath);
+        using var tempDirectory = new TempDirectory();
 
         FileManager.SaveFile(tokenGroup, tokenGroupFilePath);
 
@@ -100,7 +100,7 @@ public static class ImportExport
         string tokenImageFilePath = Path.Combine(tempDirectoryPath, "Image.png");
         string statblockFilePath = Path.Combine(tempDirectoryPath, "Markdown.md");
 
-        using var tempDirectory = new TempDirectory(tempDirectoryPath);
+        using var tempDirectory = new TempDirectory();
 
         FileManager.SaveFile(token, tokenFilePath);
         IO.File.Copy(token.ImagePath, tokenImageFilePath);
@@ -122,7 +122,7 @@ public static class ImportExport
         string tempDirectoryPath = Constants.TempDirectoryPath + "CampaignImport";
         string campaignFilePath = Path.Combine(tempDirectoryPath, "Campaign.json");
 
-        using var tempDirectory = new TempDirectory(tempDirectoryPath);
+        using var tempDirectory = new TempDirectory();
         IO.ZipFile.ExtractToDirectory(path, tempDirectoryPath);
 
         if (FileManager.OpenFile(campaignFilePath, out Campaign campaign))
@@ -153,7 +153,7 @@ public static class ImportExport
         string tempDirectoryPath = Constants.TempDirectoryPath + "TokenGroupImport";
         string tokenGroupFilePath = Path.Combine(tempDirectoryPath, "TokenGroup.json");
 
-        using var tempDirectory = new TempDirectory(tempDirectoryPath);
+        using var tempDirectory = new TempDirectory();
         IO.ZipFile.ExtractToDirectory(path, tempDirectoryPath);
 
         if (FileManager.OpenFile(tokenGroupFilePath, out TokenGroup tokenGroup))
@@ -183,7 +183,7 @@ public static class ImportExport
         string tokenImageFilePath = Path.Combine(tempDirectoryPath, "Image.png");
         string statblockFilePath = Path.Combine(tempDirectoryPath, "Markdown.md");
 
-        using var tempDirectory = new TempDirectory(tempDirectoryPath);
+        using var tempDirectory = new TempDirectory();
         IO.ZipFile.ExtractToDirectory(path, tempDirectoryPath);
 
         if (FileManager.OpenFile(tokenFilePath, out Token token, new DerivedClassJsonConverter<Statblock>()))

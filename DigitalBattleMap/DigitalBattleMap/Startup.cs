@@ -13,9 +13,10 @@ public static class Startup
     [DllImport("shell32.dll")]
     private static extern void SHChangeNotify(int wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
 
-    public static void CheckForInitialStartup()
+    public static void PerformStartupChecks()
     {
         var settings = Settings.Load();
+        // Check if this is the initial startup
         if (!settings.IsSoftwareInstalled)
         {
             var dataDirectoryPath = Path.Combine(Constants.SettingsPath, "Data");
@@ -47,14 +48,15 @@ public static class Startup
 
             // Create default settings
             settings.IsSoftwareInstalled = true;
-            settings.Version = VersionUpdater.ApplicationVersion;
+            settings.Version = SettingsUpdater.SettingsVersion;
             settings.Save();
         }
-        else if(VersionUpdater.IsUpdateRequired(settings.Version))
+        // Check if the settings need to be updated
+        else if(SettingsUpdater.IsUpdateRequired(settings.Version))
         {
-            VersionUpdater.Update(settings.Version);
+            SettingsUpdater.Update(settings.Version);
             settings = Settings.Load();
-            settings.Version = VersionUpdater.ApplicationVersion;
+            settings.Version = SettingsUpdater.SettingsVersion;
             settings.Save();
         }
     }

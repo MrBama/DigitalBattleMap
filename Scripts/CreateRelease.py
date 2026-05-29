@@ -97,12 +97,8 @@ if input() == 'y':
 
     # Create release 7z for DigitalBattleMap
     print(f'\nStart creation of {release_name}.7z')
-    os.makedirs(temp_directory)
     bin_directory = os.path.join(os.getcwd(), "..", "DigitalBattleMap", "DigitalBattleMap", "bin", "Release", "net6.0-windows")
-    bin_files = [f for f in os.listdir(bin_directory) if os.path.isfile(os.path.join(bin_directory, f))]
-    print('Copy binary files...')
-    for file in bin_files:
-        shutil.copyfile(os.path.join(bin_directory, file), os.path.join(temp_directory, file))
+    shutil.copytree(bin_directory, temp_directory, ignore=lambda directory, contents: ['runtimes'] if directory == bin_directory else [])
     shutil.copytree(os.path.join(bin_directory, "runtimes", "win"), os.path.join(temp_directory, "runtimes", "win"))
     shutil.copytree(os.path.join(bin_directory, "runtimes", "win-x64"), os.path.join(temp_directory, "runtimes", "win-x64"))
     shutil.copytree(os.path.join(bin_directory, "runtimes", "win-x86"), os.path.join(temp_directory, "runtimes", "win-x86"))
