@@ -101,6 +101,9 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     double IMapSize.CanvasWidth => _canvasSize.Width;
     double IMapSize.CanvasHeight => _canvasSize.Height;
     double IMapSize.CanvasGridSize => CalculateCanvasGridSize();
+    int? IMapSize.BackgroundWidth => BackgroundController.FullBackgroundWidth;
+    int? IMapSize.BackgroundHeight => BackgroundController.FullBackgroundHeight;
+    Point<int>? IMapSize.BackgroundOffset => BackgroundController.BackgroundOffset;
     string CampaingInfoText => "Active Mode: None \n \n Campaign tab contains no mouse controls";
     // Oneliner because webpage elements exist on top of all other ui elements including any info text after a new line.
     string StatBlockInfoText => "\t \t Select the header of a statblock to keep it focused. Switching between tabs will return you to the focused statblock."; 
@@ -242,9 +245,9 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         // Reset mouse canvas
         MouseCanvas.ResetSelection();
-        MouseCanvas.ResetMode();
+        MouseCanvas.SetMode(MouseCanvasMode.Click);
         MapOverview.MouseCanvas.ResetSelection();
-        MapOverview.MouseCanvas.ResetMode();
+        MapOverview.MouseCanvas.SetMode(MouseCanvasMode.Click);
         CropColor = System.Windows.Media.Brushes.LightGray;
         SelectedMapTabIndex = TabMapIndex.Map;
     }
