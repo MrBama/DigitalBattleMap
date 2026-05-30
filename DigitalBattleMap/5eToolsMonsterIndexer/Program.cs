@@ -13,6 +13,20 @@ namespace MonsterIndexer
         private static string _path = @"C:\Git\5etools-img-main\5etools-img-main\bestiary\tokens";
         private static string _legacyPath = @"C:\Git\5etools-2014-img-main\5etools-2014-img-main\bestiary\tokens";
 
+        // Add paths to extra book JSON files here (e.g. https://5e.tools/managebrew.html export the book JSONs).
+        // Each file must contain a "monster" array with "tokenHref.url" fields and a "_meta.sources[0].json" source code.
+        // Examples (uncomment and fill in the real paths):
+        private static List<string> _extraBookPaths = new()
+         {
+             @"C:\Git\Kobold Press; Tome of Beasts 1 (2023 Edition).json",
+             @"C:\Git\MCDM Productions; Flee, Mortals!.json",
+             @"C:\Git\MCDM Productions; Where Evil Lives.json",
+             @"C:\Git\MCDM Productions; The Illrigger Revised.json",
+             @"C:\Git\Keith Baker; Frontiers of Eberron Quickstone.json",
+             @"C:\Git\Keith Baker; Chronicles of Eberron.json"
+         };
+        //private static List<string> _extraBookPaths = new();
+
         /* How to use:
          * 
          * 1. Download 5eTools img github repository https://github.com/5etools-mirror-3/5etools-2014-img
@@ -56,6 +70,23 @@ namespace MonsterIndexer
 
                 tokenData.Tokens.Add(legacyToken);
                 tokenData.Sources.Add(legacyToken.Source);
+            }
+
+            foreach (var extraBookPath in _extraBookPaths)
+            {
+                var extraTokenData = CreateTokenDataFromJsonFile(extraBookPath);
+
+                foreach (var extraToken in extraTokenData.Tokens)
+                {
+                    if (tokenData.ContainsToken(extraToken.Name))
+                    {
+                        // Disambiguate using the book's source code, e.g. "Dragon (ToB1-2023)"
+                        extraToken.Name = $"{extraToken.Name} ({extraToken.Source})";
+                    }
+
+                    tokenData.Tokens.Add(extraToken);
+                    tokenData.Sources.Add(extraToken.Source);
+                }
             }
 
             tokenData.Sort();
@@ -138,6 +169,51 @@ namespace MonsterIndexer
 
             data.FillSources();
             return data;
+        }
+
+        private static TokenData CreateTokenDataFromJsonFile(string jsonFilePath)
+        {
+            var json = File.ReadAllText(jsonFilePath);
+            var bookFile = JsonConvert.DeserializeObject<ExtraBookFile>(json) ?? new ExtraBookFile();
+            var source = bookFile.Meta.Sources.FirstOrDefault()?.Json ?? Path.GetFileNameWithoutExtension(jsonFilePath);
+
+            var data = new TokenData();
+            foreach (var monster in bookFile.Monster)
+            {
+                if (monster.TokenHref == null || monster.TokenHref.Type != "external")
+                    continue;
+
+                var size = monster.Size.Count > 0 ? monster.Size.First() : "M";
+                var hp = monster.Hp.Average != 0 ? monster.Hp.Average
+                       : int.TryParse(monster.Hp.Special, out var parsed) ? parsed : 0;
+
+                data.Tokens.Add(new Token
+                {
+                    Name = monster.Name,
+                    Size = size,
+                    Source = source,
+                    Hp = hp,
+                    TokenUrl = EscapeTokenUrl(monster.TokenHref.Url),
+                    StatblockUrl = $"https://5e.tools/bestiary.html#{Uri.EscapeDataString(monster.Name)}_{source}"
+                });
+            }
+
+            data.FillSources();
+            return data;
+        }
+
+        private static string EscapeTokenUrl(string url)
+        {
+            // Split the URL at the last '/' to separate the path from the filename
+            var lastSlashIndex = url.LastIndexOf('/');
+            if (lastSlashIndex == -1)
+                return url;
+
+            var basePath = url.Substring(0, lastSlashIndex + 1);
+            var filename = url.Substring(lastSlashIndex + 1);
+
+            // Escape the filename part (converts spaces to %20, etc.)
+            return basePath + Uri.EscapeDataString(filename);
         }
     }
 
@@ -238,5 +314,37 @@ namespace MonsterIndexer
 
         [JsonIgnore]
         public string CopyName { get; set; }
+    }
+
+    public class ExtraBookFile
+    {
+        [JsonProperty("_meta")]
+        public ExtraBookMeta Meta { get; set; } = new();
+        public List<ExtraMonster> Monster { get; set; } = new();
+    }
+
+    public class ExtraBookMeta
+    {
+        public List<ExtraBookSource> Sources { get; set; } = new();
+    }
+
+    public class ExtraBookSource
+    {
+        public string Json { get; set; } = "";   // e.g. "ToB1-2023"
+    }
+
+    public class ExtraMonster
+    {
+        public string Name { get; set; } = "";
+        public string Source { get; set; } = "";
+        public List<string> Size { get; set; } = new();
+        public Hp Hp { get; set; } = new();
+        public TokenHref? TokenHref { get; set; }
+    }
+
+    public class TokenHref
+    {
+        public string Type { get; set; } = "";
+        public string Url { get; set; } = "";
     }
 }
