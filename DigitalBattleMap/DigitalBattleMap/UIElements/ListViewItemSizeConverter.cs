@@ -13,7 +13,8 @@ public class ListViewItemSizeConverter : IValueConverter
         var originalSize = (double)value;
         var sizeFactor = double.Parse((string)parameter, CultureInfo.InvariantCulture);
 
-        return (originalSize * sizeFactor) - _listViewItemMargin;
+        var calculatedSize = (originalSize * sizeFactor) - _listViewItemMargin;
+        return Math.Max(0, calculatedSize); // Prevent negative values
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

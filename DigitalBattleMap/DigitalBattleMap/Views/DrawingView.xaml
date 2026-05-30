@@ -108,7 +108,7 @@
             <CheckBox Grid.Column="1" VerticalContentAlignment="Center" Margin="10 0 0 0" IsChecked="{Binding ActiveShape.SnapToGrid}"/>
         </Grid>
 
-        <ListView Grid.Row="3" Margin="0 10 0 0" ItemsSource="{Binding ShapeCollection}" SelectedItem="{Binding SelectedShape}" HorizontalContentAlignment="Stretch" IsEnabled="{Binding IsEditShapeActive, Converter={StaticResource InvertBoolConverter}}">
+        <ListView Grid.Row="3" Margin="0 10 0 0" ItemsSource="{Binding ShapeCollection}" SelectedItem="{Binding SelectedShape}" HorizontalContentAlignment="Stretch" IsEnabled="{Binding IsDrawShapeActive, Converter={StaticResource InvertBoolConverter}}">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid Background="Transparent">
