@@ -294,6 +294,15 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
 
     private void HealthChanged(object? sender, EventArgs e)
     {
+        if(Health.Hp == "0")
+        {
+            if(!Conditions.Contains(Condition.Death))
+            {
+                ToggleCondition(Condition.Death);
+                NotifyConditionsChanged();
+                NotifyTokenChanged();
+            }
+        }
         _multiActions.HealthChanged(this);
     }
 
