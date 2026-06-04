@@ -25,6 +25,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     private MapWindowViewModel _mapWindowViewModel;
     private Settings _settings;
     private ConnectionManager _connectionManager;
+    private ApplicationUpdater _applicationUpdater;
     private Size<double> _canvasSize;
     private Action _multiMoveAction;
     private MonsterTokens _monsterTokens = new();
@@ -35,6 +36,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         _windowService = windowService;
         Initialize();
         OpenMapWindow();
+        _applicationUpdater!.CheckForUpdatesInBackground();
     }
 
     public MainWindowViewModel()
@@ -136,6 +138,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         _connectionManager = new ConnectionManager();
         _connectionManager.OnConnected += ConnectionManagerConnected;
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
+        _applicationUpdater = new ApplicationUpdater(_windowService, _settings);
         _autoSaveTimer = new Timer(Constants.AutoSaveIntervalInMs);
         _autoSaveTimer.Elapsed += AutoSaveMap;
 
@@ -203,6 +206,23 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         HideConfigurationCommand = new RelayCommand(p => { IsConfigurationMenuExpanded = false; });
         KeyDownCommand = new RelayCommand(p => KeyDown((KeyEventArgs)p));
         KeyUpCommand = new RelayCommand(p => KeyUp((KeyEventArgs)p));
+    }
+
+    public void UpdateSuccessful()
+    {
+        var confirmationWindowViewModel = new ConfirmationWindowViewModel
+        {
+            Content = "Update successful!",
+            IsLeftButtonVisible = false,
+            IsRightButtonVisible = false,
+            IsMiddleButtonVisible = true
+        };
+        _windowService.ShowWindowDialog<ConfirmationWindow>(confirmationWindowViewModel);
+
+        if (IO.Directory.Exists(Constants.UpdateDirectoryPath))
+        {
+            IO.Directory.Delete(Constants.UpdateDirectoryPath, true);
+        }
     }
 
     private void OnBackgroundGridSizeChanged(object? sender, GridSizeChangedEventArgs e)
@@ -889,7 +909,6 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         }
     }
 
-    // todo: complete info text
     private string GetTokenInfoText()
     {
         var info = new ControlInfoEventArgs()

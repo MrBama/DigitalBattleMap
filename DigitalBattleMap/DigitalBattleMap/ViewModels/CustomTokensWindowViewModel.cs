@@ -4,18 +4,13 @@ using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Windows.Input;
-using static DigitalBattleMap.Utilities.FileManager;
 
 namespace DigitalBattleMap.ViewModels;
 
 public class CustomTokensWindowViewModel : ViewModelBase
 {
-    private static string _tokenFilePath = Path.Combine(Constants.TempDirectoryPath, "Token.json");
-    private static string _tokenImageFilePath = Path.Combine(Constants.TempDirectoryPath, "Image.png");
-    private static string _statblockFilePath = Path.Combine(Constants.TempDirectoryPath, "Markdown.md");
     private IWindowService _windowService;
     private Settings _settings;
     private IMonsterTokens _monsterTokens;

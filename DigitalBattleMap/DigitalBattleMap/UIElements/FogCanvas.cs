@@ -1,6 +1,5 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.FogShapes;
-using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
