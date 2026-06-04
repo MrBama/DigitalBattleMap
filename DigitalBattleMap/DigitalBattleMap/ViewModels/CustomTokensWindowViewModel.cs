@@ -4,10 +4,8 @@ using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Windows.Input;
-using static DigitalBattleMap.Utilities.FileManager;
 
 namespace DigitalBattleMap.ViewModels;
 

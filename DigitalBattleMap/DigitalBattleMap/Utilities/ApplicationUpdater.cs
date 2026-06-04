@@ -2,12 +2,10 @@
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.ViewModels;
 using DigitalBattleMap.Views;
-using Microsoft.VisualBasic.ApplicationServices;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Documents;
 
 namespace DigitalBattleMap.Utilities;
 
