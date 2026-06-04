@@ -1,4 +1,5 @@
-﻿using DigitalBattleMap.Interfaces;
+﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.ViewModels;
 using DigitalBattleMap.Views;
 using Microsoft.VisualBasic.ApplicationServices;
@@ -6,44 +7,69 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Documents;
 
 namespace DigitalBattleMap.Utilities;
 
 public class ApplicationUpdater
 {
-    public static readonly string ApplicationVersion = "1.0.0";
+    public static readonly string ApplicationVersion = "0.0.0";
 
     private Thread _thread;
     private IWindowService _windowService;
+    private Settings _settings;
 
-    public ApplicationUpdater(IWindowService windowService)
+    public ApplicationUpdater(IWindowService windowService, Settings settings)
     {
         _windowService = windowService;
+        _settings = settings;
     }
 
     public void CheckForUpdates()
     {
-        //TODO: check for auto update setting
-        //TODO: add current version to settings window
-        //TODO: manual update button in settings?
-        //TODO: progress bar?
-        //TODO: cancel button?
-        _thread = new Thread(Update);
-        _thread.Start();
+        string user = "MrBama";
+        string repository = "DigitalBattleMap";
+        var releaseInfo = GitHub.GetLatestReleaseInfo(user, repository);
+        if (IsUpdateAvailable(releaseInfo))
+        {
+            if (ConfirmUpdate(releaseInfo))
+            {
+                DownloadAndInstallUpdate(releaseInfo);
+            }
+        }
+        else
+        {
+            var confirmationWindowViewModel = new ConfirmationWindowViewModel
+            {
+                Content = "The latest version is already installed!",
+                IsLeftButtonVisible = false,
+                IsRightButtonVisible = false,
+                IsMiddleButtonVisible = true
+            };
+            _windowService.ShowWindowDialog<ConfirmationWindow>(confirmationWindowViewModel);
+        }
+    }
+
+    public void CheckForUpdatesInBackground()
+    {        
+        if(_settings.IsAutoUpdateEnabled)
+        {
+            _thread = new Thread(Update);
+            _thread.Start();
+        }
     }
 
     private void Update()
     {
         try
         {
-            string user = "gorhill";
-            string repository = "uBlock";
-            //var releaseInfo = GitHub.GetLatestReleaseInfo(user, repository);
-            //if(IsUpdateAvailable(releaseInfo) && ConfirmUpdate(releaseInfo))
-            //{
-            //    DownloadAndInstallUpdate();
-            //}
-            DownloadAndInstallUpdate(null);
+            string user = "MrBama";
+            string repository = "DigitalBattleMap";
+            var releaseInfo = GitHub.GetLatestReleaseInfo(user, repository);
+            if (IsUpdateAvailable(releaseInfo) && ConfirmUpdate(releaseInfo))
+            {
+                DownloadAndInstallUpdate(releaseInfo);
+            }
         }
         catch (Exception)
         {
@@ -53,15 +79,18 @@ public class ApplicationUpdater
 
     private bool IsUpdateAvailable(GithubReleaseInfo releaseInfo)
     {
-        return releaseInfo.tag_name != ApplicationVersion;
+        return releaseInfo.tag_name.Split("_v")[1] != ApplicationVersion;
     }
 
     private bool ConfirmUpdate(GithubReleaseInfo releaseInfo)
     {
         var confirmed = false;
+
         var confirmationWindowViewModel = new ConfirmationWindowViewModel
         {
-            Content = $"There is a new version available, do you want to update?\n\n{ApplicationVersion} -> {releaseInfo.tag_name}",
+            Content = $"There is a new version available, do you want to update?" +
+            $"\n\n{ApplicationVersion} -> {releaseInfo.tag_name.Split("_v")[1]}" +
+            $"\n<a href=\"{releaseInfo.html_url}\">Release notes</a>",
             LeftButtonAction = () => { confirmed = true; }
         };
 
