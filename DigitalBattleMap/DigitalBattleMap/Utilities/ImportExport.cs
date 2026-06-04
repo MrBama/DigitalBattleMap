@@ -32,10 +32,8 @@ public static class ImportExport
 
     public static void Export(string path, Campaign campaign, List<Token> customTokens)
     {
-        string tempDirectoryPath = Constants.TempDirectoryPath + "CampaignExport";
-        string campaignFilePath = Path.Combine(tempDirectoryPath, "Campaign.json");
-
         using var tempDirectory = new TempDirectory();
+        string campaignFilePath = Path.Combine(tempDirectory.Path, "Campaign.json");
 
         FileManager.SaveFile(campaign, campaignFilePath);
 
@@ -50,7 +48,7 @@ public static class ImportExport
                     if (customToken != null)
                     {
                         copiedTokenNames.Add(tokenIdentifier.Name);
-                        Export(Path.Combine(tempDirectoryPath, tokenIdentifier.Name), customToken);
+                        Export(Path.Combine(tempDirectory.Path, tokenIdentifier.Name), customToken);
                     }
                 }
             }
@@ -60,15 +58,13 @@ public static class ImportExport
         {
             IO.File.Delete(path);
         }
-        IO.ZipFile.CreateFromDirectory(tempDirectoryPath, path + ".campaign");
+        IO.ZipFile.CreateFromDirectory(tempDirectory.Path, path + ".campaign");
     }
 
     public static void Export(string path, TokenGroup tokenGroup, List<Token> customTokens)
     {
-        string tempDirectoryPath = Constants.TempDirectoryPath + "TokenGroupExport";
-        string tokenGroupFilePath = Path.Combine(tempDirectoryPath, "TokenGroup.json");
-
         using var tempDirectory = new TempDirectory();
+        string tokenGroupFilePath = Path.Combine(tempDirectory.Path, "TokenGroup.json");
 
         FileManager.SaveFile(tokenGroup, tokenGroupFilePath);
 
@@ -81,7 +77,7 @@ public static class ImportExport
                 if (customToken != null)
                 {
                     copiedTokenNames.Add(tokenName);
-                    Export(Path.Combine(tempDirectoryPath, tokenName), customToken);
+                    Export(Path.Combine(tempDirectory.Path, tokenName), customToken);
                 }
             }
         }
@@ -90,17 +86,15 @@ public static class ImportExport
         {
             IO.File.Delete(path);
         }
-        IO.ZipFile.CreateFromDirectory(tempDirectoryPath, path + ".tokengroup");
+        IO.ZipFile.CreateFromDirectory(tempDirectory.Path, path + ".tokengroup");
     }
 
     public static void Export(string path, Token token)
     {
-        string tempDirectoryPath = Constants.TempDirectoryPath + "TokenExport";
-        string tokenFilePath = Path.Combine(tempDirectoryPath, "Token.json");
-        string tokenImageFilePath = Path.Combine(tempDirectoryPath, "Image.png");
-        string statblockFilePath = Path.Combine(tempDirectoryPath, "Markdown.md");
-
         using var tempDirectory = new TempDirectory();
+        string tokenFilePath = Path.Combine(tempDirectory.Path, "Token.json");
+        string tokenImageFilePath = Path.Combine(tempDirectory.Path, "Image.png");
+        string statblockFilePath = Path.Combine(tempDirectory.Path, "Markdown.md");
 
         FileManager.SaveFile(token, tokenFilePath);
         IO.File.Copy(token.ImagePath, tokenImageFilePath);
@@ -114,16 +108,15 @@ public static class ImportExport
         {
             IO.File.Delete(path);
         }
-        IO.ZipFile.CreateFromDirectory(tempDirectoryPath, path + ".token");
+        IO.ZipFile.CreateFromDirectory(tempDirectory.Path, path + ".token");
     }
 
     private static void ImportCampaign(string path, Settings settings)
     {
-        string tempDirectoryPath = Constants.TempDirectoryPath + "CampaignImport";
-        string campaignFilePath = Path.Combine(tempDirectoryPath, "Campaign.json");
-
         using var tempDirectory = new TempDirectory();
-        IO.ZipFile.ExtractToDirectory(path, tempDirectoryPath);
+        string campaignFilePath = Path.Combine(tempDirectory.Path, "Campaign.json");
+
+        IO.ZipFile.ExtractToDirectory(path, tempDirectory.Path);
 
         if (FileManager.OpenFile(campaignFilePath, out Campaign campaign))
         {
@@ -135,7 +128,7 @@ public static class ImportExport
                 {
                     foreach (var tokenIdentifier in player.TokenIdentifiers)
                     {
-                        var tokenPath = Path.Combine(tempDirectoryPath, $"{tokenIdentifier.Name}.token");
+                        var tokenPath = Path.Combine(tempDirectory.Path, $"{tokenIdentifier.Name}.token");
                         if (IO.File.Exists(tokenPath))
                         {
                             ImportToken(tokenPath, settings, false);
@@ -150,11 +143,10 @@ public static class ImportExport
 
     private static void ImportTokenGroup(string path, Settings settings)
     {
-        string tempDirectoryPath = Constants.TempDirectoryPath + "TokenGroupImport";
-        string tokenGroupFilePath = Path.Combine(tempDirectoryPath, "TokenGroup.json");
-
         using var tempDirectory = new TempDirectory();
-        IO.ZipFile.ExtractToDirectory(path, tempDirectoryPath);
+        string tokenGroupFilePath = Path.Combine(tempDirectory.Path, "TokenGroup.json");
+
+        IO.ZipFile.ExtractToDirectory(path, tempDirectory.Path);
 
         if (FileManager.OpenFile(tokenGroupFilePath, out TokenGroup tokenGroup))
         {
@@ -164,7 +156,7 @@ public static class ImportExport
 
                 foreach (var tokenName in tokenGroup.TokenNames)
                 {
-                    var tokenPath = Path.Combine(tempDirectoryPath, $"{tokenName}.token");
+                    var tokenPath = Path.Combine(tempDirectory.Path, $"{tokenName}.token");
                     if (IO.File.Exists(tokenPath))
                     {
                         ImportToken(tokenPath, settings, false);
@@ -178,13 +170,12 @@ public static class ImportExport
 
     private static void ImportToken(string path, Settings settings, bool saveSettings = true)
     {
-        string tempDirectoryPath = Constants.TempDirectoryPath + "TokenImport";
-        string tokenFilePath = Path.Combine(tempDirectoryPath, "Token.json");
-        string tokenImageFilePath = Path.Combine(tempDirectoryPath, "Image.png");
-        string statblockFilePath = Path.Combine(tempDirectoryPath, "Markdown.md");
-
         using var tempDirectory = new TempDirectory();
-        IO.ZipFile.ExtractToDirectory(path, tempDirectoryPath);
+        string tokenFilePath = Path.Combine(tempDirectory.Path, "Token.json");
+        string tokenImageFilePath = Path.Combine(tempDirectory.Path, "Image.png");
+        string statblockFilePath = Path.Combine(tempDirectory.Path, "Markdown.md");
+
+        IO.ZipFile.ExtractToDirectory(path, tempDirectory.Path);
 
         if (FileManager.OpenFile(tokenFilePath, out Token token, new DerivedClassJsonConverter<Statblock>()))
         {

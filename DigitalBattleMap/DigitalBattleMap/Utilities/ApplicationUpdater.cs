@@ -15,6 +15,9 @@ public class ApplicationUpdater
 {
     public static readonly string ApplicationVersion = "0.0.0";
 
+    private static readonly string _user = "MrBama";
+    private static readonly string _repository = "DigitalBattleMap";
+
     private Thread _thread;
     private IWindowService _windowService;
     private Settings _settings;
@@ -27,9 +30,7 @@ public class ApplicationUpdater
 
     public void CheckForUpdates()
     {
-        string user = "MrBama";
-        string repository = "DigitalBattleMap";
-        var releaseInfo = GitHub.GetLatestReleaseInfo(user, repository);
+        var releaseInfo = GitHub.GetLatestReleaseInfo(_user, _repository);
         if (IsUpdateAvailable(releaseInfo))
         {
             if (ConfirmUpdate(releaseInfo))
@@ -63,9 +64,7 @@ public class ApplicationUpdater
     {
         try
         {
-            string user = "MrBama";
-            string repository = "DigitalBattleMap";
-            var releaseInfo = GitHub.GetLatestReleaseInfo(user, repository);
+            var releaseInfo = GitHub.GetLatestReleaseInfo(_user, _repository);
             if (IsUpdateAvailable(releaseInfo) && ConfirmUpdate(releaseInfo))
             {
                 DownloadAndInstallUpdate(releaseInfo);

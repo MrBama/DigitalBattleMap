@@ -155,9 +155,3 @@ if input() == 'y':
     os.remove(f'{server_release_path}.7z')
 
 print('\nFINISHED')
-
-
-
-
-
-
