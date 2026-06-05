@@ -67,7 +67,7 @@ public class FilterListViewBehavior : Behavior<ListView>
 
     public void ApplyFilter()
     {
-        if (AssociatedObject?.ItemsSource == null)
+        if (AssociatedObject?.ItemsSource == null || FilterKeyword == null)
         {
             return;
         }

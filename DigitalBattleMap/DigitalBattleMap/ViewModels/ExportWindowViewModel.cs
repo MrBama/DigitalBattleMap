@@ -31,6 +31,7 @@ public class ExportWindowViewModel : ViewModelBase
     private void InitializeProperties()
     {
         ExportCampaignChecked = true;
+        SearchText = "";
     }
 
     protected override void InitializeCommands()
@@ -44,6 +45,7 @@ public class ExportWindowViewModel : ViewModelBase
     public bool ExportCampaignChecked { get => Get<bool>(); set => Set(value, ExportCampaignToggled); }
     public bool ExportTokenGroupChecked { get => Get<bool>(); set => Set(value, ExportTokenGroupToggled); }
     public bool ExportTokenChecked { get => Get<bool>(); set => Set(value, ExportTokenToggled); }
+    public string SearchText { get => Get<string>(); set => Set(value); }
 
     public ICommand ExportCommand { get; set; }
 
