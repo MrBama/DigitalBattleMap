@@ -1,9 +1,12 @@
 # Installation:
-# pip install GitPython
-# pip install py7zr
-# pip install PyGithub
-# add msbuild to PATH
-# add git to PATH
+# 1. pip install GitPython
+# 2. pip install py7zr
+# 3. pip install PyGithub
+# 4. Add msbuild executable to PATH environment variable (For example: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin)
+# 5. Add git executable to PATH environment variable (For example: C:\Program Files\Git\bin)
+# 6. Create Github API token
+#       Profile -> Settings -> Developer settings -> Personal access tokens -> Tokens (classic) -> Generate new token (classic)
+#       Select repo checkmark (Full control of private repositories)
 
 import os
 import git  
