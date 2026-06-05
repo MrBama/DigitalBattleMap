@@ -57,7 +57,7 @@ public class SelectTokenWindowViewModel : ViewModelBase
         KeyDownCommand = new RelayCommand(p => KeyDown((KeyEventArgs)p));
     }
 
-    public string SearchText { get => Get<string>(); set => Set(value, SearchTextChanged); }
+    public string SearchText { get => Get<string>(); set => Set(value); }
     public Token SelectedToken { get => Get<Token>(); set => Set(value, OnSelectedTokenChanged); }
     public TokenGroup SelectedGroup { get => Get<TokenGroup>(); set => Set(value); }
     public int NumberOfTokens { get => Get<int>(); set => Set(value); }
@@ -67,7 +67,9 @@ public class SelectTokenWindowViewModel : ViewModelBase
     public ObservableCollection<Token> TokenList { get; set; } = new ObservableCollection<Token>();
     public ObservableCollection<TokenGroup> GroupList { get; set; } = new ObservableCollection<TokenGroup>();
     public bool IsTokenSelected { get => AreTokensSelected(); }
-    public List<Token> AddedTokens { get; set; } = new List<Token>();
+    public List<Token> AddedTokens { get; set; } = new();
+    public List<object> FilteredTokenList { get; set; } = new();
+    public List<object> FilteredGroupList { get; set; } = new();
 
     public ICommand AddCommand { get; set; }
     public ICommand KeyDownCommand { get; set; }
@@ -79,36 +81,6 @@ public class SelectTokenWindowViewModel : ViewModelBase
         SearchText = "";
         NumberOfTokens = 1;
         SelectedTokenSize = TokenSize.Medium;
-    }
-
-    private void SearchTextChanged()
-    {
-        if (SelectedTabIndex == 0)
-        {
-            TokenList.Clear();
-            foreach (var token in _tokens)
-            {
-                if (token.Name.ToLower().Contains(SearchText.ToLower()))
-                {
-                    TokenList.Add(token);
-                }
-            }
-
-            SelectedToken = TokenList.FirstOrDefault();
-        }
-        else
-        {
-            GroupList.Clear();
-            foreach (var group in _groups)
-            {
-                if (group.Name.ToLower().Contains(SearchText.ToLower()))
-                {
-                    GroupList.Add(group);
-                }
-            }
-
-            SelectedGroup = GroupList.FirstOrDefault();
-        }
     }
 
     private void AddButton()
@@ -166,19 +138,19 @@ public class SelectTokenWindowViewModel : ViewModelBase
         {
             if (keyEventArgs.Key == Key.Down)
             {
-                var index = TokenList.IndexOf(SelectedToken);
-                if (index != -1 && index < TokenList.Count - 1)
+                var index = FilteredTokenList.IndexOf(SelectedToken);
+                if (index != -1 && index < FilteredTokenList.Count - 1)
                 {
-                    SelectedToken = TokenList[index + 1];
+                    SelectedToken = (Token)FilteredTokenList[index + 1];
                 }
             }
 
             if (keyEventArgs.Key == Key.Up)
             {
-                var index = TokenList.IndexOf(SelectedToken);
+                var index = FilteredTokenList.IndexOf(SelectedToken);
                 if (index != -1 && index > 0)
                 {
-                    SelectedToken = TokenList[index - 1];
+                    SelectedToken = (Token)FilteredTokenList[index - 1];
                 }
             }
         }
@@ -186,19 +158,19 @@ public class SelectTokenWindowViewModel : ViewModelBase
         {
             if (keyEventArgs.Key == Key.Down)
             {
-                var index = GroupList.IndexOf(SelectedGroup);
-                if (index != -1 && index < GroupList.Count - 1)
+                var index = FilteredGroupList.IndexOf(SelectedGroup);
+                if (index != -1 && index < FilteredGroupList.Count - 1)
                 {
-                    SelectedGroup = GroupList[index + 1];
+                    SelectedGroup = (TokenGroup)FilteredGroupList[index + 1];
                 }
             }
 
             if (keyEventArgs.Key == Key.Up)
             {
-                var index = GroupList.IndexOf(SelectedGroup);
+                var index = FilteredGroupList.IndexOf(SelectedGroup);
                 if (index != -1 && index > 0)
                 {
-                    SelectedGroup = GroupList[index - 1];
+                    SelectedGroup = (TokenGroup) FilteredGroupList[index - 1];
                 }
             }
         }

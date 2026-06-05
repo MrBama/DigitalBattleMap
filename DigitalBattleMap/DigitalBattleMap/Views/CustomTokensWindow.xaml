@@ -56,6 +56,7 @@
                     <ListView Grid.Row="1" Grid.ColumnSpan="3" Margin="0 10 0 0" ItemsSource="{Binding TokenList}" HorizontalAlignment="Stretch" SelectedItem="{Binding SelectedToken}">
                         <i:Interaction.Behaviors>
                             <uielements:MultiSelectionBehavior SelectedItems="{Binding SelectedTokens, Mode=OneWayToSource}" />
+                            <uielements:FilterListViewBehavior FilterKeyword="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" FilterPropertyName="Name" KeepSelection="True"/>
                         </i:Interaction.Behaviors>
                         <ListView.ItemTemplate>
                             <DataTemplate>
