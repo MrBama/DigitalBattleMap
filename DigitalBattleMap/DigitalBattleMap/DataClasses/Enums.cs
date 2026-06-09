@@ -132,3 +132,11 @@ public enum DrawingShapeCommandAction
     Edit,
     Erase
 }
+
+public enum BitmapRotation
+{
+    Rotate0,
+    Rotate90,
+    Rotate180,
+    Rotate270
+}
