@@ -1,11 +1,15 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Interfaces;
+using System.Collections.Generic;
+using System.Windows.Input;
 
 namespace DigitalBattleMap.ViewModels;
+
 public abstract class ControllerViewModelBase : ViewModelBase
 {
     protected IMapSize _mapSize;
     protected bool _pauseBitmapCreation;
+    protected HashSet<Key> _pressedKeys = new();
 
     public ControllerViewModelBase()
     {
@@ -33,6 +37,16 @@ public abstract class ControllerViewModelBase : ViewModelBase
     {
         _pauseBitmapCreation = false;
         CreateBitmap();
+    }
+
+    virtual public void KeyDown(KeyEventArgs keyEventArgs)
+    {
+        _pressedKeys.Add(keyEventArgs.Key);
+    }
+
+    virtual public void KeyUp(KeyEventArgs keyEventArgs)
+    {
+        _pressedKeys.Remove(keyEventArgs.Key);
     }
 
     protected abstract void CreateBitmap();

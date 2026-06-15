@@ -771,6 +771,11 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             IsMultiMove = true;
             MultiMoveCount = 0;
         }
+
+        BackgroundController.KeyDown(keyEventArgs);
+        FogController.KeyDown(keyEventArgs);
+        DrawingController.KeyDown(keyEventArgs);
+        TokenController.KeyDown(keyEventArgs);
     }
 
     private void KeyUp(KeyEventArgs keyEventArgs)
@@ -784,6 +789,11 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 _multiMoveAction = null;
             }
         }
+
+        BackgroundController.KeyUp(keyEventArgs);
+        FogController.KeyUp(keyEventArgs);
+        DrawingController.KeyUp(keyEventArgs);
+        TokenController.KeyUp(keyEventArgs);
     }
 
     private void SettingChanged(object? sender, SettingChangedEventArgs e)

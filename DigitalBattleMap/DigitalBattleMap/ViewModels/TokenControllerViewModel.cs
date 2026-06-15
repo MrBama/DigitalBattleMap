@@ -439,7 +439,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            if(System.Windows.Forms.Control.ModifierKeys != System.Windows.Forms.Keys.Alt)
+            if(_pressedKeys.Contains(Key.LeftAlt) || _pressedKeys.Contains(Key.RightAlt))
             {
                 SelectToken(e);
             }
