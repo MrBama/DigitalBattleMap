@@ -106,7 +106,8 @@ public enum ControlType
     Alt,
     Up,
     Down,
-    Click
+    Click,
+    Shift
 }
 
 public enum NType
@@ -139,4 +140,10 @@ public enum BitmapRotation
     Rotate90,
     Rotate180,
     Rotate270
+}
+
+public enum DrawingShapeMode
+{
+    Move,
+    Rotate
 }

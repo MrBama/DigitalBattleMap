@@ -16,6 +16,8 @@ public class ConeDrawingShape : DrawingShape
         SnapToGrid = true;
     }
 
+    public override bool IsRotateShapeSupported => true;
+
     protected override void ButtonDown(Point<double> position)
     {
         _startPosition = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2) : position;
@@ -24,6 +26,8 @@ public class ConeDrawingShape : DrawingShape
 
     protected override void ButtonUp(Point<double> position)
     {
+        CentersOfRotation.Add(_startPosition);
+        RotationMarkers.Add(_previousMovePosition);
         ApplyShape();
     }
 

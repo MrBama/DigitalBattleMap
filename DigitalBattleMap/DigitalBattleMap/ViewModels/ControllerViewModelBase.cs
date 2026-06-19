@@ -39,12 +39,12 @@ public abstract class ControllerViewModelBase : ViewModelBase
         CreateBitmap();
     }
 
-    virtual public void KeyDown(KeyEventArgs keyEventArgs)
+    public virtual void KeyDown(KeyEventArgs keyEventArgs)
     {
         _pressedKeys.Add(keyEventArgs.Key);
     }
 
-    virtual public void KeyUp(KeyEventArgs keyEventArgs)
+    public virtual void KeyUp(KeyEventArgs keyEventArgs)
     {
         _pressedKeys.Remove(keyEventArgs.Key);
     }
