@@ -1,7 +1,6 @@
 "use strict";
 
 const backgroundUrl = "/Map/Get?layer=Background";
-const fogUrl = "/Map/Get?layer=Fog";
 const gridAndStrokesUrl = "/Map/Get?layer=GridAndStrokes";
 const tokensUrl = "/Map/Get?layer=Tokens";
 
@@ -51,7 +50,6 @@ connectionMap.on("UpdateMap", function (drawLayer) {
     switch (drawLayer) {
         case 0:
             $('#tokenImage').attr('src', tokensUrl + '&t=' + time);
-            $('#fogImage').attr('src', fogUrl + '&t=' + time);
             $('#gridAndStrokesImage').attr('src', gridAndStrokesUrl + '&t=' + time);
             $('#backgroundImage').attr('src', backgroundUrl + '&t=' + time);
             break;
@@ -63,8 +61,6 @@ connectionMap.on("UpdateMap", function (drawLayer) {
             break;
         case 3:
             $('#tokenImage').attr('src', tokensUrl + '&t=' + time);
-        case 4:
-            $('#fogImage').attr('src', fogUrl + '&t=' + time);
             break;
     }
 });

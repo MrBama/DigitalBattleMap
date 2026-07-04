@@ -324,36 +324,48 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         switch (drawing)
         {
             case DrawLayer.All:
-                var backgroundAndFogBitmapAll = BackgroundController.GetBackgroundBitmap();
-                var gridAndTokenBitmapAll = CreateGridAndDrawingBitmap();
-                _mapWindowViewModel.BackgroundBitmapSource = backgroundAndFogBitmapAll.ToBitmapImage();
-                _mapWindowViewModel.FogBitmapSource = FogController.GetFogBitmap().ToBitmapImage();
-                _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
-                _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmapAll) });
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Fog, Bitmap = new Bitmap(FogController.GetFogBitmap()) });
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmapAll) });
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
-                break;
-            case DrawLayer.Background:
-                var backgroundAndFogBitmap = BackgroundController.GetBackgroundBitmap();
-                _mapWindowViewModel.BackgroundBitmapSource = backgroundAndFogBitmap.ToBitmapImage();
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmap) });
-                break;
-            case DrawLayer.Fog:
-                _mapWindowViewModel.FogBitmapSource = FogController.GetFogBitmap().ToBitmapImage();
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Fog, Bitmap = new Bitmap(FogController.GetFogBitmap()) });
-                break;
+                {
+                    using var backgroundBitmap = BackgroundController.GetBackgroundBitmap();
+                    using var gridAndTokenBitmapAll = CreateGridAndDrawingBitmap();
+                    _mapWindowViewModel.BackgroundBitmapSource = backgroundBitmap.ToBitmapImage();
+                    _mapWindowViewModel.FogBitmapSource = FogController.GetFogBitmap().ToBitmapImage();
+                    _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
+                    _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
+
+                    using var backgroundAndFogBitmap = GetMergedBackgroundAndFogBitmap(backgroundBitmap);
+                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmap) });
+                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmapAll) });
+                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
+                    break;
+                }
+            case DrawLayer.Background: case DrawLayer.Fog:
+                {
+                    using var backgroundBitmap = BackgroundController.GetBackgroundBitmap();
+                    using var backgroundAndFogBitmap = GetMergedBackgroundAndFogBitmap(backgroundBitmap);
+                    _mapWindowViewModel.BackgroundBitmapSource = backgroundBitmap.ToBitmapImage();
+                    _mapWindowViewModel.FogBitmapSource = FogController.GetFogBitmap().ToBitmapImage();
+                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmap) });
+                    break;
+                }
             case DrawLayer.GridAndStrokes:
-                var gridAndTokenBitmap = CreateGridAndDrawingBitmap();
-                _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmap.ToBitmapImage();
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmap) });
-                break;
+                {
+                    using var gridAndTokenBitmap = CreateGridAndDrawingBitmap();
+                    _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmap.ToBitmapImage();
+                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmap) });
+                    break;
+                }
             case DrawLayer.Tokens:
-                _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
-                break;
+                {
+                    _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
+                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
+                    break;
+                }
         }
+    }
+
+    private Bitmap GetMergedBackgroundAndFogBitmap(Bitmap backgroundBitmap)
+    {
+        return BitmapTools.MergeBitmaps(backgroundBitmap, FogController.GetFogBitmap());
     }
 
     private Bitmap CreateGridAndDrawingBitmap()
@@ -511,11 +523,13 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void MoveMap(ArrowDirection arrowDirection, int steps)
     {
+        PauseBitmapCreation(true);
         ZoomAndMoveHistory.Enqueue(new ZoomAndMoveCommand(arrowDirection, steps));
         BackgroundController.Move(arrowDirection, steps);
         FogController.Move(arrowDirection, steps);
         DrawingController.Move(arrowDirection, steps);
         TokenController.Move(arrowDirection, steps);
+        PauseBitmapCreation(false);
     }
 
     private void MoveMap(int stepsX, int stepsY)
@@ -906,6 +920,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         if(paused)
         {
             BackgroundController.PauseBitmapCreation();
+            FogController.PauseBitmapCreation();
             DrawingController.PauseBitmapCreation();
             TokenController.PauseBitmapCreation();
         }
@@ -914,6 +929,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             BackgroundController.ResumeBitmapCreation();
             DrawingController.ResumeBitmapCreation();
             TokenController.ResumeBitmapCreation();
+            FogController.ResumeBitmapCreation(); // For a move action causes and addition render to the server so placed as last so this is not noticed.
         }
     }
 
