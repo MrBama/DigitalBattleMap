@@ -25,6 +25,7 @@ public class SettingsWindowViewModel : ViewModelBase
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
         SelectedBackgroundColor = _settings.DefaultBackgroundColor;
         IsAutoSaveEnabled = _settings.IsAutoSaveEnabled;
+        IsAutoUpdateEnabled = _settings.IsAutoUpdateEnabled;
 
         foreach (var screenPosition in ScreenWrapper.GetScreenPositions())
         {
@@ -35,6 +36,7 @@ public class SettingsWindowViewModel : ViewModelBase
     protected override void InitializeCommands()
     {
         SaveCommand = new RelayCommand(p => SaveButtonClicked());
+        CheckForUpdatesCommand = new RelayCommand(p => CheckForUpdates());
         DownloadMonsterTokensCommand = new RelayCommand(p => DownloadMonsterTokens());
         WebExtensionsCommand = new RelayCommand(p => ManageWebExtensions());
         ImportCommand = new RelayCommand(p => Import());
@@ -46,11 +48,13 @@ public class SettingsWindowViewModel : ViewModelBase
     public bool MonsterTokensDownloaded { get; set; }
 
     public ICommand SaveCommand { get; set; }
+    public ICommand CheckForUpdatesCommand { get; set; }
     public ICommand DownloadMonsterTokensCommand { get; set; }
     public ICommand WebExtensionsCommand { get; set; }
     public ICommand ImportCommand { get; set; }
     public ICommand ExportCommand { get; set; }
 
+    public string ApplicationVersion => ApplicationUpdater.ApplicationVersion;
     public int DefaultGridSize { get => Get<int>(); set => Set(value); }
     public string ServerAddress { get => Get<string>(); set => Set(value); }
     public ScreenPosition SelectedMonitorPosition { get => Get<ScreenPosition>(); set => Set(value); }
@@ -58,6 +62,7 @@ public class SettingsWindowViewModel : ViewModelBase
     public bool ShowMapWindow { get => Get<bool>(); set => Set(value); }
     public bool HideDungeonMasterFeatures { get => Get<bool>(); set => Set(value); }
     public bool IsAutoSaveEnabled { get => Get<bool>(); set => Set(value); }
+    public bool IsAutoUpdateEnabled { get => Get<bool>(); set => Set(value); }
 
     private void SaveButtonClicked()
     {
@@ -68,8 +73,15 @@ public class SettingsWindowViewModel : ViewModelBase
         _settings.HideDungeonMasterFeatures = HideDungeonMasterFeatures;
         _settings.DefaultBackgroundColor = SelectedBackgroundColor;
         _settings.IsAutoSaveEnabled = IsAutoSaveEnabled;
+        _settings.IsAutoUpdateEnabled = IsAutoUpdateEnabled;
 
         _settings.Save();
+    }
+
+    private void CheckForUpdates()
+    {
+        var applicationUpdater = new ApplicationUpdater(_windowService, _settings);
+        applicationUpdater.CheckForUpdates();
     }
 
     private void DownloadMonsterTokens()

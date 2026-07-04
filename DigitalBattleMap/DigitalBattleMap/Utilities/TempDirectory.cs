@@ -1,27 +1,28 @@
-﻿using System;
+﻿using DigitalBattleMap.DataClasses;
+using System;
 
 namespace DigitalBattleMap.Utilities;
 
 public class TempDirectory : IDisposable
 {
-    private string _path;
-
-    public TempDirectory(string path)
+    public TempDirectory()
     {
-        _path = path;
-        if (IO.Directory.Exists(_path))
+        Path = $"{Constants.TempDirectoryPath}_{Guid.NewGuid()}";
+        if (IO.Directory.Exists(Path))
         {
-            IO.Directory.Delete(_path, true);
+            IO.Directory.Delete(Path, true);
         }
 
-        IO.Directory.CreateDirectory(_path);
+        IO.Directory.CreateDirectory(Path);
     }
+
+    public string Path { get; }
 
     public void Dispose()
     {
-        if (IO.Directory.Exists(_path))
+        if (IO.Directory.Exists(Path))
         {
-            IO.Directory.Delete(_path, true);
+            IO.Directory.Delete(Path, true);
         }
     }
 }

@@ -23,6 +23,7 @@ public class GithubReleaseInfo
 {
     public string tag_name { get; set; }
     public string name { get; set; }
+    public string html_url { get; set; }
     public List<GitHubReleaseAsset> assets { get; set; }
 }
 

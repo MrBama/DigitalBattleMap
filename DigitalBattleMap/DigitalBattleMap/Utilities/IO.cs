@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.Interfaces;
 using ImageMagick;
+using SevenZipExtractor;
 using System;
 using System.Drawing;
 using System.IO;
@@ -161,7 +162,15 @@ public class ZipFile : IZipFile
 
     public void ExtractToDirectory(string sourceArchiveFileName, string destinationDirectoryName)
     {
-        System.IO.Compression.ZipFile.ExtractToDirectory(sourceArchiveFileName, destinationDirectoryName);
+        if(Path.GetExtension(sourceArchiveFileName) == ".7z")
+        {
+            using ArchiveFile archiveFile = new ArchiveFile(sourceArchiveFileName);
+            archiveFile.Extract(destinationDirectoryName);
+        }
+        else
+        {
+            System.IO.Compression.ZipFile.ExtractToDirectory(sourceArchiveFileName, destinationDirectoryName);
+        }
     }
 }
 

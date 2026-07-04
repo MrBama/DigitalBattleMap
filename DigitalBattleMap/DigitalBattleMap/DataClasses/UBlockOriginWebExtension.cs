@@ -8,7 +8,6 @@ namespace DigitalBattleMap.DataClasses;
 
 public class UBlockOriginWebExtension : IWebExtension
 {
-    private static readonly string _tempDirectoryPath = Constants.TempDirectoryPath + "WebExtension";
     private static readonly string _webExtensionPath = Path.Combine(Constants.WebExtensionsPath, "uBlock Origin");
     private const string user = "gorhill";
     private const string repository = "uBlock";
@@ -65,11 +64,11 @@ public class UBlockOriginWebExtension : IWebExtension
         var asset = releaseInfo.assets.SingleOrDefault(a => a.name.Contains("chromium"));
         if (asset != null)
         {
-            using var tempDirectory = new TempDirectory(_tempDirectoryPath);
-            var zipFilePath = Path.Combine(_tempDirectoryPath, "WebExtension.zip");
+            using var tempDirectory = new TempDirectory();
+            var zipFilePath = Path.Combine(tempDirectory.Path, "WebExtension.zip");
             asset.Download(zipFilePath);
 
-            IO.ZipFile.ExtractToDirectory(zipFilePath, _tempDirectoryPath);
+            IO.ZipFile.ExtractToDirectory(zipFilePath, tempDirectory.Path);
 
             if (IO.Directory.Exists(_webExtensionPath))
             {
@@ -77,7 +76,7 @@ public class UBlockOriginWebExtension : IWebExtension
             }
 
             IO.Directory.CreateDirectory(_webExtensionPath);
-            IO.Directory.Copy(Path.Combine(_tempDirectoryPath, "uBlock0.chromium"), _webExtensionPath, true);
+            IO.Directory.Copy(Path.Combine(tempDirectory.Path, "uBlock0.chromium"), _webExtensionPath, true);
         }
     }
 }

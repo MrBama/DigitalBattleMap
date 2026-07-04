@@ -9,7 +9,6 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Linq;
-using System.Numerics;
 
 namespace DigitalBattleMap;
 
@@ -255,6 +254,27 @@ public static class BitmapTools
             }
         }
         return bitmap;
+    }
+
+    public static void RotateBitmap(Bitmap bitmap, BitmapRotation rotation)
+    {
+        switch (rotation)
+        {
+            case BitmapRotation.Rotate0:
+                bitmap.RotateFlip(RotateFlipType.RotateNoneFlipNone);
+                break;
+            case BitmapRotation.Rotate90:
+                bitmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                break;
+            case BitmapRotation.Rotate180:
+                bitmap.RotateFlip(RotateFlipType.Rotate180FlipNone);
+                break;
+            case BitmapRotation.Rotate270:
+                bitmap.RotateFlip(RotateFlipType.Rotate270FlipNone);
+                break;
+            default:
+                break;
+        }
     }
 
     private static int DigitPadding(int maps, int index, int width)
