@@ -956,7 +956,8 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             infoBlocks = new List<InfoBlock>()
             {
                 new InfoBlock(ControlType.LMB, "Hold to draw a stroke"),
-                new InfoBlock(ControlType.RMB, "Move the selected shape")
+                new InfoBlock(ControlType.RMB, "Move the selected shape"),
+                new InfoBlock(ControlType.Shift, ControlType.RMB, "Rotate the selected shape")
             }
         };
         return GetControlInfoText(info);

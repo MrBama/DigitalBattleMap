@@ -24,6 +24,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     private DrawingButton _selectedDrawingButton = DrawingButton.Black;
     private ITokenLinker _tokenLinker;
     private bool _showSelectedShapeIndicator = true;
+    private List<DrawingShape> _rotationMarkers = new();
 
     public DrawingControllerViewModel()
     {
@@ -186,6 +187,38 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         }
 
         NotifyDrawingShapesUpdated();
+    }
+
+    public override void KeyDown(KeyEventArgs keyEventArgs)
+    {
+        base.KeyDown(keyEventArgs);
+        if (keyEventArgs.Key == Key.LeftShift && SelectedShape != null && SelectedShape.Mode != DrawingShapeMode.Rotate)
+        {
+            SelectedShape.Mode = DrawingShapeMode.Rotate;
+            foreach (var centerOfRotation in SelectedShape.RotationMarkers)
+            {
+                var shape = CreateStrokeDrawingShape();
+                shape.Points.Add(centerOfRotation);
+                shape.Color = Colors.Orange;
+                shape.PenSize = Math.Max(SelectedShape.PenSize, 20);
+                ShapeCollection.Add(shape);
+                _rotationMarkers.Add(shape);
+            }
+        }
+    }
+
+    public override void KeyUp(KeyEventArgs keyEventArgs)
+    {
+        base.KeyUp(keyEventArgs);
+        if (keyEventArgs.Key == Key.LeftShift && SelectedShape != null && SelectedShape.Mode == DrawingShapeMode.Rotate)
+        {
+            foreach (var shape in _rotationMarkers)
+            {
+                ShapeCollection.Remove(shape);
+            }
+            _rotationMarkers.Clear();
+            SelectedShape.Mode = DrawingShapeMode.Move;
+        }
     }
 
     private void OnCanvasSizeChanged(object? sender, CanvasSizeChangedEventArgs eventArgs)
@@ -591,6 +624,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
                 command.DrawingShape.Color = command.OldInfo.Color;
                 command.DrawingShape.PenSize = command.OldInfo.Size;
                 command.DrawingShape.Points = new ObservableCollection<Point<double>>(command.OldInfo.Points);
+                command.DrawingShape.RotationMarkers = new List<Point<double>>(command.OldInfo.RotationMarkers);
+                command.DrawingShape.CentersOfRotation = new List<Point<double>>(command.OldInfo.CentersOfRotation);
                 break;
             case DrawingShapeCommandAction.Erase:
                 foreach (var eraseCommand in command.EraseData.EraseCommands)
@@ -627,6 +662,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
                 command.DrawingShape.Color = command.NewInfo.Color;
                 command.DrawingShape.PenSize = command.NewInfo.Size;
                 command.DrawingShape.Points = new ObservableCollection<Point<double>>(command.NewInfo.Points);
+                command.DrawingShape.RotationMarkers = new List<Point<double>>(command.NewInfo.RotationMarkers);
+                command.DrawingShape.CentersOfRotation = new List<Point<double>>(command.NewInfo.CentersOfRotation);
                 break;
             case DrawingShapeCommandAction.Erase:
                 foreach (var eraseCommand in command.EraseData.EraseCommands)
