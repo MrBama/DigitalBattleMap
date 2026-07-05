@@ -41,16 +41,39 @@ public class ConeDrawingShape : DrawingShape
                 _previousMovePosition = snappedPosition;
                 Points.Clear();
 
-                var startOfCone = new Point<double>(snappedPosition).Rotate(_startPosition, -30);
-                Points.Add(_startPosition);
-                Points.Add(startOfCone);
+                // Calculate the lenght of the triangle and the sloped side
+                var zeroPosition = new Point<double>(_startPosition.X - snappedPosition.X, _startPosition.Y - snappedPosition.Y);
+                var middleLength = Math.Sqrt(Math.Pow(zeroPosition.X, 2) + Math.Pow(zeroPosition.Y, 2));
+                var slopeLenght = Math.Sqrt(Math.Pow(middleLength, 2) + Math.Pow(middleLength/2, 2));
+        
+                // Calculate from middle to zero and from middle to slope
+                var angleToZero = Math.Atan2(snappedPosition.Y - _startPosition.Y, snappedPosition.X - _startPosition.X);
+                var angleOfTriangle = Math.Acos(middleLength / slopeLenght);
 
-                for (int i = 0; i <= 60; i += 2)
-                {
-                    Points.Add(startOfCone.Rotate(_startPosition, i));
-                }
+                // Calculate x and y of point 1 by adding the angles
+                var x = Math.Cos(angleToZero + angleOfTriangle) * slopeLenght;
+                var y = Math.Sin(angleToZero + angleOfTriangle) * slopeLenght;
 
+                if (double.IsNaN(x) || double.IsNaN(y))
+                    return;
+
+                var point1 = new Point<double>(_startPosition.X + x, _startPosition.Y + y);
+
+                // Calculate x and y of point 1 by subtracting the angles
+                x = Math.Cos(angleToZero - angleOfTriangle) * slopeLenght;
+                y = Math.Sin(angleToZero - angleOfTriangle) * slopeLenght;
+
+                if (double.IsNaN(x) || double.IsNaN(y))
+                    return;
+
+                var point2 = new Point<double>(_startPosition.X + x, _startPosition.Y + y);
+
+                // Add points for triangle using point 1, point 2 and start position
                 Points.Add(_startPosition);
+                Points.Add(point1);
+                Points.Add(point2);
+                Points.Add(_startPosition);
+
                 CalculateSize();
             }
         }
