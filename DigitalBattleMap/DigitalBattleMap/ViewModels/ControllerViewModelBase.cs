@@ -41,12 +41,14 @@ public abstract class ControllerViewModelBase : ViewModelBase
 
     public virtual void KeyDown(KeyEventArgs keyEventArgs)
     {
-        _pressedKeys.Add(keyEventArgs.Key);
+        var key = keyEventArgs.Key != Key.System ? keyEventArgs.Key : keyEventArgs.SystemKey;
+        _pressedKeys.Add(key);
     }
 
     public virtual void KeyUp(KeyEventArgs keyEventArgs)
     {
-        _pressedKeys.Remove(keyEventArgs.Key);
+        var key = keyEventArgs.Key != Key.System ? keyEventArgs.Key : keyEventArgs.SystemKey;
+        _pressedKeys.Remove(key);
     }
 
     protected abstract void CreateBitmap();
