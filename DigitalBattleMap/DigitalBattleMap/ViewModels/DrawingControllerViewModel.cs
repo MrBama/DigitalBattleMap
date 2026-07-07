@@ -25,6 +25,8 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     private ITokenLinker _tokenLinker;
     private bool _showSelectedShapeIndicator = true;
     private List<DrawingShape> _rotationMarkers = new();
+    private List<DrawingShape> _shapeAreaDrawings = new();
+    private bool _isShapeAreaShown = false;
 
     public DrawingControllerViewModel()
     {
@@ -192,32 +194,29 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     public override void KeyDown(KeyEventArgs keyEventArgs)
     {
         base.KeyDown(keyEventArgs);
-        if (keyEventArgs.Key == Key.LeftShift && SelectedShape != null && SelectedShape.Mode != DrawingShapeMode.Rotate)
+
+        if (keyEventArgs.Key == Key.LeftShift)
         {
-            SelectedShape.Mode = DrawingShapeMode.Rotate;
-            foreach (var centerOfRotation in SelectedShape.RotationMarkers)
-            {
-                var shape = CreateStrokeDrawingShape();
-                shape.Points.Add(centerOfRotation);
-                shape.Color = Colors.Orange;
-                shape.PenSize = Math.Max(SelectedShape.PenSize, 20);
-                ShapeCollection.Add(shape);
-                _rotationMarkers.Add(shape);
-            }
+            EnableShapeRotation();
         }
-    }
+
+        if(keyEventArgs.Key == Key.LeftCtrl)
+        {
+            ShowShapeArea();
+        }
+    }   
 
     public override void KeyUp(KeyEventArgs keyEventArgs)
     {
         base.KeyUp(keyEventArgs);
-        if (keyEventArgs.Key == Key.LeftShift && SelectedShape != null && SelectedShape.Mode == DrawingShapeMode.Rotate)
+        if (keyEventArgs.Key == Key.LeftShift)
         {
-            foreach (var shape in _rotationMarkers)
-            {
-                ShapeCollection.Remove(shape);
-            }
-            _rotationMarkers.Clear();
-            SelectedShape.Mode = DrawingShapeMode.Move;
+            DisableShapeRotation();
+        }
+
+        if(keyEventArgs.Key == Key.LeftCtrl)
+        {
+            HideShapeArea();
         }
     }
 
@@ -698,5 +697,93 @@ public class DrawingControllerViewModel : ControllerViewModelBase
     private void FixRatioRectangleAreaSelected(object? sender, RectangleF rectangle)
     {
         OnZoomAndEnhance?.Invoke(this, new ZoomAndEnhanceEventArgs() { rectangle = rectangle });
+    }
+
+    private void EnableShapeRotation()
+    {
+        if (SelectedShape != null && SelectedShape.Mode != DrawingShapeMode.Rotate)
+        {
+            SelectedShape.Mode = DrawingShapeMode.Rotate;
+            foreach (var centerOfRotation in SelectedShape.RotationMarkers)
+            {
+                var shape = CreateStrokeDrawingShape();
+                shape.Points.Add(centerOfRotation);
+                shape.Color = Colors.Orange;
+                shape.PenSize = Math.Max(SelectedShape.PenSize, 20);
+                ShapeCollection.Add(shape);
+                _rotationMarkers.Add(shape);
+            }
+        }
+    }
+
+    private void DisableShapeRotation()
+    {
+        if (_rotationMarkers.Count > 0)
+        {
+            foreach (var shape in _rotationMarkers)
+            {
+                ShapeCollection.Remove(shape);
+            }
+            _rotationMarkers.Clear();
+
+            if (SelectedShape != null)
+            {
+                SelectedShape.Mode = DrawingShapeMode.Move;
+            }
+        }
+    }
+
+    private void ShowShapeArea()
+    {
+        if (SelectedShape != null && !_isShapeAreaShown)
+        {
+            _isShapeAreaShown = true;
+
+            var points = new List<Point<double>>();
+            var gridOffset = Mathematics.CalculateCanvasGridOffset(_mapSize);
+
+            // Normalize grid coordinates by removing the grid offset
+            foreach (var point in SelectedShape.Points)
+            {
+                points.Add(new Point<double>(point.X - gridOffset.X, point.Y - gridOffset.Y));
+            }
+
+            // Since shapes are closed the first and last point will be the same
+            points.RemoveAt(0);
+
+            // Create a drawing shape for each cell that is atleast 50% covered by the selected shape
+            var cells = Mathematics.CalculateCoveredGridCells(points, _mapSize.CanvasGridSize, 0.49);
+            foreach (var cell in cells)
+            {
+                // The coordinates are the top left corner of a grid cell. 
+                // Add a point for each corner of the cell and add grid offset
+                var shape = CreateStrokeDrawingShape();
+                shape.Points.Add(new Point<double>(cell.X * _mapSize.CanvasGridSize + gridOffset.X, cell.Y * _mapSize.CanvasGridSize + gridOffset.Y));
+                shape.Points.Add(new Point<double>(cell.X * _mapSize.CanvasGridSize + gridOffset.X + (_mapSize.CanvasGridSize), cell.Y * _mapSize.CanvasGridSize + gridOffset.Y));
+                shape.Points.Add(new Point<double>(cell.X * _mapSize.CanvasGridSize + gridOffset.X + (_mapSize.CanvasGridSize), cell.Y * _mapSize.CanvasGridSize + gridOffset.Y + (_mapSize.CanvasGridSize)));
+                shape.Points.Add(new Point<double>(cell.X * _mapSize.CanvasGridSize + gridOffset.X, cell.Y * _mapSize.CanvasGridSize + gridOffset.Y + (_mapSize.CanvasGridSize)));
+                shape.Points.Add(new Point<double>(cell.X * _mapSize.CanvasGridSize + gridOffset.X, cell.Y * _mapSize.CanvasGridSize + gridOffset.Y));
+                shape.Color = Colors.LimeGreen;
+                shape.PenSize = 5;
+                ShapeCollection.Add(shape);
+                _shapeAreaDrawings.Add(shape);
+            }
+
+            NotifyDrawingShapesUpdated();
+        }
+    }
+
+    private void HideShapeArea()
+    {
+        if(_isShapeAreaShown)
+        {
+            foreach (var shape in _shapeAreaDrawings)
+            {
+                ShapeCollection.Remove(shape);
+            }
+            _shapeAreaDrawings.Clear();
+            _isShapeAreaShown = false;
+            NotifyDrawingShapesUpdated();
+        }
     }
 }

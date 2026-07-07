@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DigitalBattleMap.Utilities;
 
-public static class Mathematics
+public static partial class Mathematics
 {
     public static List<Point<double>> SnapPointsToGrid(List<Point<double>> points, Point<double> gridOffset, double gridSize)
     {
@@ -147,5 +147,10 @@ public static class Mathematics
         }
 
         return max;
+    }
+
+    public static List<GridCell> CalculateCoveredGridCells(List<Point<double>> polygon, double gridSize, double minCoveragePercentage = 1.0)
+    {
+        return CoveredGridCellsCalculator.CalculateCoveredGridCells(polygon, gridSize, minCoveragePercentage);
     }
 }
