@@ -786,10 +786,23 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             MultiMoveCount = 0;
         }
 
-        BackgroundController.KeyDown(keyEventArgs);
-        FogController.KeyDown(keyEventArgs);
-        DrawingController.KeyDown(keyEventArgs);
-        TokenController.KeyDown(keyEventArgs);
+        switch (SelectedTabIndex)
+        {
+            case TabIndex.Background:
+                BackgroundController.KeyDown(keyEventArgs);
+                break;
+            case TabIndex.Fog:
+                FogController.KeyDown(keyEventArgs);
+                break;
+            case TabIndex.Drawing:
+                DrawingController.KeyDown(keyEventArgs);
+                break;
+            case TabIndex.Tokens:
+                TokenController.KeyDown(keyEventArgs);
+                break;
+            default:
+                break;
+        }
     }
 
     private void KeyUp(KeyEventArgs keyEventArgs)
