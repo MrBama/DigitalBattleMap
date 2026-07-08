@@ -2,6 +2,7 @@
 using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.DrawingShapes;
 using DigitalBattleMap.FogShapes;
+using DigitalBattleMap.Imaging;
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,13 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Linq;
+
+using Color = System.Drawing.Color;
+
+using IImage = DigitalBattleMap.Imaging.IImage;
+using ImageFactory = DigitalBattleMap.Imaging.ImageFactory;
+using ImagingColor = DigitalBattleMap.Imaging.Color;
+
 
 namespace DigitalBattleMap;
 
@@ -26,18 +34,20 @@ public static class BitmapTools
 
     public static Bitmap CreateEmptyBitmap()
     {
-        return new(Constants.MapSize.Width, Constants.MapSize.Height);
+        //return new(Constants.MapSize.Width, Constants.MapSize.Height);
+        return ImageFactory.Create(Constants.MapSize.Width, Constants.MapSize.Height).ToDrawingBitmap();
     }
 
     public static Bitmap CreateBlackBitmap()
     {
-        var bitmap = new Bitmap(
-            Constants.MapSize.Width,
-            Constants.MapSize.Height,
-            PixelFormat.Format32bppArgb);
-        using var gfx = Graphics.FromImage(bitmap);
-        gfx.Clear(Color.Black);
-        return bitmap;
+        //var bitmap = new Bitmap(
+        //    Constants.MapSize.Width,
+        //    Constants.MapSize.Height,
+        //    PixelFormat.Format32bppArgb);
+        //using var gfx = Graphics.FromImage(bitmap);
+        //gfx.Clear(Color.Black);
+        //return bitmap;
+        return ImageFactory.Create(Constants.MapSize.Width, Constants.MapSize.Height, ImagingColor.Black).ToDrawingBitmap();
     }
 
     public static Bitmap CreateColorButton(Brush brush, bool addSelectionIndicator)
@@ -56,23 +66,47 @@ public static class BitmapTools
         return bitmap;
     }
 
-    public static Bitmap CreateEraserButton(bool addSelectionIndicator)
+    public static Bitmap CreateColorButton(ImagingColor color, bool addSelectionIndicator)
     {
-        var bitmap = new Bitmap(70, 70);
-        using var graphics = Graphics.FromImage(bitmap);
-        var yellowBrush = new SolidBrush(Color.Yellow);
-        var pinkBrush = new SolidBrush(Color.Pink);
-
-        graphics.FillRectangle(yellowBrush, 19, 14, 30, 40);
-        graphics.FillRectangle(pinkBrush, 19, 14, 30, 12);
+        var image = ImageFactory.Create(70, 70);
+        image.FillEllipse(color, 9, 9, 50, 50);
 
         if (addSelectionIndicator)
         {
-            var borderPen = new Pen(Color.Gray, 4);
-            graphics.DrawEllipse(borderPen, 4, 4, 60, 60);
+            image.DrawEllipse(Color.Gray, 4, 4, 4, 60, 60);
         }
 
-        return bitmap;
+        return image.ToDrawingBitmap();
+    }
+
+    public static Bitmap CreateEraserButton(bool addSelectionIndicator)
+    {
+        //var bitmap = new Bitmap(70, 70);
+        //using var graphics = Graphics.FromImage(bitmap);
+        //var yellowBrush = new SolidBrush(Color.Yellow);
+        //var pinkBrush = new SolidBrush(Color.Pink);
+
+        //graphics.FillRectangle(yellowBrush, 19, 14, 30, 40);
+        //graphics.FillRectangle(pinkBrush, 19, 14, 30, 12);
+
+        //if (addSelectionIndicator)
+        //{
+        //    var borderPen = new Pen(Color.Gray, 4);
+        //    graphics.DrawEllipse(borderPen, 4, 4, 60, 60);
+        //}
+
+        //return bitmap;
+
+        var image = ImageFactory.Create(70, 70);
+        image.FillRectangle(Color.Yellow, 19, 14, 30, 40);
+        image.FillRectangle(Color.Pink, 19, 14, 30, 12);
+
+        if(addSelectionIndicator)
+        {
+            image.DrawEllipse(Color.Gray, 4, 4, 4, 60, 60);
+        }
+
+        return image.ToDrawingBitmap();
     }
 
     public static Bitmap CreateArrowButton(ArrowDirection direction)
@@ -441,7 +475,7 @@ public static class BitmapTools
 
         foreach ((var tokenListItem, var position) in tokenListWithNormilizedPositions)
         {
-            if(tokenListItem.Visible)
+            if (tokenListItem.Visible)
             {
                 // Tokens positions can be negative but bitmap positions always start at 0
                 var zeroBasedPosition = new Point<int>(position.X - minTokenPositionX, position.Y - minTokenPositionY);
@@ -594,7 +628,7 @@ public static class BitmapTools
     {
         var bitmap = new Bitmap(overviewSize.Width, overviewSize.Height);
         using Graphics graph = Graphics.FromImage(bitmap);
-        
+
         foreach (var overviewBitmap in overviewBitmaps)
         {
             var offsetX = bitmapToOrigin.X + overviewBitmap.OffsetFromOrigin.X;
