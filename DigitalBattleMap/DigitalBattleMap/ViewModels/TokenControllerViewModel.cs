@@ -44,7 +44,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         _monsterTokens = monsterTokens;
         _players = players;
         _players.OnOrientationChanged += TokensOrientationChanged;
-        _webCommunication.OnMoveToken += MoveToken;
+        _webCommunication.OnMoveToken += MoveTokenFromWeb;
         _webCommunication.OnToggleCondition += ToggleCondition;
         _webCommunication.OnGetConditions += GetConditions;
         _webCommunication.OnSetHeight += SetHeight;
@@ -441,11 +441,11 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         {
             if(_pressedKeys.Contains(Key.LeftAlt) || _pressedKeys.Contains(Key.RightAlt))
             {
-                SelectToken(e);
+                ToggleFogOfWar(e);
             }
             else
             {
-                ToggleFogOfWar(e);
+                MoveToken(e);
             }
         }
     }
@@ -455,7 +455,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         OnToggleFog.Invoke(this, new ToggleFogEventArgs() { position = e.Position });
     }
 
-    private void SelectToken(MouseButtonDataEventArgs e)
+    private void MoveToken(MouseButtonDataEventArgs e)
     {
         if (SelectedToken != null)
         {
@@ -527,7 +527,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    private void MoveToken(object? sender, MoveTokenEventArgs e)
+    private void MoveTokenFromWeb(object? sender, MoveTokenEventArgs e)
     {
         lock (_lock)
         {
