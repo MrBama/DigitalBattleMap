@@ -324,42 +324,34 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         switch (drawing)
         {
             case DrawLayer.All:
-                {
-                    using var backgroundBitmap = BackgroundController.GetBackgroundBitmap();
-                    using var gridAndTokenBitmapAll = CreateGridAndDrawingBitmap();
-                    _mapWindowViewModel.BackgroundBitmapSource = backgroundBitmap.ToBitmapImage();
-                    _mapWindowViewModel.FogBitmapSource = FogController.GetFogBitmap().ToBitmapImage();
-                    _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
-                    _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
+                var backgroundBitmapAll = BackgroundController.GetBackgroundBitmap();
+                var gridAndTokenBitmapAll = CreateGridAndDrawingBitmap();
+                _mapWindowViewModel.BackgroundBitmapSource = backgroundBitmapAll.ToBitmapImage();
+                _mapWindowViewModel.FogBitmapSource = FogController.GetFogBitmap().ToBitmapImage();
+                _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
+                _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
 
-                    using var backgroundAndFogBitmap = GetMergedBackgroundAndFogBitmap(backgroundBitmap);
-                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmap) });
-                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmapAll) });
-                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
-                    break;
-                }
+                var backgroundAndFogBitmapAll = GetMergedBackgroundAndFogBitmap(backgroundBitmapAll);
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmapAll) });
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmapAll) });
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
+                break;
             case DrawLayer.Background: case DrawLayer.Fog:
-                {
-                    using var backgroundBitmap = BackgroundController.GetBackgroundBitmap();
-                    using var backgroundAndFogBitmap = GetMergedBackgroundAndFogBitmap(backgroundBitmap);
-                    _mapWindowViewModel.BackgroundBitmapSource = backgroundBitmap.ToBitmapImage();
-                    _mapWindowViewModel.FogBitmapSource = FogController.GetFogBitmap().ToBitmapImage();
-                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmap) });
-                    break;
-                }
+                var backgroundBitmap = BackgroundController.GetBackgroundBitmap();
+                var backgroundAndFogBitmap = GetMergedBackgroundAndFogBitmap(backgroundBitmap);
+                _mapWindowViewModel.BackgroundBitmapSource = backgroundBitmap.ToBitmapImage();
+                _mapWindowViewModel.FogBitmapSource = FogController.GetFogBitmap().ToBitmapImage();
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmap) });
+                break;
             case DrawLayer.GridAndStrokes:
-                {
-                    using var gridAndTokenBitmap = CreateGridAndDrawingBitmap();
-                    _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmap.ToBitmapImage();
-                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmap) });
-                    break;
-                }
+                var gridAndTokenBitmap = CreateGridAndDrawingBitmap();
+                _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmap.ToBitmapImage();
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmap) });
+                break;
             case DrawLayer.Tokens:
-                {
-                    _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
-                    _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
-                    break;
-                }
+                _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
+                break;
         }
     }
 
