@@ -1,5 +1,6 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.FogShapes;
+using DigitalBattleMap.Imaging;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
@@ -184,7 +185,7 @@ public class FogControllerViewModel : ControllerViewModelBase
      * Returns a bitmap with all fog shapes applied. 
      * The shape will be filled in black or cut out depending on the fog shape 'IsFogEnabled' setting.
      */
-    public Bitmap GetFogBitmap()
+    public IImage GetFogBitmap()
     {
         var bitmap = FogShapeCollection.IsFillFogEnabled ? BitmapTools.CreateBlackBitmap() : BitmapTools.CreateEmptyBitmap();
         BitmapTools.DrawFogShapes(bitmap, FogShapeCollection.GetFogShapes().ToList(), _mapSize.GetCanvasSize());

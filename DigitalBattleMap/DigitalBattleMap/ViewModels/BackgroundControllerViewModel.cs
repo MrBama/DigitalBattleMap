@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Imaging;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
@@ -14,10 +15,10 @@ namespace DigitalBattleMap.ViewModels;
 
 public class BackgroundControllerViewModel : ControllerViewModelBase
 {
-    private Bitmap _backgroundBitmap;
-    private Bitmap _gmOverlayBitmap;
-    private Bitmap _fullBackgroundBitmap;
-    private Bitmap _gridBitmap;
+    private IImage _backgroundBitmap;
+    private IImage _gmOverlayBitmap;
+    private IImage _fullBackgroundBitmap;
+    private IImage _gridBitmap;
     private Rectangle _area; 
     private IWindowService _windowService;
     private Point<double> _mouseDownPosition;
@@ -117,7 +118,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public ICommand RotateLeftCommand { get; set; }
     public ICommand RotateRightCommand { get; set; }
 
-    private Bitmap BackgroundBitmap
+    private IImage BackgroundBitmap
     {
         get => _backgroundBitmap;
         set
@@ -125,24 +126,24 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
             if (value != _backgroundBitmap)
             {
                 _backgroundBitmap = value;
-                BackgroundBitmapSource = value.ToBitmapImage();
+                BackgroundBitmapSource = value.ToDrawingBitmap().ToBitmapImage();
             }
         }
     }
 
-    private Bitmap GMOverlayBitmap
+    private IImage GMOverlayBitmap
     {
         get => _gmOverlayBitmap;
         set
         {
             if (value != _gmOverlayBitmap)
             {
-                GMOverlayBitmapSource = value.ToBitmapImage();
+                GMOverlayBitmapSource = value.ToDrawingBitmap().ToBitmapImage();
             }
         }
     }
 
-    private Bitmap GridBitmap
+    private IImage GridBitmap
     {
         get => _gridBitmap;
         set
@@ -150,18 +151,18 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
             if (value != _gridBitmap)
             {
                 _gridBitmap = value;
-                GridBitmapSource = value.ToBitmapImage();
+                GridBitmapSource = value.ToDrawingBitmap().ToBitmapImage();
             }
         }
     }
 
-    public Bitmap GetBackgroundBitmap()
+    public IImage GetBackgroundBitmap()
     {
         return SelectedBackgroundColor == BackgroundColor.Black 
             ? BitmapTools.MergeBitmaps(BitmapTools.CreateBlackBitmap(), BackgroundBitmap) : BackgroundBitmap;
     }
 
-    public Bitmap GetGridBitmap()
+    public IImage GetGridBitmap()
     {
         return GridBitmap;
     }
@@ -172,7 +173,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
         if(_fullBackgroundBitmap != null)
         {
-            overviewBitmap.Bitmap = new Bitmap(_fullBackgroundBitmap);
+            overviewBitmap.Bitmap = _fullBackgroundBitmap.Clone();
             overviewBitmap.OffsetFromOrigin = new Point<int>(-_area.X, -_area.Y);
             return true;
         }
@@ -256,8 +257,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     {
         saveFile.IsGridShown = IsGridShown;
         saveFile.GridSize = GridSize;
-        saveFile.FullBackground = _fullBackgroundBitmap != null ? _fullBackgroundBitmap.Copy() : null;
-        saveFile.GMOverlay = _gmOverlayBitmap != null ? _gmOverlayBitmap.Copy() : null;
+        saveFile.FullBackground = _fullBackgroundBitmap != null ? _fullBackgroundBitmap.ToDrawingBitmap() : null;
+        saveFile.GMOverlay = _gmOverlayBitmap != null ? _gmOverlayBitmap.ToDrawingBitmap() : null;
         saveFile.BackgroundArea = _area;
         saveFile.GridCellsWidth = GridCellsWidth;
         saveFile.GridCellsHeight = GridCellsHeight;
@@ -278,14 +279,14 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
         if (saveFile.FullBackground != null)
         {
-            _fullBackgroundBitmap = saveFile.FullBackground;
+            _fullBackgroundBitmap = ImageFactory.FromDrawingBitmap(saveFile.FullBackground);
             _area = saveFile.BackgroundArea;
             HasOpenedBackground = true;
         }
 
         if (saveFile.GMOverlay != null)
         {
-            _gmOverlayBitmap = saveFile.GMOverlay;
+            _gmOverlayBitmap = ImageFactory.FromDrawingBitmap(saveFile.GMOverlay);
             HasOpenGMOverlay = true;
         }
 
@@ -307,7 +308,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         if (_windowService.ShowOpenFileDialog(out string path))
         {
             ExtractGridCells(Path.GetFileNameWithoutExtension(path));
-            OpenBackground(IO.File.LoadBitmap(path));
+            OpenBackground(ImageFactory.FromDrawingBitmap(IO.File.LoadBitmap(path)));
             FitToGrid();
         }
     }
@@ -317,11 +318,11 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         var bitmap = IO.File.LoadBitmapFromClipboard();
         if (bitmap != null)
         {
-            OpenBackground(bitmap);
+            OpenBackground(ImageFactory.FromDrawingBitmap(bitmap));
         }
     }
 
-    private void OpenBackground(Bitmap bitmap)
+    private void OpenBackground(IImage bitmap)
     {
         _fullBackgroundBitmap = bitmap;
         _area = new Rectangle(
@@ -339,7 +340,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     {
         if (_windowService.ShowOpenFileDialog(out string path))
         {
-            _gmOverlayBitmap = IO.File.LoadBitmap(path);
+            _gmOverlayBitmap = ImageFactory.FromDrawingBitmap(IO.File.LoadBitmap(path));
             HasOpenGMOverlay = true;
             CreateBackground();
         }

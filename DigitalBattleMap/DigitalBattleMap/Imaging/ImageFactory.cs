@@ -17,4 +17,9 @@ internal class ImageFactory
 
         return image;
     }
+
+    public static IImage FromDrawingBitmap(System.Drawing.Bitmap bitmap)
+    {
+        return new GDIImage(bitmap);
+    }
 }

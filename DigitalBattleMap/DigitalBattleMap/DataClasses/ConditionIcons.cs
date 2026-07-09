@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.Imaging;
 using DigitalBattleMap.Utilities;
 using System.Collections.Generic;
 using System.Drawing;
@@ -153,40 +154,40 @@ public class ConditionIcons
         }
     }
 
-    public Bitmap GetDigitIcon(char digit)
+    public IImage GetDigitIcon(char digit)
     {
         switch (digit)
         {
             case '0':
-                return _0;
+                return ImageFactory.FromDrawingBitmap(_0);
             case '1':
-                return _1;
+                return ImageFactory.FromDrawingBitmap(_1);
             case '2':
-                return _2;
+                return ImageFactory.FromDrawingBitmap(_2);
             case '3':
-                return _3;
+                return ImageFactory.FromDrawingBitmap(_3);
             case '4':
-                return _4;
+                return ImageFactory.FromDrawingBitmap(_4);
             case '5':
-                return _5;
+                return ImageFactory.FromDrawingBitmap(_5);
             case '6':
-                return _6;
+                return ImageFactory.FromDrawingBitmap(_6);
             case '7':
-                return _7;
+                return ImageFactory.FromDrawingBitmap(_7);
             case '8':
-                return _8;
+                return ImageFactory.FromDrawingBitmap(_8);
             case '9':
-                return _9;
+                return ImageFactory.FromDrawingBitmap(_9);
             case '-':
-                return _minus;
+                return ImageFactory.FromDrawingBitmap(_minus);
             default:
-                return new(100, 100);
+                return ImageFactory.Create(100, 100);
         }
     }
 
-    public Bitmap GetDigitIcon(string heightString)
+    public IImage GetDigitIcon(string heightString)
     {
-        var bitmaps = new List<Bitmap>();
+        var bitmaps = new List<IImage>();
         char[] digits = heightString.ToCharArray();
         for (int i = 0; i < heightString.Length; i++)
         {
@@ -195,7 +196,7 @@ public class ConditionIcons
         return BitmapTools.ConcateDigitBitmaps(bitmaps);
     }
 
-    public Bitmap GetDigitIcon(int digit)
+    public IImage GetDigitIcon(int digit)
     {
         var heightString = digit.ToString();
         return GetDigitIcon(heightString);

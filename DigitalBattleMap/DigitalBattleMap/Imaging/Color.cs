@@ -23,7 +23,7 @@ public struct Color
 
     public byte A { get; }
 
-    public static Color Black => new Color(0, 0, 0, 0);
+    public static Color Black => new Color(0, 0, 0, 255);
 
     public static implicit operator System.Drawing.Color(Color color)
     {
@@ -32,6 +32,12 @@ public struct Color
     }
 
     public static implicit operator Color(System.Drawing.Color color)
+    {
+        // TODO (Bas): Remove this
+        return new Color(color.R, color.G, color.B, color.A);
+    }
+
+    public static implicit operator Color(System.Windows.Media.Color color)
     {
         // TODO (Bas): Remove this
         return new Color(color.R, color.G, color.B, color.A);

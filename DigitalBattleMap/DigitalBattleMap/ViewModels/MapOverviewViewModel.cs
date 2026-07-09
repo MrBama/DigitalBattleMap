@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Imaging;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
@@ -17,8 +18,8 @@ public class MapOverviewViewModel : ViewModelBase
     const double _zoomFactor = 1.5;
 
     protected IMapSize _mapSize;
-    private Bitmap _overviewBitmap;
-    private Bitmap _fullOverviewBitmap;
+    private IImage _overviewBitmap;
+    private IImage _fullOverviewBitmap;
     private Rectangle _area = new();
     private Rectangle _boudingBox = new();
     private Point<double> _mouseDownPosition = new();
@@ -58,7 +59,7 @@ public class MapOverviewViewModel : ViewModelBase
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); set => Set(value); }
     public ICommand ResetCommand { get; set; }
 
-    private Bitmap OverviewBitmap
+    private IImage OverviewBitmap
     {
         get => _overviewBitmap;
         set
@@ -66,7 +67,7 @@ public class MapOverviewViewModel : ViewModelBase
             if (value != _overviewBitmap)
             {
                 _overviewBitmap = value;
-                OverviewBitmapSource = value.ToBitmapImage();
+                OverviewBitmapSource = value.ToDrawingBitmap().ToBitmapImage();
             }
         }
     }
@@ -122,7 +123,7 @@ public class MapOverviewViewModel : ViewModelBase
         gridOrigin.X += bitmapToOrigin.X;
         gridOrigin.Y += bitmapToOrigin.Y;
 
-        var gridBitmap = new Bitmap(overviewSize.Width, overviewSize.Height);
+        var gridBitmap = ImageFactory.Create(overviewSize.Width, overviewSize.Height);
         var penSize = (int)Math.Round(_gridLineWidth * lineFactor);
         BitmapTools.DrawGrid(gridBitmap, (int)Math.Round(_mapSize.GridSize * zoomFactor), gridOrigin, penSize);
 

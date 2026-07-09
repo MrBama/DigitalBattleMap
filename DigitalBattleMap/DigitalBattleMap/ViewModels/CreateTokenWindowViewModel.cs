@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Imaging;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
@@ -15,7 +16,7 @@ namespace DigitalBattleMap.ViewModels;
 public class CreateTokenWindowViewModel : ViewModelBase
 {
     private IWindowService _windowService;
-    private Bitmap _tokenBitmap = new(256, 256);
+    private IImage _tokenBitmap = ImageFactory.Create(256, 256);
     private bool _tokenImageSelected = false;
     private string _originalTokenImagePath = "";
     private string _originalMarkdownStatblockPath;
@@ -41,7 +42,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
         InitializeProperties();
 
         _windowService = windowService;
-        _tokenBitmap = IO.File.LoadBitmap(copyToken.ImagePath);
+        _tokenBitmap = ImageFactory.FromDrawingBitmap(IO.File.LoadBitmap(copyToken.ImagePath));
         _originalTokenImagePath = copyToken.ImagePath;
         _tokenImageSelected = true;
         _statblock = copyToken.Statblock?.Clone<Statblock>();
@@ -97,7 +98,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
     public bool IsStatblockEditable { get => Get<bool>(); set => Set(value); }
     public bool ShowStatblockCopyName { get => Get<bool>(); set => Set(value); }
     public int? Hp { get => Get<int?>(); set => Set(value); }
-    public BitmapSource TokenBitmapSource { get => _tokenBitmap.ToBitmapImage(); }
+    public BitmapSource TokenBitmapSource { get => _tokenBitmap.ToDrawingBitmap().ToBitmapImage(); }
     public List<string> ExistingTokenNames { get; set; } = new List<string>();
     public Token Token { get; set; }
 
@@ -113,7 +114,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
     {
         if (_windowService.ShowOpenFileDialog(out var path))
         {
-            _tokenBitmap = BitmapTools.CreateTokenBitmap(IO.File.LoadBitmap(path));
+            _tokenBitmap = BitmapTools.CreateTokenBitmap(ImageFactory.FromDrawingBitmap(IO.File.LoadBitmap(path)));
             _tokenImageSelected = true;
             NotifyPropertyChange(nameof(TokenBitmapSource));
             NotifyPropertyChange(nameof(IsOkButtonEnabled));
@@ -146,7 +147,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
         }
 
         var imagePath = Path.Combine(Constants.CustomTokensPath, $"{TokenName}.png");
-        _tokenBitmap.Save(imagePath);
+        _tokenBitmap.ToDrawingBitmap().Save(imagePath);
         _statblock?.Persist(TokenName);
 
         var token = new Token

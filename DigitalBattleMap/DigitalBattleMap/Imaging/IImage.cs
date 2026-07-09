@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using DigitalBattleMap.DataClasses;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media;
 
 namespace DigitalBattleMap.Imaging;
 
@@ -17,13 +12,32 @@ public interface IImage
 
     void DrawEllipse(Color color, int lineWidth, int x, int y, int width, int height);
 
+    void DrawRectangle(Color color, int lineWidth, int x, int y, int width, int height);
+
     void FillEllipse(Color color, int x, int y, int width, int height);
 
     void FillRectangle(Color color, int x, int y, int width, int height);
 
-    void FillPolygon(Color color, PointF[] points);
+    void FillPolygon(Color color, Point<float>[] points, bool? blendColors = true);
+
+    void FillSmoothPolygon(Color color, Point<float>[] points);
+
+    void DrawLine(Color color, int lineSize, int x1, int y1, int x2, int y2);
+
+    IImage CropTo(int x, int y, int width, int height);
+
+    IImage ResizeTo(int width, int height);
+
+    void DrawImage(IImage image, int x, int y, int? width = null, int? height = null);
+
+    void Rotate(BitmapRotation angle);
+
+    void MakeColorTransparent(Color color);
+
+    IImage Clone();
 
     Stream GetPngStream();
+
 }
 
 public static class ImageExtensions

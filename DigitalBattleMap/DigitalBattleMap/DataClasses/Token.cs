@@ -69,6 +69,18 @@ public class Token : PropertyHandler, ICloneable
         }
     }
 
+    internal BitmapRotation GetBitmapRotation()
+    {
+        return Orientation switch
+        {
+            TokenOrientation.North => BitmapRotation.Rotate0,
+            TokenOrientation.East => BitmapRotation.Rotate90,
+            TokenOrientation.South => BitmapRotation.Rotate180,
+            TokenOrientation.West => BitmapRotation.Rotate270,
+            _ => throw new NotSupportedException()
+        };
+    }
+
     internal int GetOrientationAngle()
     {
         switch (Orientation)
