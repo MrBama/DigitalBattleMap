@@ -20,8 +20,8 @@ public class MapOverviewViewModel : ViewModelBase
     protected IMapSize _mapSize;
     private IImage _overviewBitmap;
     private IImage _fullOverviewBitmap;
-    private Rectangle _area = new();
-    private Rectangle _boudingBox = new();
+    private System.Drawing.Rectangle _area = new();
+    private System.Drawing.Rectangle _boudingBox = new();
     private Point<double> _mouseDownPosition = new();
     private bool _mouseDown;
     private Point<int> _bitmapToOrigin;

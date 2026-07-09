@@ -71,7 +71,7 @@ public static class BitmapTools
 
         if (addSelectionIndicator)
         {
-            image.DrawEllipse(Color.Gray, 4, 4, 4, 60, 60);
+            image.DrawEllipse(Color.Gray, 4, Rectangle.FromTopLeft(4, 4, 60, 60));
         }
 
         return image;
@@ -101,7 +101,7 @@ public static class BitmapTools
 
         if (addSelectionIndicator)
         {
-            image.DrawEllipse(Color.Gray, 4, 4, 4, 60, 60);
+            image.DrawEllipse(Color.Gray, 4, Rectangle.FromTopLeft(4, 4, 60, 60));
         }
 
         return image;
@@ -243,7 +243,7 @@ public static class BitmapTools
             //using var graphics = Graphics.FromImage(bitmap);
             //var pen = new Pen(Color.Blue, 4);
             //graphics.DrawEllipse(pen, drawingPosition.X, drawingPosition.Y, tokenSize.Width, tokenSize.Height);
-            image.DrawEllipse(Color.Blue, 4, drawingPosition.X, drawingPosition.Y, tokenSize.Width, tokenSize.Height);
+            image.DrawEllipse(Color.Blue, 4, Rectangle.FromTopLeft(drawingPosition.X, drawingPosition.Y, tokenSize.Width, tokenSize.Height));
         }
     }
 

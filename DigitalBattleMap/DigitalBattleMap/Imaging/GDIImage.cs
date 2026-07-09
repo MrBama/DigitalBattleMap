@@ -36,10 +36,10 @@ internal class GDIImage : IImage
         gfx.Clear(color);
     }
 
-    public void DrawEllipse(Color color, int lineWidth, int x, int y, int width, int height)
+    public void DrawEllipse(Color color, int lineWidth, Rectangle rectangle)
     {
         using var gfx = Graphics.FromImage(bitmap);
-        gfx.DrawEllipse(new Pen(color, lineWidth), x, y, width, height);
+        gfx.DrawEllipse(new Pen(color, lineWidth), rectangle.TopLeftX, rectangle.TopLeftY, rectangle.Width, rectangle.Height);
     }
 
     public void DrawRectangle(Color color, int lineWidth, int x, int y, int width, int height)
@@ -87,7 +87,7 @@ internal class GDIImage : IImage
     {
         var croppedImage = new GDIImage(width, height);
         using var gfx = Graphics.FromImage(croppedImage.bitmap);
-        gfx.DrawImage(bitmap, new Rectangle(0, 0, croppedImage.Width, croppedImage.Height), new Rectangle(x, y, width, height), GraphicsUnit.Pixel);
+        gfx.DrawImage(bitmap, new System.Drawing.Rectangle(0, 0, croppedImage.Width, croppedImage.Height), new System.Drawing.Rectangle(x, y, width, height), GraphicsUnit.Pixel);
 
         return croppedImage;
     }

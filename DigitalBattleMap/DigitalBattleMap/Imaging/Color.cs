@@ -42,4 +42,10 @@ public struct Color
         // TODO (Bas): Remove this
         return new Color(color.R, color.G, color.B, color.A);
     }
+
+    public static implicit operator SixLabors.ImageSharp.Color(Color color)
+    {
+        // TODO (Bas): Remove this
+        return SixLabors.ImageSharp.Color.FromRgba(color.R, color.G, color.B, color.A);
+    }
 }

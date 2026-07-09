@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.DataClasses;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Drawing;
 using System.IO;
 
@@ -10,7 +11,9 @@ public interface IImage
 
     int Height { get; }
 
-    void DrawEllipse(Color color, int lineWidth, int x, int y, int width, int height);
+    void Clear(Color color);
+
+    void DrawEllipse(Color color, int lineWidth, Rectangle rectangle);
 
     void DrawRectangle(Color color, int lineWidth, int x, int y, int width, int height);
 
@@ -45,5 +48,10 @@ public static class ImageExtensions
     public static Bitmap ToDrawingBitmap(this IImage image)
     {
         return (Bitmap)Image.FromStream(image.GetPngStream());
+    }
+
+    public static SixLabors.ImageSharp.Image<Rgba32> ToSharpImage(this IImage image)
+    {
+        return (SixLabors.ImageSharp.Image<Rgba32>)SixLabors.ImageSharp.Image.Load(image.GetPngStream());
     }
 }

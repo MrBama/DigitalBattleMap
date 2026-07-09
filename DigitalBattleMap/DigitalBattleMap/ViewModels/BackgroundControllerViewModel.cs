@@ -19,7 +19,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     private IImage _gmOverlayBitmap;
     private IImage _fullBackgroundBitmap;
     private IImage _gridBitmap;
-    private Rectangle _area; 
+    private System.Drawing.Rectangle _area; 
     private IWindowService _windowService;
     private Point<double> _mouseDownPosition;
     private bool _mouseDown;
@@ -42,7 +42,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     private void Initialize()
     {
-        _area = new Rectangle(0, 0, Constants.MapSize.Width, Constants.MapSize.Height);
+        _area = new System.Drawing.Rectangle(0, 0, Constants.MapSize.Width, Constants.MapSize.Height);
         RegisterPropertyChangedWatcher(nameof(IsBackgroundEditingAllowed), new List<string>() { nameof(HasOpenedBackground) });
 
         IsGridShown = true;
@@ -189,7 +189,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
         _fullBackgroundBitmap = null;
         _gmOverlayBitmap = null;
-        _area = new Rectangle(0, 0, _mapSize.Width, _mapSize.Height);
+        _area = new System.Drawing.Rectangle(0, 0, _mapSize.Width, _mapSize.Height);
         BackgroundBitmap = BitmapTools.CreateEmptyBitmap();
         GMOverlayBitmap = BitmapTools.CreateEmptyBitmap();
         GridCellsWidth = 10;
@@ -325,7 +325,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     private void OpenBackground(IImage bitmap)
     {
         _fullBackgroundBitmap = bitmap;
-        _area = new Rectangle(
+        _area = new System.Drawing.Rectangle(
             (_fullBackgroundBitmap.Width / 2) - (_mapSize.Width / 2),
             (_fullBackgroundBitmap.Height / 2) - (_mapSize.Height / 2),
             _mapSize.Width,
