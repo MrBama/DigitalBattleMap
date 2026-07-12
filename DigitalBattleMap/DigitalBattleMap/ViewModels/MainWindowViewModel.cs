@@ -340,7 +340,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
                 _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
 
-                var backgroundAndFogBitmapAll = GetMergedBackgroundAndFogBitmap(backgroundBitmapAll, trimmedFogAll);
+                var backgroundAndFogBitmapAll = GetMergedBackgroundAndFogBitmap(backgroundBitmapAll);
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmapAll) });
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmapAll) });
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
