@@ -22,6 +22,7 @@ public class Settings
     public bool HideDungeonMasterFeatures { get; set; }
     public BackgroundColor DefaultBackgroundColor { get; set; } = BackgroundColor.Black;
     public bool IsAutoSaveEnabled { get; set; } = true;
+    public bool IsAutoUpdateEnabled { get; set; } = true;
     public string ServerAddress { get; set; } = "http://localhost:8000";
     public string CurrentCampaignName { get; set; } = "";
     public string Version { get; set; } = "0";

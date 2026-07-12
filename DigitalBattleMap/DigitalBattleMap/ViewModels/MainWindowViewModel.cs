@@ -25,6 +25,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     private MapWindowViewModel _mapWindowViewModel;
     private Settings _settings;
     private ConnectionManager _connectionManager;
+    private ApplicationUpdater _applicationUpdater;
     private Size<double> _canvasSize;
     private Action _multiMoveAction;
     private MonsterTokens _monsterTokens = new();
@@ -35,6 +36,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         _windowService = windowService;
         Initialize();
         OpenMapWindow();
+        _applicationUpdater!.CheckForUpdatesInBackground();
     }
 
     public MainWindowViewModel()
@@ -137,6 +139,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         _connectionManager = new ConnectionManager();
         _connectionManager.OnConnected += ConnectionManagerConnected;
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
+        _applicationUpdater = new ApplicationUpdater(_windowService, _settings);
         _autoSaveTimer = new Timer(Constants.AutoSaveIntervalInMs);
         _autoSaveTimer.Elapsed += AutoSaveMap;
 
@@ -211,6 +214,23 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         KeyUpCommand = new RelayCommand(p => KeyUp((KeyEventArgs)p));
     }
 
+    public void UpdateSuccessful()
+    {
+        var confirmationWindowViewModel = new ConfirmationWindowViewModel
+        {
+            Content = "Update successful!",
+            IsLeftButtonVisible = false,
+            IsRightButtonVisible = false,
+            IsMiddleButtonVisible = true
+        };
+        _windowService.ShowWindowDialog<ConfirmationWindow>(confirmationWindowViewModel);
+
+        if (IO.Directory.Exists(Constants.UpdateDirectoryPath))
+        {
+            IO.Directory.Delete(Constants.UpdateDirectoryPath, true);
+        }
+    }
+
     private void OnBackgroundGridSizeChanged(object? sender, GridSizeChangedEventArgs e)
     {
         OnGridSizeChanged?.Invoke(this, new EventArgs());
@@ -253,9 +273,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
         // Reset mouse canvas
         MouseCanvas.ResetSelection();
-        MouseCanvas.SetMode(MouseCanvasMode.Click);
         MapOverview.MouseCanvas.ResetSelection();
-        MapOverview.MouseCanvas.SetMode(MouseCanvasMode.Click);
         CropColor = System.Windows.Media.Brushes.LightGray;
         SelectedMapTabIndex = TabMapIndex.Map;
     }
@@ -314,27 +332,26 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         switch (drawing)
         {
             case DrawLayer.All:
-                var backgroundAndFogBitmapAll = BackgroundController.GetBackgroundBitmap();
+                var backgroundBitmapAll = BackgroundController.GetBackgroundBitmap();
                 var gridAndTokenBitmapAll = CreateGridAndDrawingBitmap();
                 var trimmedFogAll = ShapeComposer.GetTrimmedFogData();
-                _mapWindowViewModel.BackgroundBitmapSource = backgroundAndFogBitmapAll.ToBitmapImage();
+                _mapWindowViewModel.BackgroundBitmapSource = backgroundBitmapAll.ToBitmapImage();
                 _mapWindowViewModel.FogBitmapSource = FogController.GetFogBitmap(trimmedFogAll).ToBitmapImage();
                 _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
                 _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
+
+                var backgroundAndFogBitmapAll = GetMergedBackgroundAndFogBitmap(backgroundBitmapAll, trimmedFogAll);
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmapAll) });
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Fog, Bitmap = new Bitmap(FogController.GetFogBitmap(trimmedFogAll)) });
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = new Bitmap(gridAndTokenBitmapAll) });
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
                 break;
-            case DrawLayer.Background:
-                var backgroundAndFogBitmap = BackgroundController.GetBackgroundBitmap();
-                _mapWindowViewModel.BackgroundBitmapSource = backgroundAndFogBitmap.ToBitmapImage();
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmap) });
-                break;
-            case DrawLayer.Fog:
+            case DrawLayer.Background: case DrawLayer.Fog:
                 var trimmedFog = ShapeComposer.GetTrimmedFogData();
+                var backgroundBitmap = BackgroundController.GetBackgroundBitmap();
+                var backgroundAndFogBitmap = GetMergedBackgroundAndFogBitmap(backgroundBitmap);
+                _mapWindowViewModel.BackgroundBitmapSource = backgroundBitmap.ToBitmapImage();
                 _mapWindowViewModel.FogBitmapSource = FogController.GetFogBitmap(trimmedFog).ToBitmapImage();
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Fog, Bitmap = new Bitmap(FogController.GetFogBitmap(trimmedFog)) });
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmap) });
                 break;
             case DrawLayer.GridAndStrokes:
                 var gridAndTokenBitmap = CreateGridAndDrawingBitmap();
@@ -346,6 +363,12 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Tokens, Bitmap = new Bitmap(TokenController.GetTokenBitmap()) });
                 break;
         }
+    }
+
+    private Bitmap GetMergedBackgroundAndFogBitmap(Bitmap backgroundBitmap)
+    {
+        var trimmedFogAll = ShapeComposer.GetTrimmedFogData();
+        return BitmapTools.MergeBitmaps(backgroundBitmap, FogController.GetFogBitmap(trimmedFogAll));
     }
 
     private Bitmap CreateGridAndDrawingBitmap()
@@ -506,11 +529,13 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void MoveMap(ArrowDirection arrowDirection, int steps)
     {
+        PauseBitmapCreation(true);
         ZoomAndMoveHistory.Enqueue(new ZoomAndMoveCommand(arrowDirection, steps));
         BackgroundController.Move(arrowDirection, steps);
         FogController.Move(arrowDirection, steps);
         DrawingController.Move(arrowDirection, steps);
         TokenController.Move(arrowDirection, steps);
+        PauseBitmapCreation(false);
     }
 
     private void MoveMap(int stepsX, int stepsY)
@@ -766,6 +791,24 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             IsMultiMove = true;
             MultiMoveCount = 0;
         }
+
+        switch (SelectedTabIndex)
+        {
+            case TabIndex.Background:
+                BackgroundController.KeyDown(keyEventArgs);
+                break;
+            case TabIndex.Fog:
+                FogController.KeyDown(keyEventArgs);
+                break;
+            case TabIndex.Drawing:
+                DrawingController.KeyDown(keyEventArgs);
+                break;
+            case TabIndex.Tokens:
+                TokenController.KeyDown(keyEventArgs);
+                break;
+            default:
+                break;
+        }
     }
 
     private void KeyUp(KeyEventArgs keyEventArgs)
@@ -779,6 +822,11 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 _multiMoveAction = null;
             }
         }
+
+        BackgroundController.KeyUp(keyEventArgs);
+        FogController.KeyUp(keyEventArgs);
+        DrawingController.KeyUp(keyEventArgs);
+        TokenController.KeyUp(keyEventArgs);
     }
 
     private void SettingChanged(object? sender, SettingChangedEventArgs e)
@@ -901,6 +949,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         if(paused)
         {
             BackgroundController.PauseBitmapCreation();
+            FogController.PauseBitmapCreation();
             DrawingController.PauseBitmapCreation();
             TokenController.PauseBitmapCreation();
         }
@@ -909,10 +958,10 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             BackgroundController.ResumeBitmapCreation();
             DrawingController.ResumeBitmapCreation();
             TokenController.ResumeBitmapCreation();
+            FogController.ResumeBitmapCreation(); // For a move action causes and addition render to the server so placed as last so this is not noticed.
         }
     }
 
-    // todo: complete info text
     private string GetTokenInfoText()
     {
         var info = new ControlInfoEventArgs()
@@ -936,7 +985,9 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             infoBlocks = new List<InfoBlock>()
             {
                 new InfoBlock(ControlType.LMB, "Hold to draw a stroke"),
-                new InfoBlock(ControlType.RMB, "Move the selected shape")
+                new InfoBlock(ControlType.RMB, "Move the selected shape"),
+                new InfoBlock(ControlType.Shift, ControlType.RMB, "Rotate the selected shape"),
+                new InfoBlock(ControlType.Ctrl, "Hold to show the selected shape area")
             }
         };
         return GetControlInfoText(info);

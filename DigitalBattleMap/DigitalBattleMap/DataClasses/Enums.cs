@@ -106,7 +106,8 @@ public enum ControlType
     Alt,
     Up,
     Down,
-    Click
+    Click,
+    Shift
 }
 
 public enum NType
@@ -131,4 +132,18 @@ public enum DrawingShapeCommandAction
     Remove,
     Edit,
     Erase
+}
+
+public enum BitmapRotation
+{
+    Rotate0,
+    Rotate90,
+    Rotate180,
+    Rotate270
+}
+
+public enum DrawingShapeMode
+{
+    Move,
+    Rotate
 }

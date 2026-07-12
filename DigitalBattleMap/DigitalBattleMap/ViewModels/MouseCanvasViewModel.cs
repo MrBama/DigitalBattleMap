@@ -67,7 +67,7 @@ public class MouseCanvasViewModel : ViewModelBase
     {
         _previousMode = _mode;
         _mode = mode;
-        ResetSelection();
+        ResetMouseCanvas();
 
         switch (mode)
         {
@@ -87,6 +87,11 @@ public class MouseCanvasViewModel : ViewModelBase
     }
 
     public void ResetSelection()
+    {
+        SetMode(MouseCanvasMode.Click);
+    }
+
+    private void ResetMouseCanvas()
     {
         SelectionWidth = 0;
         SelectionHeight = 0;

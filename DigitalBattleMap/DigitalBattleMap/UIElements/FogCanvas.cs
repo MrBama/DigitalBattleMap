@@ -1,4 +1,4 @@
-﻿using DigitalBattleMap.FogShapes;
+using DigitalBattleMap.FogShapes;
 using System;
 using System.Collections.Specialized;
 using System.ComponentModel;

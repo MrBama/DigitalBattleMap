@@ -27,7 +27,6 @@
 ]
 
 const heightCondition = 25;
-
 let isInitialized = false;
 
 const connection = new signalR.HubConnectionBuilder()
@@ -35,231 +34,160 @@ const connection = new signalR.HubConnectionBuilder()
     .withAutomaticReconnect()
     .build();
 
-function getSettings() {
-    let cookie = {};
-    decodeURIComponent(document.cookie).split(';').forEach(function (el) {
-        let [key, value] = el.split('=');
-        cookie[key.trim()] = value;
-    })
-
-    if (cookie.hasOwnProperty("_settings")) {
-        return JSON.parse(cookie["_settings"]);
-    }
-    else {
-        return null;
-    }
-}
-
-function getConditions() {
-    let character = $("#tokens").val();
-
-    if (!character)
-        return;
-
-    $.ajax({
-        url: "Navigation/GetConditions",
-        type: "POST",
-        data: { 'character': character }
-    })
-}
-
 function updateOrientation() {
-    let settings = getSettings();
+    const settings = SettingsManager.getSettings();
     if (settings == null) {
         return "fa-arrow-circle-up";
     }
-    console.log(settings.Orientation);
-
-    if (settings.Orientation == "0") {
-        return "fa-arrow-circle-left";
-    }
-    else if (settings.Orientation == "1") {
-        return "fa-arrow-circle-down";
-    }
-    else if (settings.Orientation == "2") {
-        return "fa-arrow-circle-right";
-    }
-    else {
-        currentOrientation = "Up";
-        return "fa-arrow-circle-up";
-    }
+    
+    const orientationMap = { "0": "fa-arrow-circle-left", "1": "fa-arrow-circle-down", "2": "fa-arrow-circle-right" };
+    return orientationMap[settings.Orientation] || "fa-arrow-circle-up";
 }
 
 function initializeServerConnection() {
     if (!isInitialized) {
         isInitialized = true;
-
-        $.ajax({
-            url: "Navigation/SetOrientation",
-            type: "POST"
-        })
+        $.ajax({ url: "Navigation/SetOrientation", type: "POST" });
     }
 }
 
 function setTokens(tokens) {
     initializeServerConnection();
 
-    let select = document.getElementById("tokens");
+    const select = document.getElementById("tokens");
+    while (select.options.length > 0) select.remove(0);
 
-    while (select.options.length > 0) {
-        select.remove(0);
-    }
-
-    for (const token of tokens) {
-        let option = document.createElement("option");
+    tokens.forEach(token => {
+        const option = document.createElement("option");
         option.text = token;
         option.value = token;
         select.add(option);
-    }
+    });
 
     getConditions();
 }
 
-connection.on("SetConditions", function (character, conditions) {
-    let selectedCharacter = $("#tokens").val();
+function getConditions() {
+    const character = $("#tokens").val();
+    if (character) {
+        $.ajax({ url: "Navigation/GetConditions", type: "POST", data: { 'character': character } });
+    }
+}
+
+connection.on("SetConditions", (character, conditions) => {
+    const selectedCharacter = $("#tokens").val();
 
     if (character.localeCompare(selectedCharacter, undefined, { sensitivity: 'accent' }) === 0) {
-        for (const button of conditionButtons) {
+        conditionButtons.forEach(button => {
             document.getElementById(button).style.backgroundColor = '';
-        }
+        });
 
-        for (const condition of conditions) {
+        const appliedConditions = [];
+        conditions.forEach(condition => {
             if (condition != heightCondition) {
                 document.getElementById(conditionButtons[condition]).style.backgroundColor = '#303538';
+                appliedConditions.push(conditionButtons[condition]);
             }
-        }
+        });
+
+        ConditionManager.syncWithAppliedConditions(appliedConditions);
     }
 });
 
-connection.on("SetTokens", function (player, tokens) {
-    let settings = getSettings();
-
+connection.on("SetTokens", (player, tokens) => {
+    const settings = SettingsManager.getSettings();
     if (settings != null && settings.Name.localeCompare(player, undefined, { sensitivity: 'accent' }) === 0) {
         setTokens(tokens);
     }
 });
 
-connection.on("SetCampaign", function (players) {
-    let settings = getSettings();
-    if (settings == null) {
-        return;
-    }
+connection.on("SetCampaign", (players) => {
+    const settings = SettingsManager.getSettings();
+    if (settings == null) return;
 
     initializeServerConnection();
 
-    for (const player in players) {
+    Object.keys(players).forEach(player => {
         if (settings.Name.localeCompare(player, undefined, { sensitivity: 'accent' }) === 0) {
-            setTokens(players[player])
+            setTokens(players[player]);
         }
+    });
+});
+
+$(document).ready(() => {
+$(".btn-direction").click(function() {
+    const character = $("#tokens").val();
+    const direction = $(this).attr('direction');
+
+    if (direction && character) {
+        $.ajax({ url: "Navigation/Move", type: "POST", data: { 'character': character, 'direction': direction } });
     }
 });
 
-$(document).ready(function () {
-    $(".btn-direction").click(function() {
-        let character = $("#tokens").val();
-        let direction = $(this).attr('direction');
-
-        console.log(character);
-
-        // Collapse conditions
-        $('.collapsible-conditions-content').hide();
-
-        // If direction is undefined, we hit te center button
-        if (!direction || !character)
-            return;
-        
-        $.ajax({
-            url: "Navigation/Move",
-            type: "POST",
-            data: { 'character': character, 'direction': direction }
-        })
-    })
-
     $(".btn-condition").click(function () {
-        let character = $("#tokens").val();
-        let condition = $(this).attr('condition');
+        const character = $("#tokens").val();
+        const condition = $(this).attr('condition');
 
-        if (!character)
-            return;
-
-        $.ajax({
-            url: "Navigation/ToggleCondition",
-            type: "POST",
-            data: { 'character': character, 'condition': condition}
-        })
-    })
+        if (character) {
+            $.ajax({ url: "Navigation/ToggleCondition", type: "POST", data: { 'character': character, 'condition': condition} });
+        }
+    });
 
     $("#tokens").change(function () {
-        let character = $("#tokens").val();
-
-        for (const button of conditionButtons) {
+        const character = $(this).val();
+        conditionButtons.forEach(button => {
             document.getElementById(button).style.backgroundColor = '';
-        }
+        });
 
-        $.ajax({
-            url: "Navigation/GetConditions",
-            type: "POST",
-            data: { 'character': character }
-        })
-    })
+        $.ajax({ url: "Navigation/GetConditions", type: "POST", data: { 'character': character } });
+    });
 
-    $(".btn-collapsible-conditions").click(function () {
+    $(".btn-collapsible-conditions").click(() => {
         $('.collapsible-conditions-content').toggle();
-    })   
+    });
 
-    $(".btn-orientation").click(function () {
-        // Collapse conditions
+    $(".btn-orientation").click(() => {
         $('.collapsible-conditions-content').hide();
-
         document.getElementById("btnOrientation").className = "fa fa-2x " + updateOrientation();
+        $.ajax({ url: "Navigation/ChangeOrientation", type: "POST" });
+    });
 
-        $.ajax({
-            url: "Navigation/ChangeOrientation",
-            type: "POST"
-        })        
-    })
-
-    $(".btn-apply-height").click(function () {
-        let character = $("#tokens").val();
-        let height = $("#height").val();
+    $(".btn-apply-height").click(() => {
+        const character = $("#tokens").val();
+        const height = $("#height").val();
         $("#height").val("");
 
-        $.ajax({
-            url: "Navigation/SetHeight",
-            type: "POST",
-            data: { 'character': character, 'height': height }
-        })
-    })
+        $.ajax({ url: "Navigation/SetHeight", type: "POST", data: { 'character': character, 'height': height } });
+    });
+
+    PanelManager.initializeEventListeners();
 });
 
 async function start() {
     try {
         await connection.start();
 
-        // Request tokens with refresh
-        let settings = getSettings();
+        const settings = SettingsManager.getSettings();
         if (settings != null) {
             $.ajax({
                 url: "Navigation/GetTokens",
                 type: "GET",
                 data: { 'player': settings.Name },
-                success: function (tokens) {
+                success: (tokens) => {
                     if (tokens != "") {
-                        let jsonObject = JSON.parse(tokens);
-                        setTokens(jsonObject);
+                        setTokens(JSON.parse(tokens));
                     }
-
                 }
-            })
-        }
-        else {
+            });
+        } else {
             $("#navigationMain").empty();
             $("#navigationMain").append("<p><b>No settings found!</b></p><p>Please go to settings and enter your name.</p>");
         }
     } catch (error) {
-        console.log(error);
+        console.error(error);
     }
-};
+}
 
 start();
+
 

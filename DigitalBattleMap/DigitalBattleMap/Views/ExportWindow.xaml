@@ -9,7 +9,8 @@
         mc:Ignorable="d"
         Title="ExportWindow" Height="550" Width="500"
         FontSize="17"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        FocusManager.FocusedElement="{Binding ElementName=SearchTextBox}">
     <Window.DataContext>
         <viewmodels:ExportWindowViewModel/>
     </Window.DataContext>
@@ -20,6 +21,7 @@
     <!--Main grid-->
     <Grid Margin="10">
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
@@ -33,14 +35,26 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <RadioButton Content="Campaign" VerticalContentAlignment="Center" IsChecked="{Binding ExportCampaignChecked}"/>
-            <RadioButton Grid.Column="1" Content="TokenGroup" VerticalContentAlignment="Center" IsChecked="{Binding ExportTokenGroupChecked}"/>
-            <RadioButton Grid.Column="2" Content="Token" VerticalContentAlignment="Center" IsChecked="{Binding ExportTokenChecked}"/>
+            <RadioButton Content="Campaign" VerticalContentAlignment="Center" IsChecked="{Binding ExportCampaignChecked}" FontWeight="Bold"/>
+            <RadioButton Grid.Column="1" Content="TokenGroup" VerticalContentAlignment="Center" IsChecked="{Binding ExportTokenGroupChecked}" FontWeight="Bold"/>
+            <RadioButton Grid.Column="2" Content="Token" VerticalContentAlignment="Center" IsChecked="{Binding ExportTokenChecked}" FontWeight="Bold"/>
         </Grid>
 
-        <ListView Grid.Row="1" Margin="0 10 0 0" ItemsSource="{Binding ExportItemList}" SelectedItem="{Binding SelectedExportItem}">
+        <!--Search grid-->
+        <Grid Grid.Row="1" Margin="0 20 0 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Label Content="Search"/>
+            <TextBox x:Name="SearchTextBox" Grid.Column="1" Margin="10 0 0 0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
+        </Grid>
+
+        <ListView Grid.Row="2" Margin="0 10 0 0" ItemsSource="{Binding ExportItemList}" SelectedItem="{Binding SelectedExportItem}">
             <i:Interaction.Behaviors>
                 <uielements:MultiSelectionBehavior SelectedItems="{Binding SelectedExportItems, Mode=OneWayToSource}" />
+                <uielements:FilterListViewBehavior FilterKeyword="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" FilterPropertyName="Name" KeepSelection="True"/>
             </i:Interaction.Behaviors>
             <ListView.ItemTemplate>
                 <DataTemplate>
@@ -50,7 +64,7 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <Button Grid.Row="2" Content="Export" Margin="0 10 0 0" Command="{Binding ExportCommand}" IsEnabled="{Binding SelectedExportItem, Converter={StaticResource NullConverter}}">
+        <Button Grid.Row="3" Content="Export" Margin="0 10 0 0" Command="{Binding ExportCommand}" IsEnabled="{Binding SelectedExportItem, Converter={StaticResource NullConverter}}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="Click">
                     <i:CallMethodAction MethodName="Close" TargetObject="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}" />
