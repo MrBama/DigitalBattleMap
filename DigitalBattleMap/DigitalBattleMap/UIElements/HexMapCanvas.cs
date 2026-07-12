@@ -136,7 +136,7 @@ public class HexMapCanvas : FrameworkElement
             int rMinE = Math.Max((int)Math.Floor(worldTop    / rScale - halfQ2) - 1, -rOff);
             int rMaxE = Math.Min((int)Math.Ceiling(worldBottom / rScale - halfQ2) + 1, vm.GridHeight - 1 - rOff);
             for (int r = rMinE; r <= rMaxE; r++)
-                vm.DrawEdgesForHex(dc, q, r, hexSize);
+                vm.DrawEdgesForHex(dc, q, r, hexSize, respectFog: ShowFog);
         }
 
         if (ShowFog)

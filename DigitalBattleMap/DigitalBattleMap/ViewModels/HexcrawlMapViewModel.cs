@@ -629,7 +629,7 @@ public class HexcrawlMapViewModel : ViewModelBase
 
             // Second pass: edges on top of all tile fills
             for (int q = qMin; q <= qMax; q++)
-                DrawColumnEdges(ctx, q, hexSize, worldTop, worldBottom);
+                DrawColumnEdges(ctx, q, hexSize, worldTop, worldBottom, respectFog: includeFog);
 
             if (includeFog)
             {
@@ -828,7 +828,9 @@ public class HexcrawlMapViewModel : ViewModelBase
 
     // Draws all edge features touching hex (q,r). Called from both OnRender and BuildDrawingVisual.
     // Only draws from the canonical (owning) side of each shared border to avoid double-drawing.
-    public void DrawEdgesForHex(DrawingContext ctx, int q, int r, double hexSize)
+    // When respectFog is true, an edge is skipped if both hexes sharing it are unexplored — otherwise
+    // its color can bleed through the anti-aliasing seam between the two hexes' opaque fog polygons.
+    public void DrawEdgesForHex(DrawingContext ctx, int q, int r, double hexSize, bool respectFog = false)
     {
         var edgesOnHex = GetEdgesForHex(q, r);
         if (edgesOnHex.Count == 0) return;
@@ -840,6 +842,12 @@ public class HexcrawlMapViewModel : ViewModelBase
         {
             var canonical = HexGeometry.CanonicalizeEdge(q, r, dir);
             if (canonical.Q != q || canonical.R != r) continue;
+
+            if (respectFog)
+            {
+                var (nq, nr) = HexGeometry.GetNeighborAt(q, r, dir);
+                if (!IsExplored(q, r) && !IsExplored(nq, nr)) continue;
+            }
 
             var edgeType = _edgeStore.GetById(typeId);
             if (edgeType == null) continue;
@@ -1101,7 +1109,7 @@ public class HexcrawlMapViewModel : ViewModelBase
 
     // Second-pass edge drawing for one column — called after all hex fills so edges are always on top.
     private void DrawColumnEdges(DrawingContext ctx, int q, double hexSize,
-                                 double worldTop, double worldBottom)
+                                 double worldTop, double worldBottom, bool respectFog)
     {
         double rScale = hexSize * HexGeometry.Sqrt3;
         int rOff  = q / 2;
@@ -1109,7 +1117,7 @@ public class HexcrawlMapViewModel : ViewModelBase
         int rMin = Math.Max((int)Math.Floor(worldTop    / rScale - halfQ) - 1, -rOff);
         int rMax = Math.Min((int)Math.Ceiling(worldBottom / rScale - halfQ) + 1, GridHeight - 1 - rOff);
         for (int r = rMin; r <= rMax; r++)
-            DrawEdgesForHex(ctx, q, r, hexSize);
+            DrawEdgesForHex(ctx, q, r, hexSize, respectFog);
     }
 
     // Fills a hex with either a solid colour (preset tile) or a clipped bitmap (custom tile).
