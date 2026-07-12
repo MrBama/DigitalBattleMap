@@ -126,4 +126,7 @@
   <data name="Characters" xml:space="preserve">
     <value>Personages</value>
   </data>
+  <data name="ConditionVersion" xml:space="preserve">
+    <value>Conditie Versie</value>
+  </data>
 </root>

@@ -20,7 +20,9 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     protected IMapSize _mapSize;
     private ITokenLinker _tokenLinker;
     private Point<double> _previousMovePosition;
+    private Point<double> _centerOfRotation;
     private bool _isMoving;
+    private DrawingShapeMode _lockedMode = DrawingShapeMode.Move;
 
     public DrawingShape(Action applyShapeCallback, ITokenLinker tokenLinker, IMapSize mapSize)
     {
@@ -59,9 +61,12 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     public string Name { get => Get<string>(); protected set => Set(value); }
     public virtual Cursor Cursor { get => CursorCreator.Create(new SolidColorBrush(Color), (int)Math.Max(8, PenSize)); }
     public virtual bool ShowInShapesOverview => true;
+    public virtual bool IsRotateShapeSupported => false;
     public bool IsErasable => !ShowInShapesOverview;
+    public List<Point<double>> RotationMarkers { get; set; } = new();
+    public List<Point<double>> CentersOfRotation { get; set; } = new();
     public Type Type { get => GetType(); }
-    public ObservableCollection<Point<double>> Points
+    public ObservableCollection<Point<double>> Points 
     {
         get => Get<ObservableCollection<Point<double>>>();
         set
@@ -81,6 +86,8 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
         }
     }
 
+    [JsonIgnore]
+    public DrawingShapeMode Mode { get; set; } = DrawingShapeMode.Move;
     [JsonIgnore]
     public LinkableObject LinkableObject { get; private set; }
     [JsonIgnore]
@@ -110,6 +117,12 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
 
     public void RightButtonDown(MouseButtonDataEventArgs e)
     {
+        if(Mode == DrawingShapeMode.Rotate && !IsRotateShapeSupported)
+        {
+            return;
+        }
+
+        _lockedMode = Mode;
         _editInfo = new DrawingShapeInfo(this);
 
         var position = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(e.Position, _mapSize, _mapSize.CanvasGridSize / 2) : e.Position;
@@ -125,24 +138,19 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
             _previousMovePosition = position;
             _isMoving = true;
         }
+
+        _centerOfRotation = GetCenterOfRotation(e.Position);
     }
 
     public void RightButtonUp(MouseButtonDataEventArgs e)
     {
         if (_isMoving)
         {
-            var position = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(e.Position, _mapSize, _mapSize.CanvasGridSize / 2) : e.Position;
-            if (position != _previousMovePosition)
+            if (_lockedMode == DrawingShapeMode.Move)
             {
-                var distanceX = position.X - _previousMovePosition.X;
-                var distanceY = position.Y - _previousMovePosition.Y;
-
-                var matrix = new Matrix();
-                matrix.Translate(distanceX, distanceY);
-                Transform(matrix);
-                RenderShape(_editInfo);
+                MoveShape(e.Position);
             }
-
+            RenderShape(_editInfo);
             _isMoving = false;
         }
     }
@@ -155,17 +163,16 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
         }
         else if (e.RightButtonDown && _isMoving)
         {
-            var position = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(e.Position, _mapSize, _mapSize.CanvasGridSize / 2) : e.Position;
-            if (position != _previousMovePosition)
+            switch (_lockedMode)
             {
-                var distanceX = position.X - _previousMovePosition.X;
-                var distanceY = position.Y - _previousMovePosition.Y;
-
-                var matrix = new Matrix();
-                matrix.Translate(distanceX, distanceY);
-                Transform(matrix);
-
-                _previousMovePosition = position;
+                case DrawingShapeMode.Move:
+                    MoveShape(e.Position);
+                    break;
+                case DrawingShapeMode.Rotate:
+                    RotateShape(e.Position);
+                    break;
+                default:
+                    throw new NotImplementedException();
             }
         }
     }
@@ -181,7 +188,15 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     {
         var points = ToWindowsPointArray(Points);
         matrix.Transform(points);
-        Points = new ObservableCollection<Point<double>>(ToPointDoubleEnumerable(points));
+        Points = new(ToPointDoubleEnumerable(points));
+
+        var rotationMarkers = ToWindowsPointArray(RotationMarkers);
+        matrix.Transform(rotationMarkers);
+        RotationMarkers = new(ToPointDoubleEnumerable(rotationMarkers));
+
+        var centersOfRotation = ToWindowsPointArray(CentersOfRotation);
+        matrix.Transform(centersOfRotation);
+        CentersOfRotation = new(ToPointDoubleEnumerable(centersOfRotation));
     }
 
     public void UpdatePosition(Point<int> offset)
@@ -213,6 +228,18 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
             NewInfo = new DrawingShapeInfo(this)
         };
         OnRenderChanged?.Invoke(this, eventArgs);
+    }
+
+    protected virtual Point<double> GetCenterOfRotation(Point<double> position)
+    {
+        if (CentersOfRotation.Count > 0)
+        {
+            return CentersOfRotation.First();
+        }
+        else
+        {
+            return new Point<double>();
+        }
     }
 
     private void OnPointsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -259,5 +286,67 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     private void SnapToGridChanged()
     {
         SnapToGrid = !SnapToGrid;
+    }
+
+    private void MoveShape(Point<double> position)
+    {
+        var snappedPosition = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2) : position;
+        if (snappedPosition != _previousMovePosition)
+        {
+            var distanceX = snappedPosition.X - _previousMovePosition.X;
+            var distanceY = snappedPosition.Y - _previousMovePosition.Y;
+
+            var matrix = new Matrix();
+            matrix.Translate(distanceX, distanceY);
+            Transform(matrix);
+
+            _previousMovePosition = snappedPosition;
+        }
+    }
+
+    private void RotateShape(Point<double> position)
+    {
+        var snappedPosition = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2) : position;
+        var newAngle = CalculateAngle(_centerOfRotation, snappedPosition);
+        var oldAngle = CalculateAngle(_centerOfRotation, _previousMovePosition);
+        var angle = newAngle - oldAngle;
+
+        var points = Points.ToList();
+        Points.Clear();
+
+        // Rotate shape
+        foreach (var point in points)
+        {
+            Points.Add(point.Rotate(_centerOfRotation, angle));
+        }
+
+        // Rotate rotation markers
+        var rotationMarkers = new List<Point<double>>();
+        foreach (var rotationMarker in RotationMarkers)
+        {
+            rotationMarkers.Add(rotationMarker.Rotate(_centerOfRotation, angle));
+        }
+        RotationMarkers = new(rotationMarkers);
+
+        // Rotate centers of rotation
+        var centersOfRotation = new List<Point<double>>();
+        foreach (var centerOfRotation in CentersOfRotation)
+        {
+            centersOfRotation.Add(centerOfRotation.Rotate(_centerOfRotation, angle));
+        }
+        CentersOfRotation = new(centersOfRotation);
+
+        _previousMovePosition = snappedPosition;
+    }
+
+    private double CalculateAngle(Point<double> startPosition, Point<double> endPosition)
+    {
+        var distanceX = endPosition.X - startPosition.X;
+        var distanceY = endPosition.Y - startPosition.Y;
+
+        var angle = Math.Atan2(distanceY, distanceX);
+        var angleInDegrees = angle / Math.PI * 180;
+
+        return angleInDegrees;
     }
 }

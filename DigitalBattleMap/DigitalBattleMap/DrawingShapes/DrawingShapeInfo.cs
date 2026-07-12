@@ -16,9 +16,13 @@ public class DrawingShapeInfo
         Color = drawingShape.Color;
         Size = drawingShape.PenSize;
         Points = drawingShape.Points.ToList();
+        RotationMarkers = drawingShape.RotationMarkers.ToList();
+        CentersOfRotation = drawingShape.CentersOfRotation.ToList();
     }
 
     public Color Color { get; set; } = Colors.Black;
     public double Size { get; set; }
     public List<Point<double>> Points { get; set; } = new();
+    public List<Point<double>> RotationMarkers { get; set; } = new();
+    public List<Point<double>> CentersOfRotation { get; set; } = new();
 }

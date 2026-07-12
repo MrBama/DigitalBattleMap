@@ -11,4 +11,7 @@ public class SettingsViewModel
 
     [Display(Name = "Orientation", ResourceType = typeof(Resources))]
     public Orientation Orientation { get; set; }
+
+    [Display(Name = "ConditionVersion", ResourceType = typeof(Resources))]
+    public string ConditionVersion { get; set; } = "5.5e";
 }

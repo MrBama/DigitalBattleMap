@@ -12,7 +12,7 @@ public static class Constants
     public static readonly string CustomTokensPath = Path.Combine(SettingsPath, "Tokens", "Custom");
     public static readonly string WebExtensionsPath = Path.Combine(SettingsPath, "WebExtensions");
     public static readonly string TempDirectoryPath = Path.Combine(SettingsPath, "Temp");
-    public static readonly string TempSaveFileDirectoryPath = Path.Combine(SettingsPath, "TempSaveFile");
+    public static readonly string UpdateDirectoryPath = Path.Combine(SettingsPath, "Update");
     public static readonly string AutoSavesPath = Path.Combine(SettingsPath, "AutoSaves");
     public static readonly string HexTilesPath = Path.Combine(SettingsPath, "HexTiles");
     public static readonly string HexEdgeTypesPath = Path.Combine(SettingsPath, "HexEdgeTypes");

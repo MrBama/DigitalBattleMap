@@ -142,14 +142,32 @@ public class NavigationController : Controller
         return Ok();
     }
 
-    private Direction TranslateDirection(Orientation orientation, Direction direction)
+    [HttpGet]
+    public IActionResult GetConditionInfo(string conditionName)
     {
-        int maxValue = Enum.GetValues(typeof(Direction)).Cast<int>().Max();
+        try
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "conditions.json");
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound("Conditions data file not found");
+            }
 
+            var jsonContent = System.IO.File.ReadAllText(filePath);
+            using var doc = JsonDocument.Parse(jsonContent);
+            var root = doc.RootElement;
 
+            if (root.TryGetProperty("conditions", out var conditions) &&
+                conditions.TryGetProperty(conditionName, out var condition))
+            {
+                return Ok(JsonSerializer.Serialize(condition));
+            }
 
-
-
-        return Direction.North;
+            return NotFound($"Condition '{conditionName}' not found");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error reading condition data: {ex.Message}");
+        }
     }
 }

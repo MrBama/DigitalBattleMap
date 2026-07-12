@@ -48,8 +48,18 @@
 
             <div class="grid-container-collapsible">
                 <button class="btn btn-secondary btn-collapsible-conditions">Conditions</button>
+                <button class="btn btn-secondary btn-open-condition-info" id="btnOpenConditionInfo">
+                    <i class="fa fa-info-circle"></i> Active Conditions
+                </button>
             </div>
             <div class="collapsible-conditions-content">
+                <div class="height-control-section">
+                    <div class="grid-container-height">
+                        <input type="number" step="5" class="form-control input-height" id="height" placeholder="Height" />
+                        <button class="btn btn-secondary btn-apply-height">Apply</button>
+                    </div>
+                </div>
+                <div class="divider-section"></div>
                 <div class="grid-container-conditions">
                     <button class="btn btn-secondary btn-condition" id="btnBaned" condition="@Condition.Baned">
                         <img class="img-condition" src="~/ConditionIcons/Baned.png" />
@@ -151,15 +161,24 @@
                         <img class="img-condition" src="~/ConditionIcons/Unconcious.png" />
                         <span class="span-condition">Unconcious</span>
                     </button>
-                    <div class="grid-container-height">
-                        <input type="number" step="5" class="form-control input-height" id="height" placeholder="Height" />
-                        <button class="btn btn-secondary btn-apply-height">Apply</button>
-                    </div>
                 </div>
             </div>
+        </div>
+    </div>
+    <div id="conditionInfoPanel" class="condition-info-panel">
+        <div class="condition-info-header">
+            <h5>Active Conditions</h5>
+            <button type="button" class="btn-close" id="closeConditionInfo"></button>
+        </div>
+        <div id="conditionCardsContainer" class="condition-cards-container">
+            <!-- Condition cards will be inserted here -->
         </div>
     </div>
 </div>
 
 <script src="~/js/signalr/dist/browser/signalr.js"></script>
+<script src="~/js/modules/settingsManager.js"></script>
+<script src="~/js/modules/conditionRenderer.js"></script>
+<script src="~/js/modules/conditionManager.js"></script>
+<script src="~/js/modules/panelManager.js"></script>
 <script src="~/js/components/navigation.js"/>

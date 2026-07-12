@@ -2,6 +2,8 @@
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DigitalBattleMap.DrawingShapes;
 
@@ -16,6 +18,8 @@ public class LineDrawingShape : DrawingShape
         SnapToGrid = true;
     }
 
+    public override bool IsRotateShapeSupported => true;
+
     protected override void ButtonDown(Point<double> position)
     {
         _startPosition = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize / 2) : position;
@@ -24,6 +28,10 @@ public class LineDrawingShape : DrawingShape
 
     protected override void ButtonUp(Point<double> position)
     {
+        CentersOfRotation.Add(_startPosition);
+        CentersOfRotation.Add(_previousMovePosition);
+        RotationMarkers.Add(_startPosition);
+        RotationMarkers.Add(_previousMovePosition);
         ApplyShape();
     }
 
@@ -60,6 +68,28 @@ public class LineDrawingShape : DrawingShape
             }
 
         }
+    }
+
+    protected override Point<double> GetCenterOfRotation(Point<double> position)
+    {
+        var distanceX = CentersOfRotation[0].X - position.X;
+        var distanceY = CentersOfRotation[0].Y - position.Y;
+        var longestDistance = Math.Sqrt(Math.Pow(distanceX, 2) + Math.Pow(distanceY, 2));
+        var index = 0;
+
+        for (int i = 1; i < CentersOfRotation.Count; i++)
+        {
+            var disX = CentersOfRotation[i].X - position.X;
+            var disY = CentersOfRotation[i].Y - position.Y;
+            var dis = Math.Sqrt(Math.Pow(disX, 2) + Math.Pow(disY, 2));
+            if (dis > longestDistance)
+            {
+                longestDistance = dis;
+                index = i;
+            }
+        }
+
+        return CentersOfRotation[index];
     }
 
     private void CalculateSize()

@@ -2,6 +2,7 @@
 using DigitalBattleMap.Utilities;
 using DigitalBattleMap.ViewModels;
 using DigitalBattleMap.Views;
+using System;
 using System.Windows;
 
 namespace DigitalBattleMap;
@@ -16,7 +17,7 @@ public partial class App : Application
     public App()
     {
         IO.Initialize(new Directory(), new File(), new ZipFile());
-        DigitalBattleMap.Startup.CheckForInitialStartup();
+        DigitalBattleMap.Startup.PerformStartupChecks();
         DispatcherUnhandledException += AppDispatcherUnhandledException;
     }
 
@@ -32,6 +33,7 @@ public partial class App : Application
         MainWindow = new MainWindow(_windowService);
         MainWindow.Show();
         MainWindow.ContentRendered += OnContentRendered;
+        ProcessArguments(e);
     }
 
     private void OnContentRendered(object? sender, System.EventArgs e)
@@ -39,5 +41,22 @@ public partial class App : Application
 #if DEBUG
         DebugOptions.Load((MainWindowViewModel)MainWindow.DataContext);
 #endif
+    }
+
+    private void ProcessArguments(StartupEventArgs e)
+    {
+        foreach (var arg in e.Args)
+        {
+            switch (arg)
+            {
+                case "--update":
+                    var viewmodel = (MainWindowViewModel)MainWindow.DataContext;
+                    viewmodel.UpdateSuccessful();
+                    break;
+                default:
+                    Console.WriteLine($"Argument {arg} is not supported");
+                    break;
+            }
+        }
     }
 }

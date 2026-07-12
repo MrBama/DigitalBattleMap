@@ -2,13 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static DigitalBattleMap.Utilities.FileManager;
 
 namespace DigitalBattleMap.Utilities;
 
-public static class VersionUpdater
+public static class SettingsUpdater
 {
-    public static readonly string ApplicationVersion = "3";
+    public static readonly string SettingsVersion = "3";
 
     // Versions are defined from top to bottom where the bottom has the newest version.
     // Updates are executed in the same order.
@@ -24,7 +23,7 @@ public static class VersionUpdater
         // Then make sure it's a known version. This is needed for backwards compatibility when
         // loading an older version of the software.
 
-        return version != ApplicationVersion && _versions.SingleOrDefault(v => v.Version == version) != null;
+        return version != SettingsVersion && _versions.SingleOrDefault(v => v.Version == version) != null;
     }
 
     public static void Update(string version)
@@ -32,7 +31,7 @@ public static class VersionUpdater
         if (IsUpdateRequired(version))
         {
             var currentVersion = version;
-            while (currentVersion != ApplicationVersion)
+            while (currentVersion != SettingsVersion)
             {
                 var index = _versions.FindIndex(v => v.Version == currentVersion);
                 if (index == -1)

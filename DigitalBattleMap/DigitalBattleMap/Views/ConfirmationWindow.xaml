@@ -8,7 +8,10 @@
         xmlns:viewmodels="clr-namespace:DigitalBattleMap.ViewModels" 
         xmlns:uielements="clr-namespace:DigitalBattleMap.UIElements"
         mc:Ignorable="d"
-        Title="ConfirmationWindow" Height="200" Width="400"
+        MinHeight="200"
+        MinWidth="400"
+        Title="ConfirmationWindow"
+        SizeToContent="WidthAndHeight"
         FontSize="17"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize">
@@ -35,7 +38,7 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Label Grid.Row="1" Grid.ColumnSpan="7" Content="{Binding Content}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 0 0 25"/>
+        <uielements:HyperlinkTextBlock Grid.Row="1" Grid.ColumnSpan="7" Text="{Binding Content}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 0 0 25" Padding="5"/>
         <Button Grid.Row="2" Grid.Column="1" Content="{Binding LeftButtonContent}" Padding="10 5 10 5" Command="{Binding LeftButtonCommand}" Visibility="{Binding IsLeftButtonVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="Click">

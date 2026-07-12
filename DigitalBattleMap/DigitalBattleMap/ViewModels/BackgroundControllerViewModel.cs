@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.IO;
+using System.Reflection;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
@@ -72,6 +73,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         FitBackgroundToGridCommand = new RelayCommand(p => FitToGrid());
         GridSizeEnterCommand = new RelayCommand(p => GridSizeChanged());
         BackgroundColorChangedCommand = new RelayCommand(p => BackgroundColorChanged());
+        RotateLeftCommand = new RelayCommand(p => RotateLeft());
+        RotateRightCommand = new RelayCommand(p => RotateRight());
     }
 
     public event EventHandler OnBackgroundUpdated;
@@ -92,6 +95,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public BitmapSource BackgroundBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public BitmapSource GMOverlayBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
     public BitmapSource GridBitmapSource { get => Get<BitmapSource>(); private set => Set(value); }
+    public BitmapSource RotateLeftBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.RotateLeft.png")).ToBitmapImage(); }
+    public BitmapSource RotateRightBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.RotateRight.png")).ToBitmapImage(); }
     public string BackgroundZoomPercentageLabel { get => $"{BackgroundZoomPercentage}%"; }
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
     public ObservableCollection<BackgroundColor> BackgroundColors { get; set; } = new() { BackgroundColor.Black, BackgroundColor.White };
@@ -109,6 +114,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public ICommand FitBackgroundToGridCommand { get; set; }
     public ICommand GridSizeEnterCommand { get; set; }
     public ICommand BackgroundColorChangedCommand { get; set; }
+    public ICommand RotateLeftCommand { get; set; }
+    public ICommand RotateRightCommand { get; set; }
 
     private Bitmap BackgroundBitmap
     {
@@ -249,8 +256,8 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     {
         saveFile.IsGridShown = IsGridShown;
         saveFile.GridSize = GridSize;
-        saveFile.FullBackground = _fullBackgroundBitmap;
-        saveFile.GMOverlay = _gmOverlayBitmap;
+        saveFile.FullBackground = _fullBackgroundBitmap != null ? _fullBackgroundBitmap.Copy() : null;
+        saveFile.GMOverlay = _gmOverlayBitmap != null ? _gmOverlayBitmap.Copy() : null;
         saveFile.BackgroundArea = _area;
         saveFile.GridCellsWidth = GridCellsWidth;
         saveFile.GridCellsHeight = GridCellsHeight;
@@ -503,6 +510,18 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     private void BackgroundColorChanged()
     {
+        CreateBackground();
+    }
+
+    private void RotateLeft()
+    {
+        BitmapTools.RotateBitmap(_fullBackgroundBitmap, BitmapRotation.Rotate270);
+        CreateBackground();
+    }
+
+    private void RotateRight()
+    {
+        BitmapTools.RotateBitmap(_fullBackgroundBitmap, BitmapRotation.Rotate90);
         CreateBackground();
     }
 }

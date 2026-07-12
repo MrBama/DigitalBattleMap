@@ -4,22 +4,16 @@ using DigitalBattleMap.Utilities;
 using DigitalBattleMap.Views;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Windows.Input;
-using static DigitalBattleMap.Utilities.FileManager;
 
 namespace DigitalBattleMap.ViewModels;
 
 public class CustomTokensWindowViewModel : ViewModelBase
 {
-    private static string _tokenFilePath = Path.Combine(Constants.TempDirectoryPath, "Token.json");
-    private static string _tokenImageFilePath = Path.Combine(Constants.TempDirectoryPath, "Image.png");
-    private static string _statblockFilePath = Path.Combine(Constants.TempDirectoryPath, "Markdown.md");
     private IWindowService _windowService;
     private Settings _settings;
     private IMonsterTokens _monsterTokens;
-    private List<Token> _tokenList = new();
 
     public CustomTokensWindowViewModel()
     {
@@ -36,9 +30,8 @@ public class CustomTokensWindowViewModel : ViewModelBase
 
         foreach (var token in _settings.CustomTokens.OrderBy(t => t.Name))
         {
-            _tokenList.Add(token);
+            TokenList.Add(token);
         }
-        FilterTokenList();
 
         foreach (var group in _settings.TokenGroups.OrderBy(t => t.Name))
         {
@@ -70,7 +63,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
     public List<Token> SelectedTokens { get; set; }
     public TokenGroup SelectedGroup { get => Get<TokenGroup>(); set => Set(value, RefreshGroupTokensListview); }
     public string SelectedGroupToken { get => Get<string>(); set => Set(value); }
-    public string SearchText { get => Get<string>(); set => Set(value, FilterTokenList); }
+    public string SearchText { get => Get<string>(); set => Set(value); }
     public ICommand AddTokenCommand { get; set; }
     public ICommand RemoveTokenCommand { get; set; }
     public ICommand EditTokenCommand { get; set; }
@@ -82,10 +75,9 @@ public class CustomTokensWindowViewModel : ViewModelBase
 
     private void SaveCustomTokens()
     {
-        _settings.CustomTokens = _tokenList.ToList();
+        _settings.CustomTokens = TokenList.ToList();
         _settings.Save();
         SearchText = "";
-        FilterTokenList();
     }
 
     private void SaveTokenGroups()
@@ -103,8 +95,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
 
         if (createTokenWindowViewModel.Token != null)
         {
-            _tokenList.Add(createTokenWindowViewModel.Token);
-            OrderTokenList();
+            TokenList.Add(createTokenWindowViewModel.Token);
             SaveCustomTokens();
         }
     }
@@ -121,7 +112,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
             IO.File.Delete(markdownStatblock.MarkdownPath);
         }
 
-        _tokenList.Remove(SelectedToken);
+        TokenList.Remove(SelectedToken);
         SaveCustomTokens();
     }
 
@@ -136,17 +127,11 @@ public class CustomTokensWindowViewModel : ViewModelBase
 
         if (createTokenWindowViewModel.Token != null)
         {
-            _tokenList.Remove(SelectedToken);
-            _tokenList.Add(createTokenWindowViewModel.Token);
-            OrderTokenList();
+            TokenList.Remove(SelectedToken);
+            TokenList.Add(createTokenWindowViewModel.Token);
             SelectedToken = createTokenWindowViewModel.Token;
             SaveCustomTokens();
         }
-    }
-
-    private void OrderTokenList()
-    {
-        _tokenList.OrderCurrentBy(t => t.Name);
     }
 
     private void OrderGroupList()
@@ -234,18 +219,6 @@ public class CustomTokensWindowViewModel : ViewModelBase
             foreach (var tokenName in orderedGroupTokens)
             {
                 GroupTokensList.Add(tokenName);
-            }
-        }
-    }
-
-    private void FilterTokenList()
-    {
-        TokenList.Clear();
-        foreach (var token in _tokenList.OrderBy(t => t.Name))
-        {
-            if (token.Name.ToLower().Contains(SearchText.ToLower()))
-            {
-                TokenList.Add(token);
             }
         }
     }

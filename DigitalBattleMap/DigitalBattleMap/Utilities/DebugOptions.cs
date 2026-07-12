@@ -12,6 +12,7 @@ public class DebugOptions
 
     public bool ConnectToServer { get; set; } = false;
     public string OpenSaveFile { get; set; } = ""; // Leave empty to not open anything
+    public int SelectedTabIndex { get; set; } = 0;
 
     public static void Load(MainWindowViewModel viewModel)
     {
@@ -38,6 +39,11 @@ public class DebugOptions
         {
             var method = viewModel.GetType().GetMethod("OpenMap", BindingFlags.NonPublic | BindingFlags.Instance, new Type[] { typeof(string) });
             method!.Invoke(viewModel, new object[] { OpenSaveFile });
+        }
+
+        if(SelectedTabIndex > 0)
+        {
+            viewModel.SelectedTabIndex = SelectedTabIndex;
         }
     }
 }

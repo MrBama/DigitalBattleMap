@@ -1,23 +1,32 @@
 ﻿@using DigitalBattleMapServer.Application
 @model SettingsViewModel
 
-<div>
-    <form asp-controller="Settings" asp-action="Save">
-        <div class="row form-group">
-            <div class="col">
+<link rel="stylesheet" href="~/css/settings.css" />
+
+<div class="settings-container">
+    <div class="settings-card">
+        <h2>Settings</h2>
+        
+        <form asp-controller="Settings" asp-action="Save">
+            <div class="settings-form-group">
                 <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control"/>
+                <input asp-for="Name" class="form-control" placeholder="Enter your name" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
-        </div>
-                       
-        <div class="row form-group">
-            <div class="col mt-3">
-                <button class="btn btn-primary float-end" type="submit">Opslaan</button>    
-            </div>
-        </div>
-        
-    </form>
-</div>
 
-<script src="~/js/settings.js" />
+            <div class="settings-form-group">
+                <label asp-for="ConditionVersion" class="control-label"></label>
+                <select asp-for="ConditionVersion" class="form-control">
+                    <option value="5e">5e (2014)</option>
+                    <option value="5.5e">5.5e (2024)</option>
+                </select>
+                <small class="form-text text-muted">Select which D&D version to use for condition information</small>
+                <span asp-validation-for="ConditionVersion" class="text-danger"></span>
+            </div>
+
+            <div class="settings-form-actions">
+                <button class="btn btn-primary" type="submit">Save Settings</button>
+            </div>
+        </form>
+    </div>
+</div>
