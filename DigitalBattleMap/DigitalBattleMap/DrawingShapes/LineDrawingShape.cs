@@ -30,8 +30,6 @@ public class LineDrawingShape : DrawingShape
     {
         CentersOfRotation.Add(_startPosition);
         CentersOfRotation.Add(_previousMovePosition);
-        RotationMarkers.Add(_startPosition);
-        RotationMarkers.Add(_previousMovePosition);
         ApplyShape();
     }
 
