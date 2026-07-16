@@ -2,6 +2,7 @@
 using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -42,22 +43,22 @@ internal class GDIImage : IImage
         gfx.DrawEllipse(new Pen(color, lineWidth), rectangle.TopLeftX, rectangle.TopLeftY, rectangle.Width, rectangle.Height);
     }
 
-    public void DrawRectangle(Color color, int lineWidth, int x, int y, int width, int height)
+    public void DrawRectangle(Color color, int lineWidth, Rectangle rectangle)
     {
         using var gfx = Graphics.FromImage(bitmap);
-        gfx.DrawRectangle(new Pen(color, lineWidth), x, y, width, height);
+        gfx.DrawRectangle(new Pen(color, lineWidth), rectangle.TopLeftX, rectangle.TopLeftY, rectangle.Width, rectangle.Height);
     }
 
-    public void FillEllipse(Color color, int x, int y, int width, int height)
+    public void FillEllipse(Color color, Rectangle rectangle)
     {
         using var gfx = Graphics.FromImage(bitmap);
-        gfx.FillEllipse(new SolidBrush(color), x, y, width, height);
+        gfx.FillEllipse(new SolidBrush(color), rectangle.TopLeftX, rectangle.TopLeftY, rectangle.Width, rectangle.Height);
     }
 
-    public void FillRectangle(Color color, int x, int y, int width, int height)
+    public void FillRectangle(Color color, Rectangle rectangle)
     {
         using var gfx = Graphics.FromImage(bitmap);
-        gfx.FillRectangle(new SolidBrush(color), x, y, width, height);
+        gfx.FillRectangle(new SolidBrush(color), rectangle.TopLeftX, rectangle.TopLeftY, rectangle.Width, rectangle.Height);
     }
 
     public void FillPolygon(Color color, Point<float>[] points, bool? blendColors = true)
@@ -83,11 +84,15 @@ internal class GDIImage : IImage
         gfx.DrawLine(new Pen(color, lineSize), x1, y1, x2, y2);
     }
 
-    public IImage CropTo(int x, int y, int width, int height)
+    public IImage CropTo(Rectangle rectangle)
     {
-        var croppedImage = new GDIImage(width, height);
+        var croppedImage = new GDIImage(rectangle.Width, rectangle.Height);
         using var gfx = Graphics.FromImage(croppedImage.bitmap);
-        gfx.DrawImage(bitmap, new System.Drawing.Rectangle(0, 0, croppedImage.Width, croppedImage.Height), new System.Drawing.Rectangle(x, y, width, height), GraphicsUnit.Pixel);
+        gfx.DrawImage(
+            bitmap,
+            new System.Drawing.Rectangle(0, 0, croppedImage.Width, croppedImage.Height),
+            new System.Drawing.Rectangle(rectangle.TopLeftX, rectangle.TopLeftY, rectangle.Width, rectangle.Height),
+            GraphicsUnit.Pixel);
 
         return croppedImage;
     }
@@ -98,18 +103,23 @@ internal class GDIImage : IImage
         return new GDIImage(resizedBitmap);
     }
 
-    public void DrawImage(IImage image, int x, int y, int? width = null, int? height = null)
+    public void DrawImage(IImage image, int x, int y)
+    {
+        DrawImage(image, Rectangle.FromTopLeft(x, y, image.Width, image.Height));
+    }
+
+    public void DrawImage(IImage image, Rectangle target)
     {
         var bitmap = image.ToDrawingBitmap();
         using var gfx = Graphics.FromImage(this.bitmap);
-        if (width != null && height != null)
+        //if (rectangle.Width != null && height != null)
         {
-            gfx.DrawImage(bitmap, x, y, width.Value, height.Value);
+            gfx.DrawImage(bitmap, target.TopLeftX, target.TopLeftY, target.Width, target.Height);
         }
-        else
-        {
-            gfx.DrawImage(bitmap, x, y);
-        }
+        //else
+        //{
+        //    gfx.DrawImage(bitmap, x, y);
+        //}
     }
 
     public void Rotate(BitmapRotation angle)
@@ -142,6 +152,24 @@ internal class GDIImage : IImage
         bitmap.Save(stream, ImageFormat.Png);
         stream.Position = 0;
         return stream;
+    }
+
+    public byte[] Serialize()
+    {
+        var sw = Stopwatch.StartNew();
+        try
+        {
+            return bitmap.ToPng();
+        }
+        finally
+        {
+            Debug.WriteLine($"Serialing image: {sw.ElapsedMilliseconds} ms");
+        }
+    }
+
+    public BitmapSource ToBitmapSource()
+    {
+        return bitmap.ToBitmapImage();
     }
 
     public Bitmap GetBitmap()

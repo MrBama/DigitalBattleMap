@@ -6,6 +6,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -42,12 +43,12 @@ internal class SharpImage : IImage
         return new SharpImage(image.Clone());
     }
 
-    public IImage CropTo(int x, int y, int width, int height)
+    public IImage CropTo(Rectangle rectangle)
     {
         //var croppedImage = image.Clone();
         //croppedImage.Mutate(i => i.Crop(new Rectangle(Math.Max(0, x), Math.Max(0, y), Math.Min(croppedImage.Width, width), Math.Min(croppedImage.Height, height))));
-        var croppedImage = new Image<Rgba32>(width, height);
-        croppedImage.Mutate(i => i.DrawImage(image, new Point(0, 0), new SixLabors.ImageSharp.Rectangle(x, y, width, height), 1));
+        var croppedImage = new Image<Rgba32>(rectangle.Width, rectangle.Height);
+        croppedImage.Mutate(i => i.DrawImage(image, new Point(-rectangle.TopLeftX, -rectangle.TopLeftY), new SixLabors.ImageSharp.Rectangle(0, 0, rectangle.Width, rectangle.Height), 1));
         return new SharpImage(croppedImage);
     }
 
@@ -57,17 +58,34 @@ internal class SharpImage : IImage
         image.Mutate(x => x.Draw(color, lineWidth, ellipse));
     }
 
-    public void DrawImage(IImage image, int x, int y, int? width = null, int? height = null)
+    public void DrawImage(IImage image, int x, int y)
     {
-        var imageToDraw = image.ToSharpImage();
-        if (width != null && height != null)
-        {
-            this.image.Mutate(i => i.DrawImage(imageToDraw, new SixLabors.ImageSharp.Rectangle(x, y, width.Value, height.Value), 1));
-        }
-        else
-        {
-            this.image.Mutate(i => i.DrawImage(imageToDraw, new Point(x, y), 1));
-        }
+        DrawImage(image, Rectangle.FromTopLeft(0, 0, image.Width, image.Height), Rectangle.FromTopLeft(x, y, image.Width, image.Height));
+    }
+
+    public void DrawImage(IImage image, Rectangle target)
+    {
+        DrawImage(image, Rectangle.FromTopLeft(0, 0, image.Width, image.Height), target);
+
+        //var imageToDraw = image.ToSharpImage();
+        ////if (width != null && height != null)
+        //{
+        //    this.image.Mutate(i => i.DrawImage(imageToDraw, new SixLabors.ImageSharp.Rectangle(sourceRectangle.TopLeftX, sourceRectangle.TopLeftY, sourceRectangle.Width, sourceRectangle.Height), 1));
+        //}
+        ////else
+        ////{
+        //  //  this.image.Mutate(i => i.DrawImage(imageToDraw, new Point(x, y), 1));
+        ////}
+    }
+
+    private void DrawImage(IImage image, Rectangle source, Rectangle target)
+    {
+        var imageToDraw = image.ResizeTo(target.Width, target.Height).ToSharpImage();
+        this.image.Mutate(i => i.DrawImage(
+            imageToDraw,
+            new SixLabors.ImageSharp.Point(target.TopLeftX, target.TopLeftY),
+            new SixLabors.ImageSharp.Rectangle(source.TopLeftX, source.TopLeftY, source.Width, source.Height),
+            1));
     }
 
     public void DrawLine(Color color, int lineSize, int x1, int y1, int x2, int y2)
@@ -75,15 +93,15 @@ internal class SharpImage : IImage
         image.Mutate(x => x.DrawLine(color, lineSize, new Point(x1, y1), new Point(x2, y2)));
     }
 
-    public void DrawRectangle(Color color, int lineWidth, int x, int y, int width, int height)
+    public void DrawRectangle(Color color, int lineWidth, Rectangle rectangle)
     {
-        var rectangle = new RectangularPolygon(x, y, width, height);
-        image.Mutate(x => x.Draw(color, lineWidth, rectangle));
+        var rect = new RectangularPolygon(rectangle.CenterX, rectangle.CenterY, rectangle.Width, rectangle.Height);
+        image.Mutate(x => x.Draw(color, lineWidth, rect));
     }
 
-    public void FillEllipse(Color color, int x, int y, int width, int height)
+    public void FillEllipse(Color color, Rectangle rectangle)
     {
-        var ellipse = new EllipsePolygon(x, y, width, height);
+        var ellipse = new EllipsePolygon(rectangle.CenterX, rectangle.CenterY, rectangle.Width, rectangle.Height);
         image.Mutate(x => x.Fill(color, ellipse));
     }
 
@@ -93,10 +111,10 @@ internal class SharpImage : IImage
         image.Mutate(x => x.FillPolygon(color, polyPoints));
     }
 
-    public void FillRectangle(Color color, int x, int y, int width, int height)
+    public void FillRectangle(Color color, Rectangle rectangle)
     {
-        var rectangle = new SixLabors.ImageSharp.Rectangle(x, y, width, height);
-        image.Mutate(x => x.Fill(color, rectangle));
+        var rect = new SixLabors.ImageSharp.Rectangle(rectangle.TopLeftX, rectangle.TopLeftY, rectangle.Width, rectangle.Height);
+        image.Mutate(x => x.Fill(color, rect));
     }
 
     public void FillSmoothPolygon(Color color, Point<float>[] points)
@@ -107,10 +125,33 @@ internal class SharpImage : IImage
 
     public Stream GetPngStream()
     {
-        var stream = new MemoryStream();
-        image.SaveAsPng(stream);
-        stream.Position = 0;
-        return stream;
+        var sw = Stopwatch.StartNew();
+        try
+        {
+            var stream = new MemoryStream();
+            image.SaveAsPng(stream);
+            stream.Position = 0;
+            return stream;
+        }
+        finally
+        {
+            Debug.WriteLine($"Serialize ImageSharp to PNG took {sw.ElapsedMilliseconds} ms");
+        }
+    }
+
+    public byte[] Serialize()
+    {
+        var sw = Stopwatch.StartNew();
+        try
+        {
+            using var stream = new MemoryStream();
+            image.SaveAsWebp(stream, new SixLabors.ImageSharp.Formats.Webp.WebpEncoder { Quality = 0 });
+            return stream.ToArray();
+        }
+        finally
+        {
+            Debug.WriteLine($"Serializing image: {sw.ElapsedMilliseconds} ms");
+        }
     }
 
     public void MakeColorTransparent(Color color)

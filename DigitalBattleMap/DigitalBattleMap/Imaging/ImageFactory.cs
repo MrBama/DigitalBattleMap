@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace DigitalBattleMap.Imaging;
 internal class ImageFactory
 {
-    private static readonly bool USE_GDI_IMAGES = false;
+    private static readonly bool USE_GDI_IMAGES = true;
 
     public static IImage Create(int width, int height, Color? baseColor = null)
     {

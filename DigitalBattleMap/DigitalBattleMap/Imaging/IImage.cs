@@ -18,11 +18,11 @@ public interface IImage
 
     void DrawEllipse(Color color, int lineWidth, Rectangle rectangle);
 
-    void DrawRectangle(Color color, int lineWidth, int x, int y, int width, int height);
+    void DrawRectangle(Color color, int lineWidth, Rectangle rectangle);
 
-    void FillEllipse(Color color, int x, int y, int width, int height);
+    void FillEllipse(Color color, Rectangle rectangle);
 
-    void FillRectangle(Color color, int x, int y, int width, int height);
+    void FillRectangle(Color color, Rectangle rectangle);
 
     void FillPolygon(Color color, Point<float>[] points, bool? blendColors = true);
 
@@ -30,11 +30,13 @@ public interface IImage
 
     void DrawLine(Color color, int lineSize, int x1, int y1, int x2, int y2);
 
-    IImage CropTo(int x, int y, int width, int height);
+    IImage CropTo(Rectangle rectangle);
 
     IImage ResizeTo(int width, int height);
 
-    void DrawImage(IImage image, int x, int y, int? width = null, int? height = null);
+    void DrawImage(IImage image, int x, int y);
+
+    void DrawImage(IImage image, Rectangle target);
 
     void Rotate(BitmapRotation angle);
 
@@ -44,6 +46,9 @@ public interface IImage
 
     Stream GetPngStream();
 
+    byte[] Serialize();
+
+    BitmapSource ToBitmapSource();
 }
 
 public static class ImageExtensions
@@ -53,22 +58,11 @@ public static class ImageExtensions
         var sw = Stopwatch.StartNew();
         try
         {
-            if (image is GDIImage gdi)
-            {
-                return gdi.ToDrawingBitmap().ToBitmapImage();
-            }
-            else if (image is SharpImage sharp)
-            {
-                return sharp.ToBitmapSource();
-            }
-            else
-            {
-                return null;
-            }
+            return image.ToBitmapSource();
         }
         finally
         {
-            Debug.WriteLine($"ToBitmapImage(): {sw.Elapsed.TotalMilliseconds} ms");
+            Debug.WriteLine($"ToBitmapImage() from {image.GetType().Name}: {sw.Elapsed.TotalMilliseconds} ms");
         }
     }
 
@@ -83,22 +77,24 @@ public static class ImageExtensions
             }
             return (Bitmap)Image.FromStream(image.GetPngStream());
         }
-        finally {
-            Debug.WriteLine(new StackTrace());
-            Debug.WriteLine($"ToDrawingBitmap(): {sw.Elapsed.TotalMilliseconds} ms"); }
+        finally
+        {
+            Debug.WriteLine($"ToDrawingBitmap(): {sw.ElapsedMilliseconds} ms");
+        }
     }
 
     public static SixLabors.ImageSharp.Image<Rgba32> ToSharpImage(this IImage image)
     {
+        if (image is SharpImage sharp)
+        {
+            return sharp.GetSharpImage();
+        }
+
         var sw = Stopwatch.StartNew();
         try
         {
-            if( image is SharpImage sharp)
-            {
-                return sharp.GetSharpImage();
-            }
             return (SixLabors.ImageSharp.Image<Rgba32>)SixLabors.ImageSharp.Image.Load(image.GetPngStream());
         }
-        finally { Debug.WriteLine($"ToSharpImage(): {sw.Elapsed.TotalMilliseconds} ms"); }
+        finally { Debug.WriteLine($"ToSharpImage() --> converted: {sw.ElapsedMilliseconds} ms"); }
     }
 }

@@ -5,6 +5,7 @@ using DigitalBattleMap.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
@@ -19,7 +20,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     private IImage _gmOverlayBitmap;
     private IImage _fullBackgroundBitmap;
     private IImage _gridBitmap;
-    private System.Drawing.Rectangle _area; 
+    private System.Drawing.Rectangle _area;
     private IWindowService _windowService;
     private Point<double> _mouseDownPosition;
     private bool _mouseDown;
@@ -158,7 +159,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     public IImage GetBackgroundBitmap()
     {
-        return SelectedBackgroundColor == BackgroundColor.Black 
+        return SelectedBackgroundColor == BackgroundColor.Black
             ? BitmapTools.MergeBitmaps(BitmapTools.CreateBlackBitmap(), BackgroundBitmap) : BackgroundBitmap;
     }
 
@@ -171,7 +172,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     {
         overviewBitmap = new OverviewBitmap();
 
-        if(_fullBackgroundBitmap != null)
+        if (_fullBackgroundBitmap != null)
         {
             overviewBitmap.Bitmap = _fullBackgroundBitmap.Clone();
             overviewBitmap.OffsetFromOrigin = new Point<int>(-_area.X, -_area.Y);
@@ -227,29 +228,37 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     public override void Move(ArrowDirection direction, int movementCount)
     {
-        if (_fullBackgroundBitmap != null)
+        var sw = Stopwatch.StartNew();
+        try
         {
-            double preciseGridSize = GridSize * movementCount;
-            var distanceX = (int)Math.Round(preciseGridSize.Map(0, _mapSize.Width, 0, _area.Width));
-            var distanceY = (int)Math.Round(preciseGridSize.Map(0, _mapSize.Height, 0, _area.Height));
-
-            switch (direction)
+            if (_fullBackgroundBitmap != null)
             {
-                case ArrowDirection.Up:
-                    _area.Y -= distanceY;
-                    break;
-                case ArrowDirection.Down:
-                    _area.Y += distanceY;
-                    break;
-                case ArrowDirection.Left:
-                    _area.X -= distanceX;
-                    break;
-                case ArrowDirection.Right:
-                    _area.X += distanceX;
-                    break;
-            }
+                double preciseGridSize = GridSize * movementCount;
+                var distanceX = (int)Math.Round(preciseGridSize.Map(0, _mapSize.Width, 0, _area.Width));
+                var distanceY = (int)Math.Round(preciseGridSize.Map(0, _mapSize.Height, 0, _area.Height));
 
-            CreateBackground();
+                switch (direction)
+                {
+                    case ArrowDirection.Up:
+                        _area.Y -= distanceY;
+                        break;
+                    case ArrowDirection.Down:
+                        _area.Y += distanceY;
+                        break;
+                    case ArrowDirection.Left:
+                        _area.X -= distanceX;
+                        break;
+                    case ArrowDirection.Right:
+                        _area.X += distanceX;
+                        break;
+                }
+
+                CreateBackground();
+            }
+        }
+        finally
+        {
+            Debug.WriteLine($"Move took {sw.ElapsedMilliseconds} ms");
         }
     }
 
@@ -296,7 +305,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public double GetZoomFactor()
     {
         return _area.Width / (double)_mapSize.Width;
-    }   
+    }
 
     protected override void CreateBitmap()
     {

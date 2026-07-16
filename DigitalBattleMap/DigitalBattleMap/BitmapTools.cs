@@ -67,7 +67,7 @@ public static class BitmapTools
     public static IImage CreateColorButton(ImagingColor color, bool addSelectionIndicator)
     {
         var image = ImageFactory.Create(70, 70);
-        image.FillEllipse(color, 9, 9, 50, 50);
+        image.FillEllipse(color, Rectangle.FromTopLeft(9, 9, 50, 50));
 
         if (addSelectionIndicator)
         {
@@ -96,8 +96,8 @@ public static class BitmapTools
         //return bitmap;
 
         var image = ImageFactory.Create(70, 70);
-        image.FillRectangle(Color.Yellow, 19, 14, 30, 40);
-        image.FillRectangle(Color.Pink, 19, 14, 30, 12);
+        image.FillRectangle(Color.Yellow, Rectangle.FromTopLeft(19, 14, 30, 40));
+        image.FillRectangle(Color.Pink, Rectangle.FromTopLeft(19, 14, 30, 12));
 
         if (addSelectionIndicator)
         {
@@ -163,11 +163,11 @@ public static class BitmapTools
         //return bitmap;
 
         var image = ImageFactory.Create(70, 70);
-        image.FillRectangle(ImagingColor.Black, 9, 30, 50, 8);
+        image.FillRectangle(ImagingColor.Black, Rectangle.FromTopLeft(9, 30, 50, 8));
 
         if (isZoomInButton)
         {
-            image.FillRectangle(ImagingColor.Black, 30, 9, 8, 50);
+            image.FillRectangle(ImagingColor.Black, Rectangle.FromTopLeft(30, 9, 8, 50));
         }
 
         return image;
@@ -184,7 +184,7 @@ public static class BitmapTools
         //return bitmap;
 
         var image = ImageFactory.Create(70, 70);
-        image.FillRectangle(Color.Black, 25, 35, 40, 30);
+        image.FillRectangle(Color.Black, Rectangle.FromTopLeft(25, 35, 40, 30));
 
         return image;
     }
@@ -198,7 +198,7 @@ public static class BitmapTools
         //}
         //return croppedBitmap;
 
-        return image.CropTo(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height);
+        return image.CropTo(Rectangle.FromTopLeft(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height));
     }
 
     public static IImage ResizeBitmap(IImage image)
@@ -331,11 +331,11 @@ public static class BitmapTools
         //}
         //return bitmap;
 
-        image.FillEllipse(Color.White, 0, 0, image.Width, image.Height);
+        image.FillEllipse(Color.White, Rectangle.FromTopLeft(0, 0, image.Width, image.Height));
         for (int i = 0; i < bitmaps.Count; i++)
         {
             var digitPadding = DigitPadding(bitmaps.Count, i, image.Width);
-            image.DrawImage(bitmaps[i], widthPadding + digitPadding, heightPadding, imageWidth, imageHeight);
+            image.DrawImage(bitmaps[i], Rectangle.FromTopLeft(widthPadding + digitPadding, heightPadding, imageWidth, imageHeight));
         }
 
         return image;
@@ -500,7 +500,7 @@ public static class BitmapTools
         foreach (var point in points)
         {
             //graphics.FillEllipse(brush, point.X, point.Y, penSizeF, penSizeF);
-            image.FillEllipse(color, (int)point.X, (int)point.Y, (int)penSizeF, (int)penSizeF);
+            image.FillEllipse(color, Rectangle.FromTopLeft((int)point.X, (int)point.Y, (int)penSizeF, (int)penSizeF));
         }
     }
 
@@ -732,7 +732,7 @@ public static class BitmapTools
     {
         //using var graphics = Graphics.FromImage(bitmap);
         //graphics.DrawRectangle(new Pen(System.Drawing.Color.DarkOrange, penSize), 0, 0, bitmap.Width, bitmap.Height);
-        image.DrawRectangle(Color.DarkOrange, penSize, 0, 0, image.Width, image.Height);
+        image.DrawRectangle(Color.DarkOrange, penSize, Rectangle.FromTopLeft(0, 0, image.Width, image.Height));
     }
 
 
