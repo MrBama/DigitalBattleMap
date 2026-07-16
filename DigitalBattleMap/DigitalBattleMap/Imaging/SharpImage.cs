@@ -10,6 +10,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.Imaging;
 internal class SharpImage : IImage
@@ -136,5 +138,32 @@ internal class SharpImage : IImage
         };
 
         image.Mutate(x => x.Rotate(mode));
+    }
+
+    public Image<Rgba32> GetSharpImage()
+    {
+        return image;
+    }
+
+    public BitmapSource ToBitmapSource()
+    {
+        using var bgraImage = image.CloneAs<Bgra32>();
+
+        int stride = bgraImage.Width * 4;
+        var pixelBytes = new byte[bgraImage.Height * stride];
+        bgraImage.CopyPixelDataTo(pixelBytes);
+
+        var bitmapSource = BitmapSource.Create(
+            bgraImage.Width,
+            bgraImage.Height,
+            bgraImage.Metadata.HorizontalResolution,
+            bgraImage.Metadata.VerticalResolution,
+            PixelFormats.Bgra32,
+            null,
+            pixelBytes,
+            stride);
+
+        bitmapSource.Freeze();
+        return bitmapSource;
     }
 }

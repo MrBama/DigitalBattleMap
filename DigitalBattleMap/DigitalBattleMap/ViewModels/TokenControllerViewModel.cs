@@ -58,7 +58,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     private void Initialize()
     {
         TokenBitmap = BitmapTools.CreateEmptyBitmap();
-        TokenSelectionBitmapSource = BitmapTools.CreateEmptyBitmap().ToDrawingBitmap().ToBitmapImage();
+        TokenSelectionBitmapSource = BitmapTools.CreateEmptyBitmap().ToBitmapImage();
         _tokenListItemMultiActions = new TokenListItemMultiActions(() => SelectedTokens);
         _tokenListItemMultiActions.OnConditionsChanged += TokenConditionsChanged;
         _tokenBitmapDictionary = new();
@@ -105,8 +105,8 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     public bool IsInitiativeDownButtonEnabled { get => IsInitiativeDownAllowed(SelectedToken); }
     public bool HideDungeonMasterFeatures { get => Get<bool>(); set => Set(value); }
     public ObservableCollection<TokenListItem> TokenList { get; set; } = new ObservableCollection<TokenListItem>();
-    public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToDrawingBitmap().ToBitmapImage(); }
-    public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToDrawingBitmap().ToBitmapImage(); }
+    public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToBitmapImage(); }
+    public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
     public BitmapSource UndoBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.UndoIcon.png")).ToBitmapImage(); }
     public BitmapSource RedoBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.RedoIcon.png")).ToBitmapImage(); }
     public MouseCanvasViewModel MouseCanvas { get => Get<MouseCanvasViewModel>(); private set => Set(value); }
@@ -130,7 +130,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             if (value != _tokenBitmap)
             {
                 _tokenBitmap = value;
-                TokenBitmapSource = value.ToDrawingBitmap().ToBitmapImage();
+                TokenBitmapSource = value.ToBitmapImage();
             }
         }
     }
@@ -730,7 +730,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             else
             {
                 _tokenBitmapDictionary.Clear();
-                TokenSelectionBitmapSource = BitmapTools.CreateEmptyBitmap().ToDrawingBitmap().ToBitmapImage();
+                TokenSelectionBitmapSource = BitmapTools.CreateEmptyBitmap().ToBitmapImage();
             }
 
             TokenBitmap = tokenBitmap;
@@ -847,7 +847,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 }
             }
 
-            TokenSelectionBitmapSource = bitmap.ToDrawingBitmap().ToBitmapImage();
+            TokenSelectionBitmapSource = bitmap.ToBitmapImage();
         }
     }
 

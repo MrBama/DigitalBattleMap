@@ -1,7 +1,10 @@
 ﻿using DigitalBattleMap.DataClasses;
+using DigitalBattleMap.Utilities;
 using SixLabors.ImageSharp.PixelFormats;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.Imaging;
 
@@ -45,13 +48,57 @@ public interface IImage
 
 public static class ImageExtensions
 {
+    public static BitmapSource ToBitmapImage(this IImage image)
+    {
+        var sw = Stopwatch.StartNew();
+        try
+        {
+            if (image is GDIImage gdi)
+            {
+                return gdi.ToDrawingBitmap().ToBitmapImage();
+            }
+            else if (image is SharpImage sharp)
+            {
+                return sharp.ToBitmapSource();
+            }
+            else
+            {
+                return null;
+            }
+        }
+        finally
+        {
+            Debug.WriteLine($"ToBitmapImage(): {sw.Elapsed.TotalMilliseconds} ms");
+        }
+    }
+
     public static Bitmap ToDrawingBitmap(this IImage image)
     {
-        return (Bitmap)Image.FromStream(image.GetPngStream());
+        var sw = Stopwatch.StartNew();
+        try
+        {
+            if (image is GDIImage gdi)
+            {
+                return gdi.GetBitmap();
+            }
+            return (Bitmap)Image.FromStream(image.GetPngStream());
+        }
+        finally {
+            Debug.WriteLine(new StackTrace());
+            Debug.WriteLine($"ToDrawingBitmap(): {sw.Elapsed.TotalMilliseconds} ms"); }
     }
 
     public static SixLabors.ImageSharp.Image<Rgba32> ToSharpImage(this IImage image)
     {
-        return (SixLabors.ImageSharp.Image<Rgba32>)SixLabors.ImageSharp.Image.Load(image.GetPngStream());
+        var sw = Stopwatch.StartNew();
+        try
+        {
+            if( image is SharpImage sharp)
+            {
+                return sharp.GetSharpImage();
+            }
+            return (SixLabors.ImageSharp.Image<Rgba32>)SixLabors.ImageSharp.Image.Load(image.GetPngStream());
+        }
+        finally { Debug.WriteLine($"ToSharpImage(): {sw.Elapsed.TotalMilliseconds} ms"); }
     }
 }

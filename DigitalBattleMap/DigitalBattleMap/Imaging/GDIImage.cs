@@ -143,4 +143,9 @@ internal class GDIImage : IImage
         stream.Position = 0;
         return stream;
     }
+
+    public Bitmap GetBitmap()
+    {
+        return bitmap;
+    }
 }

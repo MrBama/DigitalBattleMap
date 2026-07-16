@@ -67,7 +67,7 @@ public class MapOverviewViewModel : ViewModelBase
             if (value != _overviewBitmap)
             {
                 _overviewBitmap = value;
-                OverviewBitmapSource = value.ToDrawingBitmap().ToBitmapImage();
+                OverviewBitmapSource = value.ToBitmapImage();
             }
         }
     }

@@ -126,7 +126,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
             if (value != _backgroundBitmap)
             {
                 _backgroundBitmap = value;
-                BackgroundBitmapSource = value.ToDrawingBitmap().ToBitmapImage();
+                BackgroundBitmapSource = value.ToBitmapImage();
             }
         }
     }
@@ -138,7 +138,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
         {
             if (value != _gmOverlayBitmap)
             {
-                GMOverlayBitmapSource = value.ToDrawingBitmap().ToBitmapImage();
+                GMOverlayBitmapSource = value.ToBitmapImage();
             }
         }
     }
@@ -151,7 +151,7 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
             if (value != _gridBitmap)
             {
                 _gridBitmap = value;
-                GridBitmapSource = value.ToDrawingBitmap().ToBitmapImage();
+                GridBitmapSource = value.ToBitmapImage();
             }
         }
     }

@@ -98,7 +98,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
     public bool IsStatblockEditable { get => Get<bool>(); set => Set(value); }
     public bool ShowStatblockCopyName { get => Get<bool>(); set => Set(value); }
     public int? Hp { get => Get<int?>(); set => Set(value); }
-    public BitmapSource TokenBitmapSource { get => _tokenBitmap.ToDrawingBitmap().ToBitmapImage(); }
+    public BitmapSource TokenBitmapSource { get => _tokenBitmap.ToBitmapImage(); }
     public List<string> ExistingTokenNames { get; set; } = new List<string>();
     public Token Token { get; set; }
 

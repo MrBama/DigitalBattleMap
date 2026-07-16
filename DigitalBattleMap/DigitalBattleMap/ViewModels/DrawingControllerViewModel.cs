@@ -45,11 +45,11 @@ public class DrawingControllerViewModel : ControllerViewModelBase
 
     private void Initialize()
     {
-        BlackButtonBitmapSource = BitmapTools.CreateColorButton(DrawingButton.Black.ToColor(), true).ToDrawingBitmap().ToBitmapImage();
-        RedButtonBitmapSource = BitmapTools.CreateColorButton(DrawingButton.Red.ToColor(), false).ToDrawingBitmap().ToBitmapImage();
-        GreenButtonBitmapSource = BitmapTools.CreateColorButton(DrawingButton.Green.ToColor(), false).ToDrawingBitmap().ToBitmapImage();
-        BlueButtonBitmapSource = BitmapTools.CreateColorButton(DrawingButton.Blue.ToColor(), false).ToDrawingBitmap().ToBitmapImage();
-        EraserButtonBitmapSource = BitmapTools.CreateEraserButton(false).ToDrawingBitmap().ToBitmapImage();
+        BlackButtonBitmapSource = BitmapTools.CreateColorButton(DrawingButton.Black.ToColor(), true).ToBitmapImage();
+        RedButtonBitmapSource = BitmapTools.CreateColorButton(DrawingButton.Red.ToColor(), false).ToBitmapImage();
+        GreenButtonBitmapSource = BitmapTools.CreateColorButton(DrawingButton.Green.ToColor(), false).ToBitmapImage();
+        BlueButtonBitmapSource = BitmapTools.CreateColorButton(DrawingButton.Blue.ToColor(), false).ToBitmapImage();
+        EraserButtonBitmapSource = BitmapTools.CreateEraserButton(false).ToBitmapImage();
         ShapeCollection = new();
         ShapeCollection.OnRenderShapes += OnShapeRenderChanged;
         ActiveShape = new StrokeDrawingShape(ApplyActiveShape, _tokenLinker, _mapSize);
@@ -394,19 +394,19 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         switch (drawingButton)
         {
             case DrawingButton.Black:
-                BlackButtonBitmapSource = BitmapTools.CreateColorButton(color, isSelected).ToDrawingBitmap().ToBitmapImage();
+                BlackButtonBitmapSource = BitmapTools.CreateColorButton(color, isSelected).ToBitmapImage();
                 break;
             case DrawingButton.Red:
-                RedButtonBitmapSource = BitmapTools.CreateColorButton(color, isSelected).ToDrawingBitmap().ToBitmapImage();
+                RedButtonBitmapSource = BitmapTools.CreateColorButton(color, isSelected).ToBitmapImage();
                 break;
             case DrawingButton.Green:
-                GreenButtonBitmapSource = BitmapTools.CreateColorButton(color, isSelected).ToDrawingBitmap().ToBitmapImage();
+                GreenButtonBitmapSource = BitmapTools.CreateColorButton(color, isSelected).ToBitmapImage();
                 break;
             case DrawingButton.Blue:
-                BlueButtonBitmapSource = BitmapTools.CreateColorButton(color, isSelected).ToDrawingBitmap().ToBitmapImage();
+                BlueButtonBitmapSource = BitmapTools.CreateColorButton(color, isSelected).ToBitmapImage();
                 break;
             case DrawingButton.Eraser:
-                EraserButtonBitmapSource = BitmapTools.CreateEraserButton(isSelected).ToDrawingBitmap().ToBitmapImage();
+                EraserButtonBitmapSource = BitmapTools.CreateEraserButton(isSelected).ToBitmapImage();
                 break;
         }
     }

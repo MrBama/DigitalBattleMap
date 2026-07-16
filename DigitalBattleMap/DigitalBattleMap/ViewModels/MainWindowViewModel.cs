@@ -83,13 +83,13 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public DrawingControllerViewModel DrawingController { get; set; }
     public TokenControllerViewModel TokenController { get; set; }
     public MapOverviewViewModel MapOverview { get; set; }
-    public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToDrawingBitmap().ToBitmapImage(); }
-    public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToDrawingBitmap().ToBitmapImage(); }
-    public BitmapSource MapArrowLeftBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Left).ToDrawingBitmap().ToBitmapImage(); }
-    public BitmapSource MapArrowRightBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Right).ToDrawingBitmap().ToBitmapImage(); }
-    public BitmapSource MapZoomInBitmapSource { get => BitmapTools.CreateZoomButton(true).ToDrawingBitmap().ToBitmapImage(); }
-    public BitmapSource MapZoomOutBitmapSource { get => BitmapTools.CreateZoomButton(false).ToDrawingBitmap().ToBitmapImage(); }
-    public BitmapSource MapCropBitmapSource { get => BitmapTools.CreateCropButton().ToDrawingBitmap().ToBitmapImage(); }
+    public BitmapSource MapArrowUpBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Up).ToBitmapImage(); }
+    public BitmapSource MapArrowDownBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Down).ToBitmapImage(); }
+    public BitmapSource MapArrowLeftBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Left).ToBitmapImage(); }
+    public BitmapSource MapArrowRightBitmapSource { get => BitmapTools.CreateArrowButton(ArrowDirection.Right).ToBitmapImage(); }
+    public BitmapSource MapZoomInBitmapSource { get => BitmapTools.CreateZoomButton(true).ToBitmapImage(); }
+    public BitmapSource MapZoomOutBitmapSource { get => BitmapTools.CreateZoomButton(false).ToBitmapImage(); }
+    public BitmapSource MapCropBitmapSource { get => BitmapTools.CreateCropButton().ToBitmapImage(); }
     public BitmapSource MapZoomBackgroundBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.UndoIcon.png")).ToBitmapImage(); }
     public BitmapSource CampaignEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.CampaignEmblem.png")).ToBitmapImage(); }
     public BitmapSource BackgroundEmblemBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.BackgroundEmblem.png")).ToBitmapImage(); }
@@ -328,8 +328,8 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 var backgroundBitmapAll = BackgroundController.GetBackgroundBitmap();
                 var gridAndTokenBitmapAll = CreateGridAndDrawingBitmap();
                 _mapWindowViewModel.BackgroundBitmapSource = backgroundBitmapAll.ToBitmapImage();
-                _mapWindowViewModel.FogBitmapSource = FogController.GetFogBitmap().ToDrawingBitmap().ToBitmapImage();
-                _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToDrawingBitmap().ToBitmapImage();
+                _mapWindowViewModel.FogBitmapSource = FogController.GetFogBitmap().ToBitmapImage();
+                _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmapAll.ToBitmapImage();
                 _mapWindowViewModel.TokenBitmapSource = TokenController.TokenBitmapSource;
 
                 var backgroundAndFogBitmapAll = GetMergedBackgroundAndFogBitmap(backgroundBitmapAll);
@@ -339,12 +339,11 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 var backgroundBitmap = BackgroundController.GetBackgroundBitmap();
                 var backgroundAndFogBitmap = GetMergedBackgroundAndFogBitmap(backgroundBitmap);
                 _mapWindowViewModel.BackgroundBitmapSource = backgroundBitmap.ToBitmapImage();
-                _mapWindowViewModel.FogBitmapSource = FogController.GetFogBitmap().ToDrawingBitmap().ToBitmapImage();
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmap) });
                 break;
             case DrawLayer.GridAndStrokes:
                 var gridAndTokenBitmap = CreateGridAndDrawingBitmap();
-                _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmap.ToDrawingBitmap().ToBitmapImage();
+                _mapWindowViewModel.GridBitmapSource = gridAndTokenBitmap.ToBitmapImage();
                 _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.GridAndStrokes, Bitmap = gridAndTokenBitmap.ToDrawingBitmap() });
                 break;
             case DrawLayer.Tokens:
