@@ -140,3 +140,11 @@ public class DrawingShapeEditedEventArgs : EventArgs
     public DrawingShapeInfo OldInfo { get; set; }
     public DrawingShapeInfo NewInfo { get; set; }
 }
+
+public class TokenHealthChangedEventArgs : EventArgs
+{
+    public int NewHp { get; set; }
+    public int OldHp { get; set; }
+    public int UnclippedHpChange { get; set; }
+    public TokenHealthChange TokenHealthChange { get; set; }
+}
