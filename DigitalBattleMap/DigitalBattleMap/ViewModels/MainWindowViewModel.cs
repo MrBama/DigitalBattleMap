@@ -911,10 +911,10 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             _mapWindowViewModel.TokenBitmapSource = null;
 
             // Remotely: clear all layers first, then push just the hex background.
-            // A copy is passed to SendMapUpdate in case the send is asynchronous.
+            // Both go through _messageQueue so ClearMap is always sent before Background.
             _connectionManager?.ClearMap();
             _mapWindowViewModel.BackgroundBitmapSource = bitmap.ToBitmapImage();
-            _connectionManager?.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new System.Drawing.Bitmap(bitmap) });
+            _connectionManager?.SendMessage(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new System.Drawing.Bitmap(bitmap) });
         }
     }
 
