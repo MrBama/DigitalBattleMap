@@ -292,7 +292,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         AreConditionsVisible = !AreConditionsVisible;
     }
 
-    private void HealthChanged(object? sender, EventArgs e)
+    private void HealthChanged(object? sender, TokenHealthChangedEventArgs e)
     {
         if(Health.Hp == "0")
         {
@@ -303,7 +303,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
                 NotifyTokenChanged();
             }
         }
-        _multiActions.HealthChanged(this);
+        _multiActions.HealthChanged(this, e.TokenHealthChange, e.UnclippedHpChange);
     }
 
     private void MaxHealthChanged(object? sender, EventArgs e)

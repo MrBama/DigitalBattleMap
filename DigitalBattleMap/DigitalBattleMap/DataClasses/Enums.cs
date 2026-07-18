@@ -151,3 +151,9 @@ public enum DrawingShapeMode
     Move,
     Rotate
 }
+
+public enum TokenHealthChange
+{
+    Absolute,
+    Relative
+}

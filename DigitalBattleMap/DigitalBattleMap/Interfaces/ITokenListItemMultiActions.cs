@@ -10,7 +10,7 @@ public interface ITokenListItemMultiActions
     void ConditionsChanged(TokenListItem tokenListItem);
     void TokenSizeChanged(TokenListItem tokenListItem);
     void TokenOrientationChanged(TokenListItem tokenListItem);
-    void HealthChanged(TokenListItem tokenListItem);
+    void HealthChanged(TokenListItem tokenListItem, TokenHealthChange tokenHealthChange, int hpChange);
     void MaxHealthChanged(TokenListItem tokenListItem);
     void ZLevelChanged(TokenListItem tokenListItem);
 }

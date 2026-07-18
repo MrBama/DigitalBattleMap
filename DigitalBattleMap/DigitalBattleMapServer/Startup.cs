@@ -26,7 +26,7 @@ public class Startup
         services.AddSignalR();
 
         services.AddHttpContextAccessor();
-        services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+        services.AddAutoMapper(cfg => { }, AppDomain.CurrentDomain.GetAssemblies());
 
         // Session and state
         services.AddScoped<ICookieHandler, CookieHandler>();

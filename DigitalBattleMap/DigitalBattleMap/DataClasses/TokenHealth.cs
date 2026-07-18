@@ -27,7 +27,7 @@ public class TokenHealth : PropertyHandler
         CtrlYCommand = new RelayCommand(p => RedoHpChange());
     }
 
-    public event EventHandler OnHpChanged;
+    public event EventHandler<TokenHealthChangedEventArgs> OnHpChanged;
     public event EventHandler OnMaxHpChanged;
 
     [JsonIgnore]
@@ -104,7 +104,7 @@ public class TokenHealth : PropertyHandler
 
     public void ApplyHp()
     {
-        if(MaxHp == null)
+        if (MaxHp == null)
         {
             EditorMaxHp = EditorHp;
             ApplyMaxHp();
@@ -113,7 +113,7 @@ public class TokenHealth : PropertyHandler
 
         var previousHp = Hp;
 
-        SetHp(EditorHp);
+        var parsedHpChange = SetHp(EditorHp);
         EditorHp = Hp;
         SetHpColor();
 
@@ -122,8 +122,8 @@ public class TokenHealth : PropertyHandler
             var hpChange = int.Parse(Hp) - int.Parse(previousHp);
             _hpHistory.Enqueue(hpChange);
         }
-
-        NotifyHpChanged();
+        
+        NotifyHpChanged(parsedHpChange, int.Parse(Hp), int.Parse(previousHp));
     }
 
     public void ApplyMaxHp()
@@ -154,12 +154,14 @@ public class TokenHealth : PropertyHandler
         }
     }
 
-    private void SetHp(string value)
+    private HpChange SetHp(string value)
     {
+        var hpChange = new HpChange() { TokenHealthChange = TokenHealthChange.Absolute };
+
         if (value == null)
         {
             Hp = null;
-            return;
+            return hpChange;
         }
 
         if (value == "")
@@ -168,7 +170,7 @@ public class TokenHealth : PropertyHandler
             {
                 Hp = null;
             }
-            return;
+            return hpChange;
         }
 
         if (_hpRegex.IsMatch(value))
@@ -178,11 +180,17 @@ public class TokenHealth : PropertyHandler
 
             if (groups[1].Value == "+")
             {
-                newHp = int.Parse(Hp) + int.Parse(groups[2].Value);
+                var parsedHp = int.Parse(groups[2].Value);
+                newHp = int.Parse(Hp) + parsedHp;
+                hpChange.TokenHealthChange = TokenHealthChange.Relative;
+                hpChange.UnclippedHpChange = parsedHp;
             }
             else if (groups[1].Value == "-")
             {
-                newHp = int.Parse(Hp) - int.Parse(groups[2].Value);
+                var parsedHp = int.Parse(groups[2].Value);
+                newHp = int.Parse(Hp) - parsedHp;
+                hpChange.TokenHealthChange = TokenHealthChange.Relative;
+                hpChange.UnclippedHpChange = -parsedHp;
             }
 
             if (newHp > int.Parse(MaxHp))
@@ -198,6 +206,8 @@ public class TokenHealth : PropertyHandler
                 Hp = newHp.ToString();
             }
         }
+
+        return hpChange;
     }
 
     private void DiscardHp()
@@ -250,9 +260,15 @@ public class TokenHealth : PropertyHandler
         }
     }
 
-    private void NotifyHpChanged()
+    private void NotifyHpChanged(HpChange hpChange, int newHp, int oldHp)
     {
-        OnHpChanged?.Invoke(this, new EventArgs());
+        OnHpChanged?.Invoke(this, new TokenHealthChangedEventArgs() 
+        {
+            NewHp = newHp, 
+            OldHp = oldHp, 
+            TokenHealthChange = hpChange.TokenHealthChange, 
+            UnclippedHpChange = hpChange.UnclippedHpChange 
+        });
     }
 
     private void NotifyMaxHpChanged()
@@ -280,5 +296,11 @@ public class TokenHealth : PropertyHandler
             EditorHp = newHp.ToString();
             SetHpColor();
         }
+    }
+
+    private class HpChange
+    {
+        public TokenHealthChange TokenHealthChange { get; set; }
+        public int UnclippedHpChange { get; set; }
     }
 }

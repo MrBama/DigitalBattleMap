@@ -63,7 +63,6 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     public virtual bool ShowInShapesOverview => true;
     public virtual bool IsRotateShapeSupported => false;
     public bool IsErasable => !ShowInShapesOverview;
-    public List<Point<double>> RotationMarkers { get; set; } = new();
     public List<Point<double>> CentersOfRotation { get; set; } = new();
     public Type Type { get => GetType(); }
     public ObservableCollection<Point<double>> Points 
@@ -190,10 +189,6 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
         matrix.Transform(points);
         Points = new(ToPointDoubleEnumerable(points));
 
-        var rotationMarkers = ToWindowsPointArray(RotationMarkers);
-        matrix.Transform(rotationMarkers);
-        RotationMarkers = new(ToPointDoubleEnumerable(rotationMarkers));
-
         var centersOfRotation = ToWindowsPointArray(CentersOfRotation);
         matrix.Transform(centersOfRotation);
         CentersOfRotation = new(ToPointDoubleEnumerable(centersOfRotation));
@@ -319,14 +314,6 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
         {
             Points.Add(point.Rotate(_centerOfRotation, angle));
         }
-
-        // Rotate rotation markers
-        var rotationMarkers = new List<Point<double>>();
-        foreach (var rotationMarker in RotationMarkers)
-        {
-            rotationMarkers.Add(rotationMarker.Rotate(_centerOfRotation, angle));
-        }
-        RotationMarkers = new(rotationMarkers);
 
         // Rotate centers of rotation
         var centersOfRotation = new List<Point<double>>();

@@ -623,7 +623,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
                 command.DrawingShape.Color = command.OldInfo.Color;
                 command.DrawingShape.PenSize = command.OldInfo.Size;
                 command.DrawingShape.Points = new ObservableCollection<Point<double>>(command.OldInfo.Points);
-                command.DrawingShape.RotationMarkers = new List<Point<double>>(command.OldInfo.RotationMarkers);
                 command.DrawingShape.CentersOfRotation = new List<Point<double>>(command.OldInfo.CentersOfRotation);
                 break;
             case DrawingShapeCommandAction.Erase:
@@ -661,7 +660,6 @@ public class DrawingControllerViewModel : ControllerViewModelBase
                 command.DrawingShape.Color = command.NewInfo.Color;
                 command.DrawingShape.PenSize = command.NewInfo.Size;
                 command.DrawingShape.Points = new ObservableCollection<Point<double>>(command.NewInfo.Points);
-                command.DrawingShape.RotationMarkers = new List<Point<double>>(command.NewInfo.RotationMarkers);
                 command.DrawingShape.CentersOfRotation = new List<Point<double>>(command.NewInfo.CentersOfRotation);
                 break;
             case DrawingShapeCommandAction.Erase:
@@ -704,7 +702,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
         if (SelectedShape != null && SelectedShape.Mode != DrawingShapeMode.Rotate)
         {
             SelectedShape.Mode = DrawingShapeMode.Rotate;
-            foreach (var centerOfRotation in SelectedShape.RotationMarkers)
+            foreach (var centerOfRotation in SelectedShape.CentersOfRotation)
             {
                 var shape = CreateStrokeDrawingShape();
                 shape.Points.Add(centerOfRotation);
@@ -725,11 +723,11 @@ public class DrawingControllerViewModel : ControllerViewModelBase
                 ShapeCollection.Remove(shape);
             }
             _rotationMarkers.Clear();
+        }
 
-            if (SelectedShape != null)
-            {
-                SelectedShape.Mode = DrawingShapeMode.Move;
-            }
+        foreach (var shape in ShapeCollection.GetDrawingShapes())
+        {
+            shape.Mode = DrawingShapeMode.Move;
         }
     }
 

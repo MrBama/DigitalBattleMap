@@ -27,7 +27,6 @@ public class ConeDrawingShape : DrawingShape
     protected override void ButtonUp(Point<double> position)
     {
         CentersOfRotation.Add(_startPosition);
-        RotationMarkers.Add(_previousMovePosition);
         ApplyShape();
     }
 

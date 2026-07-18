@@ -47,11 +47,23 @@ public class TokenListItemMultiActions : ITokenListItemMultiActions
         });
     }
 
-    public void HealthChanged(TokenListItem tokenListItem)
+    public void HealthChanged(TokenListItem tokenListItem, TokenHealthChange tokenHealthChange, int hpChange)
     {
         Execute(tokenListItem, (TokenListItem selectedTokenListItem) =>
         {
-            selectedTokenListItem.Health.EditorHp = tokenListItem.Health.EditorHp;
+            if (tokenHealthChange == TokenHealthChange.Absolute)
+            {
+                selectedTokenListItem.Health.EditorHp = tokenListItem.Health.EditorHp;
+            }
+            else
+            {
+                var newHp = selectedTokenListItem.Health.EditorHp;
+                if (int.TryParse(selectedTokenListItem.Health.EditorHp, out var currentHp))
+                {
+                    newHp = Math.Max(0, currentHp + hpChange).ToString();
+                }
+                selectedTokenListItem.Health.EditorHp = newHp;
+            }
             selectedTokenListItem.Health.ApplyHp();
         });
     }
