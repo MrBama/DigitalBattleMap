@@ -16,7 +16,7 @@ public static class ScreenWrapper
     {
         var screenPositions = new List<ScreenPosition>();
 
-        var scaleRatio = Math.Max(Screen.PrimaryScreen.WorkingArea.Width / SystemParameters.PrimaryScreenWidth,
+        var scaleRatio = Math.Max(Screen.PrimaryScreen!.WorkingArea.Width / SystemParameters.PrimaryScreenWidth,
                         Screen.PrimaryScreen.WorkingArea.Height / SystemParameters.PrimaryScreenHeight);
 
         foreach (var screen in Screen.AllScreens)

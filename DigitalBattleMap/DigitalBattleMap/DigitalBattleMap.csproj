@@ -22,6 +22,7 @@
     <None Remove="Resources\ConditionIcons\Confused.png" />
     <None Remove="Resources\ConditionIcons\Deafened.png" />
     <None Remove="Resources\ConditionIcons\Death.png" />
+    <None Remove="Resources\ConditionIcons\Dodge.png" />
     <None Remove="Resources\ConditionIcons\Exhausted.png" />
     <None Remove="Resources\ConditionIcons\Flying.png" />
     <None Remove="Resources\ConditionIcons\Frightened.png" />
@@ -84,9 +85,9 @@
     <EmbeddedResource Include="Resources\ConditionIcons\Blinded.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Charmed.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Concentration.png" />
-    <EmbeddedResource Include="Resources\ConditionIcons\Confused.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Deafened.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Death.png" />
+    <EmbeddedResource Include="Resources\ConditionIcons\Dodge.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Exhausted.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Flying.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Frightened.png" />
@@ -97,7 +98,6 @@
     <EmbeddedResource Include="Resources\ConditionIcons\Incapacitated.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Invisible.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Mark.png" />
-    <EmbeddedResource Include="Resources\ConditionIcons\OnFire.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Paralyzed.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Petrified.png" />
     <EmbeddedResource Include="Resources\ConditionIcons\Poisoned.png" />
