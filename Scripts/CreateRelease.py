@@ -2,7 +2,7 @@
 # 1. pip install GitPython
 # 2. pip install py7zr
 # 3. pip install PyGithub
-# 4. Add msbuild executable to PATH environment variable (For example: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin)
+# 4. Add msbuild executable to PATH environment variable (For example: C:\Program Files\Microsoft Visual Studio\18\Enterprise\MSBuild\Current\Bin)
 # 5. Add git executable to PATH environment variable (For example: C:\Program Files\Git\bin)
 # 6. Create Github API token
 #       Profile -> Settings -> Developer settings -> Personal access tokens -> Tokens (classic) -> Generate new token (classic)
@@ -100,9 +100,8 @@ if input() == 'y':
 
     # Create release 7z for DigitalBattleMap
     print(f'\nStart creation of {release_name}.7z')
-    bin_directory = os.path.join(os.getcwd(), "..", "DigitalBattleMap", "DigitalBattleMap", "bin", "Release", "net6.0-windows")
+    bin_directory = os.path.join(os.getcwd(), "..", "DigitalBattleMap", "DigitalBattleMap", "bin", "Release", "net10.0-windows")
     shutil.copytree(bin_directory, temp_directory, ignore=lambda directory, contents: ['runtimes'] if directory == bin_directory else [])
-    shutil.copytree(os.path.join(bin_directory, "runtimes", "win"), os.path.join(temp_directory, "runtimes", "win"))
     shutil.copytree(os.path.join(bin_directory, "runtimes", "win-x64"), os.path.join(temp_directory, "runtimes", "win-x64"))
     shutil.copytree(os.path.join(bin_directory, "runtimes", "win-x86"), os.path.join(temp_directory, "runtimes", "win-x86"))
     print('Compress to archive (this can take a while)...')
@@ -113,7 +112,7 @@ if input() == 'y':
 
     # Create release 7z for DigitalBattleMapServer
     print(f'\nStart creation of {server_release_name}.7z')
-    bin_directory = os.path.join(os.getcwd(), "..", "DigitalBattleMap", "DigitalBattleMapServer", "bin", "Release", "net6.0")
+    bin_directory = os.path.join(os.getcwd(), "..", "DigitalBattleMap", "DigitalBattleMapServer", "bin", "Release", "net10.0")
     wwwroot_directory = os.path.join(os.getcwd(), "..", "DigitalBattleMap", "DigitalBattleMapServer", "wwwroot")
     print('Copy binary files...')
     shutil.copytree(bin_directory, temp_directory)
