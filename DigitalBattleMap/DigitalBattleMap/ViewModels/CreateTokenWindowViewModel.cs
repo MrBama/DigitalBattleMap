@@ -19,6 +19,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
     private bool _tokenImageSelected = false;
     private string _originalTokenImagePath = "";
     private string _originalMarkdownStatblockPath;
+    private bool _keepCopy = true;
     private Statblock _statblock;
     private List<Token> _tokens;
 
@@ -35,22 +36,23 @@ public class CreateTokenWindowViewModel : ViewModelBase
         InitializeProperties();
     }
 
-    public CreateTokenWindowViewModel(IWindowService windowService, List<Token> tokens, Token editToken)
+    public CreateTokenWindowViewModel(IWindowService windowService, List<Token> tokens, Token copyToken, bool keepCopy)
     {
         InitializeProperties();
 
         _windowService = windowService;
-        _tokenBitmap = IO.File.LoadBitmap(editToken.ImagePath);
-        _originalTokenImagePath = editToken.ImagePath;
+        _tokenBitmap = IO.File.LoadBitmap(copyToken.ImagePath);
+        _originalTokenImagePath = copyToken.ImagePath;
         _tokenImageSelected = true;
-        _statblock = editToken.Statblock?.Clone<Statblock>();
+        _statblock = copyToken.Statblock?.Clone<Statblock>();
         _tokens = tokens;
+        _keepCopy = keepCopy;
 
         ExistingTokenNames = tokens.Select(t => t.Name).ToList();
-        TokenName = editToken.Name;
-        SelectedTokenSize = editToken.Size;
-        SelectedTokenOrientation = editToken.Orientation;
-        Hp = editToken.Hp;
+        TokenName = copyToken.Name;
+        SelectedTokenSize = copyToken.Size;
+        SelectedTokenOrientation = copyToken.Orientation;
+        Hp = copyToken.Hp;
 
         if (_statblock != null)
         {
@@ -133,12 +135,12 @@ public class CreateTokenWindowViewModel : ViewModelBase
 
     private void OkButton()
     {
-        if (IO.File.Exists(_originalTokenImagePath))
+        if (!_keepCopy && IO.File.Exists(_originalTokenImagePath))
         {
             IO.File.Delete(_originalTokenImagePath);
         }
 
-        if (IO.File.Exists(_originalMarkdownStatblockPath))
+        if (!_keepCopy && IO.File.Exists(_originalMarkdownStatblockPath))
         {
             IO.File.Delete(_originalMarkdownStatblockPath);
         }
