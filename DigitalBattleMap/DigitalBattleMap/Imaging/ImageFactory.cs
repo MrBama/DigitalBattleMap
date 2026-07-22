@@ -7,20 +7,25 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace DigitalBattleMap.Imaging;
+
 internal class ImageFactory
 {
-    private static readonly bool USE_GDI_IMAGES = true;
+    private static readonly ImageProcessor IMAGE_PROCESSOR = ImageProcessor.Skia;
 
     public static IImage Create(int width, int height, Color? baseColor = null)
     {
         IImage image;
-        if (USE_GDI_IMAGES)
+        if (IMAGE_PROCESSOR == ImageProcessor.GDI)
         {
             image = new GDIImage(width, height);
         }
-        else
+        else if (IMAGE_PROCESSOR == ImageProcessor.ImageSharp)
         {
             image = new SharpImage(width, height);
+        }
+        else
+        {
+            image = new SkiaImage(width, height);
         }
 
         if (baseColor != null)
@@ -33,14 +38,26 @@ internal class ImageFactory
 
     public static IImage FromDrawingBitmap(System.Drawing.Bitmap bitmap)
     {
-        if (USE_GDI_IMAGES)
+        if (IMAGE_PROCESSOR == ImageProcessor.GDI)
         {
             return new GDIImage(bitmap);
         }
-        else
+        else if (IMAGE_PROCESSOR == ImageProcessor.ImageSharp)
         {
             var image = new GDIImage(bitmap);
             return new SharpImage(image.ToSharpImage());
         }
+        else
+        {
+            var image = new GDIImage(bitmap);
+            return new SkiaImage(image.ToSkiaImage());
+        }
     }
+}
+
+internal enum ImageProcessor
+{
+    GDI,
+    Skia,
+    ImageSharp,
 }

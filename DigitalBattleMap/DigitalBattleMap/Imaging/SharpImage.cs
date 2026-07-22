@@ -5,12 +5,9 @@ using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -45,8 +42,6 @@ internal class SharpImage : IImage
 
     public IImage CropTo(Rectangle rectangle)
     {
-        //var croppedImage = image.Clone();
-        //croppedImage.Mutate(i => i.Crop(new Rectangle(Math.Max(0, x), Math.Max(0, y), Math.Min(croppedImage.Width, width), Math.Min(croppedImage.Height, height))));
         var croppedImage = new Image<Rgba32>(rectangle.Width, rectangle.Height);
         croppedImage.Mutate(i => i.DrawImage(image, new Point(-rectangle.TopLeftX, -rectangle.TopLeftY), new SixLabors.ImageSharp.Rectangle(0, 0, rectangle.Width, rectangle.Height), 1));
         return new SharpImage(croppedImage);
@@ -66,16 +61,6 @@ internal class SharpImage : IImage
     public void DrawImage(IImage image, Rectangle target)
     {
         DrawImage(image, Rectangle.FromTopLeft(0, 0, image.Width, image.Height), target);
-
-        //var imageToDraw = image.ToSharpImage();
-        ////if (width != null && height != null)
-        //{
-        //    this.image.Mutate(i => i.DrawImage(imageToDraw, new SixLabors.ImageSharp.Rectangle(sourceRectangle.TopLeftX, sourceRectangle.TopLeftY, sourceRectangle.Width, sourceRectangle.Height), 1));
-        //}
-        ////else
-        ////{
-        //  //  this.image.Mutate(i => i.DrawImage(imageToDraw, new Point(x, y), 1));
-        ////}
     }
 
     private void DrawImage(IImage image, Rectangle source, Rectangle target)

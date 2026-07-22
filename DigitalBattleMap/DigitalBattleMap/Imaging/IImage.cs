@@ -1,6 +1,7 @@
 ﻿using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Utilities;
 using SixLabors.ImageSharp.PixelFormats;
+using SkiaSharp;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -96,5 +97,20 @@ public static class ImageExtensions
             return (SixLabors.ImageSharp.Image<Rgba32>)SixLabors.ImageSharp.Image.Load(image.GetPngStream());
         }
         finally { Debug.WriteLine($"ToSharpImage() --> converted: {sw.ElapsedMilliseconds} ms"); }
+    }
+
+    public static SKBitmap ToSkiaImage(this IImage image)
+    {
+        if(image is SkiaImage skia)
+        {
+            return skia.GetSkBitmap();
+        }
+
+        var sw = Stopwatch.StartNew();
+        try
+        {
+            return SKBitmap.Decode(image.GetPngStream());
+        }
+        finally { Debug.WriteLine($"ToSkiaImage() --> converted: {sw.ElapsedMilliseconds} ms"); }
     }
 }

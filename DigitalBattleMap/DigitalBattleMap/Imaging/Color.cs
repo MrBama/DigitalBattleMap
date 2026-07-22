@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SkiaSharp;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -47,5 +48,11 @@ public struct Color
     {
         // TODO (Bas): Remove this
         return SixLabors.ImageSharp.Color.FromRgba(color.R, color.G, color.B, color.A);
+    }
+
+    public static implicit operator SKColor(Color color)
+    {
+        // TODO (Bas): Remove this
+        return new SKColor(color.R, color.G, color.B, color.A);
     }
 }
