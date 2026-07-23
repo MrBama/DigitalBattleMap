@@ -1,4 +1,5 @@
-﻿using DigitalBattleMap.DataClasses;
+﻿#if GDI_IMAGE_PROCESSOR
+using DigitalBattleMap.DataClasses;
 using OpenCvSharp.Extensions;
 using System.Drawing;
 
@@ -13,3 +14,4 @@ public static class OpenCV
         return BitmapConverter.ToBitmap(resizedMat);
     }
 }
+#endif

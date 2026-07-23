@@ -1,4 +1,5 @@
 ﻿using DigitalBattleMap.Common;
+using DigitalBattleMap.Imaging;
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using Newtonsoft.Json;
@@ -11,7 +12,7 @@ namespace DigitalBattleMap.DataClasses;
 
 public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisposable
 {
-    private Bitmap _bitmap;
+    private IImage _bitmap;
     private ITokenLinker _tokenLinker;
     private IPlayers _players;
     private ITokenListItemMultiActions _multiActions;
@@ -96,11 +97,11 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     [JsonIgnore]
     public ICommand ExpandConditionsCommand { get; set; }
 
-    public Bitmap GetBitmap()
+    public IImage GetBitmap()
     {
         if (_bitmap == null)
         {
-            _bitmap = IO.File.LoadBitmap(Token.ImagePath);
+            _bitmap = ImageFactory.FromDrawingBitmap(IO.File.LoadBitmap(Token.ImagePath));
         }
 
         return _bitmap;

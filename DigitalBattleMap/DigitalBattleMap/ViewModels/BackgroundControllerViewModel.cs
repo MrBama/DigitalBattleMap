@@ -228,37 +228,29 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
     public override void Move(ArrowDirection direction, int movementCount)
     {
-        var sw = Stopwatch.StartNew();
-        try
+        if (_fullBackgroundBitmap != null)
         {
-            if (_fullBackgroundBitmap != null)
+            double preciseGridSize = GridSize * movementCount;
+            var distanceX = (int)Math.Round(preciseGridSize.Map(0, _mapSize.Width, 0, _area.Width));
+            var distanceY = (int)Math.Round(preciseGridSize.Map(0, _mapSize.Height, 0, _area.Height));
+
+            switch (direction)
             {
-                double preciseGridSize = GridSize * movementCount;
-                var distanceX = (int)Math.Round(preciseGridSize.Map(0, _mapSize.Width, 0, _area.Width));
-                var distanceY = (int)Math.Round(preciseGridSize.Map(0, _mapSize.Height, 0, _area.Height));
-
-                switch (direction)
-                {
-                    case ArrowDirection.Up:
-                        _area.Y -= distanceY;
-                        break;
-                    case ArrowDirection.Down:
-                        _area.Y += distanceY;
-                        break;
-                    case ArrowDirection.Left:
-                        _area.X -= distanceX;
-                        break;
-                    case ArrowDirection.Right:
-                        _area.X += distanceX;
-                        break;
-                }
-
-                CreateBackground();
+                case ArrowDirection.Up:
+                    _area.Y -= distanceY;
+                    break;
+                case ArrowDirection.Down:
+                    _area.Y += distanceY;
+                    break;
+                case ArrowDirection.Left:
+                    _area.X -= distanceX;
+                    break;
+                case ArrowDirection.Right:
+                    _area.X += distanceX;
+                    break;
             }
-        }
-        finally
-        {
-            Debug.WriteLine($"Move took {sw.ElapsedMilliseconds} ms");
+
+            CreateBackground();
         }
     }
 

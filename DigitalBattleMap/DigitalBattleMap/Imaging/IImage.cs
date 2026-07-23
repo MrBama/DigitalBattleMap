@@ -1,9 +1,4 @@
 ﻿using DigitalBattleMap.DataClasses;
-using DigitalBattleMap.Utilities;
-using SixLabors.ImageSharp.PixelFormats;
-using SkiaSharp;
-using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Windows.Media.Imaging;
 
@@ -50,67 +45,4 @@ public interface IImage
     byte[] Serialize();
 
     BitmapSource ToBitmapSource();
-}
-
-public static class ImageExtensions
-{
-    public static BitmapSource ToBitmapImage(this IImage image)
-    {
-        var sw = Stopwatch.StartNew();
-        try
-        {
-            return image.ToBitmapSource();
-        }
-        finally
-        {
-            Debug.WriteLine($"ToBitmapImage() from {image.GetType().Name}: {sw.Elapsed.TotalMilliseconds} ms");
-        }
-    }
-
-    public static Bitmap ToDrawingBitmap(this IImage image)
-    {
-        var sw = Stopwatch.StartNew();
-        try
-        {
-            if (image is GDIImage gdi)
-            {
-                return gdi.GetBitmap();
-            }
-            return (Bitmap)Image.FromStream(image.GetPngStream());
-        }
-        finally
-        {
-            Debug.WriteLine($"ToDrawingBitmap(): {sw.ElapsedMilliseconds} ms");
-        }
-    }
-
-    public static SixLabors.ImageSharp.Image<Rgba32> ToSharpImage(this IImage image)
-    {
-        if (image is SharpImage sharp)
-        {
-            return sharp.GetSharpImage();
-        }
-
-        var sw = Stopwatch.StartNew();
-        try
-        {
-            return (SixLabors.ImageSharp.Image<Rgba32>)SixLabors.ImageSharp.Image.Load(image.GetPngStream());
-        }
-        finally { Debug.WriteLine($"ToSharpImage() --> converted: {sw.ElapsedMilliseconds} ms"); }
-    }
-
-    public static SKBitmap ToSkiaImage(this IImage image)
-    {
-        if(image is SkiaImage skia)
-        {
-            return skia.GetSkBitmap();
-        }
-
-        var sw = Stopwatch.StartNew();
-        try
-        {
-            return SKBitmap.Decode(image.GetPngStream());
-        }
-        finally { Debug.WriteLine($"ToSkiaImage() --> converted: {sw.ElapsedMilliseconds} ms"); }
-    }
 }

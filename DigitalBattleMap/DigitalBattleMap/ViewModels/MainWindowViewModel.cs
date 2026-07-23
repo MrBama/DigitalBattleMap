@@ -339,7 +339,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 var backgroundBitmap = BackgroundController.GetBackgroundBitmap();
                 var backgroundAndFogBitmap = GetMergedBackgroundAndFogBitmap(backgroundBitmap);
                 _mapWindowViewModel.BackgroundBitmapSource = backgroundBitmap.ToBitmapImage();
-                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = new Bitmap(backgroundAndFogBitmap) });
+                _connectionManager.SendMapUpdate(new MapUpdate { Layer = DrawLayer.Background, Bitmap = backgroundAndFogBitmap });
                 break;
             case DrawLayer.GridAndStrokes:
                 var gridAndTokenBitmap = CreateGridAndDrawingBitmap();
@@ -353,11 +353,12 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         }
     }
 
-    private Bitmap GetMergedBackgroundAndFogBitmap(Bitmap backgroundBitmap)
+    private IImage GetMergedBackgroundAndFogBitmap(IImage backgroundBitmap)
     {
         return BitmapTools.MergeBitmaps(backgroundBitmap, FogController.GetFogBitmap());
     }
 
+    private IImage CreateGridAndDrawingBitmap()
     {
         return BitmapTools.MergeBitmaps(BackgroundController.GetGridBitmap(), DrawingController.GetDrawingBitmap());
     }

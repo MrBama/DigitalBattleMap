@@ -1,9 +1,11 @@
-﻿using SkiaSharp;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+#if SKIA_IMAGE_PROCESSOR
+using SkiaSharp;
+#endif
 
 namespace DigitalBattleMap.Imaging;
 public struct Color
@@ -44,15 +46,19 @@ public struct Color
         return new Color(color.R, color.G, color.B, color.A);
     }
 
+#if IMAGE_SHARP_IMAGE_PROCESSOR
     public static implicit operator SixLabors.ImageSharp.Color(Color color)
     {
         // TODO (Bas): Remove this
         return SixLabors.ImageSharp.Color.FromRgba(color.R, color.G, color.B, color.A);
     }
+#endif
 
+#if SKIA_IMAGE_PROCESSOR
     public static implicit operator SKColor(Color color)
     {
         // TODO (Bas): Remove this
         return new SKColor(color.R, color.G, color.B, color.A);
     }
+#endif
 }

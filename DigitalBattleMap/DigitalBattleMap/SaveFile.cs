@@ -58,7 +58,7 @@ public class SaveFile
             for (int i = 0; i < TokenList.Count; i++)
             {
                 var tokenImagePath = Path.Combine(tempDirectory.Path, $"Token{i}.png");
-                TokenList[i].GetBitmap().Copy().Save(tokenImagePath);
+                TokenList[i].GetBitmap().ToDrawingBitmap().Save(tokenImagePath);
                 TokenList[i].Token.ImagePath = "";
 
                 if (TokenList[i].Token.Statblock is MarkdownStatblock markdownStatblock)

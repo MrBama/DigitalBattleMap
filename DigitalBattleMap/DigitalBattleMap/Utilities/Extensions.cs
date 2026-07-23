@@ -10,8 +10,6 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-using ImagingColor = DigitalBattleMap.Imaging.Color;
-
 namespace DigitalBattleMap.Utilities;
 
 public static class Extensions

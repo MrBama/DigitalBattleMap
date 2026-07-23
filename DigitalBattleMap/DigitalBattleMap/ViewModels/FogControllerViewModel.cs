@@ -445,7 +445,7 @@ public class FogControllerViewModel : ControllerViewModelBase
             shapeOverviewBitmap.IsFogEnabled = shape.IsFogEnabled;
 
             // Points adjusted into the full bitmap coordinate space (origin = player view top left)
-            shapeOverviewBitmap.ScaledPoints = points.Select(p => new PointF(
+            shapeOverviewBitmap.ScaledPoints = points.Select(p => new Point<float>(
                 (float)(p.X - shapeMinX + shapeOverviewBitmap.OffsetFromOrigin.X),
                 (float)(p.Y - shapeMinY + shapeOverviewBitmap.OffsetFromOrigin.Y)))
                 .ToList();

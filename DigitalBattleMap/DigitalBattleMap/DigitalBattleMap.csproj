@@ -9,6 +9,10 @@
     <ApplicationIcon>Resources\ApplicationIcon.ico</ApplicationIcon>
     <ApplicationManifest>Resources\app.manifest</ApplicationManifest>
     <Platforms>AnyCPU;x64</Platforms>
+
+    <!--<ImageProcessor>GDI</ImageProcessor>-->
+    <!--<ImageProcessor>ImageSharp</ImageProcessor>-->
+    <ImageProcessor>Skia</ImageProcessor>
   </PropertyGroup>
 
   <ItemGroup>
@@ -150,18 +154,35 @@
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4078.44" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260627" />
-    <PackageReference Include="OpenCvSharp4.Extensions" Version="4.13.0.20260627" />
-    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260627" />
-    <PackageReference Include="SevenZipExtractor" Version="1.0.19" />
-    <PackageReference Include="SkiaSharp" Version="4.150.1" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
-    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.7" />
+    <PackageReference Include="SevenZipExtractor" Version="1.0.19" />    
     <PackageReference Include="SkiaSharp" Version="4.150.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="$(ImageProcessor) == 'GDI'">
+    <DefineConstants>$(DefineConstants);GDI_IMAGE_PROCESSOR</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="$(ImageProcessor) == 'GDI'">
+    <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260627" />
+    <PackageReference Include="OpenCvSharp4.Extensions" Version="4.13.0.20260627" />
+    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260627" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="$(ImageProcessor) == 'ImageSharp'">
+    <DefineConstants>$(DefineConstants);IMAGE_SHARP_IMAGE_PROCESSOR</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="$(ImageProcessor) == 'ImageSharp'">
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.7" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="$(ImageProcessor) == 'Skia'">
+    <DefineConstants>$(DefineConstants);SKIA_IMAGE_PROCESSOR</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="$(ImageProcessor) == 'Skia'">
   </ItemGroup>
 
 </Project>

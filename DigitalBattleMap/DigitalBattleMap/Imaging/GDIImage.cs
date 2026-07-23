@@ -1,14 +1,12 @@
-﻿using DigitalBattleMap.DataClasses;
+﻿#if GDI_IMAGE_PROCESSOR
+using DigitalBattleMap.DataClasses;
 using DigitalBattleMap.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.Imaging;
@@ -30,6 +28,11 @@ internal class GDIImage : IImage
     public int Width => bitmap.Width;
 
     public int Height => bitmap.Height;
+
+    public static IImage LoadFrom(Stream stream)
+    {
+        return new GDIImage((Bitmap)Image.FromStream(stream));
+    }
 
     public void Clear(Color color)
     {
@@ -112,14 +115,7 @@ internal class GDIImage : IImage
     {
         var bitmap = image.ToDrawingBitmap();
         using var gfx = Graphics.FromImage(this.bitmap);
-        //if (rectangle.Width != null && height != null)
-        {
-            gfx.DrawImage(bitmap, target.TopLeftX, target.TopLeftY, target.Width, target.Height);
-        }
-        //else
-        //{
-        //    gfx.DrawImage(bitmap, x, y);
-        //}
+        gfx.DrawImage(bitmap, target.TopLeftX, target.TopLeftY, target.Width, target.Height);
     }
 
     public void Rotate(BitmapRotation angle)
@@ -156,20 +152,18 @@ internal class GDIImage : IImage
 
     public byte[] Serialize()
     {
-        var sw = Stopwatch.StartNew();
-        try
-        {
-            return bitmap.ToPng();
-        }
-        finally
-        {
-            Debug.WriteLine($"Serialing image: {sw.ElapsedMilliseconds} ms");
-        }
+        return bitmap.ToPng();
     }
 
     public BitmapSource ToBitmapSource()
     {
-        return bitmap.ToBitmapImage();
+        // Do not use MemoryStream and BitmapImage because converting a bitmap to png (transparent background) is too slow
+        var bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
+        var bitmapSource = BitmapSource.Create(bitmapData.Width, bitmapData.Height, 96, 96, PixelFormats.Bgra32, null, bitmapData.Scan0, bitmapData.Stride * bitmapData.Height, bitmapData.Stride);
+
+        bitmap.UnlockBits(bitmapData);
+        bitmapSource.Freeze(); // This is required when a dependency property (ImageSource) is create from a different thread. E.g. Token moves from the web server.
+        return bitmapSource;
     }
 
     public Bitmap GetBitmap()
@@ -177,3 +171,4 @@ internal class GDIImage : IImage
         return bitmap;
     }
 }
+#endif

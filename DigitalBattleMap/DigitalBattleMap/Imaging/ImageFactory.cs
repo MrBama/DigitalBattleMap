@@ -1,32 +1,19 @@
-﻿using DigitalBattleMap.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using System.IO;
 
 namespace DigitalBattleMap.Imaging;
 
 internal class ImageFactory
 {
-    private static readonly ImageProcessor IMAGE_PROCESSOR = ImageProcessor.Skia;
-
     public static IImage Create(int width, int height, Color? baseColor = null)
     {
-        IImage image;
-        if (IMAGE_PROCESSOR == ImageProcessor.GDI)
-        {
-            image = new GDIImage(width, height);
-        }
-        else if (IMAGE_PROCESSOR == ImageProcessor.ImageSharp)
-        {
-            image = new SharpImage(width, height);
-        }
-        else
-        {
-            image = new SkiaImage(width, height);
-        }
+#if GDI_IMAGE_PROCESSOR
+        var image = new GDIImage(width, height);
+#elif IMAGE_SHARP_IMAGE_PROCESSOR
+        var image = new SharpImage(width, height);
+#elif SKIA_IMAGE_PROCESSOR
+        var image = new SkiaImage(width, height);
+#endif
 
         if (baseColor != null)
         {
@@ -38,26 +25,18 @@ internal class ImageFactory
 
     public static IImage FromDrawingBitmap(System.Drawing.Bitmap bitmap)
     {
-        if (IMAGE_PROCESSOR == ImageProcessor.GDI)
-        {
-            return new GDIImage(bitmap);
-        }
-        else if (IMAGE_PROCESSOR == ImageProcessor.ImageSharp)
-        {
-            var image = new GDIImage(bitmap);
-            return new SharpImage(image.ToSharpImage());
-        }
-        else
-        {
-            var image = new GDIImage(bitmap);
-            return new SkiaImage(image.ToSkiaImage());
-        }
-    }
-}
+#if GDI_IMAGE_PROCESSOR
+        return new GDIImage(bitmap);
+#else
+        using var stream = new MemoryStream();
+        bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+        stream.Position = 0;
+#endif
 
-internal enum ImageProcessor
-{
-    GDI,
-    Skia,
-    ImageSharp,
+#if IMAGE_SHARP_IMAGE_PROCESSOR
+        return SharpImage.LoadFrom(stream);
+#elif SKIA_IMAGE_PROCESSOR
+        return SkiaImage.LoadFrom(stream);
+#endif
+    }
 }

@@ -1,6 +1,5 @@
 ﻿using DigitalBattleMap.Utilities;
 using System;
-using System.Drawing;
 
 namespace DigitalBattleMap.DataClasses;
 
@@ -50,23 +49,6 @@ public class Token : PropertyHandler, ICloneable
     public override string ToString()
     {
         return Name;
-    }
-
-    internal RotateFlipType GetOrientation()
-    {
-        switch (Orientation)
-        {
-            case TokenOrientation.North:
-                return RotateFlipType.RotateNoneFlipNone;
-            case TokenOrientation.East:
-                return RotateFlipType.Rotate90FlipNone;
-            case TokenOrientation.South:
-                return RotateFlipType.Rotate180FlipNone;
-            case TokenOrientation.West:
-                return RotateFlipType.Rotate270FlipNone;
-            default:
-                return RotateFlipType.Rotate270FlipNone;
-        }
     }
 
     internal BitmapRotation GetBitmapRotation()

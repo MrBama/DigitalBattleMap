@@ -1,4 +1,4 @@
-﻿
+﻿#if SKIA_IMAGE_PROCESSOR
 using DigitalBattleMap.DataClasses;
 using SkiaSharp;
 using System;
@@ -20,7 +20,7 @@ internal class SkiaImage : IImage
         bitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
     }
 
-    public SkiaImage(SKBitmap bitmap)
+    private SkiaImage(SKBitmap bitmap)
     {
         this.bitmap = bitmap;
     }
@@ -28,6 +28,11 @@ internal class SkiaImage : IImage
     public int Width => bitmap.Width;
 
     public int Height => bitmap.Height;
+
+    public static IImage LoadFrom(Stream stream)
+    {
+        return new SkiaImage(SKBitmap.Decode(stream));
+    }
 
     public void Clear(Color color)
     {
@@ -321,19 +326,10 @@ internal class SkiaImage : IImage
 
     public byte[] Serialize()
     {
-        var sw = Stopwatch.StartNew();
+        using var image = SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(SKEncodedImageFormat.Webp, 0);
 
-        try
-        {
-            using var image = SKImage.FromBitmap(bitmap);
-            using var data = image.Encode(SKEncodedImageFormat.Webp, 0);
-
-            return data.ToArray();
-        }
-        finally
-        {
-            Debug.WriteLine($"Serializing image: {sw.ElapsedMilliseconds} ms");
-        }
+        return data.ToArray();
     }
 
     public SKBitmap GetSkBitmap()
@@ -366,3 +362,4 @@ internal class SkiaImage : IImage
         return bitmapSource;
     }
 }
+#endif

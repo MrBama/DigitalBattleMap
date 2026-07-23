@@ -1,6 +1,5 @@
 ﻿using DigitalBattleMap.Imaging;
 using System;
-using System.Drawing;
 
 namespace DigitalBattleMap.DataClasses;
 

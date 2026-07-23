@@ -1,17 +1,18 @@
-﻿using DigitalBattleMap.DataClasses;
+﻿#if IMAGE_SHARP_IMAGE_PROCESSOR
+using DigitalBattleMap.DataClasses;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.Imaging;
+
 internal class SharpImage : IImage
 {
     private readonly Image<Rgba32> image;
@@ -21,7 +22,7 @@ internal class SharpImage : IImage
         image = new Image<Rgba32>(width, height);
     }
 
-    public SharpImage(Image<Rgba32> image)
+    private SharpImage(Image<Rgba32> image)
     {
         this.image = image;
     }
@@ -29,6 +30,11 @@ internal class SharpImage : IImage
     public int Width => image.Width;
 
     public int Height => image.Height;
+
+    public static IImage LoadFrom(Stream stream)
+    {
+        return new SharpImage(Image.Load<Rgba32>(stream));
+    }
 
     public void Clear(Color color)
     {
@@ -110,33 +116,17 @@ internal class SharpImage : IImage
 
     public Stream GetPngStream()
     {
-        var sw = Stopwatch.StartNew();
-        try
-        {
-            var stream = new MemoryStream();
-            image.SaveAsPng(stream);
-            stream.Position = 0;
-            return stream;
-        }
-        finally
-        {
-            Debug.WriteLine($"Serialize ImageSharp to PNG took {sw.ElapsedMilliseconds} ms");
-        }
+        var stream = new MemoryStream();
+        image.SaveAsPng(stream);
+        stream.Position = 0;
+        return stream;
     }
 
     public byte[] Serialize()
     {
-        var sw = Stopwatch.StartNew();
-        try
-        {
-            using var stream = new MemoryStream();
-            image.SaveAsWebp(stream, new SixLabors.ImageSharp.Formats.Webp.WebpEncoder { Quality = 0 });
-            return stream.ToArray();
-        }
-        finally
-        {
-            Debug.WriteLine($"Serializing image: {sw.ElapsedMilliseconds} ms");
-        }
+        using var stream = new MemoryStream();
+        image.SaveAsWebp(stream, new SixLabors.ImageSharp.Formats.Webp.WebpEncoder { Quality = 0 });
+        return stream.ToArray();
     }
 
     public void MakeColorTransparent(Color color)
@@ -193,3 +183,4 @@ internal class SharpImage : IImage
         return bitmapSource;
     }
 }
+#endif
