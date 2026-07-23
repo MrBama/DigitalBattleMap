@@ -60,7 +60,7 @@ public class Settings
     {
         foreach (PropertyInfo property in typeof(Settings).GetProperties())
         {
-            dynamic? oldValue = _oldValues[property.Name];
+            dynamic? oldValue = _oldValues.TryGetValue(property.Name, out var propertyValue) ? propertyValue : null;
             dynamic? newValue = JsonConvert.SerializeObject(property.GetValue(this));
             if (oldValue != newValue)
             {
