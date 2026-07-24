@@ -104,6 +104,22 @@ public class CampaignControllerViewModel : ViewModelBase, IPlayers
         return false;
     }
 
+    public string GetPlayerName(TokenIdentifier tokenIdentifier)
+    {
+        if (CurrentCampaign != null)
+        {
+            foreach (var player in CurrentCampaign.Players)
+            {
+                if (player.TokenIdentifiers.Contains(tokenIdentifier))
+                {
+                    return player.Name;
+                }
+            }
+        }
+
+        return "";
+    }
+
     public bool TryGetOrientation(TokenIdentifier tokenIdentifier, out TokenOrientation orientation)
     {
         orientation = TokenOrientation.West;

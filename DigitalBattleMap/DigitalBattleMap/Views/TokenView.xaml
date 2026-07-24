@@ -20,6 +20,7 @@
         <uielements:TokenOrientationToBoolConverter x:Key="TokenOrientationToBoolConverter"/>
         <uielements:ConditionToBoolConverter x:Key="ConditionToBoolConverter"/>
         <uielements:NullToBoolConverter x:Key="NullConverter"/>
+        <uielements:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
         <uielements:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <uielements:BoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter" IsInverted="True"/>
     </UserControl.Resources>
@@ -90,6 +91,7 @@
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
                         </Grid.RowDefinitions>
                         
                         <!--Name and Id grid-->
@@ -103,9 +105,27 @@
                             <Label Grid.Column="1" Content="ID:" HorizontalAlignment="Right" FontWeight="Bold"/>
                             <Label Grid.Column="2" Content="{Binding Id}" FontWeight="Bold"/>
                         </Grid>
+
+                        <!--Player name and linked to name info grid-->
+                        <Grid Grid.Row="1" Visibility="{Binding IsAdditionalInfoVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Label x:Name="PlayerNameLabel" Grid.Column="1" Content="{Binding PlayerName}"
+                                   Visibility="{Binding PlayerName, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}"/>
+                            <Image Source="{Binding PlayerBitmapSource}" Height="{Binding ElementName=PlayerNameLabel, Path=ActualHeight}" 
+                                   Visibility="{Binding PlayerName, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}"/>
+                            <Label x:Name="LinkedToNameLabel" Grid.Column="3" Content="{Binding LinkableObject.LinkedTokenName}"
+                                   Visibility="{Binding LinkableObject.LinkedTokenName, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}"/>
+                            <Image Grid.Column="2" Source="{Binding LinkBitmapSource}" Height="{Binding ElementName=LinkedToNameLabel, Path=ActualHeight}" 
+                                   Visibility="{Binding LinkableObject.LinkedTokenName, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}"/>
+                        </Grid>
                         
                         <!--Initiative and HP grid-->
-                        <Grid Grid.Row="1">
+                        <Grid Grid.Row="2" Margin="0 5 0 0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="auto"/>
                                 <ColumnDefinition Width="auto"/>
@@ -141,10 +161,8 @@
                                    Visibility="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=DataContext.HideDungeonMasterFeatures, Converter={StaticResource InvertedBoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}"/>
                         </Grid>
 
-
-
                         <!--Conditions grid-->
-                        <Grid Grid.Row="2" Visibility="{Binding AreConditionsVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}">
+                        <Grid Grid.Row="3" Visibility="{Binding AreConditionsVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto"/>
                                 <RowDefinition Height="auto"/>

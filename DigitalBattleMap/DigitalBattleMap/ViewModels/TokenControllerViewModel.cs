@@ -148,11 +148,10 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             {
                 foreach (var (token, index) in selectTokenWindowViewModel.AddedTokens.WithIndex())
                 {
-                    var tokenListItem = new TokenListItem(token, this, _players, _tokenListItemMultiActions);
+                    var tokenListItem = new TokenListItem(token, GetUniqueId(token.Name), this, _players, _tokenListItemMultiActions);
                     tokenListItem.OnTokenChanged += TokenChanged;
                     tokenListItem.OnConditionsChanged += TokenConditionsChanged;
                     tokenListItem.OnZLevelChanged += ZLevelChanged;
-                    tokenListItem.Id = GetUniqueId(token.Name);
                     tokenListItem.Position = CalculateStartPosition(index);
 
                     SetPlayerProperties(tokenListItem);

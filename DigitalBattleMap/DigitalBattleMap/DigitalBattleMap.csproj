@@ -67,8 +67,10 @@
     <None Remove="Resources\FogIcons\Square.png" />
     <None Remove="Resources\FogIcons\Zigzag.png" />
     <None Remove="Resources\infoIcon.png" />
+    <None Remove="Resources\LinkIcon.png" />
     <None Remove="Resources\MonsterTokens.json" />
     <None Remove="Resources\PauseIcon.png" />
+    <None Remove="Resources\PlayerIcon.png" />
     <None Remove="Resources\RedoIcon.png" />
     <None Remove="Resources\RotateLeft.png" />
     <None Remove="Resources\RotateRight.png" />
@@ -130,8 +132,10 @@
     <EmbeddedResource Include="Resources\FogIcons\Square.png" />
     <EmbeddedResource Include="Resources\FogIcons\Zigzag.png" />
     <EmbeddedResource Include="Resources\InfoIcon.png" />
+    <EmbeddedResource Include="Resources\LinkIcon.png" />
     <EmbeddedResource Include="Resources\MonsterTokens.json" />
     <EmbeddedResource Include="Resources\PauseIcon.png" />
+    <EmbeddedResource Include="Resources\PlayerIcon.png" />
     <EmbeddedResource Include="Resources\RedoIcon.png" />
     <EmbeddedResource Include="Resources\RotateLeft.png" />
     <EmbeddedResource Include="Resources\RotateRight.png" />

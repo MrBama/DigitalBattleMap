@@ -20,6 +20,7 @@
         <uielements:BoolToInvertedBoolConverter x:Key="InvertBoolConverter"/>
         <uielements:NullToBoolConverter x:Key="NullToBoolConverter"/>
         <uielements:DrawingColorToBoolConverter x:Key="DrawingColorToBoolConverter"/>
+        <uielements:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
     </UserControl.Resources>
 
     <!--Drawing grid-->
@@ -145,10 +146,23 @@
                             <ColumnDefinition Width="4*"/>
                             <ColumnDefinition Width="3*"/>
                         </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
                         <Label Content="{Binding Name}"/>
-
                         <Label Grid.Column="1" Content="{Binding SizeLabel}"/>
                         <Label Grid.Column="2" Background="{Binding ColorBrush}"/>
+                        
+                        <!--LinkedTo name grid-->
+                        <Grid Grid.Row="1" Grid.ColumnSpan="3" Visibility="{Binding LinkableObject.LinkedTokenName, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Label x:Name="LinkedToNameLabel" Grid.Column="1" Content="{Binding LinkableObject.LinkedTokenName}"/>
+                            <Image Source="{Binding LinkBitmapSource}" Height="{Binding ElementName=LinkedToNameLabel, Path=ActualHeight}"/>
+                        </Grid>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>

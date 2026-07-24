@@ -5,7 +5,9 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Reflection;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.DataClasses;
 
@@ -22,6 +24,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         Visible = true;
         Height = 0;
         LinkableObject = new LinkableObject(UpdatePosition);
+        LinkableObject.PropertyChanged += LinkableObjectPropertyChanged;
 
         TokenSizeChangedCommand = new RelayCommand(p => TokenSizeChanged((TokenSize)p));
         TokenOrientationChangedCommand = new RelayCommand(p => TokenOrientationChanged((TokenOrientation)p));
@@ -36,9 +39,11 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         ExpandConditionsCommand = new RelayCommand(p => ExpandConditions());
     }
 
-    public TokenListItem(Token token, ITokenLinker tokenLinker, IPlayers players, ITokenListItemMultiActions multiActions) : this()
+    public TokenListItem(Token token, int id, ITokenLinker tokenLinker, IPlayers players, ITokenListItemMultiActions multiActions) : this()
     {
         Token = token;
+        Id = id;
+        PlayerName = players.GetPlayerName(GetTokenIdentifier());
         _tokenLinker = tokenLinker;
         _players = players;
         _multiActions = multiActions;
@@ -65,9 +70,17 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     public int Initiative { get => Get<int>(); set => Set(value, () => _multiActions?.InitiativeChanged(this)); }
     public int Height { get => Get<int>(); set => Set(value); }
     public TokenHealth Health { get; set; } = new TokenHealth();
-
+    
+    [JsonIgnore]
+    public string PlayerName { get => Get<string>(); set => Set(value, () => NotifyPropertyChange(nameof(IsAdditionalInfoVisible))); }
+    [JsonIgnore]
+    public bool IsAdditionalInfoVisible => DetermineAdditionalInfoVisible();
     [JsonIgnore]
     public bool AreConditionsVisible { get => Get<bool>(); set => Set(value); }
+    [JsonIgnore]
+    public BitmapSource PlayerBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.PlayerIcon.png")).ToBitmapImage(); }
+    [JsonIgnore]
+    public BitmapSource LinkBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.LinkIcon.png")).ToBitmapImage(); }
 
     [JsonIgnore]
     public List<LinkableObject> LinkedObjects { get; set; } = new();
@@ -112,6 +125,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
         _players = players;
         _multiActions = multiActions;
 
+        PlayerName = players.GetPlayerName(GetTokenIdentifier());
         Health.OnHpChanged += HealthChanged;
         Health.OnMaxHpChanged += MaxHealthChanged;
     }
@@ -285,6 +299,7 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     private void AddToPlayer()
     {
         _players.AddTokenToPlayer(GetTokenIdentifier());
+        PlayerName = _players.GetPlayerName(GetTokenIdentifier());
     }
 
     private void ExpandConditions()
@@ -309,5 +324,18 @@ public class TokenListItem : PropertyHandler, ITokenLink, ILinkableObject, IDisp
     private void MaxHealthChanged(object? sender, EventArgs e)
     {
         _multiActions.MaxHealthChanged(this);
+    }
+
+    private bool DetermineAdditionalInfoVisible()
+    {
+        return (PlayerName != null && PlayerName != string.Empty) || (LinkableObject.LinkedTokenName != null && LinkableObject.LinkedTokenName != "");
+    }
+
+    private void LinkableObjectPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if(e.PropertyName == nameof(LinkableObject.LinkedTokenName))
+        {
+            NotifyPropertyChange(nameof(IsAdditionalInfoVisible));
+        }
     }
 }
