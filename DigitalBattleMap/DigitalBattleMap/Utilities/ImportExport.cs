@@ -54,11 +54,12 @@ public static class ImportExport
             }
         }
 
-        if (IO.File.Exists(path))
+        var pathWithExtension = Path.ChangeExtension(path, ".campaign");
+        if (IO.File.Exists(pathWithExtension))
         {
-            IO.File.Delete(path);
+            IO.File.Delete(pathWithExtension);
         }
-        IO.ZipFile.CreateFromDirectory(tempDirectory.Path, path + ".campaign");
+        IO.ZipFile.CreateFromDirectory(tempDirectory.Path, pathWithExtension);
     }
 
     public static void Export(string path, TokenGroup tokenGroup, List<Token> customTokens)
@@ -82,11 +83,12 @@ public static class ImportExport
             }
         }
 
-        if (IO.File.Exists(path))
+        var pathWithExtension = Path.ChangeExtension(path, ".tokengroup");
+        if (IO.File.Exists(pathWithExtension))
         {
-            IO.File.Delete(path);
+            IO.File.Delete(pathWithExtension);
         }
-        IO.ZipFile.CreateFromDirectory(tempDirectory.Path, path + ".tokengroup");
+        IO.ZipFile.CreateFromDirectory(tempDirectory.Path, pathWithExtension);
     }
 
     public static void Export(string path, Token token)
@@ -104,11 +106,12 @@ public static class ImportExport
             IO.File.Copy(markdownStatblock.MarkdownPath, statblockFilePath);
         }
 
-        if (IO.File.Exists(path))
+        var pathWithExtension = Path.ChangeExtension(path, ".token");
+        if (IO.File.Exists(pathWithExtension))
         {
-            IO.File.Delete(path);
+            IO.File.Delete(pathWithExtension);
         }
-        IO.ZipFile.CreateFromDirectory(tempDirectory.Path, path + ".token");
+        IO.ZipFile.CreateFromDirectory(tempDirectory.Path, pathWithExtension);
     }
 
     private static void ImportCampaign(string path, Settings settings)
