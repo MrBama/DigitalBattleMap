@@ -126,17 +126,25 @@ public static class ImportExport
             if (settings.Campaigns.SingleOrDefault(t => t.Name == campaign.Name) == null)
             {
                 settings.Campaigns.Add(campaign.Clone<Campaign>());
+                var tokenGroup = new TokenGroup() { Name = campaign.Name };
 
                 foreach (var player in campaign.Players)
                 {
                     foreach (var tokenIdentifier in player.TokenIdentifiers)
                     {
+                        tokenGroup.TokenNames.Add(tokenIdentifier.Name);
+
                         var tokenPath = Path.Combine(tempDirectory.Path, $"{tokenIdentifier.Name}.token");
                         if (IO.File.Exists(tokenPath))
                         {
                             ImportToken(tokenPath, settings, false);
                         }
                     }
+                }
+
+                if(settings.TokenGroups.SingleOrDefault(t => t.Name == tokenGroup.Name) == null)
+                {
+                    settings.TokenGroups.Add(tokenGroup);
                 }
 
                 settings.Save();
