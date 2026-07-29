@@ -11,7 +11,7 @@ namespace DigitalBattleMap.Utilities;
 
 public class ApplicationUpdater
 {
-    public static readonly string ApplicationVersion = "26.7.24";
+    public static readonly string ApplicationVersion = "26.7.29";
 
     private static readonly string _user = "MrBama";
     private static readonly string _repository = "DigitalBattleMap";
