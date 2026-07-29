@@ -7,6 +7,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -154,6 +155,15 @@ public static class Extensions
                 return System.Windows.Media.Color.FromArgb(255, 0, 0, 255);
             default:
                 return System.Windows.Media.Color.FromArgb(255, 255, 0, 0);
+        }
+    }
+
+    public static void RemoveAll<T>(this ObservableCollection<T> collection, Func<T, bool> keySelector)
+    {
+        var itemsToRemove = collection.Where(keySelector).ToList();
+        foreach (var item in itemsToRemove)
+        {
+            collection.Remove(item);
         }
     }
 }
