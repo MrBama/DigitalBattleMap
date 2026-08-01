@@ -158,8 +158,8 @@ internal class GDIImage : IImage
     public BitmapSource ToBitmapSource()
     {
         // Do not use MemoryStream and BitmapImage because converting a bitmap to png (transparent background) is too slow
-        var bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
-        var bitmapSource = BitmapSource.Create(bitmapData.Width, bitmapData.Height, 96, 96, PixelFormats.Bgra32, null, bitmapData.Scan0, bitmapData.Stride * bitmapData.Height, bitmapData.Stride);
+        var bitmapData = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
+        var bitmapSource = BitmapSource.Create(bitmapData.Width, bitmapData.Height, 96, 96, System.Windows.Media.PixelFormats.Bgra32, null, bitmapData.Scan0, bitmapData.Stride * bitmapData.Height, bitmapData.Stride);
 
         bitmap.UnlockBits(bitmapData);
         bitmapSource.Freeze(); // This is required when a dependency property (ImageSource) is create from a different thread. E.g. Token moves from the web server.
