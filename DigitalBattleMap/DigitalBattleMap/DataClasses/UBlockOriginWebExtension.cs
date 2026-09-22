@@ -61,7 +61,7 @@ public class UBlockOriginWebExtension : IWebExtension
 
     private void Download(GithubReleaseInfo releaseInfo)
     {
-        var asset = releaseInfo.assets.SingleOrDefault(a => a.name.Contains("chromium"));
+        var asset = releaseInfo.assets.SingleOrDefault(a => a.name.Contains("chromium.zip"));
         if (asset != null)
         {
             using var tempDirectory = new TempDirectory();
