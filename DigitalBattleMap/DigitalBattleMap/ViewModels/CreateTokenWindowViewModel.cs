@@ -209,6 +209,11 @@ public class CreateTokenWindowViewModel : ViewModelBase
 
     private void RemoveStatblock()
     {
+        if (_statblock is SourceStatblock)
+        {
+            Hp = null;
+        }
+
         _statblock = null;
         IsStatblockCreated = false;
     }
@@ -238,6 +243,7 @@ public class CreateTokenWindowViewModel : ViewModelBase
             var token = selectTokenWindowViewModel.AddedTokens.First();
             _statblock = token.Statblock?.Clone<Statblock>();
             _statblock!.Name = TokenName;
+            Hp = token.Hp;
             IsStatblockCreated = true;
         }
     }
