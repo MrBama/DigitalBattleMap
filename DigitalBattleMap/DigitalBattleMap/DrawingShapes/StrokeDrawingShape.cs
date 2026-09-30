@@ -2,7 +2,6 @@
 using DigitalBattleMap.Interfaces;
 using DigitalBattleMap.Utilities;
 using System;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace DigitalBattleMap.DrawingShapes;
@@ -17,16 +16,12 @@ public class StrokeDrawingShape : DrawingShape
 
     protected override void ButtonDown(Point<double> position)
     {
-        Points.Add(position);
+        var point = SnapToGrid ? Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize) : position;
+        Points.Add(point);
     }
 
     protected override void ButtonUp(Point<double> position)
     {
-        if (SnapToGrid)
-        {
-            var snappedPoints = Mathematics.SnapPointsToCanvasGrid(Points.ToList(), _mapSize);
-            Points = new ObservableCollection<Point<double>>(snappedPoints);
-        }
         ApplyShape();
     }
 
@@ -34,9 +29,40 @@ public class StrokeDrawingShape : DrawingShape
     {
         if (buttonDown)
         {
-            if (!Points.Contains(position))
+            if (SnapToGrid)
             {
-                Points.Add(position);
+                var snappedPoint = Mathematics.SnapPointToCanvasGrid(position, _mapSize, _mapSize.CanvasGridSize);
+
+                if (!Points.Last().Equals(snappedPoint))
+                {
+                    // Check if the point equals the point before the last one.
+                    // If this is the case, then mouse went back and the last point can be removed.
+                    if (Points.Count > 1 && Points.ElementAt(Points.Count - 2).Equals(snappedPoint))
+                    {
+                        Points.RemoveAt(Points.Count - 1);
+                    }
+                    else
+                    {
+                        // Sometimes the mouse positions are too far apart (when moving the mouse fast) and we get a diagonal line.
+                        // In this case another point is inserted to avoid the diagonal line.
+                        // -----        P1---       P1---
+                        // |   |    ->  |   |   ->  |   |
+                        // -----        -----       ---P2
+                        if(!Points.Last().X.Equals(snappedPoint.X) && !Points.Last().Y.Equals(snappedPoint.Y))
+                        {
+                            Points.Add(new Point<double>(snappedPoint.X, Points.Last().Y));
+                        }
+
+                        Points.Add(snappedPoint);
+                    }
+                }
+            }
+            else
+            {
+                if (!Points.Contains(position))
+                {
+                    Points.Add(position);
+                }
             }
         }
     }

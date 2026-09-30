@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.DrawingShapes;
 
@@ -97,6 +99,8 @@ public abstract class DrawingShape : PropertyHandler, ILinkableObject
     public ICommand SnapToGridChangedCommand { get; set; }
     [JsonIgnore]
     public ICommand PenSizeChangedCommand { get; set; }
+    [JsonIgnore]
+    public BitmapSource LinkBitmapSource { get => IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"DigitalBattleMap.Resources.LinkIcon.png")).ToBitmapImage(); }
 
     public void ApplyShape()
     {

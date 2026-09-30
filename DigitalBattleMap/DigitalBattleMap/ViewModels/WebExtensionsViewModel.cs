@@ -68,6 +68,9 @@ public class WebExtensionsViewModel : ViewModelBase
             IsUBlockOriginInstalled = true;
             InstalledOrUpdatedExtension = true;
             AddExtensionsToWebView();
+
+            _confirmationWindowViewModel.Content = $"'Successfully installed: {_uBlockOriginWebExtension.Name}";
+            _windowService.ShowWindowDialog<ConfirmationWindow>(_confirmationWindowViewModel);
         }
         else
         {
@@ -86,6 +89,9 @@ public class WebExtensionsViewModel : ViewModelBase
                 UBlockOriginVersion = _uBlockOriginWebExtension.Version;
                 IsUBlockOriginInstalled = true;
                 InstalledOrUpdatedExtension = true;
+
+                _confirmationWindowViewModel.Content = $"'Successfully updated: {_uBlockOriginWebExtension.Name}";
+                _windowService.ShowWindowDialog<ConfirmationWindow>(_confirmationWindowViewModel);
             }
             else
             {

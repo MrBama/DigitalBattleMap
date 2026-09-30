@@ -6,6 +6,7 @@
     "btnConcentration",
     "btnDeafened",
     "btnDeath",
+    "btnDodge",
     "btnExhausted",
     "btnFlying",
     "btnFrightened",

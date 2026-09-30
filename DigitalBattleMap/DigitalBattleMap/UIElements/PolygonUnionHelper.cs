@@ -1,6 +1,5 @@
 using Clipper2Lib;
 using DigitalBattleMap.DataClasses;
-using ImageMagick.Drawing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
