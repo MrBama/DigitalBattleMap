@@ -9,5 +9,6 @@ public interface IPlayers
 
     void AddTokenToPlayer(TokenIdentifier tokenIdentifier);
     bool IsTokenControlledByPlayer(TokenIdentifier tokenIdentifier);
+    string GetPlayerName(TokenIdentifier tokenIdentifier);
     bool TryGetOrientation(TokenIdentifier tokenIdentifier, out TokenOrientation orientation);
 }

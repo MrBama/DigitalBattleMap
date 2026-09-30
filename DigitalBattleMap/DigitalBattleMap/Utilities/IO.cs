@@ -1,6 +1,6 @@
 ﻿using DigitalBattleMap.Interfaces;
-using ImageMagick;
 using SevenZipExtractor;
+using SkiaSharp;
 using System;
 using System.Drawing;
 using System.IO;
@@ -110,12 +110,14 @@ public class File : IFile
         }
         catch (Exception)
         {
-            // use 'MagickImage()' if you want just the 1st frame of an animated image or support additional image formats
-            using var magickImages = new MagickImage(path);
-            var ms = new MemoryStream();
-            magickImages.Write(ms, MagickFormat.Png);
-            using var tempBitmap = new Bitmap(ms);
-            return new(tempBitmap);
+            // use 'SkiaSharp' if you want just the 1st frame of an animated image or support additional image formats
+            using var skBitmap = SKBitmap.Decode(path);
+            var memoryStream = new MemoryStream();
+            using var image = SKImage.FromBitmap(skBitmap);
+            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            data.SaveTo(memoryStream);          
+            memoryStream.Position = 0;
+            return new Bitmap(memoryStream);
         }
     }
 

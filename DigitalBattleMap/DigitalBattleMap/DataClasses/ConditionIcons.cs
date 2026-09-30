@@ -18,6 +18,7 @@ public class ConditionIcons
     private Bitmap _concentration;
     private Bitmap _deafened;
     private Bitmap _death;
+    private Bitmap _dodge;
     private Bitmap _exhausted;
     private Bitmap _flying;
     private Bitmap _frightened;
@@ -58,6 +59,7 @@ public class ConditionIcons
         _concentration = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Concentration.png"));
         _deafened = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Deafened.png"));
         _death = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Death.png"));
+        _dodge = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Dodge.png"));
         _exhausted = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Exhausted.png"));
         _flying = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Flying.png"));
         _frightened = IO.File.LoadBitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream($"{_iconResourcePath}.Frightened.png"));
@@ -108,6 +110,8 @@ public class ConditionIcons
                 return _deafened;
             case Condition.Death:
                 return _death;
+            case Condition.Dodge:
+                return _dodge;
             case Condition.Exhausted:
                 return _exhausted;
             case Condition.Flying:

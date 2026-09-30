@@ -156,8 +156,8 @@ public static partial class Mathematics
         return max;
     }
 
-    public static List<GridCell> CalculateCoveredGridCells(List<Point<double>> polygon, double gridSize, double minCoveragePercentage = 1.0)
+    public static List<GridCell> CalculateCoveredGridCells(List<Point<double>> polygon, double gridSize)
     {
-        return CoveredGridCellsCalculator.CalculateCoveredGridCells(polygon, gridSize, minCoveragePercentage);
+        return CoveredGridCellsCalculator.CalculateCoveredGridCells(polygon, gridSize);
     }
 }

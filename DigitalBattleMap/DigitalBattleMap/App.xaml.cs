@@ -17,7 +17,6 @@ public partial class App : Application
     public App()
     {
         IO.Initialize(new Directory(), new File(), new ZipFile());
-        DigitalBattleMap.Startup.PerformStartupChecks();
         DispatcherUnhandledException += AppDispatcherUnhandledException;
     }
 
@@ -30,6 +29,7 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        DigitalBattleMap.Startup.PerformStartupChecks();
         MainWindow = new MainWindow(_windowService);
         MainWindow.Show();
         MainWindow.ContentRendered += OnContentRendered;

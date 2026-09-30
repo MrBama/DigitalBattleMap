@@ -750,7 +750,7 @@ public class DrawingControllerViewModel : ControllerViewModelBase
             points.RemoveAt(0);
 
             // Create a drawing shape for each cell that is atleast 50% covered by the selected shape
-            var cells = Mathematics.CalculateCoveredGridCells(points, _mapSize.CanvasGridSize, 0.49);
+            var cells = Mathematics.CalculateCoveredGridCells(points, _mapSize.CanvasGridSize);
             foreach (var cell in cells)
             {
                 // The coordinates are the top left corner of a grid cell. 

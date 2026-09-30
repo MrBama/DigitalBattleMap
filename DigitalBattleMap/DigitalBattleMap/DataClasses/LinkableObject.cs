@@ -16,6 +16,7 @@ public class LinkableObject : PropertyHandler, IDisposable
     }
 
     public string LinkToTokenButtonText { get => Get<string>(); set => Set(value); }
+    public string LinkedTokenName { get => Get<string>(); set => Set(value); }
 
     public void Link(ITokenLink tokenLink)
     {
@@ -63,10 +64,12 @@ public class LinkableObject : PropertyHandler, IDisposable
         {
             var linkIdentifier = GetLinkIdentifier();
             LinkToTokenButtonText = $"Unlink from {linkIdentifier.Name} {linkIdentifier.Id}";
+            LinkedTokenName = $"{linkIdentifier.Name} {linkIdentifier.Id}";
         }
         else
         {
             LinkToTokenButtonText = "Link to token";
+            LinkedTokenName = "";
         }
     }
 }

@@ -54,6 +54,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
         EditGroupCommand = new RelayCommand(p => EditGroup());
         AddGroupTokenCommand = new RelayCommand(p => AddGroupToken());
         RemoveGroupTokenCommand = new RelayCommand(p => RemoveGroupToken());
+        DuplicateTokenCommand = new RelayCommand(p => DuplicateToken());
     }
 
     public ObservableCollection<Token> TokenList { get; set; } = new();
@@ -72,6 +73,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
     public ICommand EditGroupCommand { get; set; }
     public ICommand AddGroupTokenCommand { get; set; }
     public ICommand RemoveGroupTokenCommand { get; set; }
+    public ICommand DuplicateTokenCommand { get; set; }
 
     private void SaveCustomTokens()
     {
@@ -122,7 +124,7 @@ public class CustomTokensWindowViewModel : ViewModelBase
         tokens.AddRange(_settings.CustomTokens.Clone());
         tokens.Remove(tokens.Single(t => t.Name == SelectedToken.Name));
 
-        var createTokenWindowViewModel = new CreateTokenWindowViewModel(_windowService, tokens, SelectedToken);
+        var createTokenWindowViewModel = new CreateTokenWindowViewModel(_windowService, tokens, SelectedToken, false);
         _windowService.ShowWindowDialog<CreateTokenWindow>(createTokenWindowViewModel);
 
         if (createTokenWindowViewModel.Token != null)
@@ -219,6 +221,24 @@ public class CustomTokensWindowViewModel : ViewModelBase
             foreach (var tokenName in orderedGroupTokens)
             {
                 GroupTokensList.Add(tokenName);
+            }
+        }
+    }
+
+    private void DuplicateToken()
+    {
+        if(SelectedToken != null)
+        {
+            var tokens = new List<Token>(_monsterTokens.GetTokens().Clone());
+            tokens.AddRange(_settings.CustomTokens.Clone());
+
+            var createTokenWindowViewModel = new CreateTokenWindowViewModel(_windowService, tokens, SelectedToken, true);
+            _windowService.ShowWindowDialog<CreateTokenWindow>(createTokenWindowViewModel);
+
+            if (createTokenWindowViewModel.Token != null)
+            {
+                TokenList.Add(createTokenWindowViewModel.Token);
+                SaveCustomTokens();
             }
         }
     }

@@ -9,6 +9,7 @@ public enum Condition
     Concentration,
     Deafened,
     Death,
+    Dodge,
     Exhausted,
     Flying,
     Frightened,
