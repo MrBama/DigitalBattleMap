@@ -69,7 +69,20 @@ public class RelayCommand : ICommand
     ///<param name="parameter">Data used by the command. If the command does not require data to be passed, this object can be set to <see langword="null" />.</param>
     public void Execute(object parameter)
     {
-        _execute(parameter);
+        try
+        {
+            _execute(parameter);
+        }
+        catch (Exception e) when (CreateCrashDump(e))
+        {
+            //Rethrow is not needed because everything has been logged already
+        }
+    }
+
+    private static bool CreateCrashDump(Exception e)
+    {
+        CrashDumpCollector.CreateDump(e);
+        return true;
     }
 
     #endregion
