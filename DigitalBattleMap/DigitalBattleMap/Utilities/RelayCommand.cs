@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DigitalBattleMap.ViewModels;
+using DigitalBattleMap.Views;
+using System;
 using System.Windows.Input;
 
 namespace DigitalBattleMap.Utilities;
@@ -75,7 +77,11 @@ public class RelayCommand : ICommand
         }
         catch (Exception e) when (CreateCrashDump(e))
         {
-            //Rethrow is not needed because everything has been logged already
+            // The exception is already handled, so a rethrow is not needed.
+            // For debugging purposes, the exception does need to be rethrown to get an automatic breakpoint.
+#if DEBUG
+            throw;
+#endif
         }
     }
 
