@@ -16,6 +16,10 @@ public static class BitmapTools
 {
     private static readonly ConditionIcons _conditionIcons = new();
 
+    // Look of hidden tokens (DM only). Opacity: 0 = fully transparent, 1 = fully opaque.
+    private const float HiddenTokenOpacity = 0.7f;
+    private const float HiddenTokenHatchOpacity = 0.5f;
+
     public static Bitmap CreateGrid(int gridSize)
     {
         var gridBitmap = CreateEmptyBitmap();
@@ -163,10 +167,43 @@ public static class BitmapTools
         {
             var resizedTokenImage = ResizeBitmap(tokenListItem.GetBitmap(), tokenSize);
             resizedTokenImage.RotateFlip(tokenListItem.Token.GetOrientation());
-            DrawImageOnBitmap(bitmap, resizedTokenImage, drawingPosition);
+            if (tokenListItem.Visible)
+            {
+                DrawImageOnBitmap(bitmap, resizedTokenImage, drawingPosition);
+            }
+            else
+            {
+                DrawHiddenTokenImage(bitmap, resizedTokenImage, drawingPosition, tokenSize);
+            }
             AddTokenHeightCondition(tokenListItem);
             DrawTokenConditions(bitmap, tokenListItem, drawingPosition, tokenSize);
             DrawTokenId(bitmap, tokenId, tokenListItem, drawingPosition, tokenSize);
+        }
+    }
+
+    // Hidden tokens are only shown to the DM: drawn see-through with a diagonal hatch over the token.
+    private static void DrawHiddenTokenImage(Bitmap bitmap, Bitmap tokenImage, Point<int> drawingPosition, Size<int> tokenSize)
+    {
+        using var graphics = Graphics.FromImage(bitmap);
+        graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+        var colorMatrix = new ColorMatrix { Matrix33 = HiddenTokenOpacity };
+        using var imageAttributes = new ImageAttributes();
+        imageAttributes.SetColorMatrix(colorMatrix);
+        var destination = new Rectangle(drawingPosition.X, drawingPosition.Y, tokenSize.Width, tokenSize.Height);
+        graphics.DrawImage(tokenImage, destination, 0, 0, tokenImage.Width, tokenImage.Height, GraphicsUnit.Pixel, imageAttributes);
+
+        using var clipPath = new GraphicsPath();
+        clipPath.AddEllipse(destination);
+        graphics.SetClip(clipPath);
+
+        var spacing = Math.Max(4, tokenSize.Width / 8);
+        using var pen = new Pen(Color.FromArgb((int)(HiddenTokenHatchOpacity * 255), 40, 40, 40), Math.Max(2f, tokenSize.Width / 40f));
+        for (int offset = -tokenSize.Height; offset < tokenSize.Width; offset += spacing)
+        {
+            graphics.DrawLine(pen,
+                destination.Left + offset, destination.Bottom,
+                destination.Left + offset + tokenSize.Height, destination.Top);
         }
     }
 
@@ -441,23 +478,30 @@ public static class BitmapTools
 
         foreach ((var tokenListItem, var position) in tokenListWithNormilizedPositions)
         {
-            if(tokenListItem.Visible)
-            {
-                // Tokens positions can be negative but bitmap positions always start at 0
-                var zeroBasedPosition = new Point<int>(position.X - minTokenPositionX, position.Y - minTokenPositionY);
-                var topLeftCorner = new Point<int>(zeroBasedPosition.X - calculateHalfTokenSize(tokenListItem), zeroBasedPosition.Y - calculateHalfTokenSize(tokenListItem));
-                var tokenImage = ResizeBitmap(tokenListItem.GetBitmap(), new Size<int>(calculateTokenSize(tokenListItem), calculateTokenSize(tokenListItem)));
-                graph.DrawImage(tokenImage, topLeftCorner.X, topLeftCorner.Y);
+            // Tokens positions can be negative but bitmap positions always start at 0
+            var zeroBasedPosition = new Point<int>(position.X - minTokenPositionX, position.Y - minTokenPositionY);
+            var topLeftCorner = new Point<int>(zeroBasedPosition.X - calculateHalfTokenSize(tokenListItem), zeroBasedPosition.Y - calculateHalfTokenSize(tokenListItem));
+            var tokenSize = new Size<int>(calculateTokenSize(tokenListItem), calculateTokenSize(tokenListItem));
+            var tokenImage = ResizeBitmap(tokenListItem.GetBitmap(), tokenSize);
 
-                if (tokenListWithNormilizedPositions.Count(t => t.Key.Token.Name == tokenListItem.Token.Name) > 1)
-                {
-                    var tokenId = tokenListItem.Id.ToString();
-                    var idSize = new Size<double>(Math.Max(calculateTokenSize(tokenListItem) / 5, 1), Math.Max(calculateTokenSize(tokenListItem) / 5, 1));
-                    var idBitmap = _conditionIcons.GetDigitIcon(tokenId);
-                    idBitmap = ResizeBitmap(idBitmap, Size<int>.Create(idSize));
-                    var drawingPositionId = new Point<double>(zeroBasedPosition.X - (idSize.Width / 2.0), zeroBasedPosition.Y - (idSize.Height / 2.0));
-                    DrawImageOnBitmap(bitmap, idBitmap, Point<int>.Create(drawingPositionId));
-                }
+            // The overview is DM only, so hidden tokens are drawn too (see-through with hatch)
+            if (tokenListItem.Visible)
+            {
+                graph.DrawImage(tokenImage, topLeftCorner.X, topLeftCorner.Y);
+            }
+            else
+            {
+                DrawHiddenTokenImage(bitmap, tokenImage, topLeftCorner, tokenSize);
+            }
+
+            if (tokenListWithNormilizedPositions.Count(t => t.Key.Token.Name == tokenListItem.Token.Name) > 1)
+            {
+                var tokenId = tokenListItem.Id.ToString();
+                var idSize = new Size<double>(Math.Max(calculateTokenSize(tokenListItem) / 5, 1), Math.Max(calculateTokenSize(tokenListItem) / 5, 1));
+                var idBitmap = _conditionIcons.GetDigitIcon(tokenId);
+                idBitmap = ResizeBitmap(idBitmap, Size<int>.Create(idSize));
+                var drawingPositionId = new Point<double>(zeroBasedPosition.X - (idSize.Width / 2.0), zeroBasedPosition.Y - (idSize.Height / 2.0));
+                DrawImageOnBitmap(bitmap, idBitmap, Point<int>.Create(drawingPositionId));
             }
         }
 
