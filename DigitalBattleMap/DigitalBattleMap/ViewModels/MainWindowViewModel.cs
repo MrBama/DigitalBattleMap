@@ -945,9 +945,10 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             controlName = "Token Controls",
             infoBlocks = new List<InfoBlock>()
             {
-                new InfoBlock(ControlType.LMB, "Move selected token to grid location"),
-                new InfoBlock(ControlType.RMB, "Select token in grid location"),
-                new InfoBlock(ControlType.Alt, ControlType.LMB, "Toggle on/off the fog of war shape at the selected location")
+                new InfoBlock(ControlType.LMB, "Select token in grid location"),
+                new InfoBlock(ControlType.LMB, "Drag to select all tokens in an area"),
+                new InfoBlock(ControlType.RMB, "Move selected tokens to grid location"),
+                new InfoBlock(ControlType.Alt, ControlType.RMB, "Toggle on/off the fog of war shape at the selected location")
             }
         };
         return GetControlInfoText(info);

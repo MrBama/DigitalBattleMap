@@ -79,7 +79,8 @@ public enum MouseCanvasMode
     Click,
     RectangleSelection,
     PolygonSelection,
-    FixedRatioRectangleSelection
+    FixedRatioRectangleSelection,
+    RtsSelection
 }
 
 public enum WebViewPageType

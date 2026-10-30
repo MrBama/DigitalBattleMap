@@ -3,6 +3,7 @@ using DigitalBattleMap.Utilities;
 using System;
 using System.Drawing;
 using System.Linq;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -12,7 +13,9 @@ public class MouseCanvasViewModel : ViewModelBase
 {
     private MouseCanvasMode _mode;
     private MouseCanvasMode _previousMode;
+    private MouseCanvasMode _defaultMode = MouseCanvasMode.Click;
     private Point<double> _selectionStartPosition = new();
+    private Point<double>? _rtsPressPosition;
     MouseButtonState _previousLeftButtonState;
     MouseButtonState _previousRightButtonState;
 
@@ -83,12 +86,21 @@ public class MouseCanvasViewModel : ViewModelBase
                 Cursor = Cursors.SizeAll;
                 IsSelectionAreaVisible = true;
                 break;
+            case MouseCanvasMode.RtsSelection:
+                IsSelectionAreaVisible = true;
+                break;
         }
+    }
+
+    public void SetDefaultMode(MouseCanvasMode mode)
+    {
+        _defaultMode = mode;
+        SetMode(mode);
     }
 
     public void ResetSelection()
     {
-        SetMode(MouseCanvasMode.Click);
+        SetMode(_defaultMode);
     }
 
     private void ResetMouseCanvas()
@@ -98,6 +110,7 @@ public class MouseCanvasViewModel : ViewModelBase
         IsSelectionStarted = false;
         PolygonSelectionPoints = new();
         Cursor = Cursors.Hand;
+        _rtsPressPosition = null;
     }
 
     private void LeftButtonDown(MouseDataEventArgs e)
@@ -113,6 +126,9 @@ public class MouseCanvasViewModel : ViewModelBase
                 return;
             case MouseCanvasMode.PolygonSelection:
                 MouseDownPolygonSelection(e);
+                return;
+            case MouseCanvasMode.RtsSelection:
+                _rtsPressPosition = e.Position;
                 return;
         }
     }
@@ -133,6 +149,9 @@ public class MouseCanvasViewModel : ViewModelBase
             case MouseCanvasMode.FixedRatioRectangleSelection:
                 MouseUpRectangleSelection(OnFixRatioRectangleAreaSelected);
                 return;
+            case MouseCanvasMode.RtsSelection:
+                MouseUpRtsSelection(e);
+                return;
         }
     }
 
@@ -142,6 +161,12 @@ public class MouseCanvasViewModel : ViewModelBase
         {
             case MouseCanvasMode.Click:
                 RightButtonDownClick(e);
+                return;
+            case MouseCanvasMode.RtsSelection:
+                if (!IsSelectionStarted)
+                {
+                    RightButtonDownClick(e);
+                }
                 return;
             case MouseCanvasMode.RectangleSelection:
                 return;
@@ -155,6 +180,7 @@ public class MouseCanvasViewModel : ViewModelBase
         switch (_mode)
         {
             case MouseCanvasMode.Click:
+            case MouseCanvasMode.RtsSelection:
                 RightButtonUpClick(e);
                 return;
             case MouseCanvasMode.RectangleSelection:
@@ -180,12 +206,73 @@ public class MouseCanvasViewModel : ViewModelBase
             case MouseCanvasMode.FixedRatioRectangleSelection:
                 MouseMoveRectangleSelection(e, true);
                 return;
+            case MouseCanvasMode.RtsSelection:
+                MouseMoveRtsSelection(e);
+                return;
         }
     }
 
     private void MouseWheel(MouseWheelDataEventArgs e)
     {
         OnMouseWheel?.Invoke(this, e);
+    }
+
+    private void MouseMoveRtsSelection(MouseDataEventArgs e)
+    {
+        // A right button release outside the canvas should not block the next right click
+        _previousRightButtonState = e.MouseEventArgs.RightButton;
+
+        // Only a press on the canvas can start a selection
+        if (_rtsPressPosition == null)
+            return;
+
+        // The left button was released outside the canvas
+        if (e.MouseEventArgs.LeftButton == MouseButtonState.Released)
+        {
+            if (IsSelectionStarted)
+            {
+                FinishRtsSelection();
+            }
+            else
+            {
+                _rtsPressPosition = null;
+            }
+            return;
+        }
+
+        if (!IsSelectionStarted && IsRtsDragDistanceReached(_rtsPressPosition, e.Position))
+        {
+            _selectionStartPosition = _rtsPressPosition;
+            IsSelectionStarted = true;
+        }
+
+        MouseMoveRectangleSelection(e, false);
+    }
+
+    private void MouseUpRtsSelection(MouseDataEventArgs e)
+    {
+        if (IsSelectionStarted)
+        {
+            FinishRtsSelection();
+        }
+        else if (_rtsPressPosition != null)
+        {
+            _rtsPressPosition = null;
+            OnLeftButtonUp?.Invoke(this, new MouseButtonDataEventArgs { Position = e.Position });
+        }
+    }
+
+    private void FinishRtsSelection()
+    {
+        MouseUpRectangleSelection(OnRectangleAreaSelected);
+        ResetMouseCanvas();
+    }
+
+    // A small movement during a click should not start a selection
+    private static bool IsRtsDragDistanceReached(Point<double> pressPosition, Point<double> position)
+    {
+        return Math.Abs(position.X - pressPosition.X) >= SystemParameters.MinimumHorizontalDragDistance
+            || Math.Abs(position.Y - pressPosition.Y) >= SystemParameters.MinimumVerticalDragDistance;
     }
 
     private void MouseDownRectangleSelection(MouseDataEventArgs e)

@@ -65,7 +65,9 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         _tokenListItemMultiActions.OnConditionsChanged += TokenConditionsChanged;
         _tokenBitmapDictionary = new Dictionary<TokenListItem, Bitmap>();
         MouseCanvas = new MouseCanvasViewModel();
-        MouseCanvas.OnLeftButtonDown += MouseLeftButtonDown;
+        MouseCanvas.SetDefaultMode(MouseCanvasMode.RtsSelection);
+        MouseCanvas.OnLeftButtonUp += MouseLeftButtonUp;
+        MouseCanvas.OnRectangleAreaSelected += RectangleAreaSelected;
         MouseCanvas.OnRightButtonDown += MouseRightButtonDown;
         MouseCanvas.OnFixRatioRectangleAreaSelected += FixRatioRectangleAreaSelected;
     }
@@ -438,7 +440,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         CreateTokenBitmap();
     }
 
-    private void MouseLeftButtonDown(object? sender, MouseButtonDataEventArgs e)
+    private void MouseRightButtonDown(object? sender, MouseButtonDataEventArgs e)
     {
         lock (_lock)
         {
@@ -491,7 +493,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         }
     }
 
-    private void MouseRightButtonDown(object? sender, MouseButtonDataEventArgs e)
+    private void MouseLeftButtonUp(object? sender, MouseButtonDataEventArgs e)
     {
         lock (_lock)
         {
@@ -527,6 +529,39 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             {
                 SelectedTokens = new() { foundTokens.OrderBy(t => t.ZLevel).Last() };
             }
+            else
+            {
+                SelectedTokens = new();
+            }
+        }
+    }
+
+    private void RectangleAreaSelected(object? sender, RectangleF e)
+    {
+        lock (_lock)
+        {
+            var selectionLeft = ((double)e.Left).Map(0, _mapSize.CanvasWidth, 0, _mapSize.Width);
+            var selectionTop = ((double)e.Top).Map(0, _mapSize.CanvasHeight, 0, _mapSize.Height);
+            var selectionRight = ((double)e.Right).Map(0, _mapSize.CanvasWidth, 0, _mapSize.Width);
+            var selectionBottom = ((double)e.Bottom).Map(0, _mapSize.CanvasHeight, 0, _mapSize.Height);
+
+            var gridSize = _mapSize.GridSize;
+            var foundTokens = new List<TokenListItem>();
+
+            foreach (var tokenListItem in TokenList)
+            {
+                var center = NormilizePositionToGrid(tokenListItem, gridSize);
+                var halfTokenSize = Math.Max(1, tokenListItem.Token.GetSizeFactor()) * gridSize / 2.0;
+
+                // A token is selected when the selection area touches it
+                if (center.X - halfTokenSize < selectionRight && center.X + halfTokenSize > selectionLeft &&
+                    center.Y - halfTokenSize < selectionBottom && center.Y + halfTokenSize > selectionTop)
+                {
+                    foundTokens.Add(tokenListItem);
+                }
+            }
+
+            SelectedTokens = foundTokens;
         }
     }
 
