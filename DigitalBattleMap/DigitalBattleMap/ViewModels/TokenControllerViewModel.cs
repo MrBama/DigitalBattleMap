@@ -462,7 +462,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
     private void MoveToken(MouseButtonDataEventArgs e)
     {
-        if (SelectedToken != null)
+        if (SelectedTokens?.Count > 0)
         {
             var newPosition = new Point<double>
             {
@@ -471,13 +471,15 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             };
 
             var gridSize = _mapSize.GridSize;
-            var gridOffset = Point<double>.Create(Mathematics.CalculateGridOffset(gridSize));
-            var cellX = Math.Floor((SelectedToken.Position.X - gridOffset.X) / gridSize);
-            var cellY = Math.Floor((SelectedToken.Position.Y - gridOffset.Y) / gridSize);
-            var newCellX = Math.Floor((newPosition.X - gridOffset.X) / gridSize);
-            var newCellY = Math.Floor((newPosition.Y - gridOffset.Y) / gridSize);
 
-            var cellOffset = new Point<double>(newCellX - cellX, newCellY - cellY);
+            // The center of all selected tokens moves as close to the cursor as the grid allows
+            var bounds = SelectedTokens.Select(t => GetTokenBounds(t, gridSize)).ToList();
+            var centerX = (bounds.Min(b => b.Left) + bounds.Max(b => b.Right)) / 2.0;
+            var centerY = (bounds.Min(b => b.Top) + bounds.Max(b => b.Bottom)) / 2.0;
+
+            var cellOffset = new Point<double>(
+                Math.Floor(((newPosition.X - centerX) / gridSize) + 0.5),
+                Math.Floor(((newPosition.Y - centerY) / gridSize) + 0.5));
             var offset = new Point<double>(cellOffset.X * gridSize, cellOffset.Y * gridSize);
 
             var tokensToMove = SelectedTokens.Where(t => !IsMovedByLinkedToken(t, SelectedTokens)).ToList();
@@ -493,6 +495,14 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             TokenMoveHistory.Enqueue(new TokenMoveCommand(tokensToMove.Select(t => t.GetTokenIdentifier()).ToList(), Point<int>.Create(cellOffset)));
             CreateTokenBitmapFromCache();
         }
+    }
+
+    // The area of the grid cells used by a token
+    private (double Left, double Top, double Right, double Bottom) GetTokenBounds(TokenListItem tokenListItem, int gridSize)
+    {
+        var center = NormilizePositionToGrid(tokenListItem, gridSize);
+        var halfTokenSize = Math.Max(1, tokenListItem.Token.GetSizeFactor()) * gridSize / 2.0;
+        return (center.X - halfTokenSize, center.Y - halfTokenSize, center.X + halfTokenSize, center.Y + halfTokenSize);
     }
 
     // A token linked to another selected token is already moved through that link
@@ -566,12 +576,11 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
             foreach (var tokenListItem in TokenList)
             {
-                var center = NormilizePositionToGrid(tokenListItem, gridSize);
-                var halfTokenSize = Math.Max(1, tokenListItem.Token.GetSizeFactor()) * gridSize / 2.0;
+                var bounds = GetTokenBounds(tokenListItem, gridSize);
 
                 // A token is selected when the selection area touches it
-                if (center.X - halfTokenSize < selectionRight && center.X + halfTokenSize > selectionLeft &&
-                    center.Y - halfTokenSize < selectionBottom && center.Y + halfTokenSize > selectionTop)
+                if (bounds.Left < selectionRight && bounds.Right > selectionLeft &&
+                    bounds.Top < selectionBottom && bounds.Bottom > selectionTop)
                 {
                     foundTokens.Add(tokenListItem);
                 }
