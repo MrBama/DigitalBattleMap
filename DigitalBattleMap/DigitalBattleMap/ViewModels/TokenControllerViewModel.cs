@@ -650,13 +650,32 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
             if (foundTokens.Count > 0)
             {
-                SelectedTokens = new() { foundTokens.OrderBy(t => t.ZLevel).Last() };
+                var topToken = foundTokens.OrderBy(t => t.ZLevel).Last();
+                if (IsShiftPressed())
+                {
+                    var selectedTokens = new List<TokenListItem>(SelectedTokens ?? new());
+                    if (!selectedTokens.Remove(topToken))
+                    {
+                        selectedTokens.Add(topToken);
+                    }
+                    SelectedTokens = selectedTokens;
+                }
+                else
+                {
+                    SelectedTokens = new() { topToken };
+                }
             }
-            else
+            else if (!IsShiftPressed())
             {
                 SelectedTokens = new();
             }
         }
+    }
+
+    // Key events only arrive when an element has keyboard focus, the keyboard state is always available
+    private static bool IsShiftPressed()
+    {
+        return Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
     }
 
     private void RectangleAreaSelected(object? sender, RectangleF e)
@@ -683,7 +702,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 }
             }
 
-            SelectedTokens = foundTokens;
+            SelectedTokens = IsShiftPressed() ? (SelectedTokens ?? new()).Union(foundTokens).ToList() : foundTokens;
         }
     }
 
