@@ -227,6 +227,13 @@
                                         Visibility="{Binding MouseCanvas.IsSelectionAreaVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
                                         Fill="#32B8D4F0"
                                         Stroke="#0078D7"/>
+                                    <Path
+                                        Data="{Binding TokenController.MovePreviewGeometry}"
+                                        Fill="#32B8D4F0"
+                                        Stroke="#0078D7"
+                                        StrokeThickness="2"
+                                        StrokeDashArray="3 2"
+                                        IsHitTestVisible="False"/>
                                     <Polygon
                                         Points="{Binding MouseCanvas.PolygonSelectionPoints}"
                                         Visibility="{Binding MouseCanvas.IsSelectionAreaVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"

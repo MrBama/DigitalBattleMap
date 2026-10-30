@@ -128,7 +128,11 @@ public class MouseCanvasViewModel : ViewModelBase
                 MouseDownPolygonSelection(e);
                 return;
             case MouseCanvasMode.RtsSelection:
-                _rtsPressPosition = e.Position;
+                // Selection should not change during a move with the right button
+                if (_previousRightButtonState == MouseButtonState.Released)
+                {
+                    _rtsPressPosition = e.Position;
+                }
                 return;
         }
     }
@@ -221,6 +225,13 @@ public class MouseCanvasViewModel : ViewModelBase
     {
         // A right button release outside the canvas should not block the next right click
         _previousRightButtonState = e.MouseEventArgs.RightButton;
+
+        OnMouseMove?.Invoke(this, new MouseMoveDataEventArgs
+        {
+            Position = e.Position,
+            LeftButtonDown = e.MouseEventArgs.LeftButton == MouseButtonState.Pressed,
+            RightButtonDown = e.MouseEventArgs.RightButton == MouseButtonState.Pressed
+        });
 
         // Only a press on the canvas can start a selection
         if (_rtsPressPosition == null)
