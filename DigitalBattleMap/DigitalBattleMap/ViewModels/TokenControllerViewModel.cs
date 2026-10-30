@@ -480,17 +480,33 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             var cellOffset = new Point<double>(newCellX - cellX, newCellY - cellY);
             var offset = new Point<double>(cellOffset.X * gridSize, cellOffset.Y * gridSize);
 
+            var tokensToMove = SelectedTokens.Where(t => !IsMovedByLinkedToken(t, SelectedTokens)).ToList();
+
             // Update other selected tokens
             _blockTokenBitmapCreation = true;
-            foreach (var tokenListItem in SelectedTokens)
+            foreach (var tokenListItem in tokensToMove)
             {
                 tokenListItem.UpdatePosition(Point<int>.Create(offset));
             }
             _blockTokenBitmapCreation = false;
 
-            TokenMoveHistory.Enqueue(new TokenMoveCommand(SelectedTokens.Select(t => t.GetTokenIdentifier()).ToList(), Point<int>.Create(cellOffset)));
+            TokenMoveHistory.Enqueue(new TokenMoveCommand(tokensToMove.Select(t => t.GetTokenIdentifier()).ToList(), Point<int>.Create(cellOffset)));
             CreateTokenBitmapFromCache();
         }
+    }
+
+    // A token linked to another selected token is already moved through that link
+    private bool IsMovedByLinkedToken(TokenListItem tokenListItem, List<TokenListItem> tokens)
+    {
+        var tokenLink = tokenListItem.LinkableObject.GetTokenLink();
+        while (tokenLink is TokenListItem linkedToken)
+        {
+            if (tokens.Contains(linkedToken))
+                return true;
+
+            tokenLink = linkedToken.LinkableObject.GetTokenLink();
+        }
+        return false;
     }
 
     private void MouseLeftButtonUp(object? sender, MouseButtonDataEventArgs e)
