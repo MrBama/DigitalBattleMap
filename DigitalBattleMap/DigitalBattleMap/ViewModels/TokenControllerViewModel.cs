@@ -101,6 +101,9 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     public BitmapSource VisibleTokensBitmapSource { get; private set; }
     public BitmapSource TokenSelectionBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public Geometry MovePreviewGeometry { get => Get<Geometry>(); private set => Set(value); }
+    public string MovePreviewLabel { get => Get<string>(); private set => Set(value); }
+    public double MovePreviewLabelX { get => Get<double>(); private set => Set(value); }
+    public double MovePreviewLabelY { get => Get<double>(); private set => Set(value); }
 
     public TokenListItem SelectedToken
     {
@@ -457,6 +460,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             else if (SelectedTokens?.Count > 0)
             {
                 _isMovePreviewActive = true;
+                UpdateMovePreviewLabelPosition(e.Position);
                 ShowMovePreview(CalculateMoveCellOffset(e.Position));
             }
         }
@@ -487,6 +491,8 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 ClearMovePreview();
                 return;
             }
+
+            UpdateMovePreviewLabelPosition(e.Position);
 
             var cellOffset = CalculateMoveCellOffset(e.Position);
             if (cellOffset.X != _movePreviewCellOffset.X || cellOffset.Y != _movePreviewCellOffset.Y)
@@ -581,12 +587,32 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
         geometry.Freeze();
         MovePreviewGeometry = geometry;
+
+        // A diagonal step counts as one grid cell
+        var gridCells = Math.Max(Math.Abs(cellOffset.X), Math.Abs(cellOffset.Y));
+        MovePreviewLabel = $"{gridCells * Constants.FeetPerGridCell} ft";
     }
 
     private void ClearMovePreview()
     {
         _isMovePreviewActive = false;
         MovePreviewGeometry = null;
+        MovePreviewLabel = null;
+    }
+
+    // Next to the cursor, on the other side near the map edges so the label is not cut off
+    private void UpdateMovePreviewLabelPosition(Point<double> canvasPosition)
+    {
+        const double cursorOffset = 16;
+        const double labelWidth = 120;
+        const double labelHeight = 45;
+
+        MovePreviewLabelX = canvasPosition.X + cursorOffset + labelWidth > _mapSize.CanvasWidth
+            ? canvasPosition.X - labelWidth
+            : canvasPosition.X + cursorOffset;
+        MovePreviewLabelY = canvasPosition.Y + cursorOffset + labelHeight > _mapSize.CanvasHeight
+            ? canvasPosition.Y - labelHeight
+            : canvasPosition.Y + cursorOffset;
     }
 
     private List<TokenListItem> GetTokensToMove()
