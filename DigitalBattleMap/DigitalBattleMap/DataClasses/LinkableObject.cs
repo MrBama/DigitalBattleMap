@@ -48,6 +48,11 @@ public class LinkableObject : PropertyHandler, IDisposable
         return _tokenLink.GetTokenIdentifier();
     }
 
+    public ITokenLink GetTokenLink()
+    {
+        return _tokenLink;
+    }
+
     public void Dispose()
     {
         Unlink();

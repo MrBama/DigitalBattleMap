@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace DigitalBattleMap.ViewModels;
@@ -27,6 +28,8 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     private static object _lock = new();
     private bool _changingInitiative = false;
     private bool _blockTokenBitmapCreation = false;
+    private bool _isMovePreviewActive = false;
+    private Point<double> _movePreviewCellOffset = new();
     private TokenListItemMultiActions _tokenListItemMultiActions;
     private Dictionary<TokenListItem, Bitmap> _tokenBitmapDictionary;
 
@@ -65,8 +68,12 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         _tokenListItemMultiActions.OnConditionsChanged += TokenConditionsChanged;
         _tokenBitmapDictionary = new Dictionary<TokenListItem, Bitmap>();
         MouseCanvas = new MouseCanvasViewModel();
-        MouseCanvas.OnLeftButtonDown += MouseLeftButtonDown;
+        MouseCanvas.SetDefaultMode(MouseCanvasMode.RtsSelection);
+        MouseCanvas.OnLeftButtonUp += MouseLeftButtonUp;
+        MouseCanvas.OnRectangleAreaSelected += RectangleAreaSelected;
         MouseCanvas.OnRightButtonDown += MouseRightButtonDown;
+        MouseCanvas.OnRightButtonUp += MouseRightButtonUp;
+        MouseCanvas.OnMouseMove += MouseMove;
         MouseCanvas.OnFixRatioRectangleAreaSelected += FixRatioRectangleAreaSelected;
     }
 
@@ -93,6 +100,10 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     public BitmapSource TokenBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
     public BitmapSource VisibleTokensBitmapSource { get; private set; }
     public BitmapSource TokenSelectionBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
+    public Geometry MovePreviewGeometry { get => Get<Geometry>(); private set => Set(value); }
+    public string MovePreviewLabel { get => Get<string>(); private set => Set(value); }
+    public double MovePreviewLabelX { get => Get<double>(); private set => Set(value); }
+    public double MovePreviewLabelY { get => Get<double>(); private set => Set(value); }
 
     public TokenListItem SelectedToken
     {
@@ -438,7 +449,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         CreateTokenBitmap();
     }
 
-    private void MouseLeftButtonDown(object? sender, MouseButtonDataEventArgs e)
+    private void MouseRightButtonDown(object? sender, MouseButtonDataEventArgs e)
     {
         lock (_lock)
         {
@@ -446,9 +457,60 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             {
                 ToggleFogOfWar(e);
             }
-            else
+            else if (SelectedTokens?.Count > 0)
             {
+                _isMovePreviewActive = true;
+                UpdateMovePreviewLabelPosition(e.Position);
+                ShowMovePreview(CalculateMoveCellOffset(e.Position));
+            }
+        }
+    }
+
+    private void MouseRightButtonUp(object? sender, MouseButtonDataEventArgs e)
+    {
+        lock (_lock)
+        {
+            if (_isMovePreviewActive)
+            {
+                ClearMovePreview();
                 MoveToken(e);
+            }
+        }
+    }
+
+    private void MouseMove(object? sender, MouseMoveDataEventArgs e)
+    {
+        lock (_lock)
+        {
+            if (!_isMovePreviewActive)
+                return;
+
+            // The right button was released outside the canvas, which cancels the move
+            if (!e.RightButtonDown || !(SelectedTokens?.Count > 0))
+            {
+                ClearMovePreview();
+                return;
+            }
+
+            UpdateMovePreviewLabelPosition(e.Position);
+
+            var cellOffset = CalculateMoveCellOffset(e.Position);
+            if (cellOffset.X != _movePreviewCellOffset.X || cellOffset.Y != _movePreviewCellOffset.Y)
+            {
+                ShowMovePreview(cellOffset);
+            }
+        }
+    }
+
+    public override void KeyDown(KeyEventArgs keyEventArgs)
+    {
+        base.KeyDown(keyEventArgs);
+
+        lock (_lock)
+        {
+            if (keyEventArgs.Key == Key.Escape && _isMovePreviewActive)
+            {
+                ClearMovePreview();
             }
         }
     }
@@ -460,38 +522,127 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
     private void MoveToken(MouseButtonDataEventArgs e)
     {
-        if (SelectedToken != null)
+        if (SelectedTokens?.Count > 0)
         {
-            var newPosition = new Point<double>
-            {
-                X = e.Position.X.Map(0, _mapSize.CanvasWidth, 0, _mapSize.Width),
-                Y = e.Position.Y.Map(0, _mapSize.CanvasHeight, 0, _mapSize.Height)
-            };
-
             var gridSize = _mapSize.GridSize;
-            var gridOffset = Point<double>.Create(Mathematics.CalculateGridOffset(gridSize));
-            var cellX = Math.Floor((SelectedToken.Position.X - gridOffset.X) / gridSize);
-            var cellY = Math.Floor((SelectedToken.Position.Y - gridOffset.Y) / gridSize);
-            var newCellX = Math.Floor((newPosition.X - gridOffset.X) / gridSize);
-            var newCellY = Math.Floor((newPosition.Y - gridOffset.Y) / gridSize);
+            var cellOffset = CalculateMoveCellOffset(e.Position);
+            if (cellOffset.X == 0 && cellOffset.Y == 0)
+                return;
 
-            var cellOffset = new Point<double>(newCellX - cellX, newCellY - cellY);
             var offset = new Point<double>(cellOffset.X * gridSize, cellOffset.Y * gridSize);
+            var tokensToMove = GetTokensToMove();
 
             // Update other selected tokens
             _blockTokenBitmapCreation = true;
-            foreach (var tokenListItem in SelectedTokens)
+            foreach (var tokenListItem in tokensToMove)
             {
                 tokenListItem.UpdatePosition(Point<int>.Create(offset));
             }
             _blockTokenBitmapCreation = false;
 
-            TokenMoveHistory.Enqueue(new TokenMoveCommand(SelectedTokens.Select(t => t.GetTokenIdentifier()).ToList(), Point<int>.Create(cellOffset)));
+            TokenMoveHistory.Enqueue(new TokenMoveCommand(tokensToMove.Select(t => t.GetTokenIdentifier()).ToList(), Point<int>.Create(cellOffset)));
             CreateTokenBitmapFromCache();
         }
     }
 
-    private void MouseRightButtonDown(object? sender, MouseButtonDataEventArgs e)
+    // The center of all selected tokens moves as close to the cursor as the grid allows
+    private Point<double> CalculateMoveCellOffset(Point<double> canvasPosition)
+    {
+        var newPosition = new Point<double>
+        {
+            X = canvasPosition.X.Map(0, _mapSize.CanvasWidth, 0, _mapSize.Width),
+            Y = canvasPosition.Y.Map(0, _mapSize.CanvasHeight, 0, _mapSize.Height)
+        };
+
+        var gridSize = _mapSize.GridSize;
+        var bounds = SelectedTokens.Select(t => GetTokenBounds(t, gridSize)).ToList();
+        var centerX = (bounds.Min(b => b.Left) + bounds.Max(b => b.Right)) / 2.0;
+        var centerY = (bounds.Min(b => b.Top) + bounds.Max(b => b.Bottom)) / 2.0;
+
+        return new Point<double>(
+            Math.Floor(((newPosition.X - centerX) / gridSize) + 0.5),
+            Math.Floor(((newPosition.Y - centerY) / gridSize) + 0.5));
+    }
+
+    // Only a preview for the DM, tokens are not moved until the right button is released
+    private void ShowMovePreview(Point<double> cellOffset)
+    {
+        _movePreviewCellOffset = cellOffset;
+
+        var gridSize = _mapSize.GridSize;
+        var scaleX = (double)_mapSize.CanvasWidth / _mapSize.Width;
+        var scaleY = (double)_mapSize.CanvasHeight / _mapSize.Height;
+        var tokensToMove = GetTokensToMove();
+        var geometry = new GeometryGroup();
+
+        foreach (var tokenListItem in TokenList.Where(t => tokensToMove.Contains(t) || IsMovedByLinkedToken(t, tokensToMove)))
+        {
+            var bounds = GetTokenBounds(tokenListItem, gridSize);
+            var centerX = ((bounds.Left + bounds.Right) / 2.0) + (cellOffset.X * gridSize);
+            var centerY = ((bounds.Top + bounds.Bottom) / 2.0) + (cellOffset.Y * gridSize);
+            var radius = (bounds.Right - bounds.Left) / 2.0;
+
+            geometry.Children.Add(new EllipseGeometry(new System.Windows.Point(centerX * scaleX, centerY * scaleY), radius * scaleX, radius * scaleY));
+        }
+
+        geometry.Freeze();
+        MovePreviewGeometry = geometry;
+
+        // A diagonal step counts as one grid cell
+        var gridCells = Math.Max(Math.Abs(cellOffset.X), Math.Abs(cellOffset.Y));
+        MovePreviewLabel = $"{gridCells * Constants.FeetPerGridCell} ft";
+    }
+
+    private void ClearMovePreview()
+    {
+        _isMovePreviewActive = false;
+        MovePreviewGeometry = null;
+        MovePreviewLabel = null;
+    }
+
+    // Next to the cursor, on the other side near the map edges so the label is not cut off
+    private void UpdateMovePreviewLabelPosition(Point<double> canvasPosition)
+    {
+        const double cursorOffset = 16;
+        const double labelWidth = 120;
+        const double labelHeight = 45;
+
+        MovePreviewLabelX = canvasPosition.X + cursorOffset + labelWidth > _mapSize.CanvasWidth
+            ? canvasPosition.X - labelWidth
+            : canvasPosition.X + cursorOffset;
+        MovePreviewLabelY = canvasPosition.Y + cursorOffset + labelHeight > _mapSize.CanvasHeight
+            ? canvasPosition.Y - labelHeight
+            : canvasPosition.Y + cursorOffset;
+    }
+
+    private List<TokenListItem> GetTokensToMove()
+    {
+        return SelectedTokens.Where(t => !IsMovedByLinkedToken(t, SelectedTokens)).ToList();
+    }
+
+    // The area of the grid cells used by a token
+    private (double Left, double Top, double Right, double Bottom) GetTokenBounds(TokenListItem tokenListItem, int gridSize)
+    {
+        var center = NormilizePositionToGrid(tokenListItem, gridSize);
+        var halfTokenSize = Math.Max(1, tokenListItem.Token.GetSizeFactor()) * gridSize / 2.0;
+        return (center.X - halfTokenSize, center.Y - halfTokenSize, center.X + halfTokenSize, center.Y + halfTokenSize);
+    }
+
+    // A token linked to another selected token is already moved through that link
+    private bool IsMovedByLinkedToken(TokenListItem tokenListItem, List<TokenListItem> tokens)
+    {
+        var tokenLink = tokenListItem.LinkableObject.GetTokenLink();
+        while (tokenLink is TokenListItem linkedToken)
+        {
+            if (tokens.Contains(linkedToken))
+                return true;
+
+            tokenLink = linkedToken.LinkableObject.GetTokenLink();
+        }
+        return false;
+    }
+
+    private void MouseLeftButtonUp(object? sender, MouseButtonDataEventArgs e)
     {
         lock (_lock)
         {
@@ -525,8 +676,59 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
 
             if (foundTokens.Count > 0)
             {
-                SelectedTokens = new() { foundTokens.OrderBy(t => t.ZLevel).Last() };
+                var topToken = foundTokens.OrderBy(t => t.ZLevel).Last();
+                if (IsShiftPressed())
+                {
+                    var selectedTokens = new List<TokenListItem>(SelectedTokens ?? new());
+                    if (!selectedTokens.Remove(topToken))
+                    {
+                        selectedTokens.Add(topToken);
+                    }
+                    SelectedTokens = selectedTokens;
+                }
+                else
+                {
+                    SelectedTokens = new() { topToken };
+                }
             }
+            else if (!IsShiftPressed())
+            {
+                SelectedTokens = new();
+            }
+        }
+    }
+
+    // Key events only arrive when an element has keyboard focus, the keyboard state is always available
+    private static bool IsShiftPressed()
+    {
+        return Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+    }
+
+    private void RectangleAreaSelected(object? sender, RectangleF e)
+    {
+        lock (_lock)
+        {
+            var selectionLeft = ((double)e.Left).Map(0, _mapSize.CanvasWidth, 0, _mapSize.Width);
+            var selectionTop = ((double)e.Top).Map(0, _mapSize.CanvasHeight, 0, _mapSize.Height);
+            var selectionRight = ((double)e.Right).Map(0, _mapSize.CanvasWidth, 0, _mapSize.Width);
+            var selectionBottom = ((double)e.Bottom).Map(0, _mapSize.CanvasHeight, 0, _mapSize.Height);
+
+            var gridSize = _mapSize.GridSize;
+            var foundTokens = new List<TokenListItem>();
+
+            foreach (var tokenListItem in TokenList)
+            {
+                var bounds = GetTokenBounds(tokenListItem, gridSize);
+
+                // A token is selected when the selection area touches it
+                if (bounds.Left < selectionRight && bounds.Right > selectionLeft &&
+                    bounds.Top < selectionBottom && bounds.Bottom > selectionTop)
+                {
+                    foundTokens.Add(tokenListItem);
+                }
+            }
+
+            SelectedTokens = IsShiftPressed() ? (SelectedTokens ?? new()).Union(foundTokens).ToList() : foundTokens;
         }
     }
 
