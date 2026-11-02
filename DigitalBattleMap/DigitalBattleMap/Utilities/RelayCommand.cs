@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DigitalBattleMap.ViewModels;
+using DigitalBattleMap.Views;
+using System;
 using System.Windows.Input;
 
 namespace DigitalBattleMap.Utilities;
@@ -69,7 +71,24 @@ public class RelayCommand : ICommand
     ///<param name="parameter">Data used by the command. If the command does not require data to be passed, this object can be set to <see langword="null" />.</param>
     public void Execute(object parameter)
     {
-        _execute(parameter);
+        try
+        {
+            _execute(parameter);
+        }
+        catch (Exception e) when (CreateCrashDump(e))
+        {
+            // The exception is already handled, so a rethrow is not needed.
+            // For debugging purposes, the exception does need to be rethrown to get an automatic breakpoint.
+#if DEBUG
+            throw;
+#endif
+        }
+    }
+
+    private static bool CreateCrashDump(Exception e)
+    {
+        CrashDumpCollector.CreateDump(e);
+        return true;
     }
 
     #endregion

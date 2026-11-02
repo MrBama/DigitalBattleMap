@@ -35,11 +35,16 @@ public static class Extensions
         return bitmap;
     }
 
-    public static void Log(this Exception exception)
+    public static void Log(this Exception exception, string directory)
     {
         var log = new ExceptionLog(exception);
-        string path = Path.Combine(Constants.SettingsPath, "Logs", $"{log.DateTime} Exception.log");
+        string path = Path.Combine(directory, $"{log.DateTime} Exception.log");
         FileManager.SaveFile(log, path);
+    }
+
+    public static void Log(this Exception exception)
+    {
+        Log(exception, Path.Combine(Constants.SettingsPath, "Logs"));
     }
 
     public static T Map<T>(this T input, T inMin, T inMax, T outMin, T outMax) where T : struct

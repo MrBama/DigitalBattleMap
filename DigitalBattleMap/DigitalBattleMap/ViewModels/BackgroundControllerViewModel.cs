@@ -85,9 +85,9 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
     public bool HasOpenedBackground { get => Get<bool>(); set => Set(value); }
     public bool HasOpenGMOverlay { get => Get<bool>(); set => Set(value); }
     public bool IsGridShown { get => Get<bool>(); set => Set(value, GridShownChanged); }
-    public int GridCellsWidth { get => Get<int>(); set => Set(value); }
-    public int GridCellsHeight { get => Get<int>(); set => Set(value); }
-    public int FeetPerGridCell { get => Get<int>(); set => Set(value); }
+    public int GridCellsWidth { get => Get<int>(); set => Set(Math.Max(value, 1)); }
+    public int GridCellsHeight { get => Get<int>(); set => Set(Math.Max(value, 1)); }
+    public int FeetPerGridCell { get => Get<int>(); set => Set(Math.Max(value, 1)); }
     public int GridSize { get => Get<int>(); set => Set(value); }
     public int ZoomSize { get => Get<int>(); set => Set(value); }
     public double BackgroundZoomPercentage { get => Get<double>(); set => Set(value, () => NotifyPropertyChange(nameof(BackgroundZoomPercentageLabel))); }

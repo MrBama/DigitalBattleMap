@@ -20,6 +20,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     private IWindowService _windowService;
     private IWebCommunication _webCommunication;
     private Bitmap _tokenBitmap;
+    private Bitmap _visibleTokensBitmap;
     private IMonsterTokens _monsterTokens;
     private IPlayers _players;
     private Settings _settings;
@@ -57,6 +58,8 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     private void Initialize()
     {
         TokenBitmap = BitmapTools.CreateEmptyBitmap();
+        _visibleTokensBitmap = BitmapTools.CreateEmptyBitmap();
+        VisibleTokensBitmapSource = _visibleTokensBitmap.ToBitmapImage();
         TokenSelectionBitmapSource = BitmapTools.CreateEmptyBitmap().ToBitmapImage();
         _tokenListItemMultiActions = new TokenListItemMultiActions(() => SelectedTokens);
         _tokenListItemMultiActions.OnConditionsChanged += TokenConditionsChanged;
@@ -88,6 +91,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     public StatblocksViewModel StatblocksViewModel { get; set; } = new();
     public CommandHistory<TokenMoveCommand> TokenMoveHistory { get; set; } = new(30);
     public BitmapSource TokenBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
+    public BitmapSource VisibleTokensBitmapSource { get; private set; }
     public BitmapSource TokenSelectionBitmapSource { get => Get<BitmapSource>(); set => Set(value); }
 
     public TokenListItem SelectedToken
@@ -249,7 +253,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     {
         lock (_lock)
         {
-            return TokenBitmap;
+            return _visibleTokensBitmap;
         }
     }
 
@@ -699,6 +703,7 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
         if (!_blockTokenBitmapCreation)
         {
             var tokenBitmap = BitmapTools.CreateEmptyBitmap();
+            var visibleTokensBitmap = BitmapTools.CreateEmptyBitmap();
 
             if (TokenList.Count > 0)
             {
@@ -715,13 +720,10 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                     }
                 }
 
-                // Create token bitmap
-                var tokenBitmaps = new List<Bitmap>();
-                foreach (var tokenListItem in TokenList.Where(t => t.Visible).OrderBy(t => t.ZLevel))
-                {
-                    tokenBitmaps.Add(_tokenBitmapDictionary[tokenListItem]);
-                }
-                tokenBitmap = BitmapTools.MergeBitmaps(tokenBitmaps.ToArray());
+                // Create token bitmaps: DM sees all tokens (hidden ones see-through), players only visible ones
+                var orderedTokens = TokenList.OrderBy(t => t.ZLevel).ToList();
+                tokenBitmap = BitmapTools.MergeBitmaps(orderedTokens.Select(t => _tokenBitmapDictionary[t]).ToArray());
+                visibleTokensBitmap = BitmapTools.MergeBitmaps(orderedTokens.Where(t => t.Visible).Select(t => _tokenBitmapDictionary[t]).ToArray());
 
                 UpdateTokenSelection();
             }
@@ -731,6 +733,8 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
                 TokenSelectionBitmapSource = BitmapTools.CreateEmptyBitmap().ToBitmapImage();
             }
 
+            _visibleTokensBitmap = visibleTokensBitmap;
+            VisibleTokensBitmapSource = visibleTokensBitmap.ToBitmapImage();
             TokenBitmap = tokenBitmap;
             NotifyTokenBitmapUpdated();
         }
