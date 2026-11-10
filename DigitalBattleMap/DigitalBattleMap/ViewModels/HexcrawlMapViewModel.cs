@@ -51,6 +51,8 @@ public class HexcrawlMapViewModel : ViewModelBase
 
     // --- Place names ---
     private readonly Dictionary<(int, int), string> _cellLabels = new();
+    // DM-only per-hex info (special hex, notes, searched).
+    private readonly Dictionary<(int, int), HexInfo> _hexInfos = new();
     private readonly HashSet<(int, int)> _revealedLabels = new();
     private readonly Dictionary<string, Geometry> _placeNameCache = new();
     private double _placeNameCacheHexSize = -1;
@@ -112,6 +114,7 @@ public class HexcrawlMapViewModel : ViewModelBase
         Scale = 1.0;
         GridWidth = 30;
         GridHeight = 20;
+        DayState = new HexcrawlDayState();
         SelectCellCommand = new RelayCommand(SelectCell);
     }
 
@@ -149,7 +152,9 @@ public class HexcrawlMapViewModel : ViewModelBase
         {
             if (_selectedQ == null || _selectedR == null) return;
             var key = (_selectedQ.Value, _selectedR.Value);
-            var label = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+            // Stored as typed (no Trim here): the box updates on every key, so trimming
+            // would swallow the space before the next word. Trimmed where the name is used.
+            var label = string.IsNullOrWhiteSpace(value) ? null : value;
             if (label == null) _cellLabels.Remove(key);
             else _cellLabels[key] = label;
             NotifyPropertyChange(nameof(SelectedCellLabel));
@@ -166,6 +171,59 @@ public class HexcrawlMapViewModel : ViewModelBase
         _selectedQ.HasValue && _selectedR.HasValue
             ? GetHexLabel(_selectedQ.Value, _selectedR.Value).ToString("D4")
             : "—";
+
+    public bool HasSelectedHex => _selectedQ.HasValue && _selectedR.HasValue;
+
+    // DM info of the right-clicked hex; setters write through immediately like SelectedCellLabel.
+    public HexSpecial SelectedHexSpecial
+    {
+        get => HasSelectedHex ? GetHexInfo(_selectedQ.Value, _selectedR.Value)?.Special ?? HexSpecial.None : HexSpecial.None;
+        set { if (HasSelectedHex) { UpdateHexInfo(_selectedQ.Value, _selectedR.Value, i => i.Special = value); NotifyPropertyChange(); } }
+    }
+
+    public string SelectedHexNotes
+    {
+        get => HasSelectedHex ? GetHexInfo(_selectedQ.Value, _selectedR.Value)?.Notes ?? string.Empty : string.Empty;
+        set { if (HasSelectedHex) { UpdateHexInfo(_selectedQ.Value, _selectedR.Value, i => i.Notes = value); NotifyPropertyChange(); } }
+    }
+
+    public HexInfo GetHexInfo(int q, int r) => _hexInfos.TryGetValue((q, r), out var i) ? i : null;
+
+    // Creates the entry when needed, applies the change and drops it again when it holds nothing.
+    public void UpdateHexInfo(int q, int r, Action<HexInfo> change)
+    {
+        if (!_hexInfos.TryGetValue((q, r), out var info))
+            info = new HexInfo { Q = q, R = r };
+        change(info);
+        if (info.IsEmpty) _hexInfos.Remove((q, r));
+        else _hexInfos[(q, r)] = info;
+        HexInfoChanged?.Invoke();
+    }
+
+    // Raised when any hex info changes, so the play panel can refresh.
+    public event Action HexInfoChanged;
+
+    // Day tracker state for the play tab; saved with the map.
+    public HexcrawlDayState DayState { get => Get<HexcrawlDayState>(); private set => Set(value); }
+
+    // Number of painted hexes on this map that use the given tile.
+    public int CountCellsWithTile(string tileId) => _cells.Values.Count(c => c.TileId == tileId);
+
+    // Removes every painted hex that uses the given tile (used when the tile is deleted).
+    // Undo history is cleared since its entries may reference the removed tile.
+    public void ClearCellsWithTile(string tileId)
+    {
+        foreach (var key in _cells.Where(kv => kv.Value.TileId == tileId).Select(kv => kv.Key).ToList())
+            _cells.Remove(key);
+        PaintHistory.Clear();
+        RenderRequested?.Invoke();
+    }
+
+    // The tile painted on a hex, or null when the hex is empty.
+    public HexTile GetTileAt(int q, int r) =>
+        _cells.TryGetValue((q, r), out var c) && c.TileId != null ? _tileStore.GetById(c.TileId) : null;
+
+    public string GetPlaceName(int q, int r) => _cellLabels.TryGetValue((q, r), out var l) ? l.Trim() : null;
 
     public double Scale   { get => Get<double>(); private set => Set(value); }
     public double OffsetX { get => Get<double>(); private set => Set(value); }
@@ -451,6 +509,7 @@ public class HexcrawlMapViewModel : ViewModelBase
         _cellLabels.Clear();
         _revealedLabels.Clear();
         _edges.Clear();
+        _hexInfos.Clear();
         HexSize = data.HexSize;
         _needsInitialCenter = true;
         // Set without triggering CenterGrid until canvas size is known
@@ -465,6 +524,13 @@ public class HexcrawlMapViewModel : ViewModelBase
                 _cellLabels[(entry.Q, entry.R)] = entry.Label;
         foreach (var coord in data.RevealedLabels ?? new List<HexCoord>())
             _revealedLabels.Add((coord.Q, coord.R));
+        foreach (var info in data.HexInfos ?? new List<HexInfo>())
+            if (info != null && !info.IsEmpty)
+                _hexInfos[(info.Q, info.R)] = info;
+        DayState = data.DayState ?? new HexcrawlDayState();
+        HexInfoChanged?.Invoke();
+        NotifyPropertyChange(nameof(SelectedHexSpecial));
+        NotifyPropertyChange(nameof(SelectedHexNotes));
 
         if (data.PartyTokenPos != null)
         {
@@ -505,14 +571,16 @@ public class HexcrawlMapViewModel : ViewModelBase
             IsPartyLost        = IsPartyLost,
             PartyLostPos       = IsPartyLost && _lostQ.HasValue && _lostR.HasValue ? new HexCoord { Q = _lostQ.Value, R = _lostR.Value } : null,
             HexLabels      = _cellLabels
-                .Select(kv => new HexLabelEntry { Q = kv.Key.Item1, R = kv.Key.Item2, Label = kv.Value })
+                .Select(kv => new HexLabelEntry { Q = kv.Key.Item1, R = kv.Key.Item2, Label = kv.Value.Trim() })
                 .ToList(),
             RevealedLabels = _revealedLabels
                 .Select(e => new HexCoord { Q = e.Item1, R = e.Item2 })
                 .ToList(),
             Edges = _edges
                 .Select(kv => new HexEdge { Q = kv.Key.Item1, R = kv.Key.Item2, EdgeDir = kv.Key.Item3, TypeId = kv.Value })
-                .ToList()
+                .ToList(),
+            HexInfos = _hexInfos.Values.Where(i => !i.IsEmpty).ToList(),
+            DayState = DayState
         };
     }
 
@@ -540,10 +608,11 @@ public class HexcrawlMapViewModel : ViewModelBase
         RenderRequested?.Invoke();
     }
 
-    // Covers the entire map (full fog).
+    // Covers the entire map (full fog) and hides all revealed place names again.
     public void ResetFog()
     {
         _exploredHexes.Clear();
+        _revealedLabels.Clear();
         RenderRequested?.Invoke();
     }
 
@@ -819,6 +888,13 @@ public class HexcrawlMapViewModel : ViewModelBase
 
     public bool IsLabelRevealed(int q, int r) => _revealedLabels.Contains((q, r));
 
+    // Hides a revealed place name from players again.
+    public void HideLabel(int q, int r)
+    {
+        if (_revealedLabels.Remove((q, r)))
+            RenderRequested?.Invoke();
+    }
+
     // Sets the selected hex for place-name editing (called via SelectCellCommand from right-click).
     private void SelectCell(object param)
     {
@@ -830,6 +906,9 @@ public class HexcrawlMapViewModel : ViewModelBase
         _selectedR = r;
         NotifyPropertyChange(nameof(SelectedCellLabel));
         NotifyPropertyChange(nameof(SelectedHexInfo));
+        NotifyPropertyChange(nameof(HasSelectedHex));
+        NotifyPropertyChange(nameof(SelectedHexSpecial));
+        NotifyPropertyChange(nameof(SelectedHexNotes));
         RenderRequested?.Invoke();
     }
 
@@ -839,7 +918,7 @@ public class HexcrawlMapViewModel : ViewModelBase
     public void DrawPlaceName(DrawingContext ctx, int q, int r, double hexSize, bool revealed)
     {
         if (!_cellLabels.TryGetValue((q, r), out var label) || string.IsNullOrEmpty(label)) return;
-        var geom = GetOrCreatePlaceNameGeom(label, hexSize);
+        var geom = GetOrCreatePlaceNameGeom(label.Trim(), hexSize);
         if (geom == null) return;
         var (wx, wy) = HexGeometry.AxialToPixel(q, r, hexSize);
         double tx = wx - geom.Bounds.Width / 2.0;

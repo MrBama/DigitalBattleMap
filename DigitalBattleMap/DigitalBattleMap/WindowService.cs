@@ -130,4 +130,9 @@ public class WindowService : IWindowService
             window.Close();
         }
     }
+
+    public bool ShowConfirmDialog(string message, string title)
+    {
+        return MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) == MessageBoxResult.Yes;
+    }
 }

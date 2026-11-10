@@ -516,7 +516,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 FogCanvasVisibility = Visibility.Hidden;
                 DrawingCanvasVisibility = Visibility.Hidden;
                 TokenVisibility = Visibility.Hidden;
-                ControlInfoText = string.Empty;
+                ControlInfoText = GetHexEditorInfoText();
                 SelectedMapTabIndex = TabMapIndex.Hex;
                 break;
             case TabIndex.HexcrawlPlay:
@@ -1150,6 +1150,27 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         return GetControlInfoText(info);
     }
 
+    private string GetHexEditorInfoText()
+    {
+        var info = new ControlInfoEventArgs()
+        {
+            controlName = "Hex Editor Controls",
+            infoBlocks = new List<InfoBlock>()
+            {
+                new InfoBlock(ControlType.LMB, "Paint hexes with the selected tile (drag to paint more)"),
+                new InfoBlock(ControlType.LMB, "Click the selected tile again to deselect it: then erase tiles"),
+                new InfoBlock(ControlType.RMB, "Select a hex: place name, special type and DM notes"),
+                new InfoBlock(ControlType.LMB, "Edge selected: draw that edge on the nearest hex side"),
+                new InfoBlock(ControlType.RMB, "Edge selected: remove the edge on the nearest hex side"),
+                new InfoBlock("Tile settings: hours to enter, morning encounter d6 and"),
+                new InfoBlock("    navigation check, used by the play tab. Press Save tile."),
+                new InfoBlock("A place name makes a hex searchable and 1 h to enter."),
+                new InfoBlock("Remove tile asks first and empties the hexes using it.")
+            }
+        };
+        return GetControlInfoText(info);
+    }
+
     private string GetHexPlayInfoText()
     {
         var info = new ControlInfoEventArgs()
@@ -1163,7 +1184,11 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 new InfoBlock(ControlType.LMB, "Ping mode: drag to draw a ping circle"),
                 new InfoBlock("Party lost: token clicks move only your red dashed marker,"),
                 new InfoBlock("    players keep the old position and nothing is revealed."),
-                new InfoBlock("    Turn it off to move the token there and reveal it.")
+                new InfoBlock("    Turn it off to move the token there and reveal it."),
+                new InfoBlock("Day panel: moving the token spends that terrain's hours;"),
+                new InfoBlock("    Party hex panel: terrain, navigation DC, adjacent terrain, notes."),
+                new InfoBlock("Place names stay hidden from players; reveal the name of the"),
+                new InfoBlock("    party's hex with 'Name shown to players' on the Party hex panel.")
             }
         };
         return GetControlInfoText(info);

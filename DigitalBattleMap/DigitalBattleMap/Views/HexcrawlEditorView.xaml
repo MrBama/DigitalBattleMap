@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:dataClasses="clr-namespace:DigitalBattleMap.DataClasses"
              mc:Ignorable="d"
              d:DesignHeight="1080" d:DesignWidth="480"
              Background="White"
@@ -27,7 +28,13 @@
         <!--Tile list-->
         <ListView ItemsSource="{Binding TileList}"
                   SelectedItem="{Binding SelectedTile}"
-                  HorizontalContentAlignment="Stretch">
+                  HorizontalContentAlignment="Stretch"
+                  ToolTip="Click the selected tile again to deselect it and erase painted tiles">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <EventSetter Event="PreviewMouseLeftButtonDown" Handler="ListViewItem_PreviewMouseLeftButtonDown"/>
+                </Style>
+            </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid>
@@ -60,15 +67,44 @@
             <Button Content="Remove tile" Grid.Column="1" Margin="4 0 0 0" Command="{Binding RemoveTileCommand}"/>
         </Grid>
 
-        <!--Rename-->
+        <!--Tile settings: name + terrain rules used by the play tab tracker-->
         <Grid Grid.Row="2" Margin="0 6 0 0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
-            <TextBox Text="{Binding EditingName, UpdateSourceTrigger=PropertyChanged}"
+
+            <Label Content="Name" VerticalContentAlignment="Center" Padding="0 0 6 0"/>
+            <TextBox Grid.Column="1" Text="{Binding EditingName, UpdateSourceTrigger=PropertyChanged}"
                      VerticalContentAlignment="Center" Margin="0 0 4 0"/>
-            <Button Grid.Column="1" Content="Rename" Command="{Binding RenameTileCommand}" MinWidth="80"/>
+            <Button Grid.Column="2" Content="Change image" Command="{Binding ChangeTileImageCommand}"
+                    ToolTip="Replace the image of this tile; painted hexes keep using it"/>
+
+            <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0 4 0 0">
+                <Label Content="Hours" VerticalContentAlignment="Center" Padding="0 0 6 0"
+                       ToolTip="Exploring hours spent when the party enters a hex of this terrain (named hexes always take 1 hour)"/>
+                <TextBox Text="{Binding EditingTravelHours, UpdateSourceTrigger=PropertyChanged}"
+                         Width="45" VerticalContentAlignment="Center" Margin="0 0 10 0"/>
+                <Label Content="Encounter on d6 ≥" VerticalContentAlignment="Center" Padding="0 0 6 0"
+                       ToolTip="Morning encounter triggers on this d6 result or higher when the day starts here"/>
+                <ComboBox ItemsSource="{Binding EncounterOnOptions}" SelectedItem="{Binding EditingEncounterOn}" Width="50"/>
+            </StackPanel>
+
+            <Grid Grid.Row="2" Grid.ColumnSpan="3" Margin="0 4 0 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Content="Needs navigation check" VerticalAlignment="Center"
+                          IsChecked="{Binding EditingRequiresNavigation}"/>
+                <Button Grid.Column="1" Content="Save tile" Command="{Binding SaveTileCommand}" MinWidth="80"/>
+            </Grid>
         </Grid>
 
         <!--Grid size-->
@@ -101,8 +137,10 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
-            <TextBlock Text="Place name (right-click hex to select)"
+            <TextBlock Text="Selected hex (right-click a hex). A place name makes it searchable, 1 h to enter"
+                       TextWrapping="Wrap"
                        FontSize="13" Foreground="Gray"/>
             <Grid Grid.Row="1" Margin="0 2 0 0">
                 <Grid.ColumnDefinitions>
@@ -117,6 +155,22 @@
                          Text="{Binding Map.SelectedCellLabel, UpdateSourceTrigger=PropertyChanged}"
                          VerticalContentAlignment="Center"/>
             </Grid>
+
+            <!--DM-only info for the selected hex-->
+            <StackPanel Grid.Row="2" Margin="0 4 0 0" IsEnabled="{Binding Map.HasSelectedHex}">
+                <ComboBox Width="150" HorizontalAlignment="Left"
+                          SelectedValue="{Binding Map.SelectedHexSpecial}"
+                          SelectedValuePath="Tag">
+                    <ComboBoxItem Content="Normal hex" Tag="{x:Static dataClasses:HexSpecial.None}"/>
+                    <ComboBoxItem Content="Point of interest" Tag="{x:Static dataClasses:HexSpecial.PointOfInterest}"/>
+                    <ComboBoxItem Content="Dungeon" Tag="{x:Static dataClasses:HexSpecial.Dungeon}"/>
+                </ComboBox>
+                <TextBox Margin="0 4 0 0" MinHeight="50" MaxHeight="110"
+                         TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"
+                         FontSize="14"
+                         ToolTip="DM notes for this hex (shown in the play tab, never to players)"
+                         Text="{Binding Map.SelectedHexNotes, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
         </Grid>
 
         <!--Separator-->
@@ -130,6 +184,11 @@
                   ItemsSource="{Binding EdgeTypeList}"
                   SelectedItem="{Binding SelectedEdgeType}"
                   HorizontalContentAlignment="Stretch">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <EventSetter Event="PreviewMouseLeftButtonDown" Handler="ListViewItem_PreviewMouseLeftButtonDown"/>
+                </Style>
+            </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid>

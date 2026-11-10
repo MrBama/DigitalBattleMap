@@ -14,4 +14,6 @@ public interface IWindowService
     public bool ShowSaveFileDialog(out string path, string defaultFileName = "", string filter = "All files (*.*)|*.*");
     public bool ShowFolderBrowserDialog(out string path);
     public void CloseAllWindows();
+    // Shows a Yes/No warning dialog; returns true when the user picks Yes.
+    public bool ShowConfirmDialog(string message, string title);
 }

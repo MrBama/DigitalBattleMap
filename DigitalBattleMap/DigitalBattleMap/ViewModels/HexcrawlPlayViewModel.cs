@@ -11,9 +11,13 @@ public class HexcrawlPlayViewModel : ViewModelBase
     public HexcrawlPlayViewModel(IWindowService windowService)
     {
         _windowService = windowService;
+        Tracker = new HexcrawlDayTrackerViewModel(windowService);
     }
 
-    public HexcrawlPlayViewModel() { }
+    public HexcrawlPlayViewModel()
+    {
+        Tracker = new HexcrawlDayTrackerViewModel(null);
+    }
 
     public HexcrawlMapViewModel Map { get; private set; }
 
@@ -22,9 +26,6 @@ public class HexcrawlPlayViewModel : ViewModelBase
 
     // When true, Explore/Cover and token placement also affect the 6 neighboring hexes.
     public bool IncludeNeighbors { get => Get<bool>(); set => Set(value); }
-
-    // When true, any explore action also reveals the place name of those hexes to players.
-    public bool RevealNamesOnExplore { get => Get<bool>(); set => Set(value); }
 
     // When true, left-click+drag on the canvas draws a ping circle instead of exploring.
     public bool IsPingMode { get => Get<bool>(); set => Set(value); }
@@ -53,18 +54,23 @@ public class HexcrawlPlayViewModel : ViewModelBase
             else
             {
                 var pos = Map.EndPartyLost();
+                // Hours were already counted while the marker moved; only place and reveal.
                 if (pos is (int q, int r))
-                    PlaceToken((q, r));
+                    PlaceAndExplore(q, r);
             }
             CommandManager.InvalidateRequerySuggested();
         }
     }
+
+    // Day tracker and party hex card shown below the play controls.
+    public HexcrawlDayTrackerViewModel Tracker { get; }
 
     public void SetMap(HexcrawlMapViewModel map)
     {
         if (Map != null) Map.PropertyChanged -= OnMapPropertyChanged;
         Map = map;
         if (Map != null) Map.PropertyChanged += OnMapPropertyChanged;
+        Tracker.SetMap(map);
         NotifyPropertyChange(nameof(Map));
         NotifyPropertyChange(nameof(IsPartyLost));
     }
@@ -95,8 +101,6 @@ public class HexcrawlPlayViewModel : ViewModelBase
         if (explore)
         {
             Map.Explore(q, r, IncludeNeighbors);
-            if (RevealNamesOnExplore)
-                Map.RevealLabel(q, r, IncludeNeighbors);
         }
         else
         {
@@ -110,13 +114,26 @@ public class HexcrawlPlayViewModel : ViewModelBase
         if (Map.IsPartyLost)
         {
             // Track the actual position for the DM only; players see nothing change.
+            var fromQ = Map.LostQ ?? Map.PartyQ;
+            var fromR = Map.LostR ?? Map.PartyR;
             Map.MoveLostParty(q, r);
+            if (fromQ.HasValue && fromR.HasValue && (fromQ != q || fromR != r))
+                Tracker.OnPartyEnteredHex(fromQ.Value, fromR.Value, q, r);
             return;
         }
+        // The first placement is setup, not travel: only count hours when the token actually moves.
+        var prevQ = Map.PartyQ;
+        var prevR = Map.PartyR;
+        bool moved = prevQ.HasValue && prevR.HasValue && (prevQ != q || prevR != r);
+        PlaceAndExplore(q, r);
+        if (moved)
+            Tracker.OnPartyEnteredHex(prevQ.Value, prevR.Value, q, r);
+    }
+
+    private void PlaceAndExplore(int q, int r)
+    {
         Map.PlacePartyToken(q, r);
         Map.Explore(q, r, IncludeNeighbors);
-        if (RevealNamesOnExplore)
-            Map.RevealLabel(q, r, IncludeNeighbors);
         CommandManager.InvalidateRequerySuggested();
     }
 

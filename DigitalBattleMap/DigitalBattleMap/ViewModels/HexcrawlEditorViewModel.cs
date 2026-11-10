@@ -39,7 +39,8 @@ public class HexcrawlEditorViewModel : ViewModelBase
     {
         AddTileCommand          = new RelayCommand(_ => AddTile());
         RemoveTileCommand       = new RelayCommand(_ => RemoveTile(), _ => SelectedTile != null);
-        RenameTileCommand       = new RelayCommand(_ => RenameTile(), _ => SelectedTile != null && !string.IsNullOrWhiteSpace(EditingName));
+        SaveTileCommand         = new RelayCommand(_ => SaveTile(), _ => SelectedTile != null && !string.IsNullOrWhiteSpace(EditingName) && EditingTravelHours >= 0);
+        ChangeTileImageCommand  = new RelayCommand(_ => ChangeTileImage(), _ => SelectedTile != null && !SelectedTile.IsPreset);
         AddEdgeTypeCommand      = new RelayCommand(_ => AddEdgeType());
         RemoveEdgeTypeCommand   = new RelayCommand(_ => RemoveEdgeType(), _ => SelectedEdgeType != null);
         RenameEdgeTypeCommand   = new RelayCommand(_ => RenameEdgeType(), _ => SelectedEdgeType != null && !string.IsNullOrWhiteSpace(EditingEdgeName));
@@ -65,6 +66,10 @@ public class HexcrawlEditorViewModel : ViewModelBase
                 if (value != null) Map.ActiveEdgeTypeId = null;
             }
             EditingName = value?.Name ?? string.Empty;
+            var tile = value != null ? _tileStore.GetById(value.Id) : null;
+            EditingTravelHours        = tile?.TravelHours ?? HexTile.DefaultTravelHours;
+            EditingRequiresNavigation = tile?.RequiresNavigation ?? false;
+            EditingEncounterOn        = tile?.EncounterOn ?? HexTile.DefaultEncounterOn;
             // Deselect edge type so re-clicking it always re-enters edge mode
             if (value != null) Set<HexcrawlEdgeTypeViewModel>(null, nameof(SelectedEdgeType));
         }
@@ -72,9 +77,18 @@ public class HexcrawlEditorViewModel : ViewModelBase
 
     public string EditingName { get => Get<string>(); set => Set(value); }
 
+    // Terrain settings of the selected tile, written to the store on Save.
+    public double EditingTravelHours      { get => Get<double>(); set => Set(value); }
+    public bool   EditingRequiresNavigation { get => Get<bool>(); set => Set(value); }
+    public int    EditingEncounterOn      { get => Get<int>(); set => Set(value); }
+
+    // d6 results the morning encounter can trigger on.
+    public int[] EncounterOnOptions { get; } = { 1, 2, 3, 4, 5, 6 };
+
     public ICommand AddTileCommand    { get; private set; }
     public ICommand RemoveTileCommand { get; private set; }
-    public ICommand RenameTileCommand { get; private set; }
+    public ICommand SaveTileCommand   { get; private set; }
+    public ICommand ChangeTileImageCommand { get; private set; }
     public ICommand UndoCommand       { get; private set; }
     public ICommand RedoCommand       { get; private set; }
 
@@ -129,12 +143,14 @@ public class HexcrawlEditorViewModel : ViewModelBase
 
     public HexcrawlGridData GetGridData() => Map?.GetGridData() ?? new HexcrawlGridData();
 
+    // Nothing is selected by default; an existing selection is kept.
     private void ReloadTileList()
     {
+        var selectedId = SelectedTile?.Id;
         TileList.Clear();
         foreach (var tile in _tileStore.GetAll())
             TileList.Add(new HexcrawlTileViewModel(tile));
-        SelectedTile = TileList.FirstOrDefault();
+        SelectedTile = selectedId != null ? TileList.FirstOrDefault(t => t.Id == selectedId) : null;
     }
 
     private void AddTile()
@@ -164,18 +180,50 @@ public class HexcrawlEditorViewModel : ViewModelBase
     private void RemoveTile()
     {
         if (SelectedTile == null) return;
-        _tileStore.RemoveTile(SelectedTile.Id);
-        TileList.Remove(SelectedTile);
-        SelectedTile = TileList.FirstOrDefault();
+        var tile = SelectedTile;
+        int used = Map?.CountCellsWithTile(tile.Id) ?? 0;
+        var message = used > 0
+            ? $"Remove tile '{tile.Name}'?\n\nIt is used on {used} hex{(used == 1 ? "" : "es")} of this map; they will become empty.\nThis cannot be undone."
+            : $"Remove tile '{tile.Name}'?\n\nThis cannot be undone.";
+        if (_windowService == null || !_windowService.ShowConfirmDialog(message, "Remove tile")) return;
+
+        if (used > 0) Map?.ClearCellsWithTile(tile.Id);
+        _tileStore.RemoveTile(tile.Id);
+        TileList.Remove(tile);
+        SelectedTile = null;
     }
 
-    private void RenameTile()
+    // Saves name and terrain settings of the selected tile.
+    private void SaveTile()
     {
         if (SelectedTile == null || string.IsNullOrWhiteSpace(EditingName)) return;
         var selectedId = SelectedTile.Id;
-        _tileStore.RenameTile(selectedId, EditingName.Trim());
+        var name = EditingName.Trim();
+        if (name != SelectedTile.Name)
+            _tileStore.RenameTile(selectedId, name);
+        _tileStore.UpdateTileSettings(selectedId, EditingTravelHours, EditingRequiresNavigation, EditingEncounterOn);
         ReloadTileList();
         SelectedTile = TileList.FirstOrDefault(t => t.Id == selectedId) ?? TileList.FirstOrDefault();
+        Map?.RaiseRenderRequested();
+    }
+
+    // Replaces the image of a custom tile; painted hexes keep pointing at the same tile.
+    private void ChangeTileImage()
+    {
+        if (SelectedTile == null || SelectedTile.IsPreset) return;
+        if (!_windowService.ShowOpenFileDialog(out var path,
+            "Image files|*.png;*.jpg;*.jpeg;*.bmp"))
+            return;
+
+        var cutoutVm = new HexCutoutWindowViewModel(path) { TileName = SelectedTile.Name };
+        _windowService.ShowWindowDialog<HexCutoutWindow>(cutoutVm);
+        if (cutoutVm.Result == null) return;
+
+        var selectedId = SelectedTile.Id;
+        _tileStore.ReplaceTileImage(selectedId, cutoutVm.Result);
+        ReloadTileList();
+        SelectedTile = TileList.FirstOrDefault(t => t.Id == selectedId) ?? TileList.FirstOrDefault();
+        Map?.RaiseRenderRequested();
     }
 
     private void ReloadEdgeTypeList()
@@ -184,8 +232,10 @@ public class HexcrawlEditorViewModel : ViewModelBase
         EdgeTypeList.Clear();
         foreach (var t in _edgeStore.GetAll())
             EdgeTypeList.Add(new HexcrawlEdgeTypeViewModel(t));
-        SelectedEdgeType = EdgeTypeList.FirstOrDefault(t => t.Id == selectedId)
-                        ?? EdgeTypeList.FirstOrDefault();
+        // Nothing is selected by default (a default edge type would put the editor in edge mode,
+        // where right-click removes edges instead of selecting a hex); an existing selection is kept.
+        if (selectedId != null)
+            SelectedEdgeType = EdgeTypeList.FirstOrDefault(t => t.Id == selectedId);
     }
 
     private void AddEdgeType()
@@ -207,9 +257,12 @@ public class HexcrawlEditorViewModel : ViewModelBase
     private void RemoveEdgeType()
     {
         if (SelectedEdgeType == null) return;
+        if (_windowService == null || !_windowService.ShowConfirmDialog(
+                $"Remove edge feature '{SelectedEdgeType.Name}'?\n\nThis cannot be undone.", "Remove edge feature"))
+            return;
         _edgeStore.Remove(SelectedEdgeType.Id);
         EdgeTypeList.Remove(SelectedEdgeType);
-        SelectedEdgeType = EdgeTypeList.FirstOrDefault();
+        SelectedEdgeType = null;
     }
 
     private void RenameEdgeType()

@@ -17,6 +17,8 @@ public class HexTileStore
     private readonly Dictionary<string, HexTile> _tiles = new();
     private readonly HashSet<string> _removedPresets = new();
     private readonly Dictionary<string, string> _presetNameOverrides = new();
+    // Terrain settings per tile id (presets and custom tiles); applied after tiles are created.
+    private readonly Dictionary<string, TileSettingsEntry> _tileSettings = new();
 
     public IReadOnlyList<HexTile> GetAll() => _tiles.Values.ToList();
 
@@ -26,6 +28,45 @@ public class HexTileStore
     {
         LoadCustomTiles(); // must load removedPresets / overrides before AddPresets
         AddPresets();
+        foreach (var tile in _tiles.Values)
+            ApplySettings(tile);
+    }
+
+    // Updates the terrain rules of a tile and saves them.
+    public void UpdateTileSettings(string id, double travelHours, bool requiresNavigation, int encounterOn)
+    {
+        if (!_tiles.TryGetValue(id, out var tile)) return;
+        tile.TravelHours = travelHours;
+        tile.RequiresNavigation = requiresNavigation;
+        tile.EncounterOn = encounterOn;
+        _tileSettings[id] = new TileSettingsEntry
+        {
+            TravelHours = travelHours,
+            RequiresNavigation = requiresNavigation,
+            EncounterOn = encounterOn
+        };
+        SaveIndex();
+    }
+
+    // Replaces the image of a custom tile, keeping its id so painted hexes update.
+    public void ReplaceTileImage(string id, BitmapSource bitmap)
+    {
+        if (!_tiles.TryGetValue(id, out var tile) || tile.IsPreset) return;
+        Directory.CreateDirectory(TilesPath);
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        using (var stream = File.Create(Path.Combine(TilesPath, $"{id}.png")))
+            encoder.Save(stream);
+        if (!bitmap.IsFrozen && bitmap.CanFreeze) bitmap.Freeze();
+        tile.Bitmap = bitmap;
+    }
+
+    private void ApplySettings(HexTile tile)
+    {
+        if (!_tileSettings.TryGetValue(tile.Id, out var s)) return;
+        tile.TravelHours = s.TravelHours;
+        tile.RequiresNavigation = s.RequiresNavigation;
+        tile.EncounterOn = s.EncounterOn;
     }
 
     public void AddCustomTile(HexTile tile, BitmapSource bitmap)
@@ -46,6 +87,7 @@ public class HexTileStore
     {
         if (!_tiles.TryGetValue(id, out var tile)) return;
         _tiles.Remove(id);
+        _tileSettings.Remove(id);
 
         if (tile.IsPreset)
         {
@@ -137,6 +179,8 @@ public class HexTileStore
                     _removedPresets.Add(id);
                 foreach (var kv in index.PresetNameOverrides ?? new())
                     _presetNameOverrides[kv.Key] = kv.Value;
+                foreach (var kv in index.TileSettings ?? new())
+                    if (kv.Value != null) _tileSettings[kv.Key] = kv.Value;
                 tileEntries = index.Tiles;
             }
             else
@@ -170,6 +214,7 @@ public class HexTileStore
             {
                 RemovedPresets = _removedPresets.ToList(),
                 PresetNameOverrides = new Dictionary<string, string>(_presetNameOverrides),
+                TileSettings = new Dictionary<string, TileSettingsEntry>(_tileSettings),
                 Tiles = _tiles.Values
                     .Where(t => !t.IsPreset)
                     .Select(t => new TileEntry { Id = t.Id, Name = t.Name })
@@ -184,7 +229,15 @@ public class HexTileStore
     {
         public List<string> RemovedPresets { get; set; } = new();
         public Dictionary<string, string> PresetNameOverrides { get; set; } = new();
+        public Dictionary<string, TileSettingsEntry> TileSettings { get; set; } = new();
         public List<TileEntry> Tiles { get; set; } = new();
+    }
+
+    private class TileSettingsEntry
+    {
+        public double TravelHours { get; set; } = HexTile.DefaultTravelHours;
+        public bool RequiresNavigation { get; set; }
+        public int EncounterOn { get; set; } = HexTile.DefaultEncounterOn;
     }
 
     private class TileEntry
