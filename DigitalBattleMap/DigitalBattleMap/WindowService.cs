@@ -106,22 +106,6 @@ public class WindowService : IWindowService
         }
     }
 
-    public bool ShowFolderBrowserDialog(out string path)
-    {
-        using var dialog = new System.Windows.Forms.FolderBrowserDialog
-        {
-            Description = "Select notes folder",
-            UseDescriptionForTitle = true,
-            ShowNewFolderButton = false
-        };
-        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-        {
-            path = dialog.SelectedPath;
-            return true;
-        }
-        path = null;
-        return false;
-    }
 
     public void CloseAllWindows()
     {

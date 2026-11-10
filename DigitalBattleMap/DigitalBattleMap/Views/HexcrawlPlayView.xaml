@@ -110,11 +110,11 @@
                 <TextBlock Text="{Binding DayTitle}" FontWeight="SemiBold"/>
             </Expander.Header>
             <StackPanel Margin="4 4 0 4">
+                <!--Phase within the day-->
                 <StackPanel Orientation="Horizontal" Margin="0 0 0 6">
-                    <Button Content="Next phase" Command="{Binding NextPhaseCommand}" Padding="6 0"/>
-                    <Button Content="New day" Command="{Binding NewDayCommand}" Margin="6 0 0 0" Padding="6 0"/>
-                    <Button Content="Previous day" Command="{Binding PreviousDayCommand}" Margin="6 0 0 0" Padding="6 0"
-                            ToolTip="Undo New day: go back to the last completed day (the token is not moved)"/>
+                    <Button Content="Previous phase" Command="{Binding PreviousPhaseCommand}" Padding="6 0"
+                            ToolTip="Go back one phase as if the current one has not happened yet. Leaving Exploring clears today's hours and route (the token is not moved)."/>
+                    <Button Content="Next phase" Command="{Binding NextPhaseCommand}" Margin="6 0 0 0" Padding="6 0"/>
                 </StackPanel>
 
                 <!--Exploring hours-->
@@ -148,6 +148,21 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
+
+                <!--Whole days: kept apart from the phase buttons-->
+                <Separator Margin="0 8 0 6"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Day" Foreground="Gray" FontSize="13" VerticalAlignment="Center"/>
+                    <Button Grid.Column="1" Content="Previous day" Command="{Binding PreviousDayCommand}" Padding="6 0"
+                            ToolTip="Undo New day: go back to the last completed day (the token is not moved)"/>
+                    <Button Grid.Column="2" Content="New day" Command="{Binding NewDayCommand}" Margin="6 0 0 0" Padding="6 0"
+                            ToolTip="Finish this day (stored in the history) and start the next one at Morning"/>
+                </Grid>
             </StackPanel>
         </Expander>
 

@@ -90,6 +90,7 @@ public class HexcrawlDayTrackerViewModel : ViewModelBase
     private int ForcedMarchDc => ForcedMarchBaseDc + (int)Math.Ceiling(State.ExploringHoursUsed - ExploringDayHours);
 
     public ICommand NextPhaseCommand  { get; private set; }
+    public ICommand PreviousPhaseCommand { get; private set; }
     public ICommand NewDayCommand     { get; private set; }
     public ICommand PreviousDayCommand { get; private set; }
     public ICommand AddHourCommand    { get; private set; }
@@ -99,6 +100,7 @@ public class HexcrawlDayTrackerViewModel : ViewModelBase
     protected override void InitializeCommands()
     {
         NextPhaseCommand  = new RelayCommand(_ => NextPhase(), _ => State != null);
+        PreviousPhaseCommand = new RelayCommand(_ => PreviousPhase(), _ => State != null && State.Phase != HexcrawlDayPhase.Morning);
         NewDayCommand     = new RelayCommand(_ => NewDay(), _ => State != null);
         PreviousDayCommand = new RelayCommand(_ => PreviousDay(), _ => State?.History?.Count > 0);
         AddHourCommand    = new RelayCommand(_ => AddHours(1), _ => State != null);
@@ -167,6 +169,36 @@ public class HexcrawlDayTrackerViewModel : ViewModelBase
         State.Phase = State.Phase + 1;
         RebuildChecklist();
         RefreshDay();
+        CommandManager.InvalidateRequerySuggested();
+    }
+
+    // Goes back one phase, as if the current phase has not happened yet: what was tracked in it
+    // is cleared. Only Exploring tracks anything (hours, forced march, route), so leaving
+    // Exploring for Morning resets those; the other phases only reset their checklist.
+    // From Morning use "Previous day" instead. The party token is not moved.
+    private void PreviousPhase()
+    {
+        if (State == null || State.Phase == HexcrawlDayPhase.Morning) return;
+        if (State.Phase == HexcrawlDayPhase.Exploring)
+        {
+            bool hasProgress = State.ExploringHoursUsed > 0 || (State.Path?.Count ?? 0) > 1;
+            if (hasProgress && _windowService != null &&
+                !_windowService.ShowConfirmDialog(
+                    "Go back to Morning?\n\nToday's exploring hours and route will be cleared. The party token is not moved.",
+                    "Previous phase"))
+                return;
+            State.ExploringHoursUsed = 0;
+            State.ForcedMarchToday = false;
+            // Keep only the hex the day started in.
+            State.Path = State.Path != null && State.Path.Count > 0
+                ? new() { State.Path[0] }
+                : new();
+        }
+        State.Phase = State.Phase - 1;
+        RebuildChecklist();
+        RefreshDay();
+        RefreshPartyHex();
+        CommandManager.InvalidateRequerySuggested();
     }
 
     // Stores the finished day in the history and starts the next one in the party's current hex.
