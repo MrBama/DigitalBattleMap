@@ -253,12 +253,47 @@ public class HexcrawlMapViewModel : ViewModelBase
 
     public void SetCanvasSize(double w, double h)
     {
+        // Ignore zero sizes (canvas hidden on another tab) so the last real size,
+        // and with it the saved view, stays valid.
+        if (w <= 0 || h <= 0) return;
         CanvasSize = new Size(w, h);
-        if (_needsInitialCenter && w > 0 && h > 0)
+        if (_needsInitialCenter)
+            ApplyInitialView();
+    }
+
+    // View from a loaded save, applied once the canvas size is known.
+    private HexViewState _pendingView;
+
+    // Restores the saved view if there is one, otherwise centres the grid.
+    private void ApplyInitialView()
+    {
+        var view = _pendingView;
+        if (view != null && view.Scale > 0 && !double.IsNaN(view.CenterX) && !double.IsNaN(view.CenterY))
+        {
+            Scale   = view.Scale;
+            OffsetX = CanvasSize.Width  / 2.0 - view.CenterX * Scale;
+            OffsetY = CanvasSize.Height / 2.0 - view.CenterY * Scale;
+        }
+        else
         {
             CenterGrid();
-            _needsInitialCenter = false;
         }
+        _pendingView = null;
+        _needsInitialCenter = false;
+        RenderRequested?.Invoke();
+    }
+
+    // Current view for saving: zoom and the world point at the canvas centre.
+    private HexViewState GetViewState()
+    {
+        if (_pendingView != null || CanvasSize.Width <= 0 || CanvasSize.Height <= 0 || Scale <= 0)
+            return _pendingView; // not shown yet: keep what was loaded
+        return new HexViewState
+        {
+            Scale   = Scale,
+            CenterX = (CanvasSize.Width  / 2.0 - OffsetX) / Scale,
+            CenterY = (CanvasSize.Height / 2.0 - OffsetY) / Scale
+        };
     }
 
     private void CenterGrid()
@@ -512,6 +547,7 @@ public class HexcrawlMapViewModel : ViewModelBase
         _hexInfos.Clear();
         HexSize = data.HexSize;
         _needsInitialCenter = true;
+        _pendingView = data.View;
         // Set without triggering CenterGrid until canvas size is known
         Set(data.GridWidth,  nameof(GridWidth));
         Set(data.GridHeight, nameof(GridHeight));
@@ -554,7 +590,11 @@ public class HexcrawlMapViewModel : ViewModelBase
         }
 
         PaintHistory.Clear();
-        RenderRequested?.Invoke();
+        // Canvas already on screen: restore the saved view (or centre) right away.
+        if (CanvasSize.Width > 0 && CanvasSize.Height > 0)
+            ApplyInitialView();
+        else
+            RenderRequested?.Invoke();
     }
 
     public HexcrawlGridData GetGridData()
@@ -580,7 +620,8 @@ public class HexcrawlMapViewModel : ViewModelBase
                 .Select(kv => new HexEdge { Q = kv.Key.Item1, R = kv.Key.Item2, EdgeDir = kv.Key.Item3, TypeId = kv.Value })
                 .ToList(),
             HexInfos = _hexInfos.Values.Where(i => !i.IsEmpty).ToList(),
-            DayState = DayState
+            DayState = DayState,
+            View = GetViewState()
         };
     }
 
@@ -736,6 +777,12 @@ public class HexcrawlMapViewModel : ViewModelBase
         var outlinePen = new Pen(new SolidColorBrush(Color.FromRgb(100, 100, 100)), 1.0 / scale);
         outlinePen.Freeze();
 
+        // Player view: hexes beyond the grid are drawn as unexplored fog too, so players
+        // cannot see where the map ends.
+        var outsideHexes = includeFog
+            ? GetHexesOutsideGrid(worldLeft, worldRight, worldTop, worldBottom, hexSize)
+            : new List<(int q, int r)>();
+
         var visual = new DrawingVisual();
         using (var ctx = visual.RenderOpen())
         {
@@ -746,6 +793,14 @@ public class HexcrawlMapViewModel : ViewModelBase
 
             for (int q = qMin; q <= qMax; q++)
                 DrawColumn(ctx, q, hexSize, worldTop, worldBottom, outlinePen);
+
+            // Outlines of the hexes beyond the grid, in the same pass as the grid outlines
+            // so the fog on top looks the same everywhere.
+            foreach (var (oq, orr) in outsideHexes)
+            {
+                var (wx, wy) = HexGeometry.AxialToPixel(oq, orr, hexSize);
+                ctx.DrawGeometry(null, outlinePen, HexGeometry.CreateStreamGeometry(wx, wy, hexSize));
+            }
 
             // Second pass: edges on top of all tile fills
             for (int q = qMin; q <= qMax; q++)
@@ -769,6 +824,11 @@ public class HexcrawlMapViewModel : ViewModelBase
                         var (wx, wy) = HexGeometry.AxialToPixel(q, r, hexSize);
                         ctx.DrawGeometry(fogBrush, null, HexGeometry.CreateStreamGeometry(wx, wy, hexSize));
                     }
+                }
+                foreach (var (oq, orr) in outsideHexes)
+                {
+                    var (wx, wy) = HexGeometry.AxialToPixel(oq, orr, hexSize);
+                    ctx.DrawGeometry(fogBrush, null, HexGeometry.CreateStreamGeometry(wx, wy, hexSize));
                 }
             }
 
@@ -1199,6 +1259,30 @@ public class HexcrawlMapViewModel : ViewModelBase
     }
 
     // Returns the inclusive column (q) range that intersects the visible world area.
+    // Visible hex positions that lie outside the grid (any direction), for the player fog.
+    private List<(int q, int r)> GetHexesOutsideGrid(double worldLeft, double worldRight,
+                                                     double worldTop, double worldBottom, double hexSize)
+    {
+        var result = new List<(int q, int r)>();
+        double rScale = hexSize * HexGeometry.Sqrt3;
+        int qLo = (int)Math.Floor(worldLeft  / (hexSize * 1.5)) - 2;
+        int qHi = (int)Math.Ceiling(worldRight / (hexSize * 1.5)) + 2;
+        for (int q = qLo; q <= qHi; q++)
+        {
+            double halfQ = q / 2.0;
+            int rLo = (int)Math.Floor(worldTop    / rScale - halfQ) - 1;
+            int rHi = (int)Math.Ceiling(worldBottom / rScale - halfQ) + 1;
+            bool columnInGrid = q >= 0 && q < GridWidth;
+            int rOff = q / 2;
+            for (int r = rLo; r <= rHi; r++)
+            {
+                if (columnInGrid && r >= -rOff && r <= GridHeight - 1 - rOff) continue;
+                result.Add((q, r));
+            }
+        }
+        return result;
+    }
+
     private (int qMin, int qMax) GetVisibleColumnRange(double worldLeft, double worldRight, double hexSize)
     {
         // Flat-top hex: column pitch is hexSize * 1.5 along x.

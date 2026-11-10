@@ -19,6 +19,17 @@ public class HexcrawlGridData
     public List<HexEdge> Edges { get; set; } = new();
     public List<HexInfo> HexInfos { get; set; } = new();
     public HexcrawlDayState DayState { get; set; } = new();
+    // Zoom and position of the hex view; null in older saves (the grid is centred then).
+    public HexViewState View { get; set; }
+}
+
+// The view is stored as zoom plus the world point at the centre of the canvas,
+// so it lines up again when the window has a different size.
+public class HexViewState
+{
+    public double Scale { get; set; }
+    public double CenterX { get; set; }
+    public double CenterY { get; set; }
 }
 
 public class HexCoord
