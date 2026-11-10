@@ -76,6 +76,11 @@ public class RectangleFogShape : FogShape
     public override void Transform(System.Windows.Media.Matrix matrix)
     {
         base.Transform(matrix);
+
+        // Only set while drawing, shapes loaded from a save file do not have it
+        if (_startPosition == null)
+            return;
+
         var wp = new System.Windows.Point(_startPosition.X, _startPosition.Y);
         wp = matrix.Transform(wp);
         _startPosition = new Point<double>(wp.X, wp.Y);

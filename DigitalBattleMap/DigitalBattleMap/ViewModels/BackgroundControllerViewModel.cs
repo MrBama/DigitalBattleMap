@@ -444,15 +444,13 @@ public class BackgroundControllerViewModel : ControllerViewModelBase
 
         if (_fullBackgroundBitmap != null)
         {
-            var croppedBitmap = BitmapTools.CropBitmap(_fullBackgroundBitmap, _area);
-            BackgroundBitmap = BitmapTools.ResizeBitmap(croppedBitmap);
+            BackgroundBitmap = BitmapTools.CropAndResizeBitmap(_fullBackgroundBitmap, _area, Constants.MapSize);
 
             if (HasOpenGMOverlay)
             {
                 // resize to fullbackground
                 var gmOverlayResizedBitmap = BitmapTools.ResizeToBitmap(_gmOverlayBitmap, _fullBackgroundBitmap);
-                var gmOverlayBitmap = BitmapTools.CropBitmap(gmOverlayResizedBitmap, _area);
-                GMOverlayBitmap = BitmapTools.ResizeBitmap(gmOverlayBitmap);
+                GMOverlayBitmap = BitmapTools.CropAndResizeBitmap(gmOverlayResizedBitmap, _area, Constants.MapSize);
             }
         }
 

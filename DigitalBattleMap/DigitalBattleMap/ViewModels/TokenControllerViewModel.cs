@@ -653,22 +653,15 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
             };
 
             var gridSize = _mapSize.GridSize;
-            var gridOffset = Point<double>.Create(Mathematics.CalculateGridOffset(gridSize));
-            var bottomRight = new Point<double>
-            {
-                X = position.X + gridSize - ((position.X - gridOffset.X) % gridSize),
-                Y = position.Y + gridSize - ((position.Y - gridOffset.Y) % gridSize)
-            };
-
             var foundTokens = new List<TokenListItem>();
 
             foreach (var tokenListItem in TokenList)
             {
-                var sizeFactor = Math.Max(1, tokenListItem.Token.GetSizeFactor());
-                var topLeft = new Point<double>(bottomRight.X - (sizeFactor * gridSize), bottomRight.Y - (sizeFactor * gridSize));
+                // Same area as the token is drawn in and the rectangle selection uses
+                var bounds = GetTokenBounds(tokenListItem, gridSize);
 
-                if ((tokenListItem.Position.X > topLeft.X && tokenListItem.Position.X < bottomRight.X) &&
-                    (tokenListItem.Position.Y > topLeft.Y && tokenListItem.Position.Y < bottomRight.Y))
+                if (position.X >= bounds.Left && position.X < bounds.Right &&
+                    position.Y >= bounds.Top && position.Y < bounds.Bottom)
                 {
                     foundTokens.Add(tokenListItem);
                 }

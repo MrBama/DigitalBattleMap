@@ -143,6 +143,34 @@ public static class BitmapTools
         return croppedBitmap;
     }
 
+    // Crops the area out of the bitmap and resizes it to the given size.
+    // Only the part of the area that overlaps the bitmap is cropped, so an area much
+    // larger than the bitmap does not allocate a huge intermediate bitmap.
+    public static Bitmap CropAndResizeBitmap(Bitmap bitmap, Rectangle area, Size<int> size)
+    {
+        var result = new Bitmap(size.Width, size.Height);
+
+        var visibleArea = Rectangle.Intersect(area, new Rectangle(0, 0, bitmap.Width, bitmap.Height));
+        if (visibleArea.IsEmpty || area.Width <= 0 || area.Height <= 0)
+            return result;
+
+        double scaleX = (double)size.Width / area.Width;
+        double scaleY = (double)size.Height / area.Height;
+        var left = (int)Math.Round((visibleArea.Left - area.X) * scaleX);
+        var top = (int)Math.Round((visibleArea.Top - area.Y) * scaleY);
+        var right = (int)Math.Round((visibleArea.Right - area.X) * scaleX);
+        var bottom = (int)Math.Round((visibleArea.Bottom - area.Y) * scaleY);
+        var destination = new Rectangle(left, top, Math.Max(right - left, 1), Math.Max(bottom - top, 1));
+
+        using var croppedBitmap = CropBitmap(bitmap, visibleArea);
+        using var resizedBitmap = ResizeBitmap(croppedBitmap, new(destination.Width, destination.Height));
+        using (var graphics = Graphics.FromImage(result))
+        {
+            graphics.DrawImage(resizedBitmap, destination, new Rectangle(0, 0, resizedBitmap.Width, resizedBitmap.Height), GraphicsUnit.Pixel);
+        }
+        return result;
+    }
+
     public static Bitmap ResizeBitmap(Bitmap bitmap)
     {
         return ResizeBitmap(bitmap, Constants.MapSize);
