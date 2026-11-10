@@ -34,6 +34,9 @@ public class HexcrawlMapViewModel : ViewModelBase
     private int? _partyQ;
     private int? _partyR;
     private string _partyTokenImagePath;
+    // DM-only "actual" party position while the party is lost; the player-visible token stays at _partyQ/_partyR.
+    private int? _lostQ;
+    private int? _lostR;
 
     // --- Ping ---
     private double _pingCenterX;
@@ -121,6 +124,11 @@ public class HexcrawlMapViewModel : ViewModelBase
 
     public int? PartyQ => _partyQ;
     public int? PartyR => _partyR;
+
+    // While true, token moves only update the DM-only lost position: the player token and fog stay frozen.
+    public bool IsPartyLost { get => Get<bool>(); private set => Set(value); }
+    public int? LostQ => _lostQ;
+    public int? LostR => _lostR;
 
     // Bound to the play view token image preview.
     public BitmapSource PartyTokenImage { get => Get<BitmapSource>(); private set => Set(value); }
@@ -468,6 +476,9 @@ public class HexcrawlMapViewModel : ViewModelBase
             _partyQ = null;
             _partyR = null;
         }
+        _lostQ = data.PartyLostPos?.Q;
+        _lostR = data.PartyLostPos?.R;
+        IsPartyLost = data.IsPartyLost;
         LoadPartyTokenImage(data.PartyTokenImagePath);
 
         foreach (var edge in data.Edges ?? new System.Collections.Generic.List<HexEdge>())
@@ -491,6 +502,8 @@ public class HexcrawlMapViewModel : ViewModelBase
             ExploredHexes      = _exploredHexes.Select(e => new HexCoord { Q = e.Item1, R = e.Item2 }).ToList(),
             PartyTokenPos      = _partyQ.HasValue && _partyR.HasValue ? new HexCoord { Q = _partyQ.Value, R = _partyR.Value } : null,
             PartyTokenImagePath = _partyTokenImagePath,
+            IsPartyLost        = IsPartyLost,
+            PartyLostPos       = IsPartyLost && _lostQ.HasValue && _lostR.HasValue ? new HexCoord { Q = _lostQ.Value, R = _lostR.Value } : null,
             HexLabels      = _cellLabels
                 .Select(kv => new HexLabelEntry { Q = kv.Key.Item1, R = kv.Key.Item2, Label = kv.Value })
                 .ToList(),
@@ -547,7 +560,39 @@ public class HexcrawlMapViewModel : ViewModelBase
     {
         _partyQ = null;
         _partyR = null;
+        _lostQ = null;
+        _lostR = null;
         RenderRequested?.Invoke();
+    }
+
+    // Starts lost mode: the actual position begins where the visible token is.
+    public void BeginPartyLost()
+    {
+        if (IsPartyLost) return;
+        _lostQ = _partyQ;
+        _lostR = _partyR;
+        IsPartyLost = true;
+        RenderRequested?.Invoke();
+    }
+
+    // Moves only the DM-only actual position; nothing is revealed and the player token stays put.
+    public void MoveLostParty(int q, int r)
+    {
+        _lostQ = q;
+        _lostR = r;
+        RenderRequested?.Invoke();
+    }
+
+    // Ends lost mode and returns the actual position (null if never set), so the caller can place and explore it.
+    public (int q, int r)? EndPartyLost()
+    {
+        if (!IsPartyLost) return null;
+        (int, int)? pos = _lostQ.HasValue && _lostR.HasValue ? (_lostQ.Value, _lostR.Value) : null;
+        _lostQ = null;
+        _lostR = null;
+        IsPartyLost = false;
+        RenderRequested?.Invoke();
+        return pos;
     }
 
     // Copies an external image into the tiles folder and loads it.
@@ -562,10 +607,10 @@ public class HexcrawlMapViewModel : ViewModelBase
     public void LoadPartyTokenImage(string pathOrLogicalName)
     {
         _partyTokenImagePath = pathOrLogicalName;
-        if (string.IsNullOrEmpty(pathOrLogicalName)) { PartyTokenImage = null; return; }
+        if (string.IsNullOrEmpty(pathOrLogicalName)) { PartyTokenImage = null; RenderRequested?.Invoke(); return; }
 
         var fullPath = _tileStore.ResolvePartyTokenPath(pathOrLogicalName);
-        if (fullPath == null) { PartyTokenImage = null; return; }
+        if (fullPath == null) { PartyTokenImage = null; RenderRequested?.Invoke(); return; }
 
         try
         {
@@ -573,16 +618,22 @@ public class HexcrawlMapViewModel : ViewModelBase
             img.BeginInit();
             img.UriSource = new Uri(fullPath);
             img.CacheOption = BitmapCacheOption.OnLoad;
+            // The file name is always party_token.png, so bypass WPF's URI-keyed image cache
+            // or a re-imported image would return the previously decoded bitmap.
+            img.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
             img.EndInit();
             img.Freeze();
             PartyTokenImage = img;
-            RenderRequested?.Invoke();
         }
         catch
         {
             PartyTokenImage = null;
         }
+        RenderRequested?.Invoke();
     }
+
+    // Removes the custom token image; the token falls back to the gold circle.
+    public void ClearPartyTokenImage() => LoadPartyTokenImage(null);
 
     // Renders the current hex map view to a System.Drawing.Bitmap for sending to players.
     // Falls back to 1280x720 if the canvas size is not yet known (hex tab never opened).

@@ -524,7 +524,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 FogCanvasVisibility = Visibility.Hidden;
                 DrawingCanvasVisibility = Visibility.Hidden;
                 TokenVisibility = Visibility.Hidden;
-                ControlInfoText = string.Empty;
+                ControlInfoText = GetHexPlayInfoText();
                 SelectedMapTabIndex = TabMapIndex.Hex;
                 break;
             case TabIndex.Tokens:
@@ -1145,6 +1145,25 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 new InfoBlock(ControlType.Shift, ControlType.LMB, "Add or remove a token from the selection"),
                 new InfoBlock(ControlType.Shift, ControlType.LMB, "Drag to add all tokens in an area to the selection"),
                 new InfoBlock(ControlType.Esc, "Cancel the token move while holding RMB")
+            }
+        };
+        return GetControlInfoText(info);
+    }
+
+    private string GetHexPlayInfoText()
+    {
+        var info = new ControlInfoEventArgs()
+        {
+            controlName = "Hex Play Controls",
+            infoBlocks = new List<InfoBlock>()
+            {
+                new InfoBlock(ControlType.LMB, "Explore the hex (and neighbors when enabled)"),
+                new InfoBlock(ControlType.RMB, "Cover the hex with fog again"),
+                new InfoBlock(ControlType.LMB, "Token placement mode: place the party token and explore there"),
+                new InfoBlock(ControlType.LMB, "Ping mode: drag to draw a ping circle"),
+                new InfoBlock("Party lost: token clicks move only your red dashed marker,"),
+                new InfoBlock("    players keep the old position and nothing is revealed."),
+                new InfoBlock("    Turn it off to move the token there and reveal it.")
             }
         };
         return GetControlInfoText(info);

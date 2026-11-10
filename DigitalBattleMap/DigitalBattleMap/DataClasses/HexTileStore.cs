@@ -69,7 +69,10 @@ public class HexTileStore
         try
         {
             Directory.CreateDirectory(TilesPath);
-            File.Copy(sourcePath, Path.Combine(TilesPath, fileName), overwrite: true);
+            var destPath = Path.Combine(TilesPath, fileName);
+            // Copying a file onto itself throws; it is already in place, so just reuse it.
+            if (!string.Equals(Path.GetFullPath(sourcePath), Path.GetFullPath(destPath), StringComparison.OrdinalIgnoreCase))
+                File.Copy(sourcePath, destPath, overwrite: true);
             return fileName;
         }
         catch { return null; }

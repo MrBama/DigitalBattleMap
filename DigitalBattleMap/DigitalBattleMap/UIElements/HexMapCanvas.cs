@@ -185,6 +185,34 @@ public class HexMapCanvas : FrameworkElement
             }
         }
 
+        // Party lost: DM-only marker at the actual position (never drawn in the player bitmap).
+        if (ShowFog && vm.IsPartyLost && vm.LostQ.HasValue && vm.LostR.HasValue)
+        {
+            var (lx, ly) = HexGeometry.AxialToPixel(vm.LostQ.Value, vm.LostR.Value, hexSize);
+            double lostR = hexSize * 0.4;
+            var lostEllipse = new EllipseGeometry(new Point(lx, ly), lostR, lostR);
+            var lostBrush = new SolidColorBrush(Color.FromRgb(220, 40, 40));
+            lostBrush.Freeze();
+            var lostPen = new Pen(lostBrush, 3.0 / scale) { DashStyle = DashStyles.Dash };
+            lostPen.Freeze();
+
+            if (vm.PartyTokenImage != null)
+            {
+                dc.PushOpacity(0.6);
+                dc.PushClip(lostEllipse);
+                dc.DrawImage(vm.PartyTokenImage, new Rect(lx - lostR, ly - lostR, lostR * 2, lostR * 2));
+                dc.Pop();
+                dc.Pop();
+                dc.DrawGeometry(null, lostPen, lostEllipse);
+            }
+            else
+            {
+                var lostFill = new SolidColorBrush(Color.FromArgb(150, 255, 200, 0));
+                lostFill.Freeze();
+                dc.DrawGeometry(lostFill, lostPen, lostEllipse);
+            }
+        }
+
         // Ping drag preview — DM-only dashed circle while the button is held.
         if (_pingDragging && _pingDragRadiusWorld > 0)
         {

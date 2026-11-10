@@ -33,10 +33,15 @@
         </Grid>
 
         <!--Mode toggle: single toggle button, off = fog mode, on = token mode-->
-        <ToggleButton IsChecked="{Binding IsTokenMode}"
-                      Content="Token placement mode"
-                      HorizontalAlignment="Left"
-                      Margin="0 0 0 4"/>
+        <StackPanel Orientation="Horizontal" Margin="0 0 0 4">
+            <ToggleButton IsChecked="{Binding IsTokenMode}"
+                          Content="Token placement mode"/>
+            <!--Party lost: token moves are tracked for the DM only; players keep seeing the last known spot-->
+            <ToggleButton IsChecked="{Binding IsPartyLost}"
+                          Content="Party lost"
+                          ToolTip="Players keep seeing the token on its current hex and nothing new is revealed. Token clicks only move the actual position (dashed red marker, visible to you). Turn off to move the token there and reveal it."
+                          Margin="6 0 0 0"/>
+        </StackPanel>
 
         <!--Context-sensitive hint-->
         <TextBlock Text="Left-click: explore  |  Right-click: cover"
@@ -44,7 +49,11 @@
                    Foreground="Gray" FontSize="12" Margin="0 0 0 4"/>
         <TextBlock Text="Left-click: place party token"
                    Visibility="{Binding IsTokenMode, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"
-                   Foreground="Gray" FontSize="12" Margin="0 0 0 8"/>
+                   Foreground="Gray" FontSize="12" Margin="0 0 0 4"/>
+        <TextBlock Text="Party lost: token clicks move the actual position (only you see it)"
+                   TextWrapping="Wrap"
+                   Visibility="{Binding IsPartyLost, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}"
+                   Foreground="Firebrick" FontSize="12" Margin="0 0 0 8"/>
 
         <!--Ping mode-->
         <Separator Margin="0 4 0 8"/>
@@ -68,6 +77,7 @@
 
         <Grid Margin="0 0 0 6">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
@@ -76,7 +86,12 @@
                     Command="{Binding LoadTokenImageCommand}"
                     HorizontalAlignment="Left"/>
 
-            <Button Grid.Column="1" Content="Clear token"
+            <Button Grid.Column="1" Content="Clear image"
+                    Command="{Binding ClearTokenImageCommand}"
+                    HorizontalAlignment="Left"
+                    Margin="6 0 0 0"/>
+
+            <Button Grid.Column="2" Content="Clear token"
                     Command="{Binding ClearTokenCommand}"
                     Margin="6 0 0 0"/>
         </Grid>
