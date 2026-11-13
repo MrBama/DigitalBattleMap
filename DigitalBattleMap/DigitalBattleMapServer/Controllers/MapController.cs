@@ -62,6 +62,28 @@ public class MapController : Controller
         return Ok();
     }
 
+
+    [HttpPost]
+    public async Task<IActionResult> EnablePing([FromBody] PingDto pingDto)
+    {
+        await _hubContext.Clients.All.EnablePing(pingDto.X, pingDto.Y);
+        return Ok();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DisablePing()
+    {
+        await _hubContext.Clients.All.DisablePing();
+        return Ok();
+    }
+
+    [HttpPost]
+    public IActionResult EnablePingFromClient([FromBody] PingDto pingDto)
+    {
+        _hubContext.Clients.All.EnablePingFromClient(pingDto.X, pingDto.Y);
+        return Ok();
+    }
+
     [HttpDelete]
     public IActionResult Delete(DrawLayer layer)
     {

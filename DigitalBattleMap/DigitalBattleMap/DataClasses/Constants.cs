@@ -19,5 +19,7 @@ public static class Constants
     public static readonly int MaxGridSize = 20000;
     public static readonly int DefaultZoomSize = 10;
     public static readonly int AutoSaveIntervalInMs = 60000;
+    public static readonly int PingDurationInMs = 3000;
     public static readonly int MaxAutoSaves = 15;
+    public static readonly int PingSize = 400;
 }

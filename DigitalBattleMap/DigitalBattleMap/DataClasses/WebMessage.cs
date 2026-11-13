@@ -96,3 +96,28 @@ class ClearCacheMessage : IWebMessage
         return new(HttpMethod.Post, $"/Navigation/ClearCache");
     }
 }
+
+class EnablePingMessage : IWebMessage
+{
+    public double X { get; set; }
+    public double Y { get; set; }
+
+    public HttpRequestMessage CreateHttpRequestMessage()
+    {
+        var dto = new PingDto { X = X, Y = Y };
+        string json = JsonSerializer.Serialize(dto);
+
+        StringContent content = new(json);
+        content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+        HttpRequestMessage message = new(HttpMethod.Post, "/Map/EnablePing") { Content = content };
+        return message;
+    }
+}
+
+class DisablePingMessage : IWebMessage
+{
+    public HttpRequestMessage CreateHttpRequestMessage()
+    {
+        return new(HttpMethod.Post, "/Map/DisablePing");
+    }
+}

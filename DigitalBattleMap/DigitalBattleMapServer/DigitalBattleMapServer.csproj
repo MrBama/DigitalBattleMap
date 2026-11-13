@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <Content Remove="wwwroot\resources\PauseIcon.png" />
+    <Content Remove="wwwroot\resources\Ping.gif" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,6 +48,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="wwwroot\resources\PauseIcon.png" />
+    <EmbeddedResource Include="wwwroot\resources\Ping.gif" />
   </ItemGroup>
 
   <ItemGroup>

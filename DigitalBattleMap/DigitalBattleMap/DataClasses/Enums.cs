@@ -109,7 +109,8 @@ public enum ControlType
     Down,
     Click,
     Shift,
-    Esc
+    Esc,
+    P
 }
 
 public enum NType

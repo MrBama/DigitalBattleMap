@@ -258,6 +258,13 @@ i.direction.SouthEast {
   width: 13%;
 }
 
+.ping-gif {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 21%;
+}
+
 .map-container {
   position: relative;
   background-color: white;

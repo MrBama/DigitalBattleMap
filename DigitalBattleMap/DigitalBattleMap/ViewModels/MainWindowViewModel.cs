@@ -30,6 +30,8 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     private Action _multiMoveAction;
     private MonsterTokens _monsterTokens = new();
     private Timer _autoSaveTimer;
+    private Timer _pingTimer;
+    private MouseCanvasViewModel _mouseCanvas = new();
 
     public MainWindowViewModel(IWindowService windowService)
     {
@@ -58,12 +60,16 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     public int SelectedMapTabIndex { get => Get<int>(); set => SetWhenChanged(value, SelectedTabMapChanged); }
     public int DrawingCanvasZIndex { get => Get<int>(); set => Set(value); }
     public int MultiMoveCount { get => Get<int>(); set => Set(value); }
+    public double PingPositionX { get => Get<double>(); set => Set(value); }
+    public double PingPositionY { get => Get<double>(); set => Set(value); }
+    public double PingSize { get => Get<double>(); set => Set(value); }
     public bool IsShowMapLocked { get => Get<bool>(); set => Set(value, IsShowMapLockedChanged); }
     public bool ServerConnectionButtonEnabled { get => Get<bool>(); set => Set(value); }
     public bool IsConfigurationMenuExpanded { get => Get<bool>(); set => Set(value); }
     public bool IsMultiMove { get => Get<bool>(); set => Set(value); }
     public bool HideDungeonMasterFeatures { get => Get<bool>(); set => Set(value); }
     public bool IsInfoEnabled { get => Get<bool>(); set => Set(value); }
+    public bool IsPingVisible { get => Get<bool>(); set => Set(value); }
     public string ServerConnectionButtonText { get => Get<string>(); set => Set(value); }
     public string ServerConnectionStatus { get => Get<string>(); set => Set(value); }
     public string ControlInfoText { get => Get<string>(); set => Set(value); }
@@ -106,10 +112,9 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
     int? IMapSize.BackgroundWidth => BackgroundController.FullBackgroundWidth;
     int? IMapSize.BackgroundHeight => BackgroundController.FullBackgroundHeight;
     Point<int>? IMapSize.BackgroundOffset => BackgroundController.BackgroundOffset;
-    string CampaingInfoText => "Active Mode: None \n \n Campaign tab contains no mouse controls";
     // Oneliner because webpage elements exist on top of all other ui elements including any info text after a new line.
-    string StatBlockInfoText => "\t \t Select the header of a statblock to keep it focused. Switching between tabs will return you to the focused statblock."; 
-    string OverviewInfoText => "Active Mode: Map Overview \n \n Press reset to reset the overview";
+    string StatBlockInfoText => "Select the header of a statblock to keep it focused. Switching between tabs will return you to the focused statblock."; 
+    string OverviewInfoText => "Active Mode: Map Overview\n \nPress reset to reset the overview";
 
     public ICommand ShowMapCommand { get; set; }
     public ICommand WindowClosingCommand { get; set; }
@@ -138,9 +143,13 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         _connectionManager = new ConnectionManager();
         _connectionManager.OnConnected += ConnectionManagerConnected;
         _connectionManager.OnDisconnect += ConnectionManagerDisconnected;
+        _connectionManager.OnPing += PingFromClient;
         _applicationUpdater = new ApplicationUpdater(_windowService, _settings);
         _autoSaveTimer = new Timer(Constants.AutoSaveIntervalInMs);
         _autoSaveTimer.Elapsed += AutoSaveMap;
+        _pingTimer = new Timer(Constants.PingDurationInMs);
+        _pingTimer.Elapsed += PingEnding;
+        _mouseCanvas.OnLeftButtonUp += MouseUp;
 
         MapOverview = new MapOverviewViewModel(this);
         MapOverview.OnZoomAndEnhance += OnZoomAndEnhance;
@@ -170,7 +179,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         HideDungeonMasterFeatures = _settings.HideDungeonMasterFeatures;
         CropColor = System.Windows.Media.Brushes.LightGray;
         MouseCanvas = BackgroundController.MouseCanvas;
-        ControlInfoText = CampaingInfoText;
+        ControlInfoText = GetCampaignInfoText();
 
         if (_settings.IsAutoSaveEnabled)
             _autoSaveTimer.Start();
@@ -439,7 +448,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 TokenVisibility = Visibility.Visible;
 
                 MouseCanvas = CampaignController.MouseCanvas;
-                ControlInfoText = CampaingInfoText;
+                ControlInfoText = GetCampaignInfoText();
                 DrawingCanvasZIndex = 0;
                 break;
             case TabIndex.Background:
@@ -449,7 +458,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
                 TokenVisibility = Visibility.Hidden;
 
                 MouseCanvas = BackgroundController.MouseCanvas;
-                ControlInfoText = string.Empty;
+                ControlInfoText = GetBackgroundInfoText();
                 DrawingCanvasZIndex = 1;
                 break;
             case TabIndex.Fog:
@@ -772,12 +781,19 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void KeyDown(KeyEventArgs keyEventArgs)
     {
+        // Handle keys for this viewmodel
         if (keyEventArgs.Key == Key.LeftShift && !IsMultiMove)
         {
             IsMultiMove = true;
             MultiMoveCount = 0;
         }
 
+        if(keyEventArgs.Key == Key.P && SelectedMapTabIndex == TabMapIndex.Map)
+        {
+            MouseCanvas = _mouseCanvas;
+        }
+
+        // Propagate to other controllers
         switch (SelectedTabIndex)
         {
             case TabIndex.Background:
@@ -799,6 +815,7 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
 
     private void KeyUp(KeyEventArgs keyEventArgs)
     {
+        // Handle keys for this viewmodel
         if (keyEventArgs.Key == Key.LeftShift && IsMultiMove)
         {
             IsMultiMove = false;
@@ -809,6 +826,29 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
             }
         }
 
+        if (keyEventArgs.Key == Key.P)
+        {
+            switch (SelectedTabIndex)
+            {
+                case TabIndex.Campaign:
+                    MouseCanvas = CampaignController.MouseCanvas;
+                    break;
+                case TabIndex.Background:
+                    MouseCanvas = BackgroundController.MouseCanvas;
+                    break;
+                case TabIndex.Fog:
+                    MouseCanvas = FogController.MouseCanvas;
+                    break;
+                case TabIndex.Drawing:
+                    MouseCanvas = DrawingController.MouseCanvas;
+                    break;
+                case TabIndex.Tokens:
+                    MouseCanvas = TokenController.MouseCanvas;
+                    break;
+            }
+        }
+
+        // Propagate to other controllers
         BackgroundController.KeyUp(keyEventArgs);
         FogController.KeyUp(keyEventArgs);
         DrawingController.KeyUp(keyEventArgs);
@@ -938,21 +978,33 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         }
     }
 
-    private string GetTokenInfoText()
+    private string GetOverallInfoText()
+    {
+        var infoBlocks = new List<InfoBlock>
+        { 
+            new(ControlType.Shift, "Hold shift and press the move/zoom buttons to do a multi action"),
+            new(ControlType.P, ControlType.LMB, "Hold P and use LMB to show a ping")
+        };
+
+        return ConvertInfoBlocksToText(infoBlocks);
+    }
+
+    private string GetCampaignInfoText()
     {
         var info = new ControlInfoEventArgs()
         {
-            controlName = "Token Controls",
+            controlName = "None",
             infoBlocks = new List<InfoBlock>()
-            {
-                new InfoBlock(ControlType.LMB, "Select token in grid location"),
-                new InfoBlock(ControlType.LMB, "Drag to select all tokens in an area"),
-                new InfoBlock(ControlType.RMB, "Hold to preview, release to move selected tokens"),
-                new InfoBlock(ControlType.Alt, ControlType.RMB, "Toggle on/off the fog of war shape at the selected location"),
-                new InfoBlock(ControlType.Shift, ControlType.LMB, "Add or remove a token from the selection"),
-                new InfoBlock(ControlType.Shift, ControlType.LMB, "Drag to add all tokens in an area to the selection"),
-                new InfoBlock(ControlType.Esc, "Cancel the token move while holding RMB")
-            }
+        };
+        return GetControlInfoText(info);
+    }
+
+    private string GetBackgroundInfoText()
+    {
+        var info = new ControlInfoEventArgs()
+        {
+            controlName = "None",
+            infoBlocks = new List<InfoBlock>()
         };
         return GetControlInfoText(info);
     }
@@ -973,21 +1025,100 @@ public class MainWindowViewModel : ViewModelBase, IMapSize
         return GetControlInfoText(info);
     }
 
+    private string GetTokenInfoText()
+    {
+        var info = new ControlInfoEventArgs()
+        {
+            controlName = "Token Controls",
+            infoBlocks = new List<InfoBlock>()
+            {
+                new InfoBlock(ControlType.LMB, "Select token in grid location"),
+                new InfoBlock(ControlType.LMB, "Drag to select all tokens in an area"),
+                new InfoBlock(ControlType.RMB, "Hold to preview, release to move selected tokens"),
+                new InfoBlock(ControlType.Alt, ControlType.RMB, "Toggle on/off the fog of war shape at the selected location"),
+                new InfoBlock(ControlType.Shift, ControlType.LMB, "Add or remove a token from the selection"),
+                new InfoBlock(ControlType.Shift, ControlType.LMB, "Drag to add all tokens in an area to the selection"),
+                new InfoBlock(ControlType.Esc, "Cancel the token move while holding RMB")
+            }
+        };
+        return GetControlInfoText(info);
+    }
+
     private string GetControlInfoText(ControlInfoEventArgs e)
     {
         var controlInfoText = new StringBuilder();
-        controlInfoText.Append("Active Mode: ").Append(e.controlName.ToString()); // header
-        controlInfoText.Append("\n").Append("\n");
-        foreach (var controlInfo in e.infoBlocks.OrderBy(i => (int?) i.Type ?? -1)) // order by type, null type first
+        controlInfoText.Append("=== Overall ==="); // Header
+        controlInfoText.Append("\n");
+        controlInfoText.Append(GetOverallInfoText());
+        controlInfoText.Append("\n\n");
+
+        controlInfoText.Append("=== Active Mode: ").Append(e.controlName.ToString()).Append(" ==="); // Active mode header
+
+        if(e.infoBlocks.Count > 0)
+        {
+            controlInfoText.Append("\n");
+            controlInfoText.Append(ConvertInfoBlocksToText(e.infoBlocks));
+        }
+
+        return controlInfoText.ToString();
+    }
+
+    private string ConvertInfoBlocksToText(List<InfoBlock> infoBlocks)
+    {
+        var infoBlockText = new StringBuilder();
+        foreach (var controlInfo in infoBlocks.OrderBy(i => (int?)i.Type ?? -1)) // order by type, null type first
         {
             var additional = controlInfo?.Additional == null ? string.Empty : " + " + controlInfo.Additional.ToString();
             var typeInfo = controlInfo?.Type == null ?
                 string.Empty : // ignore type info in control info text
                 string.Format("{0}{1}: ", controlInfo.Type.ToString(), additional); // adds type info in control info text + adds additional if present.
 
-            var info = string.Format("{0}{1}\n", typeInfo, controlInfo!.ControlInfo);
-            controlInfoText.Append(info);
+            var info = string.Format("\n{0}{1}", typeInfo, controlInfo!.ControlInfo);
+            infoBlockText.Append(info);
         }
-        return controlInfoText.ToString();
+
+        return infoBlockText.ToString();
+    }
+
+    private void MouseUp(object? sender, MouseButtonDataEventArgs e)
+    {
+        _pingTimer.Stop();
+        PingSize = ((double)Constants.PingSize).Map(0, Constants.MapSize.Width, 0, _canvasSize.Width);
+        PingPositionX = e.Position.X - (PingSize / 2);
+        PingPositionY = e.Position.Y - (PingSize / 2);
+        IsPingVisible = true;
+
+        var mousePosX = e.Position.X.Map(0, _canvasSize.Width, 0, Constants.MapSize.Width);
+        var mousePosY = e.Position.Y.Map(0, _canvasSize.Height, 0, Constants.MapSize.Height);
+
+        _mapWindowViewModel.EnablePing(mousePosX, mousePosY);
+        _connectionManager.SendMessage(new EnablePingMessage() { X = mousePosX, Y = mousePosY });
+
+        _pingTimer.Start();
+    }
+
+    private void PingEnding(object? sender, ElapsedEventArgs e)
+    {
+        _pingTimer.Stop();
+        IsPingVisible = false;
+        _mapWindowViewModel.DisablePing();
+        _connectionManager.SendMessage(new DisablePingMessage());
+    }
+
+    private void PingFromClient(object? sender, PingEventArgs e)
+    {
+        _pingTimer.Stop();
+        PingSize = ((double)Constants.PingSize).Map(0, Constants.MapSize.Width, 0, _canvasSize.Width);
+        var canvasMousePosX = e.X.Map(0, Constants.MapSize.Width, 0, _canvasSize.Width);
+        var canvasMousePosY = e.Y.Map(0, Constants.MapSize.Height, 0, _canvasSize.Height);
+
+        PingPositionX = canvasMousePosX - (PingSize / 2);
+        PingPositionY = canvasMousePosY - (PingSize / 2);
+        IsPingVisible = true;
+
+        _mapWindowViewModel.EnablePing(e.X, e.Y);
+        _connectionManager.SendMessage(new EnablePingMessage() { X = e.X, Y = e.Y });
+
+        _pingTimer.Start();
     }
 }

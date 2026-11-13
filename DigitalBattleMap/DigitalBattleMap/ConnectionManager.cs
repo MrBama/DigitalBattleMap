@@ -32,6 +32,7 @@ public class ConnectionManager : IWebCommunication
     public event EventHandler<GetConditionsEventArgs> OnGetConditions;
     public event EventHandler<SetOrientationEventArgs> OnSetOrientation;
     public event EventHandler<SetHeightEventArgs> OnSetHeight;
+    public event EventHandler<PingEventArgs> OnPing;
 
     private bool _isConnected;
     private Queue<MapUpdate> _mapUpdateQueue = new();
@@ -133,6 +134,12 @@ public class ConnectionManager : IWebCommunication
         return Task.CompletedTask;
     }
 
+    public Task EnablePingFromClient(double x, double y)
+    {
+        OnPing?.Invoke(this, new PingEventArgs { X = x, Y = y });
+        return Task.CompletedTask;
+    }
+
     public void SendMapUpdate(MapUpdate mapUpdate)
     {
         if (!_isConnected)
@@ -195,6 +202,8 @@ public class ConnectionManager : IWebCommunication
         _webHubConnection.On<string>(nameof(GetConditions), GetConditions);
         _webHubConnection.On<string, Orientation>(nameof(SetOrientation), SetOrientation);
         _webHubConnection.On<string, int>(nameof(SetHeight), SetHeight);
+
+        _mapHubConnection.On<double, double>(nameof(EnablePingFromClient), EnablePingFromClient);
     }
 
     private void SendMessages()

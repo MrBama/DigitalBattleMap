@@ -148,3 +148,9 @@ public class TokenHealthChangedEventArgs : EventArgs
     public int UnclippedHpChange { get; set; }
     public TokenHealthChange TokenHealthChange { get; set; }
 }
+
+public class PingEventArgs : EventArgs
+{
+    public double X { get; set; }
+    public double Y { get; set; }
+}

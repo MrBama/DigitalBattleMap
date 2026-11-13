@@ -136,6 +136,7 @@
     <EmbeddedResource Include="Resources\MonsterTokens.json" />
     <EmbeddedResource Include="Resources\PauseIcon.png" />
     <EmbeddedResource Include="Resources\PlayerIcon.png" />
+    <Resource Include="Resources\Ping.gif" />
     <EmbeddedResource Include="Resources\RedoIcon.png" />
     <EmbeddedResource Include="Resources\RotateLeft.png" />
     <EmbeddedResource Include="Resources\RotateRight.png" />
@@ -159,6 +160,7 @@
     <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260627" />
     <PackageReference Include="SevenZipExtractor" Version="1.0.19" />
     <PackageReference Include="SkiaSharp" Version="4.150.1" />
+    <PackageReference Include="XamlAnimatedGif" Version="2.3.2" />
   </ItemGroup>
 
   <ItemGroup>
