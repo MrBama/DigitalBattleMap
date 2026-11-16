@@ -631,15 +631,8 @@ public class TokenControllerViewModel : ControllerViewModelBase, ITokenLinker
     // A token linked to another selected token is already moved through that link
     private bool IsMovedByLinkedToken(TokenListItem tokenListItem, List<TokenListItem> tokens)
     {
-        var tokenLink = tokenListItem.LinkableObject.GetTokenLink();
-        while (tokenLink is TokenListItem linkedToken)
-        {
-            if (tokens.Contains(linkedToken))
-                return true;
-
-            tokenLink = linkedToken.LinkableObject.GetTokenLink();
-        }
-        return false;
+        var allLinkableObjects = tokens.SelectMany(t => t.LinkedObjects);
+        return allLinkableObjects.Contains(tokenListItem.LinkableObject);
     }
 
     private void MouseLeftButtonUp(object? sender, MouseButtonDataEventArgs e)
