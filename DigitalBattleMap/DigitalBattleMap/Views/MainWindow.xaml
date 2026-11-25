@@ -194,7 +194,7 @@
                 </TabItem>
                 <TabItem Visibility="{Binding IsHexcrawlEnabled, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Collapsed}}">
                     <TabItem.Header>
-                        <Image Source="{Binding DrawingEmblemBitmapSource}" MaxHeight="35" Margin="2"/>
+                        <Image Source="{Binding HexcrawlPlayEmblemBitmapSource}" MaxHeight="35" Margin="2"/>
                     </TabItem.Header>
                     <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="10">
                         <views:HexcrawlPlayView DataContext="{Binding HexcrawlPlay}" Margin="10"/>

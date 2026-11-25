@@ -122,6 +122,7 @@
     <EmbeddedResource Include="Resources\Digits\9.png" />
     <EmbeddedResource Include="Resources\DrawingEmblem.png" />
     <EmbeddedResource Include="Resources\HexcrawlEditorEmblem.png" />
+    <EmbeddedResource Include="Resources\HexcrawlPlayEmblem.png" />
     <EmbeddedResource Include="Resources\FogEmblem.png" />
     <EmbeddedResource Include="Resources\FogIcons\Circle.png" />
     <EmbeddedResource Include="Resources\FogIcons\Cut.png" />
